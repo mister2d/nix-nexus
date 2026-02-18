@@ -1,0 +1,16 @@
+# NixOS/Flake artifacts
+result/
+.nix-profile/
+.nix-defexpr/
+
+# Lock files
+# flake.lock # Keep this if you want reproducible builds!
+
+# User-specific
+.env
+.direnv/
+
+# System specific
+hardware-configuration.nix.bak
+*.swp
+*~
