@@ -219,6 +219,10 @@ in
       };
 
       startup = [
+        # Crucial for Portals and Waybar/Pipewire initialization
+        # Export essential variables to DBus and Systemd as early as possible
+        { command = "${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland"; }
+
         { command = "kanshi"; }
         { command = "${(import ../programs/custom-scripts.nix { inherit pkgs; }).battery-alert}/bin/battery-alert"; }
         { command = "nm-applet --indicator"; }
@@ -233,12 +237,6 @@ in
 
     extraConfig = ''
       bindswitch --reload --locked lid:on exec swaylock -f -c 000000
-    '';
-
-    extraSessionCommands = ''
-      # Export essential variables to DBus and Systemd as early as possible
-      # This prevents the 2-minute portal timeout that blocks Waybar and EasyEffects
-      ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland
     '';
   };
 
