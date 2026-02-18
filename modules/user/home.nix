@@ -9,9 +9,10 @@
   ];
 
   # Home Manager State Version
-  # Defines the initial version of Home Manager used for this configuration.
-  # Do not change this unless you've thoroughly reviewed the release notes.
   home.stateVersion = "25.11";
+
+  # Enable dconf (required for EasyEffects and portals)
+  dconf.enable = true;
 
   # User Applications
   # These are applications installed specifically for the ddukes user.

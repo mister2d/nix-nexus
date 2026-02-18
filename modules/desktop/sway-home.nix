@@ -12,7 +12,17 @@ in
   wayland.windowManager.sway = {
     enable = true;
     systemd.enable = true;
-    # No wrapper needed in home-manager usually, handled by NixOS module
+    
+    # Disable the config check because it runs in a restricted sandbox
+    # that doesn't have access to DBus, causing build failures when
+    # environment commands are in the session wrapper.
+    checkConfig = false;
+
+    extraSessionCommands = ''
+      # Export essential variables to DBus and Systemd BEFORE Sway starts.
+      # This fixes the portal timeouts that cause Waybar/EasyEffects to hang.
+      ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland
+    '';
     
     config = {
       modifier = mod;
@@ -88,8 +98,8 @@ in
         "type:touchpad" = {
           tap = "enabled";
           natural_scroll = "enabled";
-	  drag = "enabled";
-	  drag_lock = "disabled";
+          drag = "enabled";
+          drag_lock = "disabled";
           dwt = "enabled";
           middle_emulation = "enabled";
           accel_profile = "adaptive";
@@ -219,10 +229,6 @@ in
       };
 
       startup = [
-        # Crucial for Portals and Waybar/Pipewire initialization
-        # Export essential variables to DBus and Systemd as early as possible
-        { command = "${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland"; }
-
         { command = "kanshi"; }
         { command = "${(import ../programs/custom-scripts.nix { inherit pkgs; }).battery-alert}/bin/battery-alert"; }
         { command = "nm-applet --indicator"; }
