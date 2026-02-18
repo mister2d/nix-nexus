@@ -7,7 +7,6 @@
 
   # XDG Desktop Portal Configuration
   # This is critical for Waybar, screen sharing (Pipewire), and GTK integration.
-  # We prioritize the 'wlr' portal for Sway compatibility.
   xdg.portal = {
     enable = true;
     wlr.enable = true;
@@ -15,15 +14,9 @@
       pkgs.xdg-desktop-portal-gtk
     ];
     config = {
-      common = {
-        default = [ "wlr" "gtk" ];
-      };
-      # We use mkForce to override the default NixOS sway portal configuration
-      sway = lib.mkForce {
-        default = [ "wlr" "gtk" ];
-        "org.freedesktop.impl.portal.Settings" = [ "gtk" ];
-        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
-      };
+      common.default = [ "wlr" "gtk" ];
+      # Use mkForce to override the default NixOS sway portal configuration
+      sway.default = lib.mkForce [ "wlr" "gtk" ];
     };
   };
 }

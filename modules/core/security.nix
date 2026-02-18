@@ -4,6 +4,9 @@
   security.rtkit.enable = true;
   security.polkit.enable = true;
   
+  # Enable dconf (required for EasyEffects and GTK portals)
+  programs.dconf.enable = true;
+
   # Custom Certificate Authority
   # Place your int_cert.crt in the 'certs' directory at the root of the repo
   security.pki.certificateFiles = [
