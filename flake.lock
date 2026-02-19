@@ -1,21 +1,5 @@
 {
   "nodes": {
-    "easyeffects-presets": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1764773894,
-        "narHash": "sha256-or5kH/vTwz7IO0Vz7W4zxK2ZcbL/P3sO9p5+EdcC2DA=",
-        "owner": "JackHack96",
-        "repo": "easyeffects-presets",
-        "rev": "d77a61eb01c36e2c794bddc25423445331e99915",
-        "type": "github"
-      },
-      "original": {
-        "owner": "JackHack96",
-        "repo": "easyeffects-presets",
-        "type": "github"
-      }
-    },
     "home-manager": {
       "inputs": {
         "nixpkgs": [
@@ -87,7 +71,6 @@
     },
     "root": {
       "inputs": {
-        "easyeffects-presets": "easyeffects-presets",
         "home-manager": "home-manager",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs",

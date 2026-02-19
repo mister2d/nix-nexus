@@ -155,14 +155,18 @@ import subprocess
 import sys
 import shutil
 
-MENU_CMD = "wofi --dmenu -i -p 'Select Audio Device'"
-if not shutil.which("wofi"):
-    MENU_CMD = "dmenu -i -p 'Select Audio Device'"
+# Leveraging absolute paths for dmenu and pactl provides a more robust and
+# self-contained audio management tool within the Nix ecosystem.
+MENU_CMD = "${pkgs.wofi}/bin/wofi --dmenu -i -p 'Select Audio Device'"
+if not shutil.which("${pkgs.wofi}/bin/wofi"):
+    MENU_CMD = "${pkgs.dmenu}/bin/dmenu -i -p 'Select Audio Device'"
+
+PA_CTL = "${pkgs.pulseaudio}/bin/pactl"
 
 
 def get_devices(dev_type):
     try:
-        cmd = f"pactl list short {dev_type}"
+        cmd = f"{PA_CTL} list short {dev_type}"
         output = subprocess.check_output(cmd, shell=True).decode()
     except Exception:
         return []
@@ -176,7 +180,7 @@ def get_devices(dev_type):
         dev_name = parts[1]
         devices.append({'id': dev_id, 'name': dev_name, 'desc': dev_name})
     try:
-        cmd_full = f"pactl list {dev_type}"
+        cmd_full = f"{PA_CTL} list {dev_type}"
         full_out = subprocess.check_output(cmd_full, shell=True).decode()
         current_id = None
         desc_map = {}
@@ -216,20 +220,20 @@ def main():
         if not selection:
             sys.exit(0)
         selected_id = selection.split(':')[0]
-        set_cmd = f"pactl set-default-{mode} {selected_id}"
+        set_cmd = f"{PA_CTL} set-default-{mode} {selected_id}"
         subprocess.run(set_cmd, shell=True, check=True)
         stream_type = "sink-inputs" if mode == "sink" else "source-outputs"
         try:
-            ls_cmd = f"pactl list short {stream_type}"
+            ls_cmd = f"{PA_CTL} list short {stream_type}"
             streams = subprocess.check_output(ls_cmd, shell=True).decode()
             for line in streams.strip().split('
 '):
                 if line:
                     stream_id = line.split('	')[0]
-                    mv_cmd = f"pactl move-{mode}-input {stream_id} {selected_id}"
+                    mv_cmd = f"{PA_CTL} move-{mode}-input {stream_id} {selected_id}"
                     if mode == "source":
                         mv_cmd = (
-                            f"pactl move-source-output "
+                            f"{PA_CTL} move-source-output "
                             f"{stream_id} {selected_id}"
                         )
                     subprocess.run(mv_cmd, shell=True)

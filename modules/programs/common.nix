@@ -20,6 +20,9 @@
     zip
     jq
     iw
+    bind.dnsutils
+    dmenu
+    pulseaudio
 
     # Browsers
     google-chrome
