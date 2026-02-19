@@ -3,12 +3,12 @@
 rec {
   battery-alert = pkgs.writeShellScriptBin "battery-alert" ''
     # Waybar Battery Alert Daemon
-    ALERT_FILE="$HOME/.config/waybar/style-alert.css"
+    ALERT_FILE="/tmp/waybar-style-alert.css"
     BATTERY_PATH=$(find /sys/class/power_supply/BAT* -print -quit)
     THRESHOLD=15
 
     cleanup() {
-        echo "" > "$ALERT_FILE"
+        echo -n "" > "$ALERT_FILE"
         ${pkgs.procps}/bin/pkill -SIGUSR2 waybar
         exit
     }
@@ -27,7 +27,7 @@ rec {
             fi
         else
             if [ -s "$ALERT_FILE" ]; then
-                echo "" > "$ALERT_FILE"
+                echo -n "" > "$ALERT_FILE"
                 ${pkgs.procps}/bin/pkill -SIGUSR2 waybar
             fi
         fi

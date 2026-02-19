@@ -214,13 +214,11 @@ in
             to { background-color: #FF0000; color: #000000; }
         }
 
-        @import "style-alert.css";
+        @import "/tmp/waybar-style-alert.css";
     '';
   };
 
-  # Handle the style-alert.css file for the battery script
-  home.file.".config/waybar/style-alert.css".text = "";
-
   # Ensure the waybar service has the correct PATH for its custom scripts
+  systemd.user.services.waybar.Service.ExecStartPre = "${pkgs.coreutils}/bin/touch /tmp/waybar-style-alert.css";
   systemd.user.services.waybar.Service.Environment = lib.mkForce "PATH=${lib.makeBinPath [ pkgs.wofi pkgs.pulseaudio pkgs.procps pkgs.coreutils pkgs.networkmanagerapplet pkgs.kdePackages.konsole ]}:/run/current-system/sw/bin";
 }
