@@ -22,6 +22,12 @@
       url = "github:cachix/pre-commit-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # MCP Server Framework
+    mcp-servers-nix = {
+      url = "github:natsukium/mcp-servers-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =

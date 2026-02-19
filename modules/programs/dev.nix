@@ -1,6 +1,13 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
+  # Add Model Control Protocol (MCP) server packages via overlay
+  nixpkgs.overlays = [ inputs.mcp-servers-nix.overlays.default ];
+
   environment = {
     systemPackages = with pkgs; [
       # Development tools
@@ -11,6 +18,10 @@
       vscodium
 
       docker-compose
+
+      # MCP Servers
+      mcp-server-fetch
+      mcp-server-git
 
       # AI Coding Agents (via npx wrappers)
       (pkgs.writeShellScriptBin "gemini" "exec npx @google/gemini-cli \"$@\"")
