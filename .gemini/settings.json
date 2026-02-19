@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "mcp-server-context7",
+      "args": []
+    },
+    "nixos-tools": {
+      "command": "mcp-server-nixos",
+      "args": []
+    },
+    "sequential-thinking": {
+      "command": "mcp-server-sequential-thinking",
+      "args": []
+    },
+    "time": {
+      "command": "mcp-server-time",
+      "args": []
+    }
+  }
+}

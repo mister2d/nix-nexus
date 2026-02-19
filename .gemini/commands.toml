@@ -1,0 +1,9 @@
+[commands.nix-check]
+description = "Run pre-commit hooks and validate the flake tree"
+prompt = """
+Please validate the current state of the Nix configuration by executing the following shell commands sequentially:
+1. Run `!nix develop --command pre-commit run --all-files` to execute the formatters (nixfmt-rfc-style) and linters (deadnix, statix).
+2. If the pre-commit hooks pass or auto-format the files successfully, run `!nix flake check` to perform a tree-wide dry-run evaluation.
+
+If any of these commands fail, analyze the terminal output, explain what caused the failure, and provide the corrected `.nix` code to fix it.
+"""
