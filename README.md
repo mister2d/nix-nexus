@@ -58,6 +58,13 @@ sudo nixos-rebuild switch --rollback
 
 ## Development Workflow
 
+### Standardized Environment (DevShell)
+The project includes a declarative development environment that automatically manages toolchains and git hooks. Entering the environment ensures all contributors use consistent formatting and linting standards.
+
+1. **Activate Environment:** `nix develop` (installs git hooks automatically)
+2. **Manual Validation:** `nix flake check` (runs all lints, formatters, and builds)
+3. **Manual Hook Run:** `pre-commit run --all-files`
+
 ### Isolated Project Environments (Devbox)
 While the `nix-nexus` framework defines the system-wide architecture, project-specific toolchains are managed using `devbox`. This keeps the global Nix store lean while providing isolated, reproducible environments for complex or bleeding-edge software (e.g., AI toolchains like `llama-cpp-vulkan`).
 

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, ... }:
+_:
 
 {
   # ThinkPad Z16 Specific Kanshi Display Profiles (Home Manager)
@@ -6,7 +6,7 @@
   services.kanshi = {
     enable = true;
     systemdTarget = "sway-session.target";
-    
+
     settings = [
       {
         profile = {

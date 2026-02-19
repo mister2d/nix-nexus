@@ -1,18 +1,20 @@
-{ config, pkgs, ... }:
+{ pkgs, ... }:
 
 {
-  security.rtkit.enable = true;
-  security.polkit.enable = true;
-  
+  security = {
+    rtkit.enable = true;
+    polkit.enable = true;
+
+    # Custom Certificate Authority
+    # Place your int_cert.crt in the 'certs' directory at the root of the repo
+    pki.certificateFiles = [
+      ../../certs/int_cert.crt
+    ];
+  };
+
   # Enable dconf (required for EasyEffects and GTK portals)
   programs.dconf.enable = true;
 
-  # Custom Certificate Authority
-  # Place your int_cert.crt in the 'certs' directory at the root of the repo
-  security.pki.certificateFiles = [
-    ../../certs/int_cert.crt
-  ];
-  
   # Enable OpenSSH
   services.openssh = {
     enable = true;

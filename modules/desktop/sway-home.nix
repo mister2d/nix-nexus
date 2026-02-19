@@ -1,4 +1,8 @@
-{ config, pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 let
   mod = "Mod4";
@@ -12,7 +16,7 @@ in
   wayland.windowManager.sway = {
     enable = true;
     systemd.enable = true;
-    
+
     # Disable the config check because it runs in a restricted sandbox
     # that doesn't have access to DBus, causing build failures when
     # environment commands are in the session wrapper.
@@ -23,7 +27,7 @@ in
       # This fixes the portal timeouts that cause Waybar/EasyEffects to hang.
       ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland
     '';
-    
+
     config = {
       modifier = mod;
       terminal = "${pkgs.kdePackages.konsole}/bin/konsole";
@@ -53,11 +57,41 @@ in
       };
 
       colors = {
-        focused = { border = active; background = bg; text = fg; indicator = active; childBorder = active; };
-        focusedInactive = { border = inactive; background = bg; text = fg; indicator = inactive; childBorder = inactive; };
-        unfocused = { border = inactive; background = bg; text = fg; indicator = inactive; childBorder = inactive; };
-        urgent = { border = urgent; background = bg; text = fg; indicator = urgent; childBorder = urgent; };
-        placeholder = { border = bg; background = bg; text = fg; indicator = bg; childBorder = bg; };
+        focused = {
+          border = active;
+          background = bg;
+          text = fg;
+          indicator = active;
+          childBorder = active;
+        };
+        focusedInactive = {
+          border = inactive;
+          background = bg;
+          text = fg;
+          indicator = inactive;
+          childBorder = inactive;
+        };
+        unfocused = {
+          border = inactive;
+          background = bg;
+          text = fg;
+          indicator = inactive;
+          childBorder = inactive;
+        };
+        urgent = {
+          border = urgent;
+          background = bg;
+          text = fg;
+          indicator = urgent;
+          childBorder = urgent;
+        };
+        placeholder = {
+          border = bg;
+          background = bg;
+          text = fg;
+          indicator = bg;
+          childBorder = bg;
+        };
         background = bg;
       };
 
@@ -82,16 +116,46 @@ in
       # Workspace assignments for sequential numbering
       # Laptop (eDP-1) gets 1-5, External (DP-1) gets 6-10
       workspaceOutputAssign = [
-        { workspace = "1"; output = "eDP-1"; }
-        { workspace = "2"; output = "eDP-1"; }
-        { workspace = "3"; output = "eDP-1"; }
-        { workspace = "4"; output = "eDP-1"; }
-        { workspace = "5"; output = "eDP-1"; }
-        { workspace = "6"; output = "DP-1"; }
-        { workspace = "7"; output = "DP-1"; }
-        { workspace = "8"; output = "DP-1"; }
-        { workspace = "9"; output = "DP-1"; }
-        { workspace = "10"; output = "DP-1"; }
+        {
+          workspace = "1";
+          output = "eDP-1";
+        }
+        {
+          workspace = "2";
+          output = "eDP-1";
+        }
+        {
+          workspace = "3";
+          output = "eDP-1";
+        }
+        {
+          workspace = "4";
+          output = "eDP-1";
+        }
+        {
+          workspace = "5";
+          output = "eDP-1";
+        }
+        {
+          workspace = "6";
+          output = "DP-1";
+        }
+        {
+          workspace = "7";
+          output = "DP-1";
+        }
+        {
+          workspace = "8";
+          output = "DP-1";
+        }
+        {
+          workspace = "9";
+          output = "DP-1";
+        }
+        {
+          workspace = "10";
+          output = "DP-1";
+        }
       ];
 
       input = {
@@ -124,7 +188,7 @@ in
         "${mod}+Down" = "focus down";
         "${mod}+Up" = "focus up";
         "${mod}+Right" = "focus right";
-        
+
         # Move (Vim + Arrow)
         "${mod}+Shift+j" = "move left";
         "${mod}+Shift+k" = "move down";
@@ -183,11 +247,12 @@ in
         # Audio Selector
         "${mod}+Shift+a" = "exec audio-selector sink";
         "${mod}+Shift+m" = "exec audio-selector source";
-        
+
         # Apps
         "${mod}+Shift+b" = "exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported";
         "${mod}+Shift+d" = "exec wdisplays";
-        "${mod}+Alt+e" = "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00FFFF' --hf '#000000' --tb '#00FFFF' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";
+        "${mod}+Alt+e" =
+          "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00FFFF' --hf '#000000' --tb '#00FFFF' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";
         "${mod}+Shift+e" = "exec swaynag -t warning -m 'Exit sway?' -b 'Yes' 'swaymsg exit'";
         "${mod}+Escape" = "exec swaylock -f -c 000000";
 
@@ -204,40 +269,54 @@ in
 
       modes = {
         resize = {
-            "j" = "resize shrink width 10 px or 10 ppt";
-            "k" = "resize grow height 10 px or 10 ppt";
-            "l" = "resize shrink height 10 px or 10 ppt";
-            "semicolon" = "resize grow width 10 px or 10 ppt";
-            "Left" = "resize shrink width 10 px or 10 ppt";
-            "Down" = "resize grow height 10 px or 10 ppt";
-            "Up" = "resize shrink height 10 px or 10 ppt";
-            "Right" = "resize grow width 10 px or 10 ppt";
-            "Return" = "mode \"default\"";
-            "Escape" = "mode \"default\"";
-            "${mod}+r" = "mode \"default\"";
+          "j" = "resize shrink width 10 px or 10 ppt";
+          "k" = "resize grow height 10 px or 10 ppt";
+          "l" = "resize shrink height 10 px or 10 ppt";
+          "semicolon" = "resize grow width 10 px or 10 ppt";
+          "Left" = "resize shrink width 10 px or 10 ppt";
+          "Down" = "resize grow height 10 px or 10 ppt";
+          "Up" = "resize shrink height 10 px or 10 ppt";
+          "Right" = "resize grow width 10 px or 10 ppt";
+          "Return" = "mode \"default\"";
+          "Escape" = "mode \"default\"";
+          "${mod}+r" = "mode \"default\"";
         };
         redshift = {
-            "a" = "exec pkill wlsunset; wlsunset -l 39.7 -L -105.0, mode \"default\"";
-            "r" = "exec pkill wlsunset, mode \"default\"";
-            "2" = "exec pkill wlsunset; wlsunset -t 2500, mode \"default\"";
-            "3" = "exec pkill wlsunset; wlsunset -t 3000, mode \"default\"";
-            "4" = "exec pkill wlsunset; wlsunset -t 4000, mode \"default\"";
-            "5" = "exec pkill wlsunset; wlsunset -t 5000, mode \"default\"";
-            "Return" = "mode \"default\"";
-            "Escape" = "mode \"default\"";
+          "a" = "exec pkill wlsunset; wlsunset -l 39.7 -L -105.0, mode \"default\"";
+          "r" = "exec pkill wlsunset, mode \"default\"";
+          "2" = "exec pkill wlsunset; wlsunset -t 2500, mode \"default\"";
+          "3" = "exec pkill wlsunset; wlsunset -t 3000, mode \"default\"";
+          "4" = "exec pkill wlsunset; wlsunset -t 4000, mode \"default\"";
+          "5" = "exec pkill wlsunset; wlsunset -t 5000, mode \"default\"";
+          "Return" = "mode \"default\"";
+          "Escape" = "mode \"default\"";
         };
       };
 
       startup = [
         { command = "kanshi"; }
-        { command = "${(import ../programs/custom-scripts.nix { inherit pkgs; }).battery-alert}/bin/battery-alert"; }
+        {
+          command = "${
+            (import ../programs/custom-scripts.nix { inherit pkgs; }).battery-alert
+          }/bin/battery-alert";
+        }
         { command = "nm-applet --indicator"; }
         { command = "wl-paste -t text --watch clipman store --no-persist"; }
       ];
 
       window.commands = [
-        { criteria = { window_role = "pop-up"; }; command = "floating enable"; }
-        { criteria = { window_type = "dialog"; }; command = "floating enable"; }
+        {
+          criteria = {
+            window_role = "pop-up";
+          };
+          command = "floating enable";
+        }
+        {
+          criteria = {
+            window_type = "dialog";
+          };
+          command = "floating enable";
+        }
       ];
     };
 
@@ -250,11 +329,21 @@ in
   services.swayidle = {
     enable = true;
     timeouts = [
-      { timeout = 600; command = "${pkgs.swaylock}/bin/swaylock -f -c 000000"; }
-      { timeout = 900; command = "${pkgs.sway}/bin/swaymsg \"output * dpms off\""; resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * dpms on\""; }
+      {
+        timeout = 600;
+        command = "${pkgs.swaylock}/bin/swaylock -f -c 000000";
+      }
+      {
+        timeout = 900;
+        command = "${pkgs.sway}/bin/swaymsg \"output * dpms off\"";
+        resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * dpms on\"";
+      }
     ];
     events = [
-      { event = "before-sleep"; command = "${pkgs.swaylock}/bin/swaylock -f -c 000000"; }
+      {
+        event = "before-sleep";
+        command = "${pkgs.swaylock}/bin/swaylock -f -c 000000";
+      }
     ];
   };
 

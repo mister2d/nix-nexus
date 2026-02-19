@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+_:
 
 {
   security.rtkit.enable = true;
@@ -8,7 +8,7 @@
     alsa.support32Bit = true;
     pulse.enable = true;
     jack.enable = true;
-    
+
     # Enable libcamera support in WirePlumber
     wireplumber.enable = true;
     wireplumber.extraConfig."10-libcamera" = {
@@ -32,7 +32,7 @@
 
   # Power management support for WirePlumber/Pipewire (Fixes UPower errors)
   services.upower.enable = true;
-  
+
   # Noise suppression
   programs.noisetorch.enable = true;
 }

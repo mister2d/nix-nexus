@@ -1,4 +1,6 @@
-{ config, pkgs, inputs, ... }:
+{
+  ...
+}:
 
 {
   imports = [
@@ -18,7 +20,7 @@
 
   # Machine-specific overrides
   networking.hostName = "sweet16";
-  
+
   # Host ID for ZFS (needs to be unique and persistent)
   networking.hostId = "efca0213";
 }

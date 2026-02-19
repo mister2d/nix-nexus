@@ -1,4 +1,8 @@
-{ config, pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   environment.sessionVariables = {
@@ -10,13 +14,19 @@
   xdg.portal = {
     enable = true;
     wlr.enable = true;
-    extraPortals = [ 
+    extraPortals = [
       pkgs.xdg-desktop-portal-gtk
     ];
     config = {
-      common.default = [ "wlr" "gtk" ];
+      common.default = [
+        "wlr"
+        "gtk"
+      ];
       # Use mkForce to override the default NixOS sway portal configuration
-      sway.default = lib.mkForce [ "wlr" "gtk" ];
+      sway.default = lib.mkForce [
+        "wlr"
+        "gtk"
+      ];
     };
   };
 }
