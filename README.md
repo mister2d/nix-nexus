@@ -56,6 +56,15 @@ NixOS retains previous generations. If a change causes issues, select an older g
 sudo nixos-rebuild switch --rollback
 ```
 
+## Development Workflow
+
+### Isolated Project Environments (Devbox)
+While the `nix-nexus` framework defines the system-wide architecture, project-specific toolchains are managed using `devbox`. This keeps the global Nix store lean while providing isolated, reproducible environments for complex or bleeding-edge software (e.g., AI toolchains like `llama-cpp-vulkan`).
+
+1. **Initialize Project:** `devbox init`
+2. **Manage Dependencies:** `devbox add <package>@latest`
+3. **Execute:** `devbox shell` (or use `direnv` for automatic loading)
+
 ## Connectivity and Security
 
 This framework prioritizes security and repository portability:

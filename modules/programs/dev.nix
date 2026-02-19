@@ -3,6 +3,7 @@
 {
   environment.systemPackages = with pkgs; [
     # Development tools
+    devbox
     python3
     nodejs
     uv

@@ -12,6 +12,10 @@
 
   services.xserver.videoDrivers = [ "amdgpu" ];
 
+  environment.systemPackages = with pkgs; [
+    nvtopPackages.amd
+  ];
+
   # Hardware Acceleration
   environment.variables = {
     # VAAPI / VDPAU
