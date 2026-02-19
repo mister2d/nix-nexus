@@ -1,89 +1,69 @@
-# Nix-Nexus: A Dendritic NixOS Configuration
+# Nix-Nexus: A Structured NixOS Configuration Framework
 
-Welcome to Nix-Nexus! This project provides a clean, branching ("dendritic") configuration for NixOS, optimized for portability and ease of use.
+Nix-Nexus is a modular, branching configuration framework for NixOS designed for portability, scalability, and ease of management. It separates system-wide logic, functional suites, and machine-specific hardware details into distinct layers.
 
-## 🏗️ Architectural Overview
+## Architectural Overview
 
-Following the **Dendritic Model**, the configuration is separated into three distinct layers of abstraction:
+The configuration follows a three-tier hierarchy to ensure concerns are properly separated:
 
-1.  **Core (Global)**: Settings that apply to *every* machine (Timezone, SSH keys, basic Nix settings).
+1.  **Core (Global)**: Settings that apply to every machine in the fleet, such as timezones, global security policies, and foundational system modules.
     -   Location: `profiles/core/`
-2.  **Profiles (Suites)**: Functional "bundles" of software and settings (e.g., `profiles/desktop`, `profiles/development`). These are hardware-agnostic.
+2.  **Profiles (Suites)**: Hardware-agnostic functional bundles of software and configuration (e.g., `profiles/desktop` for GUI environments or `profiles/development` for toolchains).
     -   Location: `profiles/`
-3.  **Hosts (The Dendritic Tip)**: Machine-specific configurations. This is where you define your specific hardware (e.g., ThinkPad Z16) and choose which functional profiles to enable.
+3.  **Hosts**: Machine-specific configurations where physical hardware is defined and specific functional profiles are enabled.
     -   Location: `hosts/`
 
-## 📁 Directory Structure
+## Directory Structure
 
 ```text
 .
-├── flake.nix               # Project entry point
+├── flake.nix               # Project entry point and dependency management
 ├── hosts/                  # Machine-specific configurations
-│   └── z16/                # ThinkPad Z16 Gen 1
-├── profiles/               # Functional suites (Suites)
-│   ├── core/               # Global settings for all machines
-│   ├── desktop/            # Sway, Wayland, Fonts, Themes
-│   ├── development/        # Dev tools, scripts, Syncthing
-│   └── hardware/           # Hardware-specific profile entries
-├── modules/                # Individual functional components
-│   ├── core/               # Boot, Networking, Security, Users, ZFS
+│   └── z16/                # ThinkPad Z16 Gen 1 definition
+├── profiles/               # Functional suites and logical groupings
+│   ├── core/               # Global system settings
+│   ├── desktop/            # Desktop environment and UI components
+│   ├── development/        # Development tools and scripts
+│   └── hardware/           # Hardware-specific profile entry points
+├── modules/                # Reusable component building blocks
+│   ├── core/               # Low-level system modules (Boot, ZFS, Users)
 │   ├── hardware/           
-│   │   └── thinkpad-z16/   # Z16 Specific Drivers & Quirks
-│   ├── desktop/            # UI components (Sway, Waybar, etc.)
-│   ├── programs/           # Software packages
+│   │   └── thinkpad-z16/   # Drivers and quirks for the Z16
+│   ├── desktop/            # UI modules (Sway, Waybar, etc.)
+│   ├── programs/           # Application-specific configurations
 │   └── user/               
-│       └── home.nix        # Home Manager (User Environment)
-└── HARDWARE-GUIDE.md       # Hardware-specific optimizations (Z16)
+│       └── home.nix        # Home Manager user environment
+└── HARDWARE-GUIDE.md       # Technical hardware reference
 ```
 
-## 🚀 Usage for Beginners
+## Getting Started
 
-### 1. Applying Changes
-If you edit your configuration, apply it with:
+### Applying Configuration
+To apply the configuration to a local machine, use the following command (substituting `#sweet16` for your specific host):
 ```bash
 sudo nixos-rebuild switch --flake .#sweet16
 ```
 
-### 2. Testing Changes
-To test a configuration without making it permanent (it will disappear after a reboot):
+### Testing Changes
+To evaluate a configuration without committing it to the boot menu:
 ```bash
 sudo nixos-rebuild test --flake .#sweet16
 ```
 
-### 3. Rolling Back
-If something breaks, you can select an older version at the boot menu, or run:
+### Rollbacks
+NixOS retains previous generations. If a change causes issues, select an older generation at boot or run:
 ```bash
 sudo nixos-rebuild switch --rollback
 ```
 
-## 🔐 Connectivity & SSID Strategy
+## Connectivity and Security
 
-This configuration is designed for security and Git-portability:
--   **SSIDs**: Not hardcoded in the Nix files to keep your configuration clean and portable.
--   **Connecting**: Use `nmtui` (terminal) or the network applet (tray icon) to connect to a new network.
--   **Persistence**: NetworkManager securely stores passwords in `/etc/NetworkManager/system-connections/` or your user's encrypted keyring. They are **never** stored in the world-readable Nix store.
+This framework prioritizes security and repository portability:
+-   **SSIDs**: Network identifiers are managed via declarative profiles but are not hardcoded with secrets to remain Git-safe.
+-   **Passwords**: NetworkManager persists credentials securely in the system keyfile or user keyring. They are never stored in the Nix store.
 
-## 🛠️ How to Add a New Machine
+## Hardware Support
 
-1.  Create a new folder in `hosts/` (e.g., `hosts/my-laptop/`).
-2.  Add your `hardware-configuration.nix` (generated during install).
-3.  Create a `default.nix` that imports the profiles you want:
-    ```nix
-    { config, pkgs, inputs, ... }:
-    {
-      imports = [
-        ./hardware-configuration.nix
-        ../../profiles/core
-        ../../profiles/desktop
-      ];
-      networking.hostName = "my-laptop";
-      networking.hostId = "generated-uuid";
-    }
-    ```
-4.  Add the new host entry to `flake.nix` under `nixosConfigurations`.
+For detailed technical information regarding optimizations for specific hardware (such as the ThinkPad Z16's OLED panel and hybrid graphics), refer to the [HARDWARE-GUIDE.md](./HARDWARE-GUIDE.md).
 
-## 💎 Hardware Optimizations
-
-For details on how we optimized the **ThinkPad Z16 Gen 1** (OLED, AMD Hybrid Graphics, Power Management), please see [HARDWARE-GUIDE.md](./HARDWARE-GUIDE.md).
-
-Enjoy your declarative, reproducible system! 🎉
+Enjoy your reproducible, structured NixOS environment.

@@ -20,6 +20,5 @@
   networking.hostName = "sweet16";
   
   # Host ID for ZFS (needs to be unique and persistent)
-  # Derived from original configuration
   networking.hostId = "efca0213";
 }

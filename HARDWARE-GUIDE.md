@@ -1,38 +1,37 @@
 # ThinkPad Z16 Gen 1: Hardware-Specific Optimizations
 
-This guide outlines the specific hardware configurations and optimizations applied for the ThinkPad Z16 Gen 1 (OLED model with hybrid AMD graphics). These settings are isolated in the `modules/hardware/thinkpad-z16/` branch of the project to ensure portability of the core system logic.
+This guide details the technical configurations and hardware optimizations applied to the ThinkPad Z16 Gen 1 (OLED model with hybrid AMD graphics). These settings are isolated within the machine-specific hardware modules to ensure the core configuration remains portable.
 
-## 🚀 Key Optimizations
+## Technical Optimizations
 
-### 1. Power Management (TLP)
-While many modern laptops use `power-profiles-daemon`, we utilize **TLP** for more granular control over the Z16's discrete Radeon 6500M GPU and PCIe ASPM states. 
--   **AMD P-State**: Optimized to use the `amd_pstate=active` driver for better power/performance balance.
--   **Battery Health**: Configured to limit charging between 75-80% to extend long-term battery lifespan.
+### 1. Power Management
+Standard power profiles are replaced by **TLP** to provide granular control over the discrete Radeon 6500M GPU and PCIe ASPM (Active State Power Management) states.
+-   **AMD P-State**: The `amd_pstate=active` driver is utilized for an optimal balance of performance and thermal efficiency.
+-   **Battery Longevity**: Charge thresholds are capped at 80% to mitigate battery degradation over time.
 
-### 2. Display & Graphics (OLED)
--   **OLED Flickering**: Includes the `amdgpu.sg_display=0` kernel parameter. This resolves a known issue on the Z16's OLED panel where flickering occurs during Wayland transitions.
--   **Hybrid Graphics**: Defaults to the integrated 680M GPU for power savings. To leverage the discrete 6500M GPU for intensive tasks (like LLM inference or development), prefix your command with `DRI_PRIME=1`.
+### 2. Graphics and Display
+-   **OLED Panel**: The `amdgpu.sg_display=0` kernel parameter is enabled to resolve a known flickering issue during Wayland compositor transitions.
+-   **Hybrid GPU Architecture**: The system defaults to the integrated Radeon 680M. Intensive workloads can be offloaded to the discrete 6500M by using the `DRI_PRIME=1` environment variable.
 
-### 3. Audio & Mic
--   **4-Speaker Setup**: Configured with **Pipewire** and SOF (Sound Open Firmware) to properly support the Z16's internal 4-speaker array.
--   **Mic LED**: Includes a systemd rule to correctly sync the Mic Mute LED with the system's actual audio-micmute state.
+### 3. Audio Stack
+-   **Multi-Speaker Support**: Integration with **PipeWire** and the Sound Open Firmware (SOF) ensures all four speakers and the digital microphone array are properly driven.
+-   **Mic Mute Indicator**: A systemd rule synchronizes the hardware LED with the software mute state.
 
-### 4. Haptic Touchpad
--   The Z16 "ForcePad" requires `libinput` tuning. The desktop configuration mimics the modern haptic feel by utilizing the `clickfinger` method.
+### 4. Input Devices
+-   **Haptic ForcePad**: Tuned via `libinput` to provide a modern, tactile response utilizing the `clickfinger` method.
 
-## 🛠️ Post-Installation Checklist
+## Post-Installation Verification
 
--   [ ] **WiFi**: Verify connectivity via `nmtui` or the network applet in the system tray.
--   [ ] **Display Scaling**: Check scaling in Sway (set to 1.25x by default for the OLED panel in `modules/user/home.nix`).
--   [ ] **GPU**: Run `glxinfo | grep "OpenGL renderer"` to ensure the AMD drivers are active.
--   [ ] **Audio**: Test speakers and mic via `pavucontrol` or similar tools.
--   [ ] **ZFS**: Verify pool health using `zpool status`.
+-   **Connectivity**: Verify network status via `nmtui` or the system tray applet.
+-   **Scaling**: Ensure the HiDPI OLED panel is correctly scaled (defaulted to 1.15 in the user profile).
+-   **Graphics**: Confirm driver initialization with `glxinfo | grep "OpenGL renderer"`.
+-   **Audio**: Validate output and input levels via `pavucontrol`.
 
-## 💎 Specific Hardware Files
-All hardware-specific logic for the ThinkPad Z16 can be found in:
--   `modules/hardware/thinkpad-z16/default.nix`: Main power and device logic.
--   `modules/hardware/thinkpad-z16/amd-gpu.nix`: Graphics drivers and Vulkan support.
--   `modules/hardware/thinkpad-z16/sound.nix`: Pipewire and audio hardware quirks.
--   `modules/hardware/thinkpad-z16/bluetooth.nix`: Bluetooth controller and power-on settings.
+## Core Hardware Modules
+The following modules contain the implementation details for these optimizations:
+-   `modules/hardware/thinkpad-z16/default.nix`: Primary power and device logic.
+-   `modules/hardware/thinkpad-z16/amd-gpu.nix`: Graphics drivers and acceleration.
+-   `modules/hardware/thinkpad-z16/sound.nix`: PipeWire and hardware quirks.
+-   `modules/hardware/thinkpad-z16/bluetooth.nix`: Controller management.
 
-For general system usage and how to apply these settings, please refer to the main [README.md](./README.md).
+For general system management, refer to the [README.md](./README.md).

@@ -98,7 +98,12 @@
   # EasyEffects Audio Presets
   # Imports community-maintained presets for superior laptop speaker response.
   # Modern EasyEffects (v7+) uses ~/.local/share instead of ~/.config for presets.
-  xdg.dataFile."easyeffects/output".source = inputs.easyeffects-presets;
+  xdg.dataFile."easyeffects/output".source = pkgs.fetchFromGitHub {
+    owner = "JackHack96";
+    repo = "easyeffects-presets";
+    rev = "master";
+    sha256 = "0c6q0bbi2zlyyq77ngzzn9qrkbf46dpfsws57g43xhykzcgn9gm2";
+  };
   
   # Wayland Session Environment
   # These variables optimize application behavior for the Wayland desktop.

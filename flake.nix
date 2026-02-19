@@ -1,5 +1,5 @@
 {
-  description = "Dendritic NixOS Configuration Framework";
+  description = "Portable NixOS Configuration Framework";
 
   inputs = {
     # Official NixOS package source - Using 25.11 for 2026 stability
@@ -16,15 +16,9 @@
 
     # Pin Google Chrome version (currently 145.0.7632.75)
     nixpkgs-chrome.url = "github:nixos/nixpkgs/fa56d7d6de78f5a7f997b0ea2bc6efd5868ad9e8";
-
-    # EasyEffects Presets for superior laptop audio
-    easyeffects-presets = {
-      url = "github:JackHack96/easyeffects-presets";
-      flake = false;
-    };
   };
 
-  outputs = { self, nixpkgs, nixos-hardware, home-manager, nixpkgs-chrome, easyeffects-presets, ... }@inputs: {
+  outputs = { self, nixpkgs, nixos-hardware, home-manager, nixpkgs-chrome, ... }@inputs: {
     nixosConfigurations = {
       # Hostname: sweet16
       sweet16 = nixpkgs.lib.nixosSystem {
