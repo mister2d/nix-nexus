@@ -1,5 +1,7 @@
 # NixOS/Flake artifacts
 result/
+result-*
+.direnv/
 .nix-profile/
 .nix-defexpr/
 
@@ -14,3 +16,10 @@ result/
 hardware-configuration.nix.bak
 *.swp
 *~
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*~
+*.sync-conflict-*

@@ -22,6 +22,7 @@
       # MCP Servers
       mcp-server-fetch
       mcp-server-git
+      mcp-nixos
       context7-mcp
       mcp-server-sequential-thinking
       mcp-server-time
