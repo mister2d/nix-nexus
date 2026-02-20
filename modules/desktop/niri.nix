@@ -12,7 +12,7 @@ in
   # Niri from Flake
   programs.niri = {
     enable = true;
-    package = inputs.niri.packages.${pkgs.system}.niri;
+    package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri;
   };
 
   # DMS from Flake, using unstable for missing dependencies like 'dgop'

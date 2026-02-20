@@ -12,6 +12,7 @@
     ../desktop/waybar-home.nix
     ../desktop/notifications.nix
     ./bash.nix
+    ./neovim-home.nix
   ];
 
   # Home Configuration
