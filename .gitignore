@@ -23,3 +23,6 @@ hardware-configuration.nix.bak
 *.swp
 *~
 *.sync-conflict-*
+
+# Ignore Gemini CLI environment settings to protect API keys
+.gemini/settings.json

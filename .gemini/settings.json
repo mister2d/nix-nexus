@@ -1,11 +1,11 @@
 {
   "mcpServers": {
     "context7": {
-      "command": "mcp-server-context7",
+      "command": "context7-mcp",
       "args": []
     },
     "nixos-tools": {
-      "command": "mcp-server-nixos",
+      "command": "mcp-nixos",
       "args": []
     },
     "sequential-thinking": {

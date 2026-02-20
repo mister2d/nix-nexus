@@ -27,6 +27,11 @@
       mcp-server-sequential-thinking
       mcp-server-time
 
+      # AWS MCP Wrappers
+      # (Adjust the npx package paths if AWS published them under specific @scopes)
+      (pkgs.writeShellScriptBin "mcp-server-aws-core" "exec npx awslabs.core-mcp-server \"$@\"")
+      (pkgs.writeShellScriptBin "mcp-server-aws-knowledge" "exec npx aws-knowledge-mcp-server \"$@\"")
+
       # AI Coding Agents (via npx wrappers)
       (pkgs.writeShellScriptBin "gemini" "exec npx @google/gemini-cli \"$@\"")
       (pkgs.writeShellScriptBin "pi-agent" "exec npx @mariozechner/pi-coding-agent \"$@\"")
