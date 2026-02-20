@@ -5,6 +5,7 @@
     ../../modules/core/boot.nix
     ../../modules/core/networking.nix
     ../../modules/core/security.nix
+    ../../modules/core/sysctl.nix
     ../../modules/core/users.nix
     ../../modules/core/zfs.nix
   ];

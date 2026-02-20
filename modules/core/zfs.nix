@@ -17,6 +17,14 @@ _:
       # We use LUKS for disk encryption, so ZFS does not need separate credentials.
       requestEncryptionCredentials = false;
     };
+
+    # ZFS Performance and Memory Tuning
+    extraModprobeConfig = ''
+      # Limit ZFS ARC to 8GB to prevent competition with application RAM
+      options zfs zfs_arc_max=8589934592
+      # Ensure ZFS leaves at least 1GB of system memory free
+      options zfs zfs_arc_sys_free=1073741824
+    '';
   };
 
   # ZFS Maintenance Services
