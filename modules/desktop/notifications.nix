@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   services.dunst = {
@@ -56,4 +56,8 @@
       };
     };
   };
+
+  # Ensure Dunst only starts during Sway sessions
+  systemd.user.services.dunst.Unit.PartOf = lib.mkForce [ "sway-session.target" ];
+  systemd.user.services.dunst.Install.WantedBy = lib.mkForce [ "sway-session.target" ];
 }

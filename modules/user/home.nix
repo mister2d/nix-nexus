@@ -8,6 +8,7 @@
 {
   imports = [
     ../desktop/sway-home.nix
+    ../desktop/niri-home.nix
     ../desktop/waybar-home.nix
     ../desktop/notifications.nix
     ./bash.nix
@@ -61,7 +62,6 @@
     # These variables optimize application behavior for the Wayland desktop.
     sessionVariables = {
       MOZ_ENABLE_WAYLAND = "1";
-      XDG_CURRENT_DESKTOP = "sway";
       SDL_VIDEODRIVER = "wayland";
       QT_QPA_PLATFORM = "wayland";
       NIXOS_OZONE_WL = "1";

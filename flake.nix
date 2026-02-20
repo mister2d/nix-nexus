@@ -5,6 +5,9 @@
     # Official NixOS package source - Using 25.11 for 2026 stability
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
 
+    # Unstable for absolute latest packages
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+
     # Hardware quirks
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
@@ -28,6 +31,12 @@
       url = "github:natsukium/mcp-servers-nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # Niri - Scrollable-tiling Wayland compositor
+    niri.url = "github:YaLTeR/niri";
+
+    # DankMaterialShell - Material Design Shell for Wayland
+    dms.url = "github:AvengeMedia/DankMaterialShell";
   };
 
   outputs =
