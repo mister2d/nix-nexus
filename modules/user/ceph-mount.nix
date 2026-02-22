@@ -103,7 +103,6 @@ let
           # Sanity check: Ceph keys are base64 and usually end in ==
           if [[ ! "$key" =~ ^[A-Za-z0-9+/]+={0,2}$ ]]; then
               echo "Warning: Extracted key does not look like valid Base64. Check your pass entry."
-              echo "Key found: $key"
           fi
 
           # 3. Pre-flight
@@ -128,7 +127,7 @@ let
           mkdir -p "$mount_point"
 
           # 4. Execute
-          # Create a temporary keyring file in /tmp (shm is better if available)
+          # Create a temporary keyring file
           local keyring_file
           keyring_file=$(mktemp)
           chmod 600 "$keyring_file"
@@ -140,17 +139,17 @@ let
           echo "Mounting $csi_path to $mount_point..."
           
           # Execute mount with explicit configuration to support unprivileged operation.
-          # - Using both positional mountpoint and --client_mountpoint for robustness.
+          # - Positional mountpoint is used for the local directory.
           # - --no-mon-config, -m, and -c /dev/null bypass system-wide config files.
           # - --run_dir and associated flags redirect runtime artifacts (sockets, logs, PIDs)
           #   to a user-owned directory, avoiding permission issues with /var/run/ceph.
+          # - Note: --client_mountpoint is omitted as it incorrectly overrides the remote path.
           ceph-fuse \
               --id "$CLIENT_ID" \
               -k "$keyring_file" \
               -c /dev/null \
               --client_mds_namespace "$fs_name" \
               -r "$csi_path" \
-              --client_mountpoint "$mount_point" \
               -m "$mons" \
               --no-mon-config \
               --run_dir "$run_dir" \
@@ -160,13 +159,13 @@ let
               "$mount_point"
 
           # Clean up the keyring file after ceph-fuse has read it
-          # ceph-fuse typically forks into background; it reads config during init
           rm -f "$keyring_file"
       }
 
       unmount_volume() {
           local alias="''${1}"
           local mount_point="$HOME/mnt/ceph/$alias"
+          local run_dir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ceph/$alias"
 
           if ! mountpoint -q "$mount_point"; then
               echo "Info: $mount_point is not a mount point."
@@ -177,6 +176,12 @@ let
           if ! fusermount3 -u "$mount_point"; then
               echo "Unmount failed. Attempting lazy unmount..."
               fusermount3 -uz "$mount_point"
+          fi
+
+          # Clean up the runtime directory
+          if [[ -d "$run_dir" ]]; then
+              echo "Cleaning up runtime directory: $run_dir"
+              rm -rf "$run_dir"
           fi
       }
 
