@@ -111,14 +111,31 @@ let
           mkdir -p "$mount_point"
 
           # 4. Execute
+          # Create a temporary keyring file in /tmp (shm is better if available)
+          local keyring_file
+          keyring_file=$(mktemp)
+          chmod 600 "$keyring_file"
+          printf "[client.%s]\n\tkey = %s\n" "$CLIENT_ID" "$key" > "$keyring_file"
+
           echo "Mounting $csi_path to $mount_point..."
+          
+          # Using both positional mountpoint and --client_mountpoint for robustness
+          # --no-mon-config is added to avoid hunting for local ceph.conf
+          # -m provides the monitor addresses directly
+          # -k specifies the temporary keyring file
           ceph-fuse \
               --id "$CLIENT_ID" \
-              --key "$key" \
+              -k "$keyring_file" \
               --client_mds_namespace "$fs_name" \
               -r "$csi_path" \
               --client_mountpoint "$mount_point" \
-              --mon_host "$mons"
+              -m "$mons" \
+              --no-mon-config \
+              "$mount_point"
+
+          # Clean up the keyring file after ceph-fuse has read it
+          # ceph-fuse typically forks into background; it reads config during init
+          rm -f "$keyring_file"
       }
 
       unmount_volume() {
