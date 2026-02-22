@@ -38,5 +38,10 @@
   };
 
   # Sudo rules
-  # security.sudo.wheelNeedsPassword = false;
+  security.sudo = {
+    # security.sudo.wheelNeedsPassword = false;
+    extraConfig = ''
+      Defaults env_keep += "EDITOR VISUAL SUDO_EDITOR"
+    '';
+  };
 }

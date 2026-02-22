@@ -211,6 +211,11 @@ in
       SDL_VIDEODRIVER = "wayland";
       QT_QPA_PLATFORM = "wayland";
       NIXOS_OZONE_WL = "1";
+
+      # Editor Configuration
+      EDITOR = "nvim";
+      VISUAL = "nvim";
+      SUDO_EDITOR = "nvim";
     };
   };
 
