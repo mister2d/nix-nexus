@@ -117,12 +117,16 @@ let
           chmod 600 "$keyring_file"
           printf "[client.%s]\n\tkey = %s\n" "$CLIENT_ID" "$key" > "$keyring_file"
 
+          local run_dir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ceph/$alias"
+          mkdir -p "$run_dir"
+
           echo "Mounting $csi_path to $mount_point..."
           
           # Using both positional mountpoint and --client_mountpoint for robustness
           # --no-mon-config is added to avoid hunting for local ceph.conf
           # -m provides the monitor addresses directly
           # -k specifies the temporary keyring file
+          # Redirecting admin_socket, log_file, and pid_file to user-owned run_dir
           ceph-fuse \
               --id "$CLIENT_ID" \
               -k "$keyring_file" \
@@ -131,6 +135,9 @@ let
               --client_mountpoint "$mount_point" \
               -m "$mons" \
               --no-mon-config \
+              --admin_socket "$run_dir/ceph-client.$CLIENT_ID.asok" \
+              --log_file "$run_dir/client.log" \
+              --pid_file "$run_dir/client.pid" \
               "$mount_point"
 
           # Clean up the keyring file after ceph-fuse has read it
