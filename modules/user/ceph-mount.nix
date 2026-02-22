@@ -177,14 +177,15 @@ in
   home.packages = [ ceph-mount-ctl ];
 
   # Default volumes configuration (placeholder as per spec)
-  xdg.configFile."ceph/volumes.json.example".text = builtins.toJSON {
-    aliases = {
-      # Placeholder entry to demonstrate schema
-      example = {
-        csi_path = "/volumes/csi/csi-vol-00000000-0000-0000-0000-000000000000";
-        cluster_id = "example-cluster";
-        fs_name = "cephfs";
-      };
-    };
-  };
+  xdg.configFile."ceph/volumes.json.example".text = ''
+    {
+      "aliases": {
+        "example": {
+          "csi_path": "/volumes/csi/csi-vol-00000000-0000-0000-0000-000000000000",
+          "cluster_id": "example-cluster",
+          "fs_name": "cephfs"
+        }
+      }
+    }
+  '';
 }
