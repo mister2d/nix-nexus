@@ -25,14 +25,6 @@
       enableSSHSupport = true;
       pinentryPackage = pkgs.pinentry-curses;
     };
-
-    # Set Neovim as the global default editor
-    neovim = {
-      enable = true;
-      defaultEditor = true;
-      viAlias = true;
-      vimAlias = true;
-    };
   };
 
   # Disable vim as the default editor to avoid conflicts
