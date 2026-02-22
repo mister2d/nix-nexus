@@ -79,14 +79,31 @@ let
               exit 1
           fi
           
-          local key mons
-          key=$(echo "$secret_data" | head -n 1)
-          # fsid=$(echo "$secret_data" | grep "fsid=" | cut -d'=' -f2) # fsid is in pass but not strictly needed for mount
-          mons=$(echo "$secret_data" | grep "mons=" | cut -d'=' -f2)
+          # Extract key: Look for 'key=' line, otherwise fallback to first line
+          local key
+          if echo "$secret_data" | grep -q "^key="; then
+              key=$(echo "$secret_data" | grep "^key=" | head -n 1 | cut -d'=' -f2-)
+          else
+              key=$(echo "$secret_data" | head -n 1)
+          fi
+
+          # Extract monitors: Look for 'mons=' or 'mon_host='
+          local mons
+          if echo "$secret_data" | grep -q "^mons="; then
+              mons=$(echo "$secret_data" | grep "^mons=" | head -n 1 | cut -d'=' -f2-)
+          elif echo "$secret_data" | grep -q "^mon_host="; then
+              mons=$(echo "$secret_data" | grep "^mon_host=" | head -n 1 | cut -d'=' -f2-)
+          fi
 
           if [[ -z "$key" || -z "$mons" ]]; then
-              echo "Error: Invalid secret format in pass. Expected key on line 1 and mons= on subsequent line."
+              echo "Error: Invalid secret format in pass. Expected key and mons= list."
               exit 1
+          fi
+
+          # Sanity check: Ceph keys are base64 and usually end in ==
+          if [[ ! "$key" =~ ^[A-Za-z0-9+/]+={0,2}$ ]]; then
+              echo "Warning: Extracted key does not look like valid Base64. Check your pass entry."
+              echo "Key found: $key"
           fi
 
           # 3. Pre-flight
