@@ -125,6 +125,7 @@ in
     ./bash.nix
     ./neovim-home.nix
     ./ceph-mount.nix
+    ./audio-effects.nix
   ];
 
   # Home Configuration
@@ -263,26 +264,8 @@ in
     ];
   };
 
-  # EasyEffects Service (managed via systemd user service)
-  services.easyeffects.enable = true;
-
-  # Override the service to launch in a 'bypassed' state (1 = enable bypass)
-  # This allows the daemon to load without immediately affecting audio until manually enabled.
-  systemd.user.services.easyeffects.Service.ExecStart =
-    lib.mkForce "${pkgs.easyeffects}/bin/easyeffects --hide-window --service-mode --bypass 1";
-
   # XDG Configuration
   xdg.dataFile = {
-    # EasyEffects Audio Presets
-    # Imports community-maintained presets for superior laptop speaker response.
-    # Modern EasyEffects (v7+) uses ~/.local/share instead of ~/.config for presets.
-    "easyeffects/output".source = pkgs.fetchFromGitHub {
-      owner = "JackHack96";
-      repo = "easyeffects-presets";
-      rev = "master";
-      sha256 = "0c6q0bbi2zlyyq77ngzzn9qrkbf46dpfsws57g43xhykzcgn9gm2";
-    };
-
     # --- Konsole Customization ---
     # Creating a custom "Graphite-OLED" theme to match the system's high-contrast
     # Graphite-teal-Dark aesthetic while taking advantage of true blacks.
