@@ -23,13 +23,22 @@
   # Machine-specific overrides
   networking.hostName = "sweet16";
 
-  environment.systemPackages = with pkgs; [
-    # Ceph client for cluster storage integration
-    (import inputs.pkgs-ceph {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).ceph-client
-  ];
+  environment.systemPackages =
+    let
+      # Use pinned Ceph input for consistency
+      ceph-pkgs = import inputs.pkgs-ceph {
+        inherit (pkgs.stdenv.hostPlatform) system;
+        config.allowUnfree = true;
+      };
+    in
+    with pkgs;
+    [
+      # Ceph Integration:
+      # - ceph: Provides 'ceph-fuse' for user-space mounts
+      # - ceph-client: Provides 'ceph', 'rados', 'rbd' and other essential tools
+      ceph-pkgs.ceph
+      ceph-pkgs.ceph-client
+    ];
 
   # Host ID for ZFS (needs to be unique and persistent)
   networking.hostId = "efca0213";

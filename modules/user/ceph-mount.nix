@@ -5,19 +5,18 @@
 }:
 
 let
-  # Ceph client from pinned input for stability
-  # Using full 'ceph' package as 'ceph-client' sub-output does not include ceph-fuse
-  ceph-pkg =
-    (import inputs.pkgs-ceph {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).ceph;
+  # Ceph packages from pinned input for stability
+  ceph-pkgs = import inputs.pkgs-ceph {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
 
   ceph-mount-ctl = pkgs.writeShellApplication {
     name = "ceph_mount_ctl";
     runtimeInputs = with pkgs; [
       jq
-      ceph-pkg
+      ceph-pkgs.ceph # Provides 'ceph-fuse'
+      ceph-pkgs.ceph-client # Provides 'ceph', 'rados', 'rbd' and other essential tools
       pass
       util-linux
       fuse3
@@ -30,7 +29,7 @@ let
       # Managed by Nix Home Manager
 
       VOLUMES_CONFIG="$HOME/.config/ceph/volumes.json"
-      CLIENT_ID="z16.ddukes" # Reverted to match user's aligned pass path
+      CLIENT_ID="z16.ddukes" # Matches the spec example
 
       show_help() {
           echo "Usage: ceph_mount_ctl [mount|unmount|list] <alias>"
