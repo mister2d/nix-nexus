@@ -26,6 +26,7 @@
       "audio"
       "input"
       "docker"
+      "fuse"
     ];
 
     # Shell: Bash (standard)

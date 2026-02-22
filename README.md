@@ -86,4 +86,6 @@ For detailed technical information regarding optimizations for specific hardware
 
 A comprehensive inventory of managed packages, version-pinned DevOps tools, and their specific use cases can be found in the [PACKAGES.md](./PACKAGES.md) guide.
 
+For information on managing remote storage and using the CephFS mount controller, refer to the [STORAGE.md](./STORAGE.md) documentation.
+
 Enjoy your reproducible, structured NixOS environment.

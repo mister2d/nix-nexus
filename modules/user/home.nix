@@ -124,6 +124,7 @@ in
     ../desktop/notifications.nix
     ./bash.nix
     ./neovim-home.nix
+    ./ceph-mount.nix
   ];
 
   # Home Configuration

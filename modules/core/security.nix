@@ -12,8 +12,20 @@
     ];
   };
 
-  # Enable dconf (required for EasyEffects and GTK portals)
-  programs.dconf.enable = true;
+  programs = {
+    # Enable FUSE for unprivileged mounting
+    fuse.userAllowOther = true;
+
+    # Enable dconf (required for EasyEffects and GTK portals)
+    dconf.enable = true;
+
+    # Enable GPG Agent
+    gnupg.agent = {
+      enable = true;
+      enableSSHSupport = true;
+      pinentryPackage = pkgs.pinentry-curses;
+    };
+  };
 
   # Enable OpenSSH
   services.openssh = {
@@ -23,13 +35,6 @@
       KbdInteractiveAuthentication = false;
       PermitRootLogin = "no";
     };
-  };
-
-  # Enable GPG Agent
-  programs.gnupg.agent = {
-    enable = true;
-    enableSSHSupport = true;
-    pinentryPackage = pkgs.pinentry-curses;
   };
 
   # Sudo rules
