@@ -21,6 +21,7 @@ You are equipped with four Model Context Protocol (MCP) servers: `context7`, `ni
    * **Option Verification:** Use `nix(action="search", query="<key>", source="home-manager")` or `source="nixos"` to validate configuration keys and data types.  
    * **Package History:** Use the `nix_versions` tool to fetch exact commit hashes for reproducible builds if needed.  
    * **Flake Inputs:** Use `nix(action="flake-inputs", type="list")` to explore local dependencies.
+5. **Documentation and comments in code generation:** Generated documentation and code comments shall always reflect the cohesive story of the entire software project and never come off as iterative.
 
 
 ## Execution Workflow
