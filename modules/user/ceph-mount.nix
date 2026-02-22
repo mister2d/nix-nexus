@@ -177,7 +177,7 @@ in
   home.packages = [ ceph-mount-ctl ];
 
   # Default volumes configuration (placeholder as per spec)
-  xdg.configFile."ceph/volumes.json".text = builtins.toJSON {
+  xdg.configFile."ceph/volumes.json.example".text = builtins.toJSON {
     aliases = {
       # Placeholder entry to demonstrate schema
       example = {
