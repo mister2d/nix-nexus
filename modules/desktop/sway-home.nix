@@ -249,7 +249,8 @@ in
         "${mod}+Shift+m" = "exec audio-selector source";
 
         # Apps
-        "${mod}+Shift+b" = "exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported";
+        "${mod}+Shift+b" =
+          "exec ${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; fi'";
         "${mod}+Shift+d" = "exec wdisplays";
         "${mod}+Alt+e" =
           "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00FFFF' --hf '#000000' --tb '#00FFFF' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";

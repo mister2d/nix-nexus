@@ -13,6 +13,12 @@
   # Allow unfree packages (e.g. vscode, google-chrome)
   nixpkgs.config.allowUnfree = true;
 
+  # Nix Package Manager Settings
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+
   # Set Timezone
   time.timeZone = "America/New_York";
 
