@@ -5,7 +5,7 @@ let
   # This provides the missing convolution data for the Z16 chassis.
   dolbyIrs = pkgs.fetchurl {
     url = "https://raw.githubusercontent.com/JackHack96/EasyEffects-Presets/master/irs/Dolby%20ATMOS%20((128K%20MP3))%201.Default.irs";
-    sha256 = "17wkh8ksw04d715j30r6b0p71h8mlyc0q3j70w6g0v4nwh1p8mcd";
+    sha256 = "sha256-9Ft1HZLFTBiGRfh/wJiGZ9WstMtvdtX+u3lVY3JCVAM=";
   };
 
   # 2. Output Pipeline (Dolby Atmos Convolution + Bass Enhancer)
