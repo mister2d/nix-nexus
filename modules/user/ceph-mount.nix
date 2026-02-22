@@ -127,6 +127,7 @@ let
           # -m provides the monitor addresses directly
           # -k specifies the temporary keyring file
           # Redirecting admin_socket, log_file, and pid_file to user-owned run_dir
+          # --client_run_dir is the "silver bullet" for unprivileged initialization
           ceph-fuse \
               --id "$CLIENT_ID" \
               -k "$keyring_file" \
@@ -135,6 +136,7 @@ let
               --client_mountpoint "$mount_point" \
               -m "$mons" \
               --no-mon-config \
+              --client_run_dir "$run_dir" \
               --admin_socket "$run_dir/ceph-client.$CLIENT_ID.asok" \
               --log_file "$run_dir/client.log" \
               --pid_file "$run_dir/client.pid" \
