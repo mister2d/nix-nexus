@@ -19,7 +19,8 @@ let
       ceph-pkgs.ceph-client # Provides 'ceph', 'rados', 'rbd' and other essential tools
       pass
       util-linux
-      fuse # Provides 'fusermount' (required as ceph-fuse is built against FUSE 2)
+      fuse # Provides 'fusermount'
+      fuse3 # Provides 'fusermount3'
       iputils
       gnugrep
       coreutils
@@ -143,7 +144,6 @@ let
           # - --no-mon-config, -m, and -c /dev/null bypass system-wide config files.
           # - --run_dir and associated flags redirect runtime artifacts (sockets, logs, PIDs)
           #   to a user-owned directory, avoiding permission issues with /var/run/ceph.
-          # - Note: --client_mountpoint is omitted as it incorrectly overrides the remote path.
           ceph-fuse \
               --id "$CLIENT_ID" \
               -k "$keyring_file" \
@@ -166,22 +166,50 @@ let
           local alias="''${1}"
           local mount_point="$HOME/mnt/ceph/$alias"
           local run_dir="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/ceph/$alias"
+          local pid_file="$run_dir/client.pid"
 
           if ! mountpoint -q "$mount_point"; then
               echo "Info: $mount_point is not a mount point."
+              rm -rf "$run_dir" 2>/dev/null || true
               return
           fi
 
           echo "Unmounting $mount_point..."
-          # Switch to 'fusermount' as 'ceph-fuse' in the squid branch is still 
-          # linked against FUSE 2.9 on NixOS.
-          if ! fusermount -u "$mount_point"; then
-              echo "Unmount failed. Attempting lazy unmount..."
-              fusermount -uz "$mount_point"
+
+          # 1. Graceful Process Termination (Bypasses FUSE permission shadowing)
+          if [[ -f "$pid_file" ]]; then
+              local pid
+              pid=$(cat "$pid_file")
+              echo "Sending termination signal to ceph-fuse (PID: $pid)..."
+              if kill -SIGTERM "$pid" 2>/dev/null; then
+                  # Wait up to 5 seconds for clean teardown
+                  for _ in {1..10}; do
+                      if ! mountpoint -q "$mount_point"; then
+                          echo "Successfully unmounted."
+                          break
+                      fi
+                      sleep 0.5
+                  done
+              fi
           fi
 
-          # Clean up the runtime directory
-          if [[ -d "$run_dir" ]]; then
+          # 2. Fallback to FUSE tools if the process was already dead or signal failed
+          if mountpoint -q "$mount_point"; then
+              echo "Process did not exit, attempting fusermount tools..."
+              # Try both fusermount3 and fusermount for compatibility
+              if ! fusermount3 -u "$mount_point" 2>/dev/null; then
+                  fusermount -u "$mount_point" 2>/dev/null || true
+              fi
+          fi
+
+          # 3. Nuclear option (requires sudo if standard tools fail)
+          if mountpoint -q "$mount_point"; then
+              echo "Warning: Unmount stuck. Attempting sudo lazy unmount..."
+              sudo umount -l "$mount_point"
+          fi
+
+          # 4. Clean up the runtime artifacts
+          if ! mountpoint -q "$mount_point" && [[ -d "$run_dir" ]]; then
               echo "Cleaning up runtime directory: $run_dir"
               rm -rf "$run_dir"
           fi

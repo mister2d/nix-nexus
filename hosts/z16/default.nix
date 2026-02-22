@@ -15,6 +15,9 @@
     # Core System Profile (Every machine gets this)
     ../../profiles/core
 
+    # Ceph Integration
+    ../../modules/core/ceph.nix
+
     # Functional Profiles (Suites)
     ../../profiles/desktop
     ../../profiles/development
