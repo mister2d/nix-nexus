@@ -174,6 +174,7 @@ in
       signalbackup-tools-pkg
 
       # Desktop Utilities
+      alsa-utils # Provides alsamixer
       wdisplays # Display management for Wayland
       pavucontrol # PulseAudio/PipeWire volume control
       brightnessctl # Screen brightness control
