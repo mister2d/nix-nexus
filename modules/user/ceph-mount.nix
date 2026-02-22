@@ -6,11 +6,12 @@
 
 let
   # Ceph client from pinned input for stability
+  # Using full 'ceph' package as 'ceph-client' sub-output does not include ceph-fuse
   ceph-pkg =
     (import inputs.pkgs-ceph {
       inherit (pkgs.stdenv.hostPlatform) system;
       config.allowUnfree = true;
-    }).ceph-client;
+    }).ceph;
 
   ceph-mount-ctl = pkgs.writeShellApplication {
     name = "ceph_mount_ctl";
@@ -29,7 +30,7 @@ let
       # Managed by Nix Home Manager
 
       VOLUMES_CONFIG="$HOME/.config/ceph/volumes.json"
-      CLIENT_ID="z16.ddukes" # Matches the spec example
+      CLIENT_ID="z16.ddukes" # Reverted to match user's aligned pass path
 
       show_help() {
           echo "Usage: ceph_mount_ctl [mount|unmount|list] <alias>"
