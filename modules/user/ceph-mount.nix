@@ -25,7 +25,7 @@ let
       coreutils
     ];
     text = ''
-      # Sovereign CephFS User-Space Mount Controller
+      # CephFS User-Space Mount Controller
       # Managed by Nix Home Manager
 
       VOLUMES_CONFIG="$HOME/.config/ceph/volumes.json"
@@ -124,19 +124,20 @@ let
           
           # Execute mount with explicit configuration to support unprivileged operation.
           # - Using both positional mountpoint and --client_mountpoint for robustness.
-          # - --no-mon-config and -m bypasses the need for a local /etc/ceph/ceph.conf.
-          # - --client_run_dir and associated flags redirect runtime artifacts (sockets, logs, PIDs)
+          # - --no-mon-config, -m, and -c /dev/null bypass system-wide config files.
+          # - --run_dir and associated flags redirect runtime artifacts (sockets, logs, PIDs)
           #   to a user-owned directory, avoiding permission issues with /var/run/ceph.
           ceph-fuse \
               --id "$CLIENT_ID" \
               -k "$keyring_file" \
+              -c /dev/null \
               --client_mds_namespace "$fs_name" \
               -r "$csi_path" \
               --client_mountpoint "$mount_point" \
               -m "$mons" \
               --no-mon-config \
-              --client_run_dir "$run_dir" \
-              --admin_socket "$run_dir/ceph-client.$CLIENT_ID.asok" \
+              --run_dir "$run_dir" \
+              --admin_socket "$run_dir/admin.asok" \
               --log_file "$run_dir/client.log" \
               --pid_file "$run_dir/client.pid" \
               "$mount_point"

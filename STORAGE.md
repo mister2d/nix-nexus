@@ -1,6 +1,6 @@
 # Storage & Cluster Integration
 
-This document outlines the tools and procedures for interacting with remote storage clusters, specifically CephFS, using the sovereign mount controller.
+This document outlines the tools and procedures for interacting with remote storage clusters, specifically CephFS, using the user-space mount controller.
 
 ## CephFS User-Space Mount Controller (`ceph_mount_ctl`)
 
