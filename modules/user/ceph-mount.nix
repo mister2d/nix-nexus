@@ -19,7 +19,7 @@ let
       ceph-pkgs.ceph-client # Provides 'ceph', 'rados', 'rbd' and other essential tools
       pass
       util-linux
-      fuse3
+      fuse # Provides 'fusermount' (required as ceph-fuse is built against FUSE 2)
       iputils
       gnugrep
       coreutils
@@ -173,9 +173,11 @@ let
           fi
 
           echo "Unmounting $mount_point..."
-          if ! fusermount3 -u "$mount_point"; then
+          # Switch to 'fusermount' as 'ceph-fuse' in the squid branch is still 
+          # linked against FUSE 2.9 on NixOS.
+          if ! fusermount -u "$mount_point"; then
               echo "Unmount failed. Attempting lazy unmount..."
-              fusermount3 -uz "$mount_point"
+              fusermount -uz "$mount_point"
           fi
 
           # Clean up the runtime directory
