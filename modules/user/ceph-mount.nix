@@ -122,12 +122,11 @@ let
 
           echo "Mounting $csi_path to $mount_point..."
           
-          # Using both positional mountpoint and --client_mountpoint for robustness
-          # --no-mon-config is added to avoid hunting for local ceph.conf
-          # -m provides the monitor addresses directly
-          # -k specifies the temporary keyring file
-          # Redirecting admin_socket, log_file, and pid_file to user-owned run_dir
-          # --client_run_dir is the "silver bullet" for unprivileged initialization
+          # Execute mount with explicit configuration to support unprivileged operation.
+          # - Using both positional mountpoint and --client_mountpoint for robustness.
+          # - --no-mon-config and -m bypasses the need for a local /etc/ceph/ceph.conf.
+          # - --client_run_dir and associated flags redirect runtime artifacts (sockets, logs, PIDs)
+          #   to a user-owned directory, avoiding permission issues with /var/run/ceph.
           ceph-fuse \
               --id "$CLIENT_ID" \
               -k "$keyring_file" \
