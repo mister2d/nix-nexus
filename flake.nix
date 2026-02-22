@@ -37,6 +37,18 @@
 
     # DankMaterialShell - Material Design Shell for Wayland
     dms.url = "github:AvengeMedia/DankMaterialShell";
+
+    # Nixvim - Neovim configuration via Nix
+    nixvim.url = "github:nix-community/nixvim/nixos-25.11";
+
+    # Pinned package versions
+    pkgs-nomad.url = "github:nixos/nixpkgs/ae67888ff7ef9dff69b3cf0cc0fbfbcd3a722abe";
+    pkgs-hashicorp.url = "github:nixos/nixpkgs/a1bab9e494f5f4939442a57a58d0449a109593fe"; # vault, consul, helm, envsubst, ipmitool
+    pkgs-terraform.url = "github:nixos/nixpkgs/7d2ae6d8b8b697b5114a4249d0d958ee5f23d8fe"; # terraform, mqtt-explorer, prusa-slicer, super-slicer
+    pkgs-talos.url = "github:nixos/nixpkgs/ee09932cedcef15aaf476f9343d1dea2cb77e261"; # talosctl, tflint, omnictl, signalbackup, kubelogin-oidc, kubectl-rook-ceph
+    pkgs-vlc.url = "github:nixos/nixpkgs/41965737c1797c1d83cfb0b644ed0840a6220bd1";
+    pkgs-apps.url = "github:nixos/nixpkgs/f665af0cdb70ed27e1bd8f9fdfecaf451260fc55"; # meld, butane
+    pkgs-ceph.url = "github:nixos/nixpkgs/d1c15b7d5806069da59e819999d70e1cec0760bf";
   };
 
   outputs =
@@ -46,6 +58,7 @@
       nixos-hardware,
       home-manager,
       pre-commit-hooks,
+      nixvim,
       ...
     }@inputs:
     let
@@ -105,6 +118,7 @@
                 };
                 users.ddukes = {
                   imports = [
+                    nixvim.homeModules.nixvim
                     ./modules/user/home.nix
                     ./modules/hardware/thinkpad-z16/kanshi-home.nix
                   ];

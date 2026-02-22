@@ -82,4 +82,8 @@ This framework prioritizes security and repository portability:
 
 For detailed technical information regarding optimizations for specific hardware (such as the ThinkPad Z16's OLED panel and hybrid graphics), refer to the [HARDWARE-GUIDE.md](./HARDWARE-GUIDE.md).
 
+## Software and Toolchains
+
+A comprehensive inventory of managed packages, version-pinned DevOps tools, and their specific use cases can be found in the [PACKAGES.md](./PACKAGES.md) guide.
+
 Enjoy your reproducible, structured NixOS environment.

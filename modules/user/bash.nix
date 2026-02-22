@@ -24,6 +24,14 @@ _:
     historySize = 100000000;
     historyFileSize = 100000000;
 
+    # Shell Options (Nix way)
+    shellOptions = [
+      "histappend"
+      "extglob"
+      "globstar"
+      "checkjobs"
+    ];
+
     # Prompt and Custom Logic
     initExtra = ''
             # ------------------------------------------------------------------

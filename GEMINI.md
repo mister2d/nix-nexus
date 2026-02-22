@@ -8,9 +8,9 @@ This repository manages a scalable, dendritic NixOS flake configuration. The dec
 * **Workstations:** Mobile development machines (e.g., ThinkPad Z16 Gen 1 with AMD discrete graphics).
 
 ## AI Agent Directives: Tool Usage Strategy
-You are equipped with four Model Context Protocol (MCP) servers: `context7`, `nixos-tools`, `sequential-thinking`, `time`, `git`, and `fetch`. Before generating or modifying any `.nix` code, strictly follow this sequence:
+You are equipped with four Model Context Protocol (MCP) servers: `context7`, `nixos-tools`, `time`, `git`, and `fetch`. Before generating or modifying any `.nix` code, strictly follow this sequence:
 
-1. **Strategic Planning (`sequential-thinking`):** - Break down complex tasks (e.g., refactoring a module, resolving dependencies, hardware integration) step-by-step before writing code.
+1. **Strategic Planning:** - Break down complex tasks (e.g., refactoring a module, resolving dependencies, hardware integration) step-by-step before writing code.
 2. **Context & Repository Analysis (`git` & `fetch`):** - Use the `git` tool to review the current repository state, recent commits, or your own working tree diffs to ensure code changes align with existing patterns.  
    * Use the `fetch` tool to read the contents of any specific web URLs the user provides in their prompt.  
 3. **Knowledge Retrieval (`time`, `context7` & `nixos-tools`):** - Check the `time` tool to anchor your understanding of current software releases.  

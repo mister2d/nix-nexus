@@ -5,6 +5,117 @@
   ...
 }:
 
+let
+  # Versioned package helpers
+  nomad-pkg =
+    (import inputs.pkgs-nomad {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).nomad;
+  vault-pkg =
+    (import inputs.pkgs-hashicorp {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).vault;
+  consul-pkg =
+    (import inputs.pkgs-hashicorp {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).consul;
+  terraform-pkg =
+    (import inputs.pkgs-terraform {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).terraform;
+  omnictl-pkg =
+    (import inputs.pkgs-talos {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).omnictl;
+  talosctl-pkg =
+    (import inputs.pkgs-talos {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).talosctl;
+  meld-pkg =
+    (import inputs.pkgs-apps {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).meld;
+  helm-pkg =
+    (import inputs.pkgs-hashicorp {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).kubernetes-helm;
+  butane-pkg =
+    (import inputs.pkgs-apps {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).butane;
+  envsubst-pkg =
+    (import inputs.pkgs-hashicorp {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).envsubst;
+  tflint-pkg =
+    (import inputs.pkgs-talos {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).tflint;
+
+  # Kubernetes tools
+  kubelogin-oidc-pkg =
+    (import inputs.pkgs-talos {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).kubelogin-oidc;
+  kubectl-rook-ceph-pkg =
+    (import inputs.pkgs-talos {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).kubectl-rook-ceph;
+
+  # Environment packages
+  ipmitool-pkg =
+    (import inputs.pkgs-hashicorp {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).ipmitool;
+  mqtt-explorer-pkg =
+    (import inputs.pkgs-terraform {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).mqtt-explorer;
+  super-slicer-pkg =
+    (import inputs.pkgs-terraform {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).super-slicer;
+  prusa-slicer-pkg =
+    (import inputs.pkgs-terraform {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).prusa-slicer;
+  vlc-pkg =
+    (import inputs.pkgs-vlc {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).vlc;
+  signalbackup-tools-pkg =
+    (import inputs.pkgs-talos {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).signalbackup-tools;
+
+  # Handle slicer conflicts by joining them with symlinkJoin
+  slicers = pkgs.symlinkJoin {
+    name = "slicers";
+    paths = [
+      prusa-slicer-pkg
+      super-slicer-pkg
+    ];
+  };
+in
 {
   imports = [
     ../desktop/sway-home.nix
@@ -19,6 +130,11 @@
   home = {
     stateVersion = "25.11";
 
+    # Add $HOME/bin to user's PATH
+    sessionPath = [
+      "$HOME/bin"
+    ];
+
     # User Applications
     # These are applications installed specifically for the ddukes user.
     packages = with pkgs; [
@@ -27,6 +143,34 @@
         inherit (pkgs.stdenv.hostPlatform) system;
         config.allowUnfree = true;
       }).google-chrome
+
+      # --- User Requested Versions ---
+      nomad-pkg
+      vault-pkg
+      consul-pkg
+      terraform-pkg
+      omnictl-pkg
+      talosctl-pkg
+      meld-pkg
+      helm-pkg
+      butane-pkg
+      envsubst-pkg
+      tflint-pkg
+      freelens-bin
+
+      # --- Kubernetes Tools ---
+      kubelogin-oidc-pkg
+      kubectl-rook-ceph-pkg
+      kubectl-doctor
+
+      # --- Environment Tools ---
+      krita
+      ipmitool-pkg
+      mqtt-explorer-pkg
+      slicers
+      vlc-pkg
+      signal-desktop-bin
+      signalbackup-tools-pkg
 
       # Desktop Utilities
       wdisplays # Display management for Wayland

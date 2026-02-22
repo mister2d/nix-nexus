@@ -1,65 +1,141 @@
 { pkgs, ... }:
 
 {
-  programs.neovim = {
+  programs.nixvim = {
     enable = true;
+    defaultEditor = true;
+
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
 
-    # Basic configuration from the user's .vimrc
-    extraConfig = ''
-      " --- Basic Options ---
-      set paste
-      set bg=dark
-      set expandtab
-      set tabstop=2
-      set shiftwidth=2
+    # --- Core Options (The Nix Way) ---
+    opts = {
+      # Legacy behavior
+      background = "dark";
+      expandtab = true;
+      shiftwidth = 2;
+      tabstop = 2;
+      smartindent = true;
 
-      " 'set number
-      " 'set relativenumber
+      # Navigation & UI
+      number = false; # Follows legacy preference
+      relativenumber = false;
+      cursorline = true;
+      scrolloff = 8;
+      termguicolors = true;
 
-      " --- Navigation ---
-      " Fast vertical navigation - 8 lines at a time
-      nnoremap <C-j> 8j
-      nnoremap <C-k> 8k
-      vnoremap <C-j> 8j
-      vnoremap <C-k> 8k
+      # Mouse & Selection Fix
+      # By setting mouse to empty, we allow the terminal emulator to handle
+      # selection (I-bar cursor) and copy/paste without Neovim capturing it.
+      mouse = "";
+    };
 
-      " Half-page jumps with centered cursor
-      nnoremap <C-d> <C-d>zz
-      nnoremap <C-u> <C-u>zz
-
-      " --- Tree-sitter Configuration ---
-      " Enables advanced parsing and syntax highlighting for HCL and Nix.
-      lua << EOF
-      require'nvim-treesitter.configs'.setup {
-        highlight = {
-          enable = true,
-          additional_vim_regex_highlighting = false,
-        },
-        indent = {
-          enable = true
-        }
+    # --- Keymaps (The Nix Way) ---
+    keymaps = [
+      # Legacy navigation
+      {
+        mode = "n";
+        key = "<C-d>";
+        action = "<C-d>zz";
       }
-      EOF
-    '';
-
-    # Plugins for syntax highlighting and parsing
-    plugins = with pkgs.vimPlugins; [
-      # Standard Nix support (indentation, etc.)
-      vim-nix
-
-      # Tree-sitter for modern parsing/highlighting
-      (nvim-treesitter.withPlugins (p: [
-        p.nix
-        p.hcl
-        p.terraform
-        p.bash
-        p.lua
-        p.markdown
-        p.vim
-      ]))
+      {
+        mode = "n";
+        key = "<C-u>";
+        action = "<C-u>zz";
+      }
+      {
+        mode = [
+          "n"
+          "v"
+        ];
+        key = "<C-j>";
+        action = "8j";
+      }
+      {
+        mode = [
+          "n"
+          "v"
+        ];
+        key = "<C-k>";
+        action = "8k";
+      }
     ];
+
+    # --- Plugins ---
+    plugins = {
+      # LSP Support for requested languages
+      lsp = {
+        enable = true;
+        servers = {
+          # Nix configuration
+          nixd.enable = true;
+          # HCL / Terraform / Nomad
+          terraformls.enable = true;
+          # Config formats
+          yamlls.enable = true;
+          jsonls.enable = true;
+          taplo.enable = true; # TOML
+          # Shell scripting
+          bashls.enable = true;
+        };
+      };
+
+      # Completion Engine
+      cmp = {
+        enable = true;
+        settings = {
+          autoEnableSources = true;
+          sources = [
+            { name = "nvim_lsp"; }
+            { name = "path"; }
+            { name = "buffer"; }
+            { name = "luasnip"; }
+          ];
+          mapping = {
+            "C-Space" = "cmp.mapping.complete()";
+            "C-d" = "cmp.mapping.scroll_docs(-4)";
+            "C-f" = "cmp.mapping.scroll_docs(4)";
+            "C-e" = "cmp.mapping.close()";
+            "CR" = "cmp.mapping.confirm({ select = true })";
+            "Tab" = "cmp.mapping(cmp.mapping.select_next_item(), {'i', 's'})";
+            "S-Tab" = "cmp.mapping(cmp.mapping.select_prev_item(), {'i', 's'})";
+          };
+        };
+      };
+      cmp-nvim-lsp.enable = true;
+      cmp-buffer.enable = true;
+      cmp-path.enable = true;
+      cmp_luasnip.enable = true;
+
+      # Modern Syntax Highlighting
+      treesitter = {
+        enable = true;
+        settings = {
+          highlight.enable = true;
+          indent.enable = true;
+        };
+      };
+
+      # Productivity & Modern Tools
+      telescope.enable = true;
+      lualine.enable = true;
+      neo-tree.enable = true;
+      gitsigns.enable = true;
+      which-key.enable = true;
+      web-devicons.enable = true;
+    };
+
+    # Custom logic for Nomad & K8s
+    # We add these as extra plugins if they exist in nixpkgs,
+    # or fallback to general HCL/LSP support.
+    extraPlugins = with pkgs.vimPlugins; [
+      # Standard syntax for Nomad
+      (pkgs.vimPlugins.vim-nomad or pkgs.vimPlugins.vim-nix) # Fallback if not found
+    ];
+
+    extraConfigLua = ''
+      -- Additional Lua config if needed
+    '';
   };
 }
