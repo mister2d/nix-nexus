@@ -80,12 +80,14 @@ _:
 
             PROMPT_COMMAND=set_bash_prompt
 
-            # HashiCorp Completions
-            complete -C "$HOME/bin/vault" vault
-            complete -C "$HOME/bin/waypoint" waypoint
-            complete -C "$HOME/bin/boundary" boundary
-            complete -C "$HOME/bin/consul" consul
-            complete -C "$HOME/bin/nomad" nomad
+            # HashiCorp Completions (Dynamic Nix Paths)
+            # These are only enabled if the packages are available in the current profile.
+            # We use 'command -v' to find the actual location in the Nix store.
+            for cmd in vault boundary consul nomad; do
+              if command -v "$cmd" >/dev/null 2>&1; then
+                complete -C "$(command -v "$cmd")" "$cmd"
+              fi
+            done
 
             # Load legacy Aliases if they exist
             test -s ~/.alias && . ~/.alias || true
