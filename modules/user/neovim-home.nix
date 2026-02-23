@@ -32,6 +32,11 @@
     };
 
     # --- Keymaps (The Nix Way) ---
+    colorschemes.nightfox = {
+      enable = true;
+      flavor = "carbonfox";
+    };
+
     keymaps = [
       # Legacy navigation
       {
