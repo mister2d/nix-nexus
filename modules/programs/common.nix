@@ -6,7 +6,6 @@
     curl
     git
     htop
-    btop
     pciutils
     usbutils
     lshw

@@ -224,6 +224,18 @@ in
     };
   };
 
+  # Resource Monitor
+  programs.btop = {
+    enable = true;
+    # Enable ROCm SMI support for AMD GPU monitoring
+    package = pkgs.btop.override { rocmSupport = true; };
+    settings = {
+      color_theme = "TTY";
+      theme_background = false;
+      show_gpu_info = true;
+    };
+  };
+
   # Enable dconf (required for EasyEffects and portals)
   dconf.enable = true;
 

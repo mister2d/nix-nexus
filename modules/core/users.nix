@@ -27,6 +27,7 @@
       "input"
       "docker"
       "fuse"
+      "render"
     ];
 
     # Shell: Bash (standard)
