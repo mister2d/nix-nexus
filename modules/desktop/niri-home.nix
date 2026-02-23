@@ -29,10 +29,11 @@
     spawn-at-startup "${pkgs.kanshi}/bin/kanshi"
     spawn-at-startup "${pkgs.networkmanagerapplet}/bin/nm-applet" "--indicator"
     spawn-at-startup "${pkgs.wlsunset}/bin/wlsunset" "-l" "40" "-L" "-74"
+    spawn-at-startup "dms-shell"
 
     binds {
         Mod+Return { spawn "${pkgs.kdePackages.konsole}/bin/konsole"; }
-        Mod+D { spawn "${pkgs.wofi}/bin/wofi" "--show" "drun"; }
+        Mod+D { spawn "dms-shell" "--toggle-launcher"; }
         Mod+Shift+E { quit; }
         Mod+Q { close-window; }
 
