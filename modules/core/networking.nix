@@ -1,10 +1,12 @@
-{ config, ... }:
+{ config, pkgs, ... }:
 
 {
   # Network Management
   networking = {
     networkmanager = {
       enable = true;
+      # Use systemd-resolved as the DNS backend for NetworkManager
+      dns = "systemd-resolved";
 
       # WiFi Persistence Posture
       # SSIDs are defined here to be declaratively managed and restricted to the user.
@@ -70,5 +72,32 @@
   };
 
   # Tailscale (Mesh VPN)
-  services.tailscale.enable = true;
+  services.tailscale = {
+    enable = true;
+    useRoutingFeatures = "client";
+  };
+
+  # Use systemd-resolved for DNS management
+  services.resolved.enable = true;
+
+  # Autoconnect and Accept Routes
+  systemd.services.tailscale-autoconnect = {
+    description = "Automatic Tailscale up with route acceptance";
+    after = [
+      "network-pre.target"
+      "tailscaled.service"
+      "resolved.service"
+    ];
+    wants = [
+      "network-pre.target"
+      "tailscaled.service"
+      "resolved.service"
+    ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      ExecStart = "${pkgs.tailscale}/bin/tailscale up --accept-routes --accept-dns";
+      RemainAfterExit = true;
+    };
+  };
 }
