@@ -22,7 +22,6 @@
     pulseaudio
 
     # Browsers
-    google-chrome
     librewolf
 
     # Utilities

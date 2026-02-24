@@ -32,6 +32,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # AI Coding Agents (including pi and gemini-cli)
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Niri - Scrollable-tiling Wayland compositor
     niri.url = "github:YaLTeR/niri";
 

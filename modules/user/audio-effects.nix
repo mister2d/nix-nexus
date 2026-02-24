@@ -22,11 +22,11 @@ let
           bypass = false;
           input-gain = 0.0;
           ir-width = 100;
-          kernel-path = "${dolbyIrs}";
+          kernel-path = "dolby_atmos.irs";
           output-gain = 0.0;
         };
         bass_enhancer = {
-          amount = 4.0;
+          amount = 0.5;
           blend = -1.0;
           bypass = false;
           floor-active = true;

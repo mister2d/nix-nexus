@@ -6,75 +6,6 @@
 }:
 
 let
-  # Versioned package helpers
-  nomad-pkg =
-    (import inputs.pkgs-nomad {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).nomad;
-  vault-pkg =
-    (import inputs.pkgs-hashicorp {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).vault;
-  consul-pkg =
-    (import inputs.pkgs-hashicorp {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).consul;
-  terraform-pkg =
-    (import inputs.pkgs-terraform {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).terraform;
-  omnictl-pkg =
-    (import inputs.pkgs-talos {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).omnictl;
-  talosctl-pkg =
-    (import inputs.pkgs-talos {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).talosctl;
-  meld-pkg =
-    (import inputs.pkgs-apps {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).meld;
-  helm-pkg =
-    (import inputs.pkgs-hashicorp {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).kubernetes-helm;
-  butane-pkg =
-    (import inputs.pkgs-apps {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).butane;
-  envsubst-pkg =
-    (import inputs.pkgs-hashicorp {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).envsubst;
-  tflint-pkg =
-    (import inputs.pkgs-talos {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).tflint;
-
-  # Kubernetes tools
-  kubelogin-oidc-pkg =
-    (import inputs.pkgs-talos {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).kubelogin-oidc;
-  kubectl-rook-ceph-pkg =
-    (import inputs.pkgs-talos {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).kubectl-rook-ceph;
-
   # Environment packages
   ipmitool-pkg =
     (import inputs.pkgs-hashicorp {
@@ -145,25 +76,6 @@ in
         inherit (pkgs.stdenv.hostPlatform) system;
         config.allowUnfree = true;
       }).google-chrome
-
-      # --- User Requested Versions ---
-      nomad-pkg
-      vault-pkg
-      consul-pkg
-      terraform-pkg
-      omnictl-pkg
-      talosctl-pkg
-      meld-pkg
-      helm-pkg
-      butane-pkg
-      envsubst-pkg
-      tflint-pkg
-      freelens-bin
-
-      # --- Kubernetes Tools ---
-      kubelogin-oidc-pkg
-      kubectl-rook-ceph-pkg
-      kubectl-doctor
 
       # --- Environment Tools ---
       krita
