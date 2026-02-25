@@ -81,7 +81,6 @@ in
     # Languages and interpreters should be managed via project-specific
     # flakes or dev shells with direnv.
     devbox
-    uv
     vscodium
     docker-compose
 
