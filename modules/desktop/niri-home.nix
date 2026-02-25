@@ -18,10 +18,25 @@
     };
 
     layout = {
-      gaps = 8;
+      gaps = 8.0; # Using float for niri-flake schema
       default-column-width.proportion = 0.5;
     };
 
+    # Layer rules for dms-shell components.
+    # These are critical for making the shell appear and render over windows correctly.
+    layer-rules = [
+      {
+        matches = [ { namespace = "^quickshell$"; } ];
+        place-within-backdrop = true;
+      }
+      {
+        matches = [ { namespace = "dms:blurwallpaper"; } ];
+        place-within-backdrop = true;
+      }
+    ];
+
+    # Startup sequence for Niri + DMS
+    # We spawn the shell and essential applets.
     spawn-at-startup = [
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
       {
@@ -34,13 +49,12 @@
         command = [
           "${pkgs.wlsunset}/bin/wlsunset"
           "-l"
-          "40"
+          "40.0"
           "-L"
-          "-74"
+          "-74.0"
         ];
       }
-      # Dank Material Shell: Using 'dms run' as the standard way to start the shell.
-      # This replaces the previous 'dms-shell' guess with the confirmed binary name.
+      # Launch Dank Material Shell
       {
         command = [
           "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
@@ -49,9 +63,25 @@
       }
     ];
 
+    # Essential Wayland environment variables to ensure DMS and portals can communicate.
+    environment = {
+      XDG_CURRENT_DESKTOP = "niri";
+      XDG_SESSION_TYPE = "wayland";
+      XDG_SESSION_DESKTOP = "niri";
+      QT_QPA_PLATFORM = "wayland";
+      QT_QPA_PLATFORMTHEME = "gtk3";
+      QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+      SDL_VIDEODRIVER = "wayland";
+      CLUTTER_BACKEND = "wayland";
+      GDK_BACKEND = "wayland";
+      MOZ_ENABLE_WAYLAND = "1";
+      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+      NIXOS_OZONE_WL = "1";
+    };
+
     binds = {
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
-      # DMS Spotlight toggle: Corrected the IPC command according to latest DMS documentation.
+      # DMS Spotlight toggle
       "Mod+D".action.spawn = [
         "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
         "ipc"

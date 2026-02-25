@@ -1,4 +1,8 @@
-{ inputs, pkgs, ... }:
+{
+  inputs,
+  pkgs,
+  ...
+}:
 
 let
   unstable = import inputs.nixpkgs-unstable {
@@ -13,13 +17,15 @@ in
   ];
 
   # Niri from Flake
+  # We use the system-wide programs.niri from niri-flake.
+  # This sets up the systemd session and the niri-session binary.
   programs.niri = {
     enable = true;
     package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
   };
 
   # Dank Material Shell (DMS) configuration
-  # Using the official NixOS module provided by the dms flake.
+  # The DMS module handles its own systemd services and dependencies.
   programs.dank-material-shell = {
     enable = true;
     # Use 'dgop' from unstable to satisfy dms requirements for system monitoring.
@@ -27,18 +33,24 @@ in
     enableSystemMonitoring = true;
     enableVPN = true;
     enableDynamicTheming = true;
+    enableAudioWavelength = true;
+    enableCalendarEvents = true;
+    enableClipboardPaste = true;
+
+    # Ensure dms starts with the graphical session.
+    systemd.enable = true;
   };
 
-  # Niri-specific portal configuration
-  # niri-flake includes xdg-desktop-portal-gnome by default, which is required
-  # for screencasting and proper shell integration.
-  xdg.portal = {
+  # Graphics and Hardware optimizations for AMD (ThinkPad Z16)
+  hardware.graphics = {
     enable = true;
-    # Ensure gnome portal is available for niri
-    extraPortals = [ pkgs.xdg-desktop-portal-gnome ];
-    config.niri.default = [
-      "gnome"
-      "gtk"
+    extraPackages = with pkgs; [
+      rocmPackages.clr.icd # OpenCL for AMD
     ];
   };
+
+  # Ensure polkit and dconf are enabled (DMS dependencies)
+  services.accounts-daemon.enable = true;
+  services.upower.enable = true;
+  security.polkit.enable = true;
 }

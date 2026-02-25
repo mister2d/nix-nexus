@@ -10,21 +10,29 @@
   };
 
   # XDG Desktop Portal Configuration
-  # This is critical for Waybar, screen sharing (Pipewire), and GTK integration.
+  # This is critical for shell features, screen sharing (Pipewire), and GTK integration.
   xdg.portal = {
     enable = true;
     wlr.enable = true;
+    # Ensure standard portals are present for all sessions
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal-gnome
     ];
+
+    # Configuration is scoped per compositor to prevent conflicts
     config = {
-      common.default = [
+      common.default = [ "gtk" ];
+
+      # Specific overrides for each session
+      sway.default = lib.mkForce [
         "wlr"
         "gtk"
       ];
-      # Use mkForce to override the default NixOS sway portal configuration
-      sway.default = lib.mkForce [
-        "wlr"
+
+      # Niri uses the GNOME portal for many features
+      niri.default = [
+        "gnome"
         "gtk"
       ];
     };
