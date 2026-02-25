@@ -6,8 +6,17 @@ This guide details the technical configurations and hardware optimizations appli
 
 ### 1. Power Management
 Standard power profiles are replaced by **TLP** to provide granular control over the discrete Radeon 6500M GPU and PCIe ASPM (Active State Power Management) states.
--   **AMD P-State**: The `amd_pstate=active` driver is utilized for an optimal balance of performance and thermal efficiency.
--   **Battery Longevity**: Charge thresholds are capped at 80% to mitigate battery degradation over time.
+
+#### "Max Battery" Profile Refinements
+The configuration implements an aggressive power-saving posture designed for maximum endurance while preserving the ability to spike performance:
+-   **AMD P-State (EPP)**: Uses `active` mode with `balance_power` on battery. This drops the clock floor significantly while allowing hardware-managed boost spikes in microseconds.
+-   **Platform Profiles**: Leverages Lenovo's `low-power` platform profile on battery to reduce internal power rails and fan activity.
+-   **GPU Power Management**: 
+    -   Forces the discrete Radeon 6500M into **D3Cold** (0W) when idle via `powersupersave` ASPM.
+    -   Sets a declarative **30W power cap** via udev to match the VBIOS limit and avoid driver errors.
+    -   Increases iGPU dynamic memory (**GTT**) to 8GB for smooth UI performance without reserving physical RAM.
+-   **Aggressive Peripherals**: Enables NVMe runtime power management (`auto`), WiFi power saving, and USB autosuspend on battery.
+-   **OLED Optimization**: Enables AMD **ABM (Adaptive Backlight Management)** at level 4 to reduce panel power draw.
 
 ### 2. Graphics and Display
 -   **OLED Panel**: The `amdgpu.sg_display=0` kernel parameter is enabled to resolve a known flickering issue during Wayland compositor transitions.
