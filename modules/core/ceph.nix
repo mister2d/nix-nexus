@@ -37,16 +37,7 @@
       TimeoutStartSec = "15s";
 
       # Use the user-space controller to list and teardown all known volumes.
-      ExecStart = ''
-        ${pkgs.bash}/bin/bash -c '
-          SCRIPT_PATH="/etc/profiles/per-user/ddukes/bin/ceph_mount_ctl"
-          if [[ -x "$SCRIPT_PATH" ]]; then
-            for alias in $("$SCRIPT_PATH" list); do
-              "$SCRIPT_PATH" unmount "$alias"
-            done
-          fi
-        '
-      '';
+      ExecStart = "${pkgs.bash}/bin/bash -c 'SCRIPT_PATH=\"/etc/profiles/per-user/ddukes/bin/ceph_mount_ctl\"; if [[ -x \"$SCRIPT_PATH\" ]]; then for alias in $(\"$SCRIPT_PATH\" list); do \"$SCRIPT_PATH\" unmount \"$alias\"; done; fi'";
     };
   };
 }

@@ -14,6 +14,11 @@ _:
       # Force import the root pool (improves reliability during boot/recovery).
       forceImportRoot = true;
 
+      # Direct ZFS to scan /dev/mapper for the LUKS-unlocked device.
+      # This prevents the import service from timing out while searching
+      # for the 'cake' pool on the encrypted physical partitions.
+      devNodes = "/dev/mapper";
+
       # We use LUKS for disk encryption, so ZFS does not need separate credentials.
       requestEncryptionCredentials = false;
     };
