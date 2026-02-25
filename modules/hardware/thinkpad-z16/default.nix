@@ -67,15 +67,17 @@
         PCIE_ASPM_ON_AC = "performance";
         PCIE_ASPM_ON_BAT = "powersupersave";
 
-        # Aggressive Runtime PM for NVMe and other PCIe devices.
-        # 'auto' allows the kernel to put idle devices into low-power states.
+        # Runtime PM for NVMe and other PCIe devices.
+        # We use 'on' instead of 'auto' on battery to prevent the haptic ForcePad
+        # and internal bridge from entering unrecoverable sleep states.
         RUNTIME_PM_ON_AC = "on";
-        RUNTIME_PM_ON_BAT = "auto";
+        RUNTIME_PM_ON_BAT = "on";
 
         # --- Connectivity & Peripherals ---
-        # Put WiFi and USB devices into aggressive autosuspend when on battery.
+        # Put WiFi into power saving, but disable USB autosuspend as it
+        # causes issues with the Z16's haptic sensors and cameras.
         WIFI_PWR_ON_BAT = "on";
-        USB_AUTOSUSPEND = 1;
+        USB_AUTOSUSPEND = 0;
 
         # Enable Audio power saving for the AMD ACP (Audio Coprocessor)
         SOUND_QUERY_CHIPS = "false";
