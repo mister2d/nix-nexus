@@ -1,71 +1,127 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
-  # Since Niri doesn't have a Home Manager module yet, we manage its config
-  # file directly via KDL (Niri's native configuration language).
-  xdg.configFile."niri/config.kdl".text = ''
-    input {
-        keyboard {
-            xkb {
-                layout "us"
-            }
-        }
-        touchpad {
-            tap
-            natural-scroll
-            dwt
-        }
-    }
+  # Since Niri is now managed by niri-flake, we use its structured settings.
+  # This provides better validation and integration than raw KDL strings.
+  programs.niri.settings = {
+    input = {
+      keyboard.xkb.layout = "us";
+      touchpad = {
+        tap = true;
+        natural-scroll = true;
+        dwt = true;
+      };
+    };
 
-    output "eDP-1" {
-        scale 1.0
-    }
+    outputs."eDP-1" = {
+      scale = 1.0;
+    };
 
-    layout {
-        gaps 8
-        default-column-width { proportion 0.5; }
-    }
+    layout = {
+      gaps = 8;
+      default-column-width.proportion = 0.5;
+    };
 
-    spawn-at-startup "${pkgs.kanshi}/bin/kanshi"
-    spawn-at-startup "${pkgs.networkmanagerapplet}/bin/nm-applet" "--indicator"
-    spawn-at-startup "${pkgs.wlsunset}/bin/wlsunset" "-l" "40" "-L" "-74"
-    spawn-at-startup "dms-shell"
+    spawn-at-startup = [
+      { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
+      {
+        command = [
+          "${pkgs.networkmanagerapplet}/bin/nm-applet"
+          "--indicator"
+        ];
+      }
+      {
+        command = [
+          "${pkgs.wlsunset}/bin/wlsunset"
+          "-l"
+          "40"
+          "-L"
+          "-74"
+        ];
+      }
+      # Dank Material Shell: Using 'dms run' as the standard way to start the shell.
+      # This replaces the previous 'dms-shell' guess with the confirmed binary name.
+      {
+        command = [
+          "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
+          "run"
+        ];
+      }
+    ];
 
-    binds {
-        Mod+Return { spawn "${pkgs.alacritty}/bin/alacritty"; }
-        Mod+D { spawn "dms-shell" "--toggle-launcher"; }
-        Mod+Shift+E { quit; }
-        Mod+Q { close-window; }
+    binds = {
+      "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
+      # DMS Spotlight toggle: Corrected the IPC command according to latest DMS documentation.
+      "Mod+D".action.spawn = [
+        "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
+        "ipc"
+        "call"
+        "spotlight"
+        "toggle"
+      ];
+      "Mod+Shift+E".action.quit = { };
+      "Mod+Q".action.close-window = { };
 
-        Mod+Left { focus-column-left; }
-        Mod+Right { focus-column-right; }
-        Mod+Down { focus-window-or-workspace-down; }
-        Mod+Up { focus-window-or-workspace-up; }
+      "Mod+Left".action.focus-column-left = { };
+      "Mod+Right".action.focus-column-right = { };
+      "Mod+Down".action.focus-window-or-workspace-down = { };
+      "Mod+Up".action.focus-window-or-workspace-up = { };
 
-        Mod+Shift+Left { move-column-left; }
-        Mod+Shift+Right { move-column-right; }
+      "Mod+Shift+Left".action.move-column-left = { };
+      "Mod+Shift+Right".action.move-column-right = { };
 
-        Mod+Shift+Up { move-window-up; }
-        Mod+Shift+Down { move-window-down; }
+      "Mod+Shift+Up".action.move-window-up = { };
+      "Mod+Shift+Down".action.move-window-down = { };
 
-        Mod+Page_Down { focus-workspace-down; }
-        Mod+Page_Up { focus-workspace-up; }
-        Mod+Shift+Page_Down { move-window-to-workspace-down; }
-        Mod+Shift+Page_Up { move-window-to-workspace-up; }
+      "Mod+Page_Down".action.focus-workspace-down = { };
+      "Mod+Page_Up".action.focus-workspace-up = { };
+      "Mod+Shift+Page_Down".action.move-window-to-workspace-down = { };
+      "Mod+Shift+Page_Up".action.move-window-to-workspace-up = { };
 
-        XF86AudioRaiseVolume { spawn "${pkgs.pamixer}/bin/pamixer" "-i" "5"; }
-        XF86AudioLowerVolume { spawn "${pkgs.pamixer}/bin/pamixer" "-d" "5"; }
-        XF86AudioMute { spawn "${pkgs.pamixer}/bin/pamixer" "-t"; }
+      "XF86AudioRaiseVolume".action.spawn = [
+        "${pkgs.pamixer}/bin/pamixer"
+        "-i"
+        "5"
+      ];
+      "XF86AudioLowerVolume".action.spawn = [
+        "${pkgs.pamixer}/bin/pamixer"
+        "-d"
+        "5"
+      ];
+      "XF86AudioMute".action.spawn = [
+        "${pkgs.pamixer}/bin/pamixer"
+        "-t"
+      ];
 
-        XF86MonBrightnessUp { spawn "${pkgs.brightnessctl}/bin/brightnessctl" "set" "10%+"; }
-        XF86MonBrightnessDown { spawn "${pkgs.brightnessctl}/bin/brightnessctl" "set" "10%-"; }
+      "XF86MonBrightnessUp".action.spawn = [
+        "${pkgs.brightnessctl}/bin/brightnessctl"
+        "set"
+        "10%+"
+      ];
+      "XF86MonBrightnessDown".action.spawn = [
+        "${pkgs.brightnessctl}/bin/brightnessctl"
+        "set"
+        "10%-"
+      ];
 
-        Print { spawn "${pkgs.grim}/bin/grim" "-g" "$(${pkgs.slurp}/bin/slurp)" "-"; }
-    }
+      "Print".action.spawn = [
+        "${pkgs.grim}/bin/grim"
+        "-g"
+        "$(${pkgs.slurp}/bin/slurp)"
+        "-"
+      ];
+    };
 
-    window-rule {
-        geometry-corner-radius 0
-        clip-to-geometry true
-    }
-  '';
+    window-rules = [
+      {
+        geometry-corner-radius = {
+          bottom-left = 0.0;
+          bottom-right = 0.0;
+          top-left = 0.0;
+          top-right = 0.0;
+        };
+        clip-to-geometry = true;
+      }
+    ];
+  };
 }

@@ -39,7 +39,7 @@
     };
 
     # Niri - Scrollable-tiling Wayland compositor
-    niri.url = "github:YaLTeR/niri";
+    niri.url = "github:sodiboo/niri-flake";
 
     # DankMaterialShell - Material Design Shell for Wayland
     dms.url = "github:AvengeMedia/DankMaterialShell";

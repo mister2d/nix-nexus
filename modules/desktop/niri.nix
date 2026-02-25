@@ -7,12 +7,15 @@ let
   };
 in
 {
-  imports = [ inputs.dms.nixosModules.default ];
+  imports = [
+    inputs.dms.nixosModules.default
+    inputs.niri.nixosModules.niri
+  ];
 
   # Niri from Flake
   programs.niri = {
     enable = true;
-    package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri;
+    package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
   };
 
   # DMS from Flake, using unstable for missing dependencies like 'dgop'
