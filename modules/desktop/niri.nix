@@ -18,14 +18,27 @@ in
     package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
   };
 
-  # DMS from Flake, using unstable for missing dependencies like 'dgop'
-  # We use a 'nixpkgs.overlays' to make sure the DMS module can find its
-  # dependencies if it looks in the standard 'pkgs' set.
-  nixpkgs.overlays = [
-    (_final: _prev: {
-      inherit (unstable) dgop;
-    })
-  ];
+  # Dank Material Shell (DMS) configuration
+  # Using the official NixOS module provided by the dms flake.
+  programs.dank-material-shell = {
+    enable = true;
+    # Use 'dgop' from unstable to satisfy dms requirements for system monitoring.
+    dgop.package = unstable.dgop;
+    enableSystemMonitoring = true;
+    enableVPN = true;
+    enableDynamicTheming = true;
+  };
 
-  programs.dank-material-shell.enable = true;
+  # Niri-specific portal configuration
+  # niri-flake includes xdg-desktop-portal-gnome by default, which is required
+  # for screencasting and proper shell integration.
+  xdg.portal = {
+    enable = true;
+    # Ensure gnome portal is available for niri
+    extraPortals = [ pkgs.xdg-desktop-portal-gnome ];
+    config.niri.default = [
+      "gnome"
+      "gtk"
+    ];
+  };
 }
