@@ -30,7 +30,7 @@ in
 
     config = {
       modifier = mod;
-      terminal = "${pkgs.kdePackages.konsole}/bin/konsole";
+      terminal = "${pkgs.alacritty}/bin/alacritty";
       menu = "bemenu-run -H 32 -l 15 -W 0.3 --center --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00FFFF' --hf '#000000' --tb '#00FFFF' --tf '#000000'";
 
       bars = [ ];

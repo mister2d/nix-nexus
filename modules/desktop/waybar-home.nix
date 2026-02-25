@@ -124,7 +124,7 @@ in
           "format-disconnected" = "Disconnected ⚠";
           "format-alt" = "{ifname}: {ipaddr}/{cidr}";
           "on-click" = "${pkgs.networkmanagerapplet}/bin/nm-connection-editor";
-          "on-click-right" = "${pkgs.kdePackages.konsole}/bin/konsole -e nmtui";
+          "on-click-right" = "${pkgs.alacritty}/bin/alacritty -e nmtui";
         };
 
         battery = {
@@ -258,7 +258,7 @@ in
       pkgs.procps
       pkgs.coreutils
       pkgs.networkmanagerapplet
-      pkgs.kdePackages.konsole
+      pkgs.alacritty
     ]
   }:/run/current-system/sw/bin";
 }

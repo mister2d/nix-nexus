@@ -72,6 +72,25 @@ While the `nix-nexus` framework defines the system-wide architecture, project-sp
 2. **Manage Dependencies:** `devbox add <package>@latest`
 3. **Execute:** `devbox shell` (or use `direnv` for automatic loading)
 
+## Terminal & Workflow
+
+The system utilizes **Alacritty** paired with **Tmux** for a high-performance, OLED-optimized terminal environment.
+
+### Tmux for Screen Users
+The Tmux configuration is designed to be approachable for long-time `screen` users while leveraging modern features:
+
+- **Prefix**: `Ctrl-a` (Matches traditional Screen).
+- **Windows**:
+  - `Ctrl-a` + `c`: Create new window.
+  - `Shift-Left` / `Shift-Right`: Switch between windows.
+- **Panes (Splits)**:
+  - `Ctrl-a` + `|`: Split horizontally.
+  - `Ctrl-a` + `-`: Split vertically.
+  - `Ctrl-a` + `h/j/k/l`: Navigate panes (Vim-style).
+- **General**:
+  - **Mouse Support**: Enabled for scrolling and pane resizing.
+  - **OLED Aesthetic**: True black background with Teal status indicators.
+
 ## Connectivity and Security
 
 This framework prioritizes security and repository portability:

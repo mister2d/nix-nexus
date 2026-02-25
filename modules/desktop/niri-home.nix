@@ -32,7 +32,7 @@
     spawn-at-startup "dms-shell"
 
     binds {
-        Mod+Return { spawn "${pkgs.kdePackages.konsole}/bin/konsole"; }
+        Mod+Return { spawn "${pkgs.alacritty}/bin/alacritty"; }
         Mod+D { spawn "dms-shell" "--toggle-launcher"; }
         Mod+Shift+E { quit; }
         Mod+Q { close-window; }

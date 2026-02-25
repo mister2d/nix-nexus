@@ -55,6 +55,7 @@ in
     ../desktop/notifications.nix
     ./bash.nix
     ./neovim-home.nix
+    ./terminal-home.nix
     ./ceph-mount.nix
     ./audio-effects.nix
   ];
@@ -189,88 +190,7 @@ in
   };
 
   # XDG Configuration
-  xdg.dataFile = {
-    # --- Konsole Customization ---
-    # Creating a custom "Graphite-OLED" theme to match the system's high-contrast
-    # Graphite-teal-Dark aesthetic while taking advantage of true blacks.
-    "konsole/Graphite-OLED.colorscheme".text = ''
-      [General]
-      Description=Graphite OLED (Teal)
-      Opacity=1
-      Wallpaper=
-
-      [Background]
-      Color=0,0,0
-
-      [BackgroundIntense]
-      Color=25,25,25
-
-      [Foreground]
-      Color=216,216,216
-
-      [ForegroundIntense]
-      Color=255,255,255
-
-      [Color0]
-      Color=0,0,0
-
-      [Color0Intense]
-      Color=94,108,111
-
-      [Color1]
-      Color=243,114,120
-
-      [Color1Intense]
-      Color=246,144,149
-
-      [Color2]
-      Color=168,222,126
-
-      [Color2Intense]
-      Color=190,233,158
-
-      [Color3]
-      Color=255,204,112
-
-      [Color3Intense]
-      Color=255,217,148
-
-      [Color4]
-      Color=102,153,204
-
-      [Color4Intense]
-      Color=132,173,214
-
-      [Color5]
-      Color=197,148,197
-
-      [Color5Intense]
-      Color=212,175,212
-
-      [Color6]
-      Color=93,228,215
-
-      [Color6Intense]
-      Color=134,236,226
-
-      [Color7]
-      Color=216,216,216
-
-      [Color7Intense]
-      Color=255,255,255
-    '';
-
-    # Define a Konsole profile that uses the OLED color scheme by default.
-    "konsole/Graphite-OLED.profile".text = ''
-      [Appearance]
-      ColorScheme=Graphite-OLED
-      Font=JetBrainsMono Nerd Font,10,-1,5,50,0,0,0,0,0
-
-      [General]
-      Name=Graphite OLED
-      Parent=FALLBACK/
-    '';
-  };
+  xdg.dataFile = { };
 
   # --- WiFi & Connectivity ---
   # Connectivity is managed via NetworkManager.
