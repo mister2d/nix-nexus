@@ -81,6 +81,12 @@
 
     binds = {
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
+      # Browser: Matching Sway's Super+Shift+B with GPU launch selector
+      "Mod+Shift+B".action.spawn = [
+        "${pkgs.bash}/bin/bash"
+        "-c"
+        "if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; fi"
+      ];
       # DMS Spotlight toggle
       "Mod+D".action.spawn = [
         "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
@@ -89,6 +95,16 @@
         "spotlight"
         "toggle"
       ];
+      # Audio Selectors: Ported from Sway
+      "Mod+Shift+A".action.spawn = [
+        "audio-selector"
+        "sink"
+      ];
+      "Mod+Shift+M".action.spawn = [
+        "audio-selector"
+        "source"
+      ];
+
       "Mod+Shift+E".action.quit = { };
       "Mod+Q".action.close-window = { };
 
