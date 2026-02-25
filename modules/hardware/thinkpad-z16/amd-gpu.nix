@@ -24,6 +24,12 @@
 
   environment.systemPackages = with pkgs; [
     nvtopPackages.amd
+    amdgpu-top # Specialized AMD monitor that can target specific GPUs
+    (pkgs.writeShellScriptBin "monitor-igpu" ''
+      # Monitor Integrated GPU (680M) without waking the Discrete GPU (6500M)
+      # Generic tools like 'nvtop' scan all PCI devices, causing a dGPU wakeup.
+      exec ${pkgs.amdgpu-top}/bin/amdgpu-top -d 0 "$@"
+    '')
     (pkgs.writeShellScriptBin "gpu-launch" ''
       # GPU Selector for Hybrid AMD Systems (ThinkPad Z16 Gen 1)
       # Usage: gpu-launch <command> [args...]
