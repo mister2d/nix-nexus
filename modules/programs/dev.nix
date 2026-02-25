@@ -23,5 +23,8 @@
   };
 
   # Docker daemon is a system-wide service
-  virtualisation.docker.enable = true;
+  virtualisation.docker = {
+    enable = true;
+    storageDriver = "zfs";
+  };
 }
