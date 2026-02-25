@@ -35,19 +35,30 @@
     tlp = {
       enable = true;
       settings = {
-        # AMD P-State Driver optimization
+        # AMD P-State EPP (Active Mode) optimization for Ryzen 6000 (Rembrandt)
+        # We use 'balance_performance' instead of 'performance' on AC to reduce
+        # aggressive clock boosting for short tasks, lowering chassis heat.
+        CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
+        CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
+
+        # Scaling Governor for P-State Driver
+        # In 'active' mode, the EPP (above) is the primary driver.
         CPU_SCALING_GOVERNOR_ON_AC = "performance";
         CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-        CPU_ENERGY_PERF_POLICY_ON_AC = "performance";
-        CPU_ENERGY_PERF_POLICY_ON_BAT = "power";
 
         # Z16 Specific: Limit charging to extend battery health (ThinkPad classic)
         START_CHARGE_THRESH_BAT0 = 75;
         STOP_CHARGE_THRESH_BAT0 = 80;
 
         # Discrete GPU (Radeon 6500M) power management
-        # Ensure the dGPU can power down when not in use (DRI_PRIME=1)
+        # Ensure the dGPU can power down completely (D3Cold) when not in use (DRI_PRIME=1)
+        # This is critical for the Z16 to avoid the "phantom" 5-10W drain.
+        PCIE_ASPM_ON_AC = "performance";
         PCIE_ASPM_ON_BAT = "powersave";
+
+        # Enable Audio power saving for the AMD ACP (Audio Coprocessor)
+        SOUND_QUERY_CHIPS = "false";
+        RST_PHASE_1 = 1;
       };
     };
 

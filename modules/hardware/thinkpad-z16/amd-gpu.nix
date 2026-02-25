@@ -12,6 +12,16 @@
 
   services.xserver.videoDrivers = [ "amdgpu" ];
 
+  # GPU Power Management
+  # The ThinkPad Z16 Gen 1 (Radeon 6500M / 680M) has a VBIOS-enforced 30W power limit.
+  # The amdgpu driver often attempts to set a generic 50W default, leading to
+  # "New power limit (50) is out of range [30,30]" errors in dmesg.
+  # We declaratively set the power cap to the hardware-reported maximum (30W)
+  # to satisfy the driver during initialization and resume.
+  services.udev.extraRules = ''
+    SUBSYSTEM=="hwmon", DRIVER=="amdgpu", ATTR{power1_cap_max}!="", ATTR{power1_cap}="$attr{power1_cap_max}"
+  '';
+
   environment.systemPackages = with pkgs; [
     nvtopPackages.amd
     (pkgs.writeShellScriptBin "gpu-launch" ''
