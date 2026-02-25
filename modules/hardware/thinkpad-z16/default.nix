@@ -10,6 +10,7 @@
       "amdgpu.sg_display=0" # Fix for white flickering on Ryzen 6000 + OLED
       "amdgpu.dcdebugmask=0x10" # Fix for some RDNA2 display/PM timeouts
       "amdgpu.gttsize=8192" # Increase iGPU dynamic memory (GTT) to 8GB (Note: Set UMA in BIOS for dedicated VRAM)
+      "amdgpu.abmlevel=4" # Enable Adaptive Backlight Management (Level 4) for OLED power savings
       "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
       "amd_pstate=active" # Use active P-States for better power/performance on Ryzen 6000
     ];
@@ -36,6 +37,7 @@
     tlp = {
       enable = true;
       settings = {
+        # --- CPU & Performance ---
         # AMD P-State EPP (Active Mode) optimization for Ryzen 6000 (Rembrandt)
         # We use 'balance_performance' instead of 'performance' on AC to reduce
         # aggressive clock boosting for short tasks, lowering chassis heat.
@@ -47,15 +49,33 @@
         CPU_SCALING_GOVERNOR_ON_AC = "performance";
         CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
 
+        # --- Platform & Thermal Management ---
+        # Lenovo Platform Profiles: Lowers the EC thermal ceiling on battery.
+        # This reduces fan noise and improves endurance while allowing CPU spikes.
+        PLATFORM_PROFILE_ON_BAT = "low-power";
+        PLATFORM_PROFILE_ON_AC = "performance";
+
+        # --- Battery Health ---
         # Z16 Specific: Limit charging to extend battery health (ThinkPad classic)
         START_CHARGE_THRESH_BAT0 = 75;
         STOP_CHARGE_THRESH_BAT0 = 80;
 
+        # --- GPU & PCIe Management ---
         # Discrete GPU (Radeon 6500M) power management
         # Ensure the dGPU can power down completely (D3Cold) when not in use (DRI_PRIME=1)
-        # This is critical for the Z16 to avoid the "phantom" 5-10W drain.
+        # 'powersupersave' enables the deepest possible PCIe link states (L1.1/L1.2).
         PCIE_ASPM_ON_AC = "performance";
-        PCIE_ASPM_ON_BAT = "powersave";
+        PCIE_ASPM_ON_BAT = "powersupersave";
+
+        # Aggressive Runtime PM for NVMe and other PCIe devices.
+        # 'auto' allows the kernel to put idle devices into low-power states.
+        RUNTIME_PM_ON_AC = "on";
+        RUNTIME_PM_ON_BAT = "auto";
+
+        # --- Connectivity & Peripherals ---
+        # Put WiFi and USB devices into aggressive autosuspend when on battery.
+        WIFI_PWR_ON_BAT = "on";
+        USB_AUTOSUSPEND = 1;
 
         # Enable Audio power saving for the AMD ACP (Audio Coprocessor)
         SOUND_QUERY_CHIPS = "false";
