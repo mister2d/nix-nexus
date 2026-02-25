@@ -58,7 +58,7 @@ in
           family = "JetBrainsMono Nerd Font";
           style = "Bold";
         };
-        size = 10.0;
+        size = 13.0;
       };
 
       inherit colors;
@@ -74,6 +74,10 @@ in
           blinking = "On";
         };
       };
+
+      scrolling = {
+        history = 100000;
+      };
     };
   };
 
@@ -81,7 +85,7 @@ in
     enable = true;
     shell = "${pkgs.bash}/bin/bash";
     terminal = "alacritty";
-    historyLimit = 10000;
+    historyLimit = 100000;
     keyMode = "vi";
     mouse = true;
     baseIndex = 1;
