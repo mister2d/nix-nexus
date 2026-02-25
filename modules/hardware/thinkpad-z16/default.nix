@@ -10,7 +10,6 @@
       "amdgpu.sg_display=0" # Fix for white flickering on Ryzen 6000 + OLED
       "amdgpu.dcdebugmask=0x10" # Fix for some RDNA2 display/PM timeouts
       "amdgpu.gttsize=8192" # Increase iGPU dynamic memory (GTT) to 8GB (Note: Set UMA in BIOS for dedicated VRAM)
-      "amdgpu.abmlevel=4" # Enable Adaptive Backlight Management (Level 4) for OLED power savings
       "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
       "amd_pstate=active" # Use active P-States for better power/performance on Ryzen 6000
     ];
