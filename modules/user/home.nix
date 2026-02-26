@@ -96,6 +96,7 @@ in
       wl-clipboard # Wayland clipboard utilities
       grim # Screenshot utility
       slurp # Select region for screenshots
+      stress-ng # Stress Workload testing
       wlsunset # Night light for Wayland
       clipman # Clipboard manager
       networkmanagerapplet # WiFi/Network management tray icon

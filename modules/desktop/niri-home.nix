@@ -98,9 +98,11 @@
             # 3. Update DBus activation environment for non-systemd apps.
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
 
-            # 4. Signal that the graphical session is now active.
-            # This triggers services with WantedBy=graphical-session.target.
-            ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
+            # 4. Restart display-dependent services now that the environment is valid.
+            ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service niri-flake-polkit.service
+
+            # 5. Launch DMS
+            dms run
           ''
         ];
       }
@@ -113,8 +115,7 @@
       }
     ];
 
-    # Inherit environment from global sessionVariables (set in hardware-home.nix).
-    # This deduplicates hints and ensures Krita/Chrome/DMS use consistent settings.
+    # Essential Wayland environment variables to ensure DMS and browsers can communicate.
     environment = {
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
@@ -127,7 +128,6 @@
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
 
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
-      # Added --ozone-platform=wayland to potentially resolve hanging
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"

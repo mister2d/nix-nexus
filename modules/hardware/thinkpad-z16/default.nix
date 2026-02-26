@@ -56,7 +56,7 @@
 
         # --- Battery Health ---
         # Z16 Specific: Limit charging to extend battery health (ThinkPad classic)
-        START_CHARGE_THRESH_BAT0 = 75;
+        START_CHARGE_THRESH_BAT0 = 20;
         STOP_CHARGE_THRESH_BAT0 = 80;
 
         # --- GPU & PCIe Management ---
