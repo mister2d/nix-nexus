@@ -80,26 +80,28 @@
 
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
-      # ADVANCED SYNC: We use a multi-stage synchronization script to ensure
-      # all services receive the correct environment.
+      # DETERMINISTIC SYNC:
+      # Instead of blind sleeps, we use systemctl to import the environment
+      # and signal the graphical-session.target.
       {
         command = [
           "${pkgs.bash}/bin/bash"
           "-c"
           ''
-            # 1. Export all current Niri variables to DBus/Systemd
+            # 1. Sync Niri's runtime environment to the systemd user manager.
+            # This is the "proper" Wayland synchronization method.
+            ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
+
+            # 2. Update DBus activation environment for non-systemd apps.
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
 
-            # 2. Re-trigger essential services after environment sync
-            ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service
+            # 3. Deterministically restart services now that the environment is valid.
+            ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service niri-flake-polkit.service
 
-            # 3. Wait for portal to pick up environment
-            ${pkgs.bash}/bin/sleep 1
+            # 4. Wait for the socket to be physically available before launching DMS.
+            while [ ! -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; do ${pkgs.bash}/bin/sleep 0.1; done
 
-            # 4. Restart display-dependent services
-            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service niri-flake-polkit.service
-
-            # 5. Launch DMS
+            # 5. Launch DMS with its native systemd target synchronization.
             ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run
           ''
         ];
