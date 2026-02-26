@@ -1,4 +1,8 @@
-{ pkgs, inputs, ... }:
+{
+  pkgs,
+  inputs,
+  ...
+}:
 
 {
   # Since Niri is now managed by niri-flake, we use its structured settings.
@@ -88,22 +92,13 @@
       # from hanging or failing to find the display.
       {
         command = [
-          "${pkgs.dbus}/bin/dbus-update-activation-environment"
+          "dbus-update-activation-environment"
           "--systemd"
           "WAYLAND_DISPLAY"
-          "XDG_CURRENT_DESKTOP=niri"
-          "XDG_SESSION_DESKTOP=niri"
-          "XDG_SESSION_TYPE=wayland"
-        ];
-      }
-      # Synchronize systemd user environment explicitly to fix EasyEffects
-      {
-        command = [
-          "systemctl"
-          "--user"
-          "import-environment"
-          "WAYLAND_DISPLAY"
           "XDG_CURRENT_DESKTOP"
+          "XDG_SESSION_TYPE"
+          "XDG_SESSION_DESKTOP"
+          "DISPLAY"
         ];
       }
       # Trigger EasyEffects manual start if it's already failed
@@ -113,6 +108,15 @@
           "--user"
           "restart"
           "easyeffects.service"
+        ];
+      }
+      # Restart the polkit agent provided by niri-flake if it failed to open display
+      {
+        command = [
+          "systemctl"
+          "--user"
+          "restart"
+          "niri-flake-polkit.service"
         ];
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }

@@ -22,7 +22,10 @@
 
     # Configuration is scoped per compositor to prevent conflicts
     config = {
-      common.default = [ "gtk" ];
+      common.default = [
+        "gnome"
+        "gtk"
+      ];
 
       # Specific overrides for each session
       sway.default = lib.mkForce [
