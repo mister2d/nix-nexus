@@ -11,19 +11,52 @@
         natural-scroll = true;
         dwt = true;
       };
+      # Enable mouse focus behavior (matching Sway)
+      focus-follows-mouse.enable = true;
     };
 
+    # XWayland integration: Niri manages the xwayland-satellite process.
+    # This resolves the "No such file or directory" warnings in logs.
+    xwayland-satellite.enable = true;
+
+    # Replicating Sway output configuration for exact positioning and scaling.
     outputs."eDP-1" = {
+      # Set scaling to 1.15 as requested for the ThinkPad Z16 OLED
+      scale = 1.15;
+      mode = {
+        width = 3840;
+        height = 2400;
+      };
+      position = {
+        x = 0;
+        y = 0;
+      };
+    };
+
+    outputs."DP-1" = {
       scale = 1.0;
+      mode = {
+        width = 3440;
+        height = 1440;
+      };
+      position = {
+        x = 3344; # Calculated logical offset from eDP-1 (3840 / 1.15)
+        y = 0;
+      };
     };
 
     layout = {
       gaps = 8.0; # Using float for niri-flake schema
       default-column-width.proportion = 0.5;
+
+      # Disable the distracting blue neon-like outline.
+      # Niri/DMS reflects focus more unobtrusively through DMS highlights.
+      focus-ring.enable = false;
+      border.enable = false;
     };
 
-    # Layer rules for dms-shell components.
-    # These are critical for making the shell appear and render over windows correctly.
+    # Layer rules for dms-shell components and utilities.
+    # These are critical for making the shell and selectors render correctly.
     layer-rules = [
       {
         matches = [ { namespace = "^quickshell$"; } ];
@@ -33,11 +66,27 @@
         matches = [ { namespace = "dms:blurwallpaper"; } ];
         place-within-backdrop = true;
       }
+      # Ensure wofi (GPU selector) is visible and doesn't hang
+      {
+        matches = [ { namespace = "wofi"; } ];
+        place-within-backdrop = true;
+      }
     ];
 
     # Startup sequence for Niri + DMS
-    # We spawn the shell and essential applets.
     spawn-at-startup = [
+      # MAGIC FIX: Update DBus activation environment.
+      # This prevents Wayland apps (like Chrome) from hanging while waiting for portals.
+      {
+        command = [
+          "${pkgs.dbus}/bin/dbus-update-activation-environment"
+          "--systemd"
+          "WAYLAND_DISPLAY"
+          "XDG_CURRENT_DESKTOP=niri"
+          "XDG_SESSION_DESKTOP=niri"
+          "XDG_SESSION_TYPE=wayland"
+        ];
+      }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
       {
         command = [
@@ -45,25 +94,12 @@
           "--indicator"
         ];
       }
-      {
-        command = [
-          "${pkgs.wlsunset}/bin/wlsunset"
-          "-l"
-          "40.0"
-          "-L"
-          "-74.0"
-        ];
-      }
-      # Launch Dank Material Shell
-      {
-        command = [
-          "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
-          "run"
-        ];
-      }
+      # NOTE: DMS is now started via systemd service (programs.dank-material-shell.systemd.enable)
+      # and XWayland is managed by Niri itself (xwayland-satellite.enable).
+      # Redundant manual spawns removed here to prevent "two menubars".
     ];
 
-    # Essential Wayland environment variables to ensure DMS and portals can communicate.
+    # Essential Wayland environment variables to ensure DMS and browsers can communicate.
     environment = {
       XDG_CURRENT_DESKTOP = "niri";
       XDG_SESSION_TYPE = "wayland";
@@ -75,18 +111,28 @@
       CLUTTER_BACKEND = "wayland";
       GDK_BACKEND = "wayland";
       MOZ_ENABLE_WAYLAND = "1";
-      ELECTRON_OZONE_PLATFORM_HINT = "auto";
+      # Chrome/Chromium: Use --ozone-platform=wayland via hint
+      ELECTRON_OZONE_PLATFORM_HINT = "wayland";
       NIXOS_OZONE_WL = "1";
     };
 
     binds = {
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
+
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
+      # Added --ozone-platform=wayland to potentially resolve hanging
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"
-        "if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; fi"
+        "if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi"
       ];
+
+      # Direct Chrome launch (bypass gpu-launch for testing)
+      "Mod+Ctrl+B".action.spawn = [
+        "google-chrome-stable"
+        "--ozone-platform=wayland"
+      ];
+
       # DMS Spotlight toggle
       "Mod+D".action.spawn = [
         "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
@@ -95,6 +141,7 @@
         "spotlight"
         "toggle"
       ];
+
       # Audio Selectors: Ported from Sway
       "Mod+Shift+A".action.spawn = [
         "audio-selector"
@@ -103,6 +150,35 @@
       "Mod+Shift+M".action.spawn = [
         "audio-selector"
         "source"
+      ];
+
+      # Bemoji Picker: Ported from Sway
+      "Mod+Alt+E".action.spawn = [
+        "${pkgs.bash}/bin/bash"
+        "-c"
+        "BEMOJI_PICKER_CMD=\"${pkgs.wofi}/bin/wofi -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00FFFF' --hf '#000000' --tb '#00FFFF' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c"
+      ];
+
+      # Display Management: Ported from Sway
+      "Mod+Shift+D".action.spawn = [ "${pkgs.wdisplays}/bin/wdisplays" ];
+
+      # Screen Lock: Ported from Sway
+      "Mod+Escape".action.spawn = [
+        "${pkgs.swaylock}/bin/swaylock"
+        "-f"
+        "-c"
+        "000000"
+      ];
+
+      # Screenshots: Ported from Sway, prioritizing Niri native actions
+      "Print".action.screenshot = { };
+      "Control+Print".action.screenshot-screen = { };
+      "Alt+Print".action.screenshot-window = { };
+      # Sway-compatible grim/slurp fallback
+      "Control+Shift+BackSpace".action.spawn = [
+        "${pkgs.bash}/bin/bash"
+        "-c"
+        "${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.wl-clipboard}/bin/wl-copy"
       ];
 
       "Mod+Shift+E".action.quit = { };
@@ -148,13 +224,6 @@
         "${pkgs.brightnessctl}/bin/brightnessctl"
         "set"
         "10%-"
-      ];
-
-      "Print".action.spawn = [
-        "${pkgs.grim}/bin/grim"
-        "-g"
-        "$(${pkgs.slurp}/bin/slurp)"
-        "-"
       ];
     };
 

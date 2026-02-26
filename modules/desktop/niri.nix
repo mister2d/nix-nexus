@@ -53,4 +53,10 @@ in
   services.accounts-daemon.enable = true;
   services.upower.enable = true;
   security.polkit.enable = true;
+
+  # Additional system tools for Niri/DMS
+  environment.systemPackages = with pkgs; [
+    unstable.dsearch
+    unstable.xwayland-satellite
+  ];
 }
