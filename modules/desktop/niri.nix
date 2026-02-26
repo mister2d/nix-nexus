@@ -33,24 +33,20 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # DETERMINISM: Enable systemd service but force it to wait for the session.
-    systemd.enable = true;
+    # STRICT SEPARATION: Disable the DMS systemd service globally.
+    # We will launch it manually ONLY in the niri session to avoid
+    # leaking it into Sway.
+    systemd.enable = false;
   };
 
-  # Systemd User Service Refinements
-  # We override services to ensure they wait for the graphical session environment.
+  # Systemd User Service Scoping
+  # Ensure background daemons only start when a graphical session is reached.
   systemd.user.services = {
-    dms = {
-      description = "DankMaterialShell";
-      after = [ "graphical-session.target" ];
-      partOf = [ "graphical-session.target" ];
-    };
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
     };
     niri-flake-polkit = {
-      # Fix the polkit agent starting too early
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
     };
@@ -64,7 +60,7 @@ in
     ];
   };
 
-  # Ensure polkit and dconf are enabled (DMS dependencies)
+  # Ensure essential services are enabled
   services.accounts-daemon.enable = true;
   services.upower.enable = true;
   security.polkit.enable = true;
@@ -73,7 +69,6 @@ in
   environment.systemPackages = with pkgs; [
     unstable.dsearch
     unstable.xwayland-satellite
-    # Essential for Qt apps (Krita, etc.) to run on Wayland
     qt6.qtwayland
     kdePackages.qtwayland
   ];

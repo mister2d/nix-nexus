@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
 {
   # Since Niri is now managed by niri-flake, we use its structured settings.
@@ -80,29 +80,32 @@
 
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
-      # DETERMINISTIC SYNC:
-      # We use a blocking check for the Wayland socket, then signal
-      # the systemd user manager that the graphical session is ready.
+      # ADVANCED DETERMINISTIC STARTUP:
+      # This script ensures that Niri's internal state is fully synchronized
+      # with Systemd and DBus BEFORE launching display-dependent services.
       {
         command = [
           "${pkgs.bash}/bin/bash"
           "-c"
           ''
-            # 1. Wait for the socket to be physically available.
-            while [ ! -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; do ${pkgs.bash}/bin/sleep 0.1; done
+            # 1. Wait for Niri to establish the socket.
+            # We check every 0.1s until the Wayland display variable is valid and the file exists.
+            while [ -z "$WAYLAND_DISPLAY" ] || [ ! -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; do
+              ${pkgs.bash}/bin/sleep 0.1
+            done
 
-            # 2. Sync Niri's runtime environment to the systemd user manager.
-            # This is the "proper" Wayland synchronization method.
+            # 2. Export the verified environment to DBus and Systemd.
+            # This is the "magic" that allows systemd services to find the display.
+            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. Update DBus activation environment for non-systemd apps.
-            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
-
-            # 4. Restart display-dependent services now that the environment is valid.
+            # 3. Deterministically restart background daemons now that the display is ready.
+            # This fixes the "cannot open display" errors.
             ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service niri-flake-polkit.service
 
-            # 5. Launch DMS
-            dms run
+            # 4. Launch DMS EXCLUSIVELY in this session.
+            # We use an absolute path to the package from the flake input.
+            ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run
           ''
         ];
       }
