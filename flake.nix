@@ -127,6 +127,7 @@
                     nixvim.homeModules.nixvim
                     ./modules/user/home.nix
                     ./modules/hardware/thinkpad-z16/kanshi-home.nix
+                    ./modules/hardware/thinkpad-z16/niri-hardware-home.nix
                   ];
                 };
               };
