@@ -122,10 +122,9 @@ in
     # Wayland Session Environment
     # These variables optimize application behavior for the Wayland desktop.
     sessionVariables = {
-      MOZ_ENABLE_WAYLAND = "1";
-      SDL_VIDEODRIVER = "wayland";
-      QT_QPA_PLATFORM = "wayland";
-      NIXOS_OZONE_WL = "1";
+      MOZ_ENABLE_WAYLAND = lib.mkForce "1";
+      SDL_VIDEODRIVER = lib.mkForce "wayland";
+      NIXOS_OZONE_WL = lib.mkForce "1";
 
       # Editor Configuration
       # Using the absolute path to the user's nixvim wrapper ensures that

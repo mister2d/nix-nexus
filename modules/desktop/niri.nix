@@ -58,5 +58,8 @@ in
   environment.systemPackages = with pkgs; [
     unstable.dsearch
     unstable.xwayland-satellite
+    # Essential for Qt apps (Krita, etc.) to run on Wayland
+    qt6.qtwayland
+    kdePackages.qtwayland
   ];
 }

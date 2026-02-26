@@ -15,8 +15,7 @@
       focus-follows-mouse.enable = true;
     };
 
-    # XWayland integration: Disabled to ensure a pure Wayland environment
-    # and prevent unnecessary background processes.
+    # XWayland integration: Disabled to ensure a pure Wayland environment.
     xwayland-satellite.enable = false;
 
     # Replicating Sway output configuration for exact positioning and scaling.
@@ -51,7 +50,6 @@
 
       # Subtle Focus Ring:
       # We use a soft material-themed grey that compliments the Z16's aesthetic.
-      # This provides visual focus without being distracting.
       focus-ring = {
         enable = true;
         width = 3.0;
@@ -68,7 +66,6 @@
     layer-rules = [
       {
         matches = [ { namespace = "^quickshell$"; } ];
-        # Removed place-within-backdrop to ensure the bar is visible on the 'top' layer.
       }
       {
         matches = [ { namespace = "dms:blurwallpaper"; } ];
@@ -84,8 +81,7 @@
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
       # MAGIC FIX: Update DBus and Systemd activation environment using absolute paths.
-      # This prevents Wayland apps (like Chrome) and background services (EasyEffects)
-      # from hanging or failing to find the display.
+      # This ensures all Wayland/Qt variables are synced to the session manager.
       {
         command = [
           "${pkgs.dbus}/bin/dbus-update-activation-environment"
@@ -94,25 +90,20 @@
           "XDG_CURRENT_DESKTOP"
           "XDG_SESSION_TYPE"
           "XDG_SESSION_DESKTOP"
+          "QT_QPA_PLATFORM"
+          "QT_WAYLAND_DISABLE_WINDOWDECORATION"
           "DISPLAY"
         ];
       }
-      # Trigger EasyEffects manual start if it's already failed
+      # Trigger essential services manual restart to ensure display connectivity.
       {
         command = [
           "${pkgs.systemd}/bin/systemctl"
           "--user"
           "restart"
           "easyeffects.service"
-        ];
-      }
-      # Restart the polkit agent provided by niri-flake if it failed to open display
-      {
-        command = [
-          "${pkgs.systemd}/bin/systemctl"
-          "--user"
-          "restart"
           "niri-flake-polkit.service"
+          "xdg-desktop-portal.service"
         ];
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
@@ -122,26 +113,18 @@
           "--indicator"
         ];
       }
-      # RESTORE DMS: We use a shell-wrapped command with a small delay to ensure
-      # the environment synchronization is processed by DBus before the shell binds.
+      # Launch DMS with a small delay to ensure portals/DBus are synchronized.
       {
         sh = "sleep 1 && ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run";
       }
     ];
 
-    # Essential Wayland environment variables to ensure DMS and browsers can communicate.
+    # Inherit environment from global sessionVariables (set in hardware-home.nix).
+    # This deduplicates hints and ensures Krita/Chrome/DMS use consistent settings.
     environment = {
-      XDG_CURRENT_DESKTOP = "niri";
-      XDG_SESSION_TYPE = "wayland";
-      XDG_SESSION_DESKTOP = "niri";
-      QT_QPA_PLATFORM = "wayland";
-      QT_QPA_PLATFORMTHEME = "gtk3";
+      QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
-      SDL_VIDEODRIVER = "wayland";
-      CLUTTER_BACKEND = "wayland";
-      GDK_BACKEND = "wayland";
       MOZ_ENABLE_WAYLAND = "1";
-      # Chrome/Chromium: Use --ozone-platform=wayland via hint
       ELECTRON_OZONE_PLATFORM_HINT = "wayland";
       NIXOS_OZONE_WL = "1";
     };
@@ -156,8 +139,7 @@
         "if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi"
       ];
 
-      # Direct Chrome launch (bypass gpu-launch for testing)
-      # Now uses the default environment GPU (Integrated).
+      # Direct Chrome launch (Integrated GPU default)
       "Mod+Ctrl+B".action.spawn = [
         "google-chrome-stable"
         "--ozone-platform=wayland"

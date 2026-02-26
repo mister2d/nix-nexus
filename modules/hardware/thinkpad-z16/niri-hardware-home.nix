@@ -1,4 +1,4 @@
-_:
+{ lib, ... }:
 
 {
   # ThinkPad Z16 Specific Niri Optimizations (Home Manager)
@@ -18,9 +18,20 @@ _:
     environment.MESA_VK_DEVICE_SELECT = "pci-0000_67_00_0";
   };
 
-  # Set GPU variables globally for the user session to catch systemd services.
+  # Set GPU and Wayland variables globally for the user session.
+  # This ensures systemd services and sub-shells inherit the same environment.
   home.sessionVariables = {
     DRI_PRIME = "pci-0000_67_00_0";
     MESA_VK_DEVICE_SELECT = "pci-0000_67_00_0";
+
+    # Wayland / Qt / Chrome Fixes
+    XDG_CURRENT_DESKTOP = "niri";
+    XDG_SESSION_TYPE = "wayland";
+    XDG_SESSION_DESKTOP = "niri";
+    QT_QPA_PLATFORM = lib.mkForce "wayland;xcb"; # Try Wayland first, fallback to X11 (if enabled)
+    QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
+    ELECTRON_OZONE_PLATFORM_HINT = "wayland";
+    NIXOS_OZONE_WL = "1";
+    MOZ_ENABLE_WAYLAND = "1";
   };
 }
