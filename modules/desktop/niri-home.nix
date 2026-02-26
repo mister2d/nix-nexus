@@ -1,8 +1,4 @@
-{
-  pkgs,
-  inputs,
-  ...
-}:
+{ pkgs, inputs, ... }:
 
 {
   # Since Niri is now managed by niri-flake, we use its structured settings.
@@ -72,7 +68,7 @@
     layer-rules = [
       {
         matches = [ { namespace = "^quickshell$"; } ];
-        place-within-backdrop = true;
+        # Removed place-within-backdrop to ensure the bar is visible on the 'top' layer.
       }
       {
         matches = [ { namespace = "dms:blurwallpaper"; } ];
@@ -87,12 +83,12 @@
 
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
-      # MAGIC FIX: Update DBus and Systemd activation environment.
+      # MAGIC FIX: Update DBus and Systemd activation environment using absolute paths.
       # This prevents Wayland apps (like Chrome) and background services (EasyEffects)
       # from hanging or failing to find the display.
       {
         command = [
-          "dbus-update-activation-environment"
+          "${pkgs.dbus}/bin/dbus-update-activation-environment"
           "--systemd"
           "WAYLAND_DISPLAY"
           "XDG_CURRENT_DESKTOP"
@@ -104,7 +100,7 @@
       # Trigger EasyEffects manual start if it's already failed
       {
         command = [
-          "systemctl"
+          "${pkgs.systemd}/bin/systemctl"
           "--user"
           "restart"
           "easyeffects.service"
@@ -113,7 +109,7 @@
       # Restart the polkit agent provided by niri-flake if it failed to open display
       {
         command = [
-          "systemctl"
+          "${pkgs.systemd}/bin/systemctl"
           "--user"
           "restart"
           "niri-flake-polkit.service"
@@ -126,13 +122,10 @@
           "--indicator"
         ];
       }
-      # RESTORE DMS: We use 'dms run' to ensure the shell starts immediately with the
-      # correct environment synchronization.
+      # RESTORE DMS: We use a shell-wrapped command with a small delay to ensure
+      # the environment synchronization is processed by DBus before the shell binds.
       {
-        command = [
-          "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
-          "run"
-        ];
+        sh = "sleep 1 && ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run";
       }
     ];
 
@@ -157,7 +150,6 @@
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
 
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
-      # Added --ozone-platform=wayland to potentially resolve hanging
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"

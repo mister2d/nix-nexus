@@ -12,11 +12,15 @@ _:
     # We use the specific PCI ID to avoid "Invalid value" errors.
     # iGPU (Radeon 680M): pci-0000_67_00_0
     environment.DRI_PRIME = "pci-0000_67_00_0";
+
+    # Vulkan GPU selection: Prevents apps from probing the dGPU.
+    # This resolves "subprocesses" appearing on GPU 1 in nvtop.
+    environment.MESA_VK_DEVICE_SELECT = "pci-0000_67_00_0";
   };
 
-  # Set DRI_PRIME globally for the user session to catch systemd services
-  # like EasyEffects which are not spawned directly by Niri.
+  # Set GPU variables globally for the user session to catch systemd services.
   home.sessionVariables = {
     DRI_PRIME = "pci-0000_67_00_0";
+    MESA_VK_DEVICE_SELECT = "pci-0000_67_00_0";
   };
 }
