@@ -47,4 +47,13 @@
       Defaults env_keep += "EDITOR VISUAL SUDO_EDITOR"
     '';
   };
+
+  # Fingerprint Support for PAM services
+  # Note: The user must enroll their own fingerprints using 'fprintd-enroll'
+  # for these services to use the fingerprint reader.
+  security.pam.services = {
+    sudo.fprintAuth = true;
+    login.fprintAuth = true;
+    polkit-1.fprintAuth = true;
+  };
 }
