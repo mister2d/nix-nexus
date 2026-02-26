@@ -49,9 +49,17 @@
       gaps = 8.0; # Using float for niri-flake schema
       default-column-width.proportion = 0.5;
 
-      # Disable the distracting blue neon-like outline.
-      # Niri/DMS reflects focus more unobtrusively through DMS highlights.
-      focus-ring.enable = false;
+      # Subtle Focus Ring:
+      # We use a soft material-themed grey that compliments the Z16's aesthetic.
+      # This provides visual focus without being distracting.
+      focus-ring = {
+        enable = true;
+        width = 3.0;
+        # Soft, semi-transparent material grey (DMS-like)
+        active.color = "rgba(100, 100, 100, 0.7)";
+        inactive.color = "rgba(50, 50, 50, 0.3)";
+      };
+
       border.enable = false;
     };
 
@@ -75,8 +83,9 @@
 
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
-      # MAGIC FIX: Update DBus activation environment.
-      # This prevents Wayland apps (like Chrome) from hanging while waiting for portals.
+      # MAGIC FIX: Update DBus and Systemd activation environment.
+      # This prevents Wayland apps (like Chrome) and background services (EasyEffects)
+      # from hanging or failing to find the display.
       {
         command = [
           "${pkgs.dbus}/bin/dbus-update-activation-environment"
@@ -85,6 +94,25 @@
           "XDG_CURRENT_DESKTOP=niri"
           "XDG_SESSION_DESKTOP=niri"
           "XDG_SESSION_TYPE=wayland"
+        ];
+      }
+      # Synchronize systemd user environment explicitly to fix EasyEffects
+      {
+        command = [
+          "systemctl"
+          "--user"
+          "import-environment"
+          "WAYLAND_DISPLAY"
+          "XDG_CURRENT_DESKTOP"
+        ];
+      }
+      # Trigger EasyEffects manual start if it's already failed
+      {
+        command = [
+          "systemctl"
+          "--user"
+          "restart"
+          "easyeffects.service"
         ];
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
@@ -125,6 +153,7 @@
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
 
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
+      # Added --ozone-platform=wayland to potentially resolve hanging
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"

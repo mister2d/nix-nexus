@@ -13,4 +13,10 @@ _:
     # iGPU (Radeon 680M): pci-0000_67_00_0
     environment.DRI_PRIME = "pci-0000_67_00_0";
   };
+
+  # Set DRI_PRIME globally for the user session to catch systemd services
+  # like EasyEffects which are not spawned directly by Niri.
+  home.sessionVariables = {
+    DRI_PRIME = "pci-0000_67_00_0";
+  };
 }
