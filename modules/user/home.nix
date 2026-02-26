@@ -49,9 +49,7 @@ let
 in
 {
   imports = [
-    ../desktop/sway-home.nix
     ../desktop/niri-home.nix
-    ../desktop/waybar-home.nix
     ../desktop/notifications.nix
     ./bash.nix
     ./neovim-home.nix

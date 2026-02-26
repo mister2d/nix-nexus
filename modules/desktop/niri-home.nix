@@ -88,9 +88,12 @@
           "${pkgs.bash}/bin/bash"
           "-c"
           ''
-            # 1. Wait for Niri to establish the socket.
-            # We check every 0.1s until the Wayland display variable is valid and the file exists.
-            while [ -z "$WAYLAND_DISPLAY" ] || [ ! -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; do
+            # 1. Wait for Niri to establish the physical socket.
+            # We wait for up to 5 seconds for the socket to appear.
+            for i in $(seq 1 50); do
+              if [ -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
+                break
+              fi
               ${pkgs.bash}/bin/sleep 0.1
             done
 
@@ -131,6 +134,7 @@
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
 
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
+      # Added --ozone-platform=wayland to potentially resolve hanging
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"

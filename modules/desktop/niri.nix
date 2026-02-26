@@ -60,10 +60,24 @@ in
     ];
   };
 
-  # Ensure essential services are enabled
-  services.accounts-daemon.enable = true;
-  services.upower.enable = true;
   security.polkit.enable = true;
+
+  # Essential System Services
+  services = {
+    accounts-daemon.enable = true;
+    upower.enable = true;
+
+    # Display Manager (Greetd) - Isolated to Niri
+    greetd = {
+      enable = true;
+      settings = {
+        default_session = {
+          command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --asterisks --cmd niri-session";
+          user = "greeter";
+        };
+      };
+    };
+  };
 
   # Additional system tools for Niri/DMS
   environment.systemPackages = with pkgs; [
