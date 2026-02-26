@@ -81,30 +81,19 @@
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
       # MAGIC FIX: Update DBus and Systemd activation environment using absolute paths.
-      # This ensures all Wayland/Qt variables are synced to the session manager.
+      # We use --all to ensure EVERY environment variable Niri has is synced.
       {
         command = [
           "${pkgs.dbus}/bin/dbus-update-activation-environment"
           "--systemd"
-          "WAYLAND_DISPLAY"
-          "XDG_CURRENT_DESKTOP"
-          "XDG_SESSION_TYPE"
-          "XDG_SESSION_DESKTOP"
-          "QT_QPA_PLATFORM"
-          "QT_WAYLAND_DISABLE_WINDOWDECORATION"
-          "DISPLAY"
+          "--all"
         ];
       }
       # Trigger essential services manual restart to ensure display connectivity.
+      # We use a shell command to wait slightly before restarting to ensure
+      # Niri has fully bound its socket.
       {
-        command = [
-          "${pkgs.systemd}/bin/systemctl"
-          "--user"
-          "restart"
-          "easyeffects.service"
-          "niri-flake-polkit.service"
-          "xdg-desktop-portal.service"
-        ];
+        sh = "${pkgs.bash}/bin/sleep 2 && ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service niri-flake-polkit.service xdg-desktop-portal.service";
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
       {
@@ -115,7 +104,9 @@
       }
       # Launch DMS with a small delay to ensure portals/DBus are synchronized.
       {
-        sh = "sleep 1 && ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run";
+        sh = "${pkgs.bash}/bin/sleep 1 && ${
+          inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default
+        }/bin/dms run";
       }
     ];
 
@@ -133,6 +124,7 @@
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
 
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
+      # Added --ozone-platform=wayland to potentially resolve hanging
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"

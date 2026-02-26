@@ -2,33 +2,34 @@
 
 {
   # ThinkPad Z16 Specific Niri Optimizations (Home Manager)
+  # NOTE: On this specific Z16, lspci/DRI paths show:
+  # - dGPU (6500M): pci-0000:03:00.0 -> renderD128
+  # - iGPU (680M):  pci-0000:67:00.0 -> renderD129
+
   programs.niri.settings = {
     # Force Niri to use the Integrated GPU (680M) for the compositor.
-    # On the Z16, this is typically /dev/dri/renderD128.
-    # This keeps the Discrete GPU (6500M) powered down until explicitly requested.
-    debug.render-drm-device = "/dev/dri/renderD128";
+    # On THIS Z16, the iGPU is renderD129.
+    debug.render-drm-device = "/dev/dri/renderD129";
 
     # Force all clients to Integrated GPU by default for battery savings.
-    # We use the specific PCI ID to avoid "Invalid value" errors.
-    # iGPU (Radeon 680M): pci-0000_67_00_0
-    environment.DRI_PRIME = "pci-0000_67_00_0";
+    # Correct PCI ID format for DRI_PRIME is 'pci-0000:67:00.0'
+    environment.DRI_PRIME = "pci-0000:67:00.0";
 
     # Vulkan GPU selection: Prevents apps from probing the dGPU.
-    # This resolves "subprocesses" appearing on GPU 1 in nvtop.
-    environment.MESA_VK_DEVICE_SELECT = "pci-0000_67_00_0";
+    environment.MESA_VK_DEVICE_SELECT = "pci-0000:67:00.0";
   };
 
   # Set GPU and Wayland variables globally for the user session.
   # This ensures systemd services and sub-shells inherit the same environment.
   home.sessionVariables = {
-    DRI_PRIME = "pci-0000_67_00_0";
-    MESA_VK_DEVICE_SELECT = "pci-0000_67_00_0";
+    DRI_PRIME = lib.mkForce "pci-0000:67:00.0";
+    MESA_VK_DEVICE_SELECT = lib.mkForce "pci-0000:67:00.0";
 
     # Wayland / Qt / Chrome Fixes
     XDG_CURRENT_DESKTOP = "niri";
     XDG_SESSION_TYPE = "wayland";
     XDG_SESSION_DESKTOP = "niri";
-    QT_QPA_PLATFORM = lib.mkForce "wayland;xcb"; # Try Wayland first, fallback to X11 (if enabled)
+    QT_QPA_PLATFORM = lib.mkForce "wayland;xcb";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
     ELECTRON_OZONE_PLATFORM_HINT = "wayland";
     NIXOS_OZONE_WL = "1";
