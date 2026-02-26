@@ -97,6 +97,13 @@
     fwupd.enable = true;
   };
 
+  # Fingerprint Support for PAM services (Hardware-Specific)
+  security.pam.services = {
+    sudo.fprintAuth = true;
+    login.fprintAuth = true;
+    polkit-1.fprintAuth = true;
+  };
+
   # 2. Audio Quirks (Z16 Audio & Mic)
   # The Z16 uses AMD ACP (Audio Coprocessor) for DMIC and Cirrus Amps for speakers.
   hardware.enableAllFirmware = true;
