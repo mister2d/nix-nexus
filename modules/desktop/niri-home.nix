@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 {
   # Since Niri is now managed by niri-flake, we use its structured settings.
@@ -80,30 +80,14 @@
 
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
-      # DETERMINISTIC SYNC:
-      # Instead of blind sleeps, we use systemctl to import the environment
-      # and signal the graphical-session.target.
+      # ELEGANT SYNC:
+      # We perform a single environment import. Systemd units (DMS, EasyEffects)
+      # will now start automatically via graphical-session.target with correct dependencies.
       {
         command = [
-          "${pkgs.bash}/bin/bash"
-          "-c"
-          ''
-            # 1. Sync Niri's runtime environment to the systemd user manager.
-            # This is the "proper" Wayland synchronization method.
-            ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
-
-            # 2. Update DBus activation environment for non-systemd apps.
-            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
-
-            # 3. Deterministically restart services now that the environment is valid.
-            ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service niri-flake-polkit.service
-
-            # 4. Wait for the socket to be physically available before launching DMS.
-            while [ ! -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; do ${pkgs.bash}/bin/sleep 0.1; done
-
-            # 5. Launch DMS with its native systemd target synchronization.
-            ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run
-          ''
+          "${pkgs.dbus}/bin/dbus-update-activation-environment"
+          "--systemd"
+          "--all"
         ];
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
@@ -115,7 +99,8 @@
       }
     ];
 
-    # Essential Wayland environment variables to ensure DMS and browsers can communicate.
+    # Inherit environment from global sessionVariables (set in hardware-home.nix).
+    # This deduplicates hints and ensures Krita/Chrome/DMS use consistent settings.
     environment = {
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
@@ -143,7 +128,7 @@
 
       # DMS Spotlight toggle
       "Mod+D".action.spawn = [
-        "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
+        "dms"
         "ipc"
         "call"
         "spotlight"

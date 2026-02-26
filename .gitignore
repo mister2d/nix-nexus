@@ -11,6 +11,7 @@ result-*
 # User-specific
 .env
 .direnv/
+debug/
 
 # System specific
 hardware-configuration.nix.bak

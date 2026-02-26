@@ -17,18 +17,14 @@ in
   ];
 
   # Niri from Flake
-  # We use the system-wide programs.niri from niri-flake.
-  # This sets up the systemd session and the niri-session binary.
   programs.niri = {
     enable = true;
     package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
   };
 
   # Dank Material Shell (DMS) configuration
-  # The DMS module handles its own systemd services and dependencies.
   programs.dank-material-shell = {
     enable = true;
-    # Use 'dgop' from unstable to satisfy dms requirements for system monitoring.
     dgop.package = unstable.dgop;
     enableSystemMonitoring = true;
     enableVPN = true;
@@ -37,8 +33,27 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # We start DMS manually in niri-home.nix to ensure environment sync.
-    systemd.enable = false;
+    # DETERMINISM: Enable systemd service but force it to wait for the session.
+    systemd.enable = true;
+  };
+
+  # Systemd User Service Refinements
+  # We override services to ensure they wait for the graphical session environment.
+  systemd.user.services = {
+    dms = {
+      description = "DankMaterialShell";
+      after = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+    };
+    easyeffects = {
+      after = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+    };
+    niri-flake-polkit = {
+      # Fix the polkit agent starting too early
+      after = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+    };
   };
 
   # Graphics and Hardware optimizations for AMD (ThinkPad Z16)
