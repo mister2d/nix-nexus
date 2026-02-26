@@ -7,5 +7,9 @@ _:
     # On the Z16, this is typically /dev/dri/renderD128.
     # This keeps the Discrete GPU (6500M) powered down until explicitly requested.
     debug.render-drm-device = "/dev/dri/renderD128";
+
+    # Force all clients to Integrated GPU by default for battery savings.
+    # The Chrome keybindings will override this with DRI_PRIME=1.
+    environment.DRI_PRIME = "0";
   };
 }

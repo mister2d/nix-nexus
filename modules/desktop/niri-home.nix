@@ -15,9 +15,9 @@
       focus-follows-mouse.enable = true;
     };
 
-    # XWayland integration: Niri manages the xwayland-satellite process.
-    # This resolves the "No such file or directory" warnings in logs.
-    xwayland-satellite.enable = true;
+    # XWayland integration: Disabled to ensure a pure Wayland environment
+    # and prevent unnecessary background processes.
+    xwayland-satellite.enable = false;
 
     # Replicating Sway output configuration for exact positioning and scaling.
     outputs."eDP-1" = {
