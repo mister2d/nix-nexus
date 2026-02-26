@@ -1,6 +1,5 @@
 {
   pkgs,
-  lib,
   ...
 }:
 
@@ -24,12 +23,6 @@
     config = {
       common.default = [
         "gnome"
-        "gtk"
-      ];
-
-      # Specific overrides for each session
-      sway.default = lib.mkForce [
-        "wlr"
         "gtk"
       ];
 

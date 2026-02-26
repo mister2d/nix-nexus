@@ -1,4 +1,4 @@
-{ pkgs, inputs, ... }:
+{ pkgs, ... }:
 
 {
   # Since Niri is now managed by niri-flake, we use its structured settings.
@@ -91,7 +91,7 @@
             # 1. Wait for Niri to establish the physical socket.
             # We wait for up to 5 seconds for the socket to appear.
             for i in $(seq 1 50); do
-              if [ -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
+              if [ -n "$WAYLAND_DISPLAY" ] && [ -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
                 break
               fi
               ${pkgs.bash}/bin/sleep 0.1
@@ -102,13 +102,12 @@
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. Deterministically restart background daemons now that the display is ready.
-            # This fixes the "cannot open display" errors.
-            ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service niri-flake-polkit.service
+            # 3. Deterministically signal readiness by starting the session target.
+            # This triggers services with WantedBy=graphical-session.target (DMS, EasyEffects).
+            ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
 
-            # 4. Launch DMS EXCLUSIVELY in this session.
-            # We use an absolute path to the package from the flake input.
-            ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run
+            # 4. As a last resort, restart the services that often fail early.
+            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service niri-flake-polkit.service
           ''
         ];
       }

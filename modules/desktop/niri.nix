@@ -33,22 +33,21 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # STRICT SEPARATION: Disable the DMS systemd service globally.
-    # We will launch it manually ONLY in the niri session to avoid
-    # leaking it into Sway.
-    systemd.enable = false;
+    # Enable systemd service and bind it to the graphical session.
+    systemd.enable = true;
   };
 
   # Systemd User Service Scoping
-  # Ensure background daemons only start when a graphical session is reached.
   systemd.user.services = {
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
     };
     niri-flake-polkit = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
     };
   };
 
