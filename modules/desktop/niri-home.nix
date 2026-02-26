@@ -80,14 +80,28 @@
 
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
-      # ELEGANT SYNC:
-      # We perform a single environment import. Systemd units (DMS, EasyEffects)
-      # will now start automatically via graphical-session.target with correct dependencies.
+      # DETERMINISTIC SYNC:
+      # We use a blocking check for the Wayland socket, then signal
+      # the systemd user manager that the graphical session is ready.
       {
         command = [
-          "${pkgs.dbus}/bin/dbus-update-activation-environment"
-          "--systemd"
-          "--all"
+          "${pkgs.bash}/bin/bash"
+          "-c"
+          ''
+            # 1. Wait for the socket to be physically available.
+            while [ ! -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; do ${pkgs.bash}/bin/sleep 0.1; done
+
+            # 2. Sync Niri's runtime environment to the systemd user manager.
+            # This is the "proper" Wayland synchronization method.
+            ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
+
+            # 3. Update DBus activation environment for non-systemd apps.
+            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
+
+            # 4. Signal that the graphical session is now active.
+            # This triggers services with WantedBy=graphical-session.target.
+            ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
+          ''
         ];
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
