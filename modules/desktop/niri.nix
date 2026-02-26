@@ -33,18 +33,19 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Enable systemd service and bind it to the graphical session.
-    systemd.enable = true;
+    # RESEARCH FIX: Disable the global systemd service.
+    # We use the Home Manager module's 'enableSpawn' for deterministic Niri integration.
+    systemd.enable = false;
   };
 
   # Systemd User Service Scoping
   systemd.user.services = {
+    # RESEARCH FIX: Explicitly disable the niri-flake polkit agent.
+    # DMS provides its own, and running both causes contention and display errors.
+    niri-flake-polkit.enable = false;
+
+    # Ensure background daemons only start when a graphical session is reached.
     easyeffects = {
-      after = [ "graphical-session.target" ];
-      partOf = [ "graphical-session.target" ];
-      wantedBy = [ "graphical-session.target" ];
-    };
-    niri-flake-polkit = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];

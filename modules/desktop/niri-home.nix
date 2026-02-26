@@ -1,8 +1,16 @@
-{ pkgs, ... }:
+{ pkgs, inputs, ... }:
 
+let
+  unstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+in
 {
-  # Since Niri is now managed by niri-flake, we use its structured settings.
-  # This provides better validation and integration than raw KDL strings.
+  # RESEARCH FIX: Import the official DMS Home Manager module for better integration.
+  imports = [ inputs.dms.homeModules.dank-material-shell ];
+
+  # Niri Configuration (Validated at build-time by niri-flake)
   programs.niri.settings = {
     input = {
       keyboard.xkb.layout = "us";
@@ -78,7 +86,7 @@
       }
     ];
 
-    # Startup sequence for Niri + DMS
+    # Startup sequence for Niri
     spawn-at-startup = [
       # ADVANCED DETERMINISTIC STARTUP:
       # This script ensures that Niri's internal state is fully synchronized
@@ -106,8 +114,8 @@
             # This triggers services with WantedBy=graphical-session.target (DMS, EasyEffects).
             ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
 
-            # 4. As a last resort, restart the services that often fail early.
-            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service niri-flake-polkit.service
+            # 4. Restart services that might have failed before environment was ready.
+            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service xdg-desktop-portal.service
           ''
         ];
       }
@@ -120,7 +128,7 @@
       }
     ];
 
-    # Essential Wayland environment variables to ensure DMS and browsers can communicate.
+    # Essential Wayland environment variables to ensure browsers can communicate.
     environment = {
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
@@ -252,4 +260,22 @@
       }
     ];
   };
+
+  # DMS Configuration (Engineered based on debug/research.md blueprint)
+  programs.dank-material-shell = {
+    enable = true;
+
+    # RESEARCH FIX: Enable DMS systemd service explicitly.
+    # The HM module will bind it to 'graphical-session.target' by default.
+    systemd.enable = true;
+
+    # RESEARCH FIX: Pull dgop from the unstable channel.
+    dgop.package = unstable.dgop;
+  };
+
+  # Required dependencies for DMS background operations
+  home.packages = with pkgs; [
+    matugen # For material design color palette generation
+    cliphist # For clipboard history
+  ];
 }
