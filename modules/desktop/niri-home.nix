@@ -80,20 +80,29 @@
 
     # Startup sequence for Niri + DMS
     spawn-at-startup = [
-      # MAGIC FIX: Update DBus and Systemd activation environment using absolute paths.
-      # We use --all to ensure EVERY environment variable Niri has is synced.
+      # ADVANCED SYNC: We use a multi-stage synchronization script to ensure
+      # all services receive the correct environment.
       {
         command = [
-          "${pkgs.dbus}/bin/dbus-update-activation-environment"
-          "--systemd"
-          "--all"
+          "${pkgs.bash}/bin/bash"
+          "-c"
+          ''
+            # 1. Export all current Niri variables to DBus/Systemd
+            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
+
+            # 2. Re-trigger essential services after environment sync
+            ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service
+
+            # 3. Wait for portal to pick up environment
+            ${pkgs.bash}/bin/sleep 1
+
+            # 4. Restart display-dependent services
+            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service niri-flake-polkit.service
+
+            # 5. Launch DMS
+            ${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms run
+          ''
         ];
-      }
-      # Trigger essential services manual restart to ensure display connectivity.
-      # We use a shell command to wait slightly before restarting to ensure
-      # Niri has fully bound its socket.
-      {
-        sh = "${pkgs.bash}/bin/sleep 2 && ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service niri-flake-polkit.service xdg-desktop-portal.service";
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
       {
@@ -102,16 +111,9 @@
           "--indicator"
         ];
       }
-      # Launch DMS with a small delay to ensure portals/DBus are synchronized.
-      {
-        sh = "${pkgs.bash}/bin/sleep 1 && ${
-          inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default
-        }/bin/dms run";
-      }
     ];
 
-    # Inherit environment from global sessionVariables (set in hardware-home.nix).
-    # This deduplicates hints and ensures Krita/Chrome/DMS use consistent settings.
+    # Essential Wayland environment variables to ensure DMS and browsers can communicate.
     environment = {
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
