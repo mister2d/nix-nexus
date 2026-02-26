@@ -48,7 +48,7 @@
       if [ -z "$CHOICE" ] || [[ "$CHOICE" == *"Integrated"* ]]; then
           exec "$@"
       elif [[ "$CHOICE" == *"Discrete"* ]]; then
-          exec env DRI_PRIME=1 "$@"
+          exec env DRI_PRIME=pci-0000_03_00_0 "$@"
       else
           # Fallback for unexpected input
           exec "$@"

@@ -9,7 +9,8 @@ _:
     debug.render-drm-device = "/dev/dri/renderD128";
 
     # Force all clients to Integrated GPU by default for battery savings.
-    # The Chrome keybindings will override this with DRI_PRIME=1.
-    environment.DRI_PRIME = "0";
+    # We use the specific PCI ID to avoid "Invalid value" errors.
+    # iGPU (Radeon 680M): pci-0000_67_00_0
+    environment.DRI_PRIME = "pci-0000_67_00_0";
   };
 }

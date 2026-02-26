@@ -94,9 +94,14 @@
           "--indicator"
         ];
       }
-      # NOTE: DMS is now started via systemd service (programs.dank-material-shell.systemd.enable)
-      # and XWayland is managed by Niri itself (xwayland-satellite.enable).
-      # Redundant manual spawns removed here to prevent "two menubars".
+      # RESTORE DMS: We use 'dms run' to ensure the shell starts immediately with the
+      # correct environment synchronization.
+      {
+        command = [
+          "${inputs.dms.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/dms"
+          "run"
+        ];
+      }
     ];
 
     # Essential Wayland environment variables to ensure DMS and browsers can communicate.
@@ -120,7 +125,6 @@
       "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
 
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
-      # Added --ozone-platform=wayland to potentially resolve hanging
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"
@@ -128,6 +132,7 @@
       ];
 
       # Direct Chrome launch (bypass gpu-launch for testing)
+      # Now uses the default environment GPU (Integrated).
       "Mod+Ctrl+B".action.spawn = [
         "google-chrome-stable"
         "--ozone-platform=wayland"

@@ -37,8 +37,8 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Ensure dms starts with the graphical session.
-    systemd.enable = true;
+    # We start DMS manually in niri-home.nix to ensure environment sync.
+    systemd.enable = false;
   };
 
   # Graphics and Hardware optimizations for AMD (ThinkPad Z16)
