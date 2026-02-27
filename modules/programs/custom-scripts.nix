@@ -86,18 +86,17 @@ rec {
 
 
         def get_gpu_usage():
+            import glob
             gpus = []
-            paths = [
-                "/sys/class/drm/card1/device/gpu_busy_percent",
-                "/sys/class/drm/card2/device/gpu_busy_percent"
-            ]
+            # Dynamically discover all GPU busy percentage files
+            paths = glob.glob("/sys/class/drm/card*/device/gpu_busy_percent")
             for path in paths:
                 try:
                     with open(path, "r") as f:
                         val = int(f.read().strip())
                         gpus.append(val)
                 except Exception:
-                    gpus.append(0)
+                    pass
             return gpus
 
 

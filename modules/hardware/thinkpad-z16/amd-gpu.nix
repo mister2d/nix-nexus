@@ -20,13 +20,9 @@
 
   environment.systemPackages = with pkgs; [
     nvtopPackages.amd
-    pkgs.amdgpu_top # Specialized AMD monitor that can target specific GPUs
-    (pkgs.writeShellScriptBin "monitor-igpu" ''
-      # Monitor Integrated GPU (680M) without waking the Discrete GPU (6500M)
-      exec ${pkgs.amdgpu_top}/bin/amdgpu_top -d 0 "$@"
-    '')
+    pkgs.amdgpu_top
     (pkgs.writeShellScriptBin "gpu-launch" ''
-      # GPU Selector for Hybrid AMD Systems (ThinkPad Z16 Gen 1)
+      # GPU Selector for Hybrid AMD Systems
       # Usage: gpu-launch <command> [args...]
 
       if [ $# -eq 0 ]; then
@@ -37,16 +33,14 @@
       export PATH="$PATH:/run/current-system/sw/bin:/etc/profiles/per-user/$USER/bin"
 
       # Prompt user for GPU choice
-      CHOICE=$(printf "Integrated (680M)\nDiscrete (6500M)" | ${pkgs.wofi}/bin/wofi --dmenu -p "Select GPU" -H 150 -W 300)
+      CHOICE=$(printf "Integrated\nDiscrete" | ${pkgs.wofi}/bin/wofi --dmenu -p "Select GPU" -H 150 -W 300)
 
       # If user cancelled (Escape/Closed wofi), default to Integrated
       if [ -z "$CHOICE" ] || [[ "$CHOICE" == *"Integrated"* ]]; then
           exec "$@"
       elif [[ "$CHOICE" == *"Discrete"* ]]; then
-          # DEFINITIVE HARDWARE FIX: Use exact PCI ID format for the 6500M
-          # Integrated (680M):  pci-0000:67:00.0
-          # Discrete   (6500M): pci-0000:03:00.0
-          exec env DRI_PRIME=pci-0000:03:00.0 MESA_VK_DEVICE_SELECT=pci-0000:03:00.0 "$@"
+          # Use standard DRI_PRIME=1 for the discrete GPU
+          exec env DRI_PRIME=1 "$@"
       else
           # Fallback for unexpected input
           exec "$@"

@@ -61,7 +61,7 @@ in
   ];
 
   # Enable the EasyEffects Daemon in the background
-  services.easyeffects.enable = true;
+  services.easyeffects.enable = false;
 
   # Wire the data and configurations into the EasyEffects XDG spec
   xdg.configFile = {
