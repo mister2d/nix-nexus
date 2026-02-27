@@ -1,4 +1,9 @@
-{ pkgs, inputs, ... }:
+{
+  lib,
+  pkgs,
+  inputs,
+  ...
+}:
 
 let
   unstable = import inputs.nixpkgs-unstable {
@@ -77,8 +82,8 @@ in
       }
     ];
 
-    # Startup sequence for Niri
-    spawn-at-startup = [
+    # Startup sequence for Niri (Appended to DMS module commands)
+    spawn-at-startup = lib.mkAfter [
       # PORTABLE DETERMINISTIC SYNC:
       {
         command = [
