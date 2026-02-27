@@ -46,7 +46,7 @@ in
         height = 1440;
       };
       position = {
-        x = 3344; # iGPU is renderD129 on this Z16
+        x = 3344;
         y = 0;
       };
     };
@@ -80,8 +80,7 @@ in
     # Startup sequence for Niri
     spawn-at-startup = [
       # PORTABLE DETERMINISTIC SYNC:
-      # DMS is now launched natively by Niri (enableSpawn = true).
-      # We simply ensure the environment is synced for other services (EasyEffects).
+      # We ensure the environment is synced for systemd services.
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -96,11 +95,13 @@ in
             done
 
             # 2. Publish environment to session manager
+            # Explicitly listing variables to avoid deprecation warnings.
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
             # 3. Recovery: Restart services that depend on graphical-session
-            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service xdg-desktop-portal.service
+            # They will now inherit the environment imported above.
+            ${pkgs.systemd}/bin/systemctl --user restart dms.service easyeffects.service xdg-desktop-portal.service
           ''
         ];
       }
@@ -108,6 +109,8 @@ in
     ];
 
     environment = {
+      # RCA FIX: Explicitly force GTK to use Wayland.
+      GDK_BACKEND = "wayland";
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
       MOZ_ENABLE_WAYLAND = "1";
@@ -219,15 +222,14 @@ in
   # DMS 1.4 Stable Configuration
   programs.dank-material-shell = {
     enable = true;
-    # systemd.enable = false is set in niri.nix (system level)
+    # Switch back to systemd management as per RCA preference
+    systemd.enable = true;
     dgop.package = unstable.dgop;
 
-    # HEEDING THE WARNING:
-    # 1. Disable 'includes' hack to prevent DMS from overwriting config.kdl
-    # 2. Enable 'enableSpawn' to let Niri launch DMS directly (parent-child env).
     niri = {
       includes.enable = false;
-      enableSpawn = true;
+      # Disable enableSpawn when using systemd.enable = true to avoid double-instances
+      enableSpawn = false;
       enableKeybinds = false;
     };
   };

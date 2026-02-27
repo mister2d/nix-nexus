@@ -24,7 +24,7 @@ in
     package = pkgs.niri;
   };
 
-  # Dank Material Shell (DMS) configuration
+  # Dank Material Shell (DMS) 1.4 stable configuration
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
@@ -35,21 +35,38 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Managed via Home Manager niri integration for absolute environment inheritance
-    systemd.enable = false;
+    # Managed via graphical-session.target for better logging and management
+    systemd.enable = true;
   };
 
   # Systemd User Service Scoping
   systemd.user.services = {
     # DANK LINUX 1.4 DOCS FIX: Disable niri-flake's polkit agent.
-    # DMS 1.4 provides its own agent; running both causes display errors.
+    # The DMS built-in agent is the sole authentication authority.
     niri-flake-polkit.enable = false;
 
-    # Ensure EasyEffects waits for the session
+    # RCA FIX: Explicitly force services to use Wayland and inherit display from session.
+    # We remove hardcoded WAYLAND_DISPLAY/DISPLAY to allow inheritance from startup sync.
+    dms = {
+      description = "DankMaterialShell";
+      after = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
+      serviceConfig.Environment = [
+        "GDK_BACKEND=wayland"
+        "QT_QPA_PLATFORM=wayland"
+        "MOZ_ENABLE_WAYLAND=1"
+        "ELECTRON_OZONE_PLATFORM_HINT=wayland"
+      ];
+    };
+
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
+      serviceConfig.Environment = [
+        "GDK_BACKEND=wayland"
+      ];
     };
   };
 
