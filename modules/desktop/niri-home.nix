@@ -76,9 +76,7 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # ELEGANT DETERMINISTIC SYNC:
-      # Services now manage their own wait-for-display via ExecStartPre.
-      # We simply ensure the environment is synced once Niri is ready.
+      # DEFINITIVE DETERMINISTIC STARTUP:
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -93,9 +91,12 @@ in
             done
 
             # 2. Publish environment to session manager
-            # This ensures services inherit the actual socket name.
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
+
+            # 3. DETERMINISM FIX: Force restart services now that environment is verified.
+            # This ensures they pick up the fresh environment even if they already tried to start.
+            ${pkgs.systemd}/bin/systemctl --user restart niri-flake-polkit.service easyeffects.service dms.service
           ''
         ];
       }
