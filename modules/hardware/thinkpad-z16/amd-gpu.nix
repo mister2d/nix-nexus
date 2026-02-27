@@ -14,10 +14,6 @@
 
   # GPU Power Management
   # The ThinkPad Z16 Gen 1 (Radeon 6500M / 680M) has a VBIOS-enforced 30W power limit.
-  # The amdgpu driver often attempts to set a generic 50W default, leading to
-  # "New power limit (50) is out of range [30,30]" errors in dmesg.
-  # We declaratively set the power cap to the hardware-reported maximum (30W)
-  # to satisfy the driver during initialization and resume.
   services.udev.extraRules = ''
     SUBSYSTEM=="hwmon", DRIVER=="amdgpu", ATTR{power1_cap_max}!="", ATTR{power1_cap}="$attr{power1_cap_max}"
   '';
@@ -27,7 +23,6 @@
     pkgs.amdgpu_top # Specialized AMD monitor that can target specific GPUs
     (pkgs.writeShellScriptBin "monitor-igpu" ''
       # Monitor Integrated GPU (680M) without waking the Discrete GPU (6500M)
-      # Generic tools like 'nvtop' scan all PCI devices, causing a dGPU wakeup.
       exec ${pkgs.amdgpu_top}/bin/amdgpu_top -d 0 "$@"
     '')
     (pkgs.writeShellScriptBin "gpu-launch" ''
@@ -48,7 +43,10 @@
       if [ -z "$CHOICE" ] || [[ "$CHOICE" == *"Integrated"* ]]; then
           exec "$@"
       elif [[ "$CHOICE" == *"Discrete"* ]]; then
-          exec env DRI_PRIME=pci-0000:03:00.0 "$@"
+          # DEFINITIVE HARDWARE FIX: Use exact PCI ID format for the 6500M
+          # Integrated (680M):  pci-0000:67:00.0
+          # Discrete   (6500M): pci-0000:03:00.0
+          exec env DRI_PRIME=pci-0000:03:00.0 MESA_VK_DEVICE_SELECT=pci-0000:03:00.0 "$@"
       else
           # Fallback for unexpected input
           exec "$@"

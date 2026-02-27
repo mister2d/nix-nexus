@@ -1,6 +1,7 @@
 {
   inputs,
   pkgs,
+  lib,
   ...
 }:
 
@@ -33,21 +34,50 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # We manage startup manually in niri-home.nix to ensure absolute environment
-    # inheritance and visibility.
-    systemd.enable = false;
+    # Managed via graphical-session.target
+    systemd.enable = true;
   };
 
   # Systemd User Service Scoping
+  # We implement strict deterministic ordering and environment persistence.
   systemd.user.services = {
-    # DANK LINUX DOCS FIX: Disable niri-flake's polkit to prevent contention.
-    niri-flake-polkit.enable = false;
+    niri-flake-polkit = {
+      description = "PolicyKit Authentication Agent provided by niri-flake";
+      # Ensure it waits for the environment export
+      after = lib.mkForce [ "graphical-session-pre.target" ];
+      partOf = lib.mkForce [ "graphical-session.target" ];
+      # Fallback environment to prevent 'cannot open display' aborts
+      serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "DISPLAY=:0"
+      ];
+      # CRITICAL: Remove niri.service to prevent premature startup
+      wantedBy = lib.mkForce [ "graphical-session.target" ];
+    };
 
-    # Ensure background daemons only start when a graphical session is reached.
+    dms = {
+      description = "DankMaterialShell";
+      after = [
+        "niri-flake-polkit.service"
+        "graphical-session.target"
+      ];
+      requires = [ "niri-flake-polkit.service" ];
+      partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
+      serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "DISPLAY=:0"
+      ];
+    };
+
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
+      serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "DISPLAY=:0"
+      ];
     };
   };
 
