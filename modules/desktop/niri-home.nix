@@ -78,27 +78,31 @@ in
     spawn-at-startup = [
       # DEFINITIVE DETERMINISTIC STARTUP:
       {
-        command = [
-          "${pkgs.bash}/bin/bash"
-          "-c"
-          ''
-            # 1. Wait for Niri physical socket
-            for i in $(seq 1 50); do
-              if [ -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
-                break
-              fi
-              ${pkgs.bash}/bin/sleep 0.1
-            done
+        sh = ''
+          exec > /tmp/niri-startup.log 2>&1
+          echo "--- Niri Startup Log: $(date) ---"
 
-            # 2. Publish environment to session manager
-            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
-            ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
+          # 1. Wait for Niri physical socket
+          for i in $(seq 1 50); do
+            if [ -e "$XDG_RUNTIME_DIR/$WAYLAND_DISPLAY" ]; then
+              echo "Found Wayland socket: $WAYLAND_DISPLAY"
+              break
+            fi
+            sleep 0.1
+          done
 
-            # 3. Deterministically signal target and RESTART services to ensure they catch the env.
-            ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
-            ${pkgs.systemd}/bin/systemctl --user restart niri-flake-polkit.service xdg-desktop-portal.service easyeffects.service dms.service
-          ''
-        ];
+          # 2. Publish environment to session manager
+          echo "Syncing environment..."
+          ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
+          ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
+
+          # 3. Deterministically signal target and RESTART services to ensure they catch the env.
+          echo "Triggering targets and services..."
+          ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
+          ${pkgs.systemd}/bin/systemctl --user restart niri-flake-polkit.service xdg-desktop-portal.service easyeffects.service dms.service
+
+          echo "Startup sequence complete."
+        '';
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
     ];
