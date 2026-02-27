@@ -45,7 +45,7 @@ in
     # The DMS built-in agent is the sole authentication authority.
     niri-flake-polkit.enable = false;
 
-    # RCA FIX: Ensure easyeffects uses Wayland backend.
+    # Ensure EasyEffects waits for the session
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
@@ -53,7 +53,7 @@ in
       serviceConfig.Environment = [
         "WAYLAND_DISPLAY=wayland-1"
         "GDK_BACKEND=wayland"
-        "DISPLAY="
+        "DISPLAY=" # FORCED: Prevent GTK from attempting X11 connection
       ];
     };
   };

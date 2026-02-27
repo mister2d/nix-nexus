@@ -79,9 +79,7 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # RCA UPDATED STARTUP:
-      # Simple environment sync for background systemd services (EasyEffects).
-      # DMS is now launched natively via niri.enableSpawn.
+      # PORTABLE DETERMINISTIC SYNC:
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -98,6 +96,9 @@ in
             # 2. Publish environment to session manager
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+
+            # 3. Recovery: Restart services that depend on graphical-session
+            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service xdg-desktop-portal.service
           ''
         ];
       }
@@ -218,11 +219,13 @@ in
     # systemd.enable = false is set in niri.nix (system level)
     dgop.package = unstable.dgop;
 
-    # RCA RESOLUTION: Switch to native spawn mode for perfect environment inheritance.
+    # HEEDING THE WARNING (RESOLUTION):
+    # 1. Disable 'includes' hack. This was overwriting config.kdl with missing files.
+    # 2. Maintain 'enableSpawn' for perfect environment inheritance.
+    # 3. Disable preset keybinds to protect custom binds authority.
     niri = {
-      includes.enable = true;
+      includes.enable = false;
       enableSpawn = true;
-      # CONFLICT RESOLUTION: Disable preset keybinds to allow our manual ones.
       enableKeybinds = false;
     };
   };
