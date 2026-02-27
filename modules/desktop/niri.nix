@@ -45,8 +45,8 @@ in
     # The DMS built-in agent is the sole authentication authority.
     niri-flake-polkit.enable = false;
 
-    # RCA FIX: Explicitly set WAYLAND_DISPLAY and backends.
-    # Hardcoding the socket name (wayland-1) ensures GTK never falls back to X11.
+    # RCA FIX: Explicitly unset DISPLAY to force GTK onto Wayland.
+    # Hardcoding WAYLAND_DISPLAY and backends ensures immediate connectivity.
     dms = {
       description = "DankMaterialShell";
       after = [ "graphical-session.target" ];
@@ -58,6 +58,7 @@ in
         "QT_QPA_PLATFORM=wayland"
         "MOZ_ENABLE_WAYLAND=1"
         "ELECTRON_OZONE_PLATFORM_HINT=wayland"
+        "DISPLAY=" # FORCED: Prevent GTK from attempting X11 connection
       ];
     };
 
@@ -68,6 +69,7 @@ in
       serviceConfig.Environment = [
         "WAYLAND_DISPLAY=wayland-1"
         "GDK_BACKEND=wayland"
+        "DISPLAY=" # FORCED: Prevent GTK from attempting X11 connection
       ];
     };
   };
