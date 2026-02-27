@@ -131,7 +131,7 @@
     };
 
     binds = {
-      "Mod+Return".action.spawn = [ "${pkgs.alacritty}/bin/alacritty" ];
+      "Mod+Return".action.spawn = [ "${pkgs.kitty}/bin/kitty" ];
 
       # Browser: Matching Sway's Super+Shift+B with GPU launch selector
       # Added --ozone-platform=wayland to potentially resolve hanging
