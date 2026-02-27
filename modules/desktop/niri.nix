@@ -12,17 +12,19 @@ let
 in
 {
   imports = [
+    # DMS 1.4 Stable NixOS Module
     inputs.dms.nixosModules.default
     inputs.niri.nixosModules.niri
   ];
 
-  # Niri from Flake
+  # Niri Configuration
+  # HEEDING THE WARNING: Using niri 25.11 from nixpkgs as required by DMS.
   programs.niri = {
     enable = true;
-    package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
+    package = pkgs.niri;
   };
 
-  # Dank Material Shell (DMS) configuration
+  # Dank Material Shell (DMS) 1.4 stable configuration
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
@@ -38,17 +40,16 @@ in
   };
 
   # Systemd User Service Scoping
-  # Generic scoping for any host running Niri+DMS.
   systemd.user.services = {
-    niri-flake-polkit = {
-      description = "PolicyKit Authentication Agent provided by niri-flake";
-      # Dependencies handled natively by niri-session and graphical-session.target
-    };
+    # DANK LINUX 1.4 DOCS FIX: Disable niri-flake's polkit agent.
+    # The DMS built-in agent is the sole authentication authority.
+    niri-flake-polkit.enable = false;
 
-    dms = {
-      description = "DankMaterialShell";
-      after = [ "niri-flake-polkit.service" ];
-      requires = [ "niri-flake-polkit.service" ];
+    # Generic service scoping for portability
+    easyeffects = {
+      after = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
     };
   };
 
@@ -56,7 +57,7 @@ in
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
-      rocmPackages.clr.icd # OpenCL for AMD (common)
+      rocmPackages.clr.icd # OpenCL for AMD
     ];
   };
 
@@ -67,7 +68,7 @@ in
     accounts-daemon.enable = true;
     upower.enable = true;
 
-    # Display Manager (Greetd)
+    # Display Manager (Greetd) - Isolated to Niri
     greetd = {
       enable = true;
       settings = {

@@ -1,8 +1,17 @@
 { pkgs, inputs, ... }:
 
+let
+  unstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+in
 {
-  # RESEARCH FIX: Import official DMS Home Manager module
-  imports = [ inputs.dms.homeModules.dank-material-shell ];
+  # DANK LINUX 1.4 STABLE FIX: Import both main and niri-specific DMS modules.
+  imports = [
+    inputs.dms.homeModules.default
+    inputs.dms.homeModules.niri
+  ];
 
   # Niri Configuration (Validated at build-time by niri-flake)
   programs.niri.settings = {
@@ -70,7 +79,7 @@
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # PORTABLE DETERMINISTIC STARTUP:
+      # PORTABLE DETERMINISTIC STARTUP (Stable v1.4):
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -85,13 +94,12 @@
             done
 
             # 2. Publish environment to session manager
-            # Explicitly listing variables to avoid deprecation warnings.
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. Recovery: Explicitly restart services that depend on these variables
-            # once the display environment is verified.
-            ${pkgs.systemd}/bin/systemctl --user restart niri-flake-polkit.service easyeffects.service dms.service
+            # 3. Deterministically signal readiness and restart services
+            # DMS 1.4 systemd service is explicitly restarted here to pick up the environment.
+            ${pkgs.systemd}/bin/systemctl --user restart dms.service easyeffects.service xdg-desktop-portal.service
           ''
         ];
       }
@@ -187,6 +195,8 @@
       ];
       "XF86MonBrightnessDown".action.spawn = [
         "${pkgs.brightnessctl}/bin/brightnessctl"
+        "-d"
+        "5"
         "set"
         "10%-"
       ];
@@ -205,15 +215,20 @@
     ];
   };
 
-  # DMS Configuration (Engineered based on debug/research.md blueprint)
+  # DMS 1.4 Stable Configuration
   programs.dank-material-shell = {
     enable = true;
     systemd.enable = true;
-    dgop.package =
-      (import inputs.nixpkgs-unstable {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-      }).dgop;
+    dgop.package = unstable.dgop;
+
+    # HEEDING THE WARNING:
+    # 1. Disable 'includes' hack to prevent DMS from overwriting config.kdl
+    # 2. Disable 'enableSpawn' to prevent double-spawning (we use manual script).
+    niri = {
+      includes.enable = false;
+      enableSpawn = false;
+      enableKeybinds = false;
+    };
   };
 
   # Required dependencies for DMS background operations

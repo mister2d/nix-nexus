@@ -28,15 +28,16 @@
         "quickshell": "quickshell"
       },
       "locked": {
-        "lastModified": 1771551974,
-        "narHash": "sha256-eMriaB8E2/oDR4CLXTjenYqM+ZGYlTj39vyYu4cnkvU=",
+        "lastModified": 1771605734,
+        "narHash": "sha256-qPm0HLKFIN8nBiTJwA4Jq5R3KPNoMHBxkpVJ4DQ9PBI=",
         "owner": "AvengeMedia",
         "repo": "DankMaterialShell",
-        "rev": "b3b5c7a59f53c23d2c29545dd3a3141726340960",
+        "rev": "03a8e1e0d5fee0e68e15c93e63ba4ebb967a8e0b",
         "type": "github"
       },
       "original": {
         "owner": "AvengeMedia",
+        "ref": "v1.4.2",
         "repo": "DankMaterialShell",
         "type": "github"
       }
@@ -212,7 +213,9 @@
       "inputs": {
         "niri-stable": "niri-stable",
         "niri-unstable": "niri-unstable",
-        "nixpkgs": "nixpkgs_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ],
         "nixpkgs-stable": "nixpkgs-stable",
         "xwayland-satellite-stable": "xwayland-satellite-stable",
         "xwayland-satellite-unstable": "xwayland-satellite-unstable"
@@ -346,22 +349,6 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1771848320,
-        "narHash": "sha256-0MAd+0mun3K/Ns8JATeHT1sX28faLII5hVLq0L3BdZU=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "2fc6539b481e1d2569f25f8799236694180c0993",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs_3": {
-      "locked": {
         "lastModified": 1771208521,
         "narHash": "sha256-X01Q3DgSpjeBpapoGA4rzKOn25qdKxbPnxHeMLNoHTU=",
         "owner": "nixos",
@@ -376,7 +363,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
+    "nixpkgs_3": {
       "locked": {
         "lastModified": 1768323494,
         "narHash": "sha256-yBXJLE6WCtrGo7LKiB6NOt6nisBEEkguC/lq/rP3zRQ=",
@@ -395,7 +382,7 @@
     "nixvim": {
       "inputs": {
         "flake-parts": "flake-parts",
-        "nixpkgs": "nixpkgs_4",
+        "nixpkgs": "nixpkgs_3",
         "nuschtosSearch": "nuschtosSearch",
         "systems": "systems_3"
       },
@@ -601,7 +588,7 @@
         "mcp-servers-nix": "mcp-servers-nix",
         "niri": "niri",
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_2",
         "nixpkgs-chrome": "nixpkgs-chrome",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvim": "nixvim",

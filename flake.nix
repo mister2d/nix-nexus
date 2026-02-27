@@ -39,10 +39,13 @@
     };
 
     # Niri - Scrollable-tiling Wayland compositor
-    niri.url = "github:sodiboo/niri-flake";
+    niri = {
+      url = "github:sodiboo/niri-flake";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # DankMaterialShell - Material Design Shell for Wayland
-    dms.url = "github:AvengeMedia/DankMaterialShell";
+    dms.url = "github:AvengeMedia/DankMaterialShell/v1.4.2";
 
     # Nixvim - Neovim configuration via Nix
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
