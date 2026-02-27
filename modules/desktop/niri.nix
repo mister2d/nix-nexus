@@ -33,18 +33,22 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # RESEARCH FIX: Disable the global systemd service.
-    # We use the Home Manager module's 'enableSpawn' for deterministic Niri integration.
-    systemd.enable = false;
+    # Managed via graphical-session.target for clean separation
+    systemd.enable = true;
   };
 
   # Systemd User Service Scoping
   systemd.user.services = {
-    # RESEARCH FIX: Explicitly disable the niri-flake polkit agent.
-    # DMS provides its own, and running both causes contention and display errors.
+    # RESEARCH FIX: Disable niri-flake's polkit to prevent contention with DMS.
     niri-flake-polkit.enable = false;
 
-    # Ensure background daemons only start when a graphical session is reached.
+    # RCA FIX: Strengthen service ordering
+    dms = {
+      description = "DankMaterialShell";
+      after = [ "graphical-session.target" ];
+      partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
+    };
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
