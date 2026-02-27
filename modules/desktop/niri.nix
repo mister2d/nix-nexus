@@ -35,7 +35,7 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Managed via Home Manager spawn mode for better environment inheritance
+    # PARENT/CHILD MODEL: Disable systemd to allow niri.enableSpawn to manage launch.
     systemd.enable = false;
   };
 
@@ -45,16 +45,11 @@ in
     # The DMS built-in agent is the sole authentication authority.
     niri-flake-polkit.enable = false;
 
-    # Ensure EasyEffects waits for the session
+    # Generic service scoping for background daemons
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "GDK_BACKEND=wayland"
-        "DISPLAY=" # FORCED: Prevent GTK from attempting X11 connection
-      ];
     };
   };
 

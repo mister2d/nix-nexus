@@ -93,7 +93,7 @@ in
               ${pkgs.bash}/bin/sleep 0.1
             done
 
-            # 2. Publish environment to session manager
+            # 2. Publish environment to session manager for background services
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
 
@@ -106,7 +106,11 @@ in
     ];
 
     environment = {
+      # RCA RESOLUTION: Force backend and purge legacy X11 variables.
+      # Child processes (DMS) will inherit these natively from Niri.
       GDK_BACKEND = "wayland";
+      DISPLAY = "";
+
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
       MOZ_ENABLE_WAYLAND = "1";
@@ -195,6 +199,8 @@ in
       ];
       "XF86MonBrightnessDown".action.spawn = [
         "${pkgs.brightnessctl}/bin/brightnessctl"
+        "-d"
+        "5"
         "set"
         "10%-"
       ];
@@ -216,13 +222,11 @@ in
   # DMS 1.4 Stable Configuration
   programs.dank-material-shell = {
     enable = true;
-    # systemd.enable = false is set in niri.nix (system level)
+    # Systemd disabled globally in niri.nix.
     dgop.package = unstable.dgop;
 
-    # HEEDING THE WARNING (RESOLUTION):
-    # 1. Disable 'includes' hack. This was overwriting config.kdl with missing files.
-    # 2. Maintain 'enableSpawn' for perfect environment inheritance.
-    # 3. Disable preset keybinds to protect custom binds authority.
+    # PARENT/CHILD MODEL: Use enableSpawn for native inheritance.
+    # HEEDING WARNINGS: Disable includes and presets to protect config authority.
     niri = {
       includes.enable = false;
       enableSpawn = true;
