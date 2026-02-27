@@ -1,6 +1,7 @@
 {
   inputs,
   pkgs,
+  lib,
   ...
 }:
 
@@ -33,22 +34,30 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Managed via graphical-session.target for clean separation
+    # Managed via graphical-session.target
     systemd.enable = true;
   };
 
-  # Systemd User Service Scoping
-  # We implement strict deterministic ordering as per RCA-1 findings.
+  # Systemd User Service Refinements
+  # We implement strict deterministic ordering and environment persistence.
   systemd.user.services = {
     niri-flake-polkit = {
-      after = [ "graphical-session-pre.target" ];
-      partOf = [ "graphical-session.target" ];
-      wantedBy = [ "graphical-session.target" ];
+      description = "PolicyKit Authentication Agent provided by niri-flake";
+      # Ensure it waits for the environment export
+      after = lib.mkForce [ "graphical-session-pre.target" ];
+      partOf = lib.mkForce [ "graphical-session.target" ];
+      # Fallback environment to prevent 'cannot open display' aborts
+      serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "DISPLAY=:0"
+      ];
+      # CRITICAL: Remove niri.service to prevent premature startup
+      wantedBy = lib.mkForce [ "graphical-session.target" ];
     };
 
     dms = {
       description = "DankMaterialShell";
-      # DMS requires polkit for privileged operations (Network/System monitoring)
+      # DMS requires polkit for privileged operations
       after = [
         "niri-flake-polkit.service"
         "graphical-session.target"
@@ -56,12 +65,20 @@ in
       requires = [ "niri-flake-polkit.service" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
+      serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "DISPLAY=:0"
+      ];
     };
 
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
+      serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
+        "DISPLAY=:0"
+      ];
     };
   };
 

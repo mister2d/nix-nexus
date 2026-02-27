@@ -76,8 +76,7 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # RCA-1 VERIFIED STARTUP:
-      # Deterministically synchronize environment and signal systemd targets.
+      # DEFINITIVE DETERMINISTIC STARTUP:
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -95,9 +94,9 @@ in
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. Signal graphical-session.target to start polkit, dms, and easyeffects
-            # in the correct order managed by systemd unit dependencies.
+            # 3. Deterministically signal target and RESTART services to ensure they catch the env.
             ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
+            ${pkgs.systemd}/bin/systemctl --user restart niri-flake-polkit.service xdg-desktop-portal.service easyeffects.service dms.service
           ''
         ];
       }
