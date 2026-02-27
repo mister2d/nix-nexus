@@ -46,7 +46,7 @@ in
         height = 1440;
       };
       position = {
-        x = 3344;
+        x = 3344; # iGPU is renderD129 on this Z16
         y = 0;
       };
     };
@@ -79,7 +79,9 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # PORTABLE DETERMINISTIC STARTUP (Stable v1.4):
+      # PORTABLE DETERMINISTIC SYNC:
+      # DMS is now launched natively by Niri (enableSpawn = true).
+      # We simply ensure the environment is synced for other services (EasyEffects).
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -97,9 +99,8 @@ in
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. Deterministically signal readiness and restart services
-            # DMS 1.4 systemd service is explicitly restarted here to pick up the environment.
-            ${pkgs.systemd}/bin/systemctl --user restart dms.service easyeffects.service xdg-desktop-portal.service
+            # 3. Recovery: Restart services that depend on graphical-session
+            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service xdg-desktop-portal.service
           ''
         ];
       }
@@ -218,15 +219,15 @@ in
   # DMS 1.4 Stable Configuration
   programs.dank-material-shell = {
     enable = true;
-    systemd.enable = true;
+    # systemd.enable = false is set in niri.nix (system level)
     dgop.package = unstable.dgop;
 
     # HEEDING THE WARNING:
     # 1. Disable 'includes' hack to prevent DMS from overwriting config.kdl
-    # 2. Disable 'enableSpawn' to prevent double-spawning (we use manual script).
+    # 2. Enable 'enableSpawn' to let Niri launch DMS directly (parent-child env).
     niri = {
       includes.enable = false;
-      enableSpawn = false;
+      enableSpawn = true;
       enableKeybinds = false;
     };
   };

@@ -24,7 +24,7 @@ in
     package = pkgs.niri;
   };
 
-  # Dank Material Shell (DMS) 1.4 stable configuration
+  # Dank Material Shell (DMS) configuration
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
@@ -35,17 +35,17 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Managed via graphical-session.target
-    systemd.enable = true;
+    # Managed via Home Manager niri integration for absolute environment inheritance
+    systemd.enable = false;
   };
 
   # Systemd User Service Scoping
   systemd.user.services = {
     # DANK LINUX 1.4 DOCS FIX: Disable niri-flake's polkit agent.
-    # The DMS built-in agent is the sole authentication authority.
+    # DMS 1.4 provides its own agent; running both causes display errors.
     niri-flake-polkit.enable = false;
 
-    # Generic service scoping for portability
+    # Ensure EasyEffects waits for the session
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
