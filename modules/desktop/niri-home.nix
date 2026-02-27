@@ -79,8 +79,9 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # PORTABLE DETERMINISTIC SYNC:
-      # We ensure the environment is synced for systemd services.
+      # RCA UPDATED STARTUP:
+      # Simple environment sync for background systemd services (EasyEffects).
+      # DMS is now launched natively via niri.enableSpawn.
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -95,13 +96,8 @@ in
             done
 
             # 2. Publish environment to session manager
-            # Explicitly listing variables to avoid deprecation warnings.
-            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
-            ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
-
-            # 3. Recovery: Restart services that depend on graphical-session
-            # They will now inherit the environment imported above.
-            ${pkgs.systemd}/bin/systemctl --user restart dms.service easyeffects.service xdg-desktop-portal.service
+            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
+            ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
           ''
         ];
       }
@@ -109,7 +105,6 @@ in
     ];
 
     environment = {
-      # RCA FIX: Explicitly force GTK to use Wayland.
       GDK_BACKEND = "wayland";
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";
@@ -199,8 +194,6 @@ in
       ];
       "XF86MonBrightnessDown".action.spawn = [
         "${pkgs.brightnessctl}/bin/brightnessctl"
-        "-d"
-        "5"
         "set"
         "10%-"
       ];
@@ -222,14 +215,14 @@ in
   # DMS 1.4 Stable Configuration
   programs.dank-material-shell = {
     enable = true;
-    # Switch back to systemd management as per RCA preference
-    systemd.enable = true;
+    # systemd.enable = false is set in niri.nix (system level)
     dgop.package = unstable.dgop;
 
+    # RCA RESOLUTION: Switch to native spawn mode for perfect environment inheritance.
     niri = {
-      includes.enable = false;
-      # Disable enableSpawn when using systemd.enable = true to avoid double-instances
-      enableSpawn = false;
+      includes.enable = true;
+      enableSpawn = true;
+      # CONFLICT RESOLUTION: Disable preset keybinds to allow our manual ones.
       enableKeybinds = false;
     };
   };

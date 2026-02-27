@@ -24,7 +24,7 @@ in
     package = pkgs.niri;
   };
 
-  # Dank Material Shell (DMS) 1.4 stable configuration
+  # Dank Material Shell (DMS) configuration
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
@@ -35,8 +35,8 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Managed via graphical-session.target for better logging and management
-    systemd.enable = true;
+    # Managed via Home Manager spawn mode for better environment inheritance
+    systemd.enable = false;
   };
 
   # Systemd User Service Scoping
@@ -45,23 +45,7 @@ in
     # The DMS built-in agent is the sole authentication authority.
     niri-flake-polkit.enable = false;
 
-    # RCA FIX: Explicitly unset DISPLAY to force GTK onto Wayland.
-    # Hardcoding WAYLAND_DISPLAY and backends ensures immediate connectivity.
-    dms = {
-      description = "DankMaterialShell";
-      after = [ "graphical-session.target" ];
-      partOf = [ "graphical-session.target" ];
-      wantedBy = [ "graphical-session.target" ];
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "GDK_BACKEND=wayland"
-        "QT_QPA_PLATFORM=wayland"
-        "MOZ_ENABLE_WAYLAND=1"
-        "ELECTRON_OZONE_PLATFORM_HINT=wayland"
-        "DISPLAY=" # FORCED: Prevent GTK from attempting X11 connection
-      ];
-    };
-
+    # RCA FIX: Ensure easyeffects uses Wayland backend.
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
@@ -69,7 +53,7 @@ in
       serviceConfig.Environment = [
         "WAYLAND_DISPLAY=wayland-1"
         "GDK_BACKEND=wayland"
-        "DISPLAY=" # FORCED: Prevent GTK from attempting X11 connection
+        "DISPLAY="
       ];
     };
   };
