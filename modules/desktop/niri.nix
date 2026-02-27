@@ -34,50 +34,61 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Managed via graphical-session.target
+    # Managed via graphical-session.target for clean separation
     systemd.enable = true;
   };
 
-  # Systemd User Service Scoping
-  # We implement strict deterministic ordering and environment persistence.
+  # DETERMINISTIC SESSION ARCHITECTURE
+  systemd.user.targets.niri-session-ready = {
+    description = "Niri Session Ready (Environment Fully Synced)";
+    requires = [ "graphical-session.target" ];
+    after = [ "graphical-session.target" ];
+  };
+
   systemd.user.services = {
+    # Force Niri to use the Integrated GPU at the systemd unit level.
+    # This resolves the '@niri' process appearing on GPU 1.
+    niri = {
+      serviceConfig.ExecStart = lib.mkForce "${
+        inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable
+      }/bin/niri --session --render-device /dev/dri/renderD129";
+    };
+
+    # Bind critical services to our new deterministic target.
     niri-flake-polkit = {
       description = "PolicyKit Authentication Agent provided by niri-flake";
-      # Ensure it waits for the environment export
-      after = lib.mkForce [ "graphical-session-pre.target" ];
+      wantedBy = lib.mkForce [ "niri-session-ready.target" ];
+      after = lib.mkForce [ "niri-session-ready.target" ];
       partOf = lib.mkForce [ "graphical-session.target" ];
-      # Fallback environment to prevent 'cannot open display' aborts
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "DISPLAY=:0"
-      ];
-      # CRITICAL: Remove niri.service to prevent premature startup
-      wantedBy = lib.mkForce [ "graphical-session.target" ];
+      serviceConfig = {
+        Restart = lib.mkForce "on-failure";
+        RestartSec = lib.mkForce 3;
+        StartLimitIntervalSec = lib.mkForce 0;
+      };
     };
 
     dms = {
       description = "DankMaterialShell";
-      after = [
-        "niri-flake-polkit.service"
-        "graphical-session.target"
-      ];
+      wantedBy = lib.mkForce [ "niri-session-ready.target" ];
+      after = lib.mkForce [ "niri-session-ready.target" ];
       requires = [ "niri-flake-polkit.service" ];
       partOf = [ "graphical-session.target" ];
-      wantedBy = [ "graphical-session.target" ];
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "DISPLAY=:0"
-      ];
+      serviceConfig = {
+        Restart = "on-failure";
+        RestartSec = 3;
+        StartLimitIntervalSec = 0;
+      };
     };
 
     easyeffects = {
-      after = [ "graphical-session.target" ];
+      wantedBy = lib.mkForce [ "niri-session-ready.target" ];
+      after = lib.mkForce [ "niri-session-ready.target" ];
       partOf = [ "graphical-session.target" ];
-      wantedBy = [ "graphical-session.target" ];
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "DISPLAY=:0"
-      ];
+      serviceConfig = {
+        Restart = "on-failure";
+        RestartSec = 3;
+        StartLimitIntervalSec = 0;
+      };
     };
   };
 

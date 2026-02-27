@@ -1,5 +1,11 @@
 { pkgs, inputs, ... }:
 
+let
+  unstable = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+in
 {
   # RESEARCH FIX: Import official DMS Home Manager module
   imports = [ inputs.dms.homeModules.dank-material-shell ];
@@ -70,7 +76,7 @@
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # DEFINITIVE DETERMINISTIC STARTUP:
+      # FINAL DETERMINISTIC STARTUP:
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -88,11 +94,9 @@
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. Deterministically Signal Readiness
-            ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
-
-            # 4. Forced Recovery: Restart services now that environment is verified.
-            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service niri-flake-polkit.service xdg-desktop-portal.service dms.service
+            # 3. Deterministically signal readiness by starting our custom target.
+            # This triggers services bound to niri-session-ready.target.
+            ${pkgs.systemd}/bin/systemctl --user start niri-session-ready.target
           ''
         ];
       }
@@ -109,30 +113,15 @@
 
     binds = {
       "Mod+Return".action.spawn = [ "${pkgs.kitty}/bin/kitty" ];
-
-      # Browser: Matching Sway's Super+Shift+B with GPU launch selector
       "Mod+Shift+B".action.spawn = [
-        "gpu-launch"
-        "google-chrome-stable"
-        "--ozone-platform=wayland"
-        "--disable-features=ExtensionManifestV2Unsupported"
+        "${pkgs.bash}/bin/bash"
+        "-c"
+        "if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi"
       ];
-
-      # Direct Chrome launch (Integrated GPU default)
       "Mod+Ctrl+B".action.spawn = [
         "google-chrome-stable"
         "--ozone-platform=wayland"
       ];
-
-      # Direct dGPU Chrome launch (For hardware testing)
-      "Mod+Ctrl+Shift+B".action.spawn = [
-        "env"
-        "DRI_PRIME=pci-0000:03:00.0"
-        "MESA_VK_DEVICE_SELECT=pci-0000:03:00.0"
-        "google-chrome-stable"
-        "--ozone-platform=wayland"
-      ];
-
       "Mod+D".action.spawn = [
         "dms"
         "ipc"
@@ -225,12 +214,7 @@
   programs.dank-material-shell = {
     enable = true;
     systemd.enable = true;
-    # Correct mapping for Z16
-    dgop.package =
-      (import inputs.nixpkgs-unstable {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-      }).dgop;
+    dgop.package = unstable.dgop;
   };
 
   # Required dependencies for DMS background operations
