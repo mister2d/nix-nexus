@@ -38,17 +38,26 @@ in
   };
 
   # Systemd User Service Scoping
+  # We implement strict deterministic ordering as per RCA-1 findings.
   systemd.user.services = {
-    # RESEARCH FIX: Disable niri-flake's polkit to prevent contention with DMS.
-    niri-flake-polkit.enable = false;
-
-    # RCA FIX: Strengthen service ordering
-    dms = {
-      description = "DankMaterialShell";
-      after = [ "graphical-session.target" ];
+    niri-flake-polkit = {
+      after = [ "graphical-session-pre.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
     };
+
+    dms = {
+      description = "DankMaterialShell";
+      # DMS requires polkit for privileged operations (Network/System monitoring)
+      after = [
+        "niri-flake-polkit.service"
+        "graphical-session.target"
+      ];
+      requires = [ "niri-flake-polkit.service" ];
+      partOf = [ "graphical-session.target" ];
+      wantedBy = [ "graphical-session.target" ];
+    };
+
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];

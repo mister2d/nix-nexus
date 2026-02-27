@@ -76,8 +76,8 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # RCA & RESEARCH VERIFIED STARTUP:
-      # Deterministically synchronize environment and services.
+      # RCA-1 VERIFIED STARTUP:
+      # Deterministically synchronize environment and signal systemd targets.
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -95,25 +95,13 @@ in
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. RCA FIX: Verify Polkit Authority is responsive before proceeding
-            # This ensures DMS won't fail during privileged initialization.
-            for i in $(seq 1 50); do
-              if ${pkgs.dbus}/bin/dbus-send --session --print-reply --dest=org.freedesktop.PolicyKit1 /org/freedesktop/PolicyKit1/Authority org.freedesktop.DBus.Properties.Get string:org.freedesktop.PolicyKit1.Authority string:BackendVersion >/dev/null 2>&1; then
-                break
-              fi
-              ${pkgs.bash}/bin/sleep 0.1
-            done
-
-            # 4. Trigger the graphical session target to start DMS and EasyEffects
+            # 3. Signal graphical-session.target to start polkit, dms, and easyeffects
+            # in the correct order managed by systemd unit dependencies.
             ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
-
-            # 5. Recovery: Restart services after the target is confirmed
-            ${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service dms.service
           ''
         ];
       }
       { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
-      # RCA FIX: Removed nm-applet to reduce startup contention. DMS handles networking.
     ];
 
     environment = {
