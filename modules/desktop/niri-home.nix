@@ -1,11 +1,5 @@
 { pkgs, inputs, ... }:
 
-let
-  unstable = import inputs.nixpkgs-unstable {
-    inherit (pkgs.stdenv.hostPlatform) system;
-    config.allowUnfree = true;
-  };
-in
 {
   # RESEARCH FIX: Import official DMS Home Manager module
   imports = [ inputs.dms.homeModules.dank-material-shell ];
@@ -43,7 +37,7 @@ in
         height = 1440;
       };
       position = {
-        x = 3344; # iGPU is renderD129 on this Z16
+        x = 3344;
         y = 0;
       };
     };
@@ -76,7 +70,7 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # FINAL DETERMINISTIC STARTUP:
+      # PORTABLE DETERMINISTIC STARTUP:
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -91,12 +85,13 @@ in
             done
 
             # 2. Publish environment to session manager
-            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
+            # Explicitly listing variables to avoid deprecation warnings.
+            ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. Deterministically signal readiness by starting our custom target.
-            # This triggers services bound to niri-session-ready.target.
-            ${pkgs.systemd}/bin/systemctl --user start niri-session-ready.target
+            # 3. Recovery: Explicitly restart services that depend on these variables
+            # once the display environment is verified.
+            ${pkgs.systemd}/bin/systemctl --user restart niri-flake-polkit.service easyeffects.service dms.service
           ''
         ];
       }
@@ -214,7 +209,11 @@ in
   programs.dank-material-shell = {
     enable = true;
     systemd.enable = true;
-    dgop.package = unstable.dgop;
+    dgop.package =
+      (import inputs.nixpkgs-unstable {
+        inherit (pkgs.stdenv.hostPlatform) system;
+        config.allowUnfree = true;
+      }).dgop;
   };
 
   # Required dependencies for DMS background operations

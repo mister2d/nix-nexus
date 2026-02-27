@@ -1,7 +1,6 @@
 {
   inputs,
   pkgs,
-  lib,
   ...
 }:
 
@@ -34,69 +33,30 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Managed via graphical-session.target for clean separation
+    # Managed via graphical-session.target
     systemd.enable = true;
   };
 
-  # DETERMINISTIC SESSION ARCHITECTURE
-  systemd.user.targets.niri-session-ready = {
-    description = "Niri Session Ready (Environment Fully Synced)";
-    requires = [ "graphical-session.target" ];
-    after = [ "graphical-session.target" ];
-  };
-
+  # Systemd User Service Scoping
+  # Generic scoping for any host running Niri+DMS.
   systemd.user.services = {
-    # Force Niri to use the Integrated GPU at the systemd unit level.
-    # This resolves the '@niri' process appearing on GPU 1.
-    niri = {
-      serviceConfig.ExecStart = lib.mkForce "${
-        inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable
-      }/bin/niri --session --render-device /dev/dri/renderD129";
-    };
-
-    # Bind critical services to our new deterministic target.
     niri-flake-polkit = {
       description = "PolicyKit Authentication Agent provided by niri-flake";
-      wantedBy = lib.mkForce [ "niri-session-ready.target" ];
-      after = lib.mkForce [ "niri-session-ready.target" ];
-      partOf = lib.mkForce [ "graphical-session.target" ];
-      serviceConfig = {
-        Restart = lib.mkForce "on-failure";
-        RestartSec = lib.mkForce 3;
-        StartLimitIntervalSec = lib.mkForce 0;
-      };
+      # Dependencies handled natively by niri-session and graphical-session.target
     };
 
     dms = {
       description = "DankMaterialShell";
-      wantedBy = lib.mkForce [ "niri-session-ready.target" ];
-      after = lib.mkForce [ "niri-session-ready.target" ];
+      after = [ "niri-flake-polkit.service" ];
       requires = [ "niri-flake-polkit.service" ];
-      partOf = [ "graphical-session.target" ];
-      serviceConfig = {
-        Restart = "on-failure";
-        RestartSec = 3;
-        StartLimitIntervalSec = 0;
-      };
-    };
-
-    easyeffects = {
-      wantedBy = lib.mkForce [ "niri-session-ready.target" ];
-      after = lib.mkForce [ "niri-session-ready.target" ];
-      partOf = [ "graphical-session.target" ];
-      serviceConfig = {
-        Restart = "on-failure";
-        RestartSec = 3;
-        StartLimitIntervalSec = 0;
-      };
     };
   };
 
-  # Graphics and Hardware optimizations for AMD (ThinkPad Z16)
+  # Graphics and Hardware optimizations (Generic)
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
-      rocmPackages.clr.icd # OpenCL for AMD
+      rocmPackages.clr.icd # OpenCL for AMD (common)
     ];
   };
 
@@ -107,7 +67,7 @@ in
     accounts-daemon.enable = true;
     upower.enable = true;
 
-    # Display Manager (Greetd) - Isolated to Niri
+    # Display Manager (Greetd)
     greetd = {
       enable = true;
       settings = {
