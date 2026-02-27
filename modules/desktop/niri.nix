@@ -45,14 +45,15 @@ in
     # The DMS built-in agent is the sole authentication authority.
     niri-flake-polkit.enable = false;
 
-    # RCA FIX: Explicitly force services to use Wayland and inherit display from session.
-    # We remove hardcoded WAYLAND_DISPLAY/DISPLAY to allow inheritance from startup sync.
+    # RCA FIX: Explicitly set WAYLAND_DISPLAY and backends.
+    # Hardcoding the socket name (wayland-1) ensures GTK never falls back to X11.
     dms = {
       description = "DankMaterialShell";
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
       serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
         "GDK_BACKEND=wayland"
         "QT_QPA_PLATFORM=wayland"
         "MOZ_ENABLE_WAYLAND=1"
@@ -65,6 +66,7 @@ in
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
       serviceConfig.Environment = [
+        "WAYLAND_DISPLAY=wayland-1"
         "GDK_BACKEND=wayland"
       ];
     };
