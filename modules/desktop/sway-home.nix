@@ -8,7 +8,6 @@ let
   mod = "Mod4";
   bg = "#000000";
   fg = "#FFFFFF";
-  active = "#00FFFF";
   inactive = "#333333";
   urgent = "#FF00FF";
 in
@@ -30,8 +29,8 @@ in
 
     config = {
       modifier = mod;
-      terminal = "${pkgs.alacritty}/bin/alacritty";
-      menu = "bemenu-run -H 32 -l 15 -W 0.3 --center --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00FFFF' --hf '#000000' --tb '#00FFFF' --tf '#000000'";
+      terminal = "${pkgs.kitty}/bin/kitty";
+      menu = "bemenu-run -H 32 -l 15 -W 0.3 --center --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#008080' --hf '#000000' --tb '#008080' --tf '#000000'";
 
       bars = [ ];
 
@@ -58,11 +57,11 @@ in
 
       colors = {
         focused = {
-          border = active;
+          border = "#008080";
           background = bg;
           text = fg;
-          indicator = active;
-          childBorder = active;
+          indicator = "#008080";
+          childBorder = "#008080";
         };
         focusedInactive = {
           border = inactive;
@@ -249,11 +248,12 @@ in
         "${mod}+Shift+m" = "exec audio-selector source";
 
         # Apps
+        "${mod}+Return" = "exec ${pkgs.kitty}/bin/kitty";
         "${mod}+Shift+b" =
           "exec ${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; fi'";
         "${mod}+Shift+d" = "exec wdisplays";
         "${mod}+Alt+e" =
-          "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00FFFF' --hf '#000000' --tb '#00FFFF' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";
+          "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#008080' --hf '#000000' --tb '#008080' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";
         "${mod}+Shift+e" = "exec swaynag -t warning -m 'Exit sway?' -b 'Yes' 'swaymsg exit'";
         "${mod}+Escape" = "exec swaylock -f -c 000000";
 
