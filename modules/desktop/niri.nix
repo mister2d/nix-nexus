@@ -1,7 +1,6 @@
 {
   inputs,
   pkgs,
-  lib,
   ...
 }:
 
@@ -10,9 +9,6 @@ let
     inherit (pkgs.stdenv.hostPlatform) system;
     config.allowUnfree = true;
   };
-
-  # Deterministic wait script to ensure Wayland is ready before services start.
-  wait-for-wayland = "${pkgs.bash}/bin/bash -c 'while [ ! -e \"$XDG_RUNTIME_DIR/wayland-1\" ]; do sleep 0.1; done'";
 in
 {
   imports = [
@@ -26,7 +22,7 @@ in
     package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
   };
 
-  # Dank Material Shell (DMS) configuration
+  # Dank Material Shell (DMS) system-level dependencies
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
@@ -37,66 +33,21 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # Systemd integration handles the lifecycle via graphical-session.target.
-    systemd.enable = true;
+    # We manage the service via Home Manager's niri integration
+    systemd.enable = false;
   };
 
-  # Systemd User Service Refinements
-  # We implement strict deterministic blocking and environment fallbacks.
+  # Systemd User Service Scoping
   systemd.user.services = {
-    niri-flake-polkit = {
-      description = "PolicyKit Authentication Agent provided by niri-flake";
-      after = lib.mkForce [ "graphical-session-pre.target" ];
-      partOf = lib.mkForce [ "graphical-session.target" ];
-      serviceConfig = {
-        ExecStartPre = wait-for-wayland;
-        Restart = lib.mkForce "on-failure";
-        RestartSec = lib.mkForce 3;
-        StartLimitIntervalSec = lib.mkForce 0;
-        # Fallback environment to ensure the agent knows where to look.
-        Environment = [
-          "WAYLAND_DISPLAY=wayland-1"
-          "DISPLAY=:0"
-        ];
-      };
-      wantedBy = lib.mkForce [ "graphical-session.target" ];
-    };
+    # DANK LINUX DOCS FIX: Disable niri-flake's polkit agent.
+    # DMS 1.5 provides its own agent; running both causes display errors and crashes.
+    niri-flake-polkit.enable = false;
 
-    dms = {
-      description = "DankMaterialShell";
-      after = [
-        "niri-flake-polkit.service"
-        "graphical-session.target"
-      ];
-      requires = [ "niri-flake-polkit.service" ];
-      partOf = [ "graphical-session.target" ];
-      wantedBy = [ "graphical-session.target" ];
-      serviceConfig = {
-        ExecStartPre = wait-for-wayland;
-        Restart = "on-failure";
-        RestartSec = 3;
-        StartLimitIntervalSec = 0;
-        Environment = [
-          "WAYLAND_DISPLAY=wayland-1"
-          "DISPLAY=:0"
-        ];
-      };
-    };
-
+    # Ensure EasyEffects waits for the graphical session
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
-      serviceConfig = {
-        ExecStartPre = wait-for-wayland;
-        Restart = "on-failure";
-        RestartSec = 3;
-        StartLimitIntervalSec = 0;
-        Environment = [
-          "WAYLAND_DISPLAY=wayland-1"
-          "DISPLAY=:0"
-        ];
-      };
     };
   };
 

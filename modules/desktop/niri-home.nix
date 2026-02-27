@@ -7,8 +7,11 @@ let
   };
 in
 {
-  # RESEARCH FIX: Import official DMS Home Manager module
-  imports = [ inputs.dms.homeModules.dank-material-shell ];
+  # DANK LINUX DOCS FIX: Import both main and niri-specific DMS modules.
+  imports = [
+    inputs.dms.homeModules.dank-material-shell
+    inputs.dms.homeModules.niri
+  ];
 
   # Niri Configuration (Validated at build-time by niri-flake)
   programs.niri.settings = {
@@ -68,6 +71,7 @@ in
         matches = [ { namespace = "dms:blurwallpaper"; } ];
         place-within-backdrop = true;
       }
+      # Ensure wofi (GPU selector) is visible and doesn't hang
       {
         matches = [ { namespace = "wofi"; } ];
         place-within-backdrop = true;
@@ -76,7 +80,7 @@ in
 
     # Startup sequence for Niri
     spawn-at-startup = [
-      # DEFINITIVE DETERMINISTIC STARTUP:
+      # ADVANCED DETERMINISTIC STARTUP:
       {
         command = [
           "${pkgs.bash}/bin/bash"
@@ -94,9 +98,11 @@ in
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd --all
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP DISPLAY
 
-            # 3. DETERMINISM FIX: Force restart services now that environment is verified.
-            # This ensures they pick up the fresh environment even if they already tried to start.
-            ${pkgs.systemd}/bin/systemctl --user restart niri-flake-polkit.service easyeffects.service dms.service
+            # 3. Deterministically signal readiness by starting the session target.
+            ${pkgs.systemd}/bin/systemctl --user start graphical-session.target
+
+            # 4. Restart services that might have failed before environment was ready.
+            ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service xdg-desktop-portal.service
           ''
         ];
       }
@@ -213,8 +219,16 @@ in
   # DMS Configuration (Engineered based on debug/research.md blueprint)
   programs.dank-material-shell = {
     enable = true;
-    systemd.enable = true;
     dgop.package = unstable.dgop;
+
+    # DANK LINUX DOCS FIX: Use the specialized niri integration options.
+    niri = {
+      # This handles 'spawn-at-startup "dms run"' natively.
+      enableSpawn = true;
+      # We keep manual control over binds to prevent conflicts with your custom ones.
+      enableKeybinds = false;
+      # Configuration includes are enabled by default.
+    };
   };
 
   # Required dependencies for DMS background operations
