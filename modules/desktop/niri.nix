@@ -39,18 +39,15 @@ in
   };
 
   # Systemd User Service Refinements
-  # We implement strict deterministic ordering and environment persistence.
+  # We implement strict deterministic ordering and rely on inherited environments.
   systemd.user.services = {
     niri-flake-polkit = {
       description = "PolicyKit Authentication Agent provided by niri-flake";
       # Ensure it waits for the environment export
       after = lib.mkForce [ "graphical-session-pre.target" ];
       partOf = lib.mkForce [ "graphical-session.target" ];
-      # Fallback environment to prevent 'cannot open display' aborts
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "DISPLAY=:0"
-      ];
+      # FIX: Clear hardcoded display variables to allow inheritance from the session.
+      serviceConfig.Environment = lib.mkForce [ ];
       # CRITICAL: Remove niri.service to prevent premature startup
       wantedBy = lib.mkForce [ "graphical-session.target" ];
     };
@@ -65,20 +62,14 @@ in
       requires = [ "niri-flake-polkit.service" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "DISPLAY=:0"
-      ];
+      serviceConfig.Environment = lib.mkForce [ ];
     };
 
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
       wantedBy = [ "graphical-session.target" ];
-      serviceConfig.Environment = [
-        "WAYLAND_DISPLAY=wayland-1"
-        "DISPLAY=:0"
-      ];
+      serviceConfig.Environment = lib.mkForce [ ];
     };
   };
 
