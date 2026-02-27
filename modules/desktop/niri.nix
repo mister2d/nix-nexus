@@ -22,7 +22,7 @@ in
     package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
   };
 
-  # Dank Material Shell (DMS) system-level dependencies
+  # Dank Material Shell (DMS) configuration
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
@@ -33,17 +33,17 @@ in
     enableCalendarEvents = true;
     enableClipboardPaste = true;
 
-    # We manage the service via Home Manager's niri integration
+    # We manage startup manually in niri-home.nix to ensure absolute environment
+    # inheritance and visibility.
     systemd.enable = false;
   };
 
   # Systemd User Service Scoping
   systemd.user.services = {
-    # DANK LINUX DOCS FIX: Disable niri-flake's polkit agent.
-    # DMS 1.5 provides its own agent; running both causes display errors and crashes.
+    # DANK LINUX DOCS FIX: Disable niri-flake's polkit to prevent contention.
     niri-flake-polkit.enable = false;
 
-    # Ensure EasyEffects waits for the graphical session
+    # Ensure background daemons only start when a graphical session is reached.
     easyeffects = {
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
