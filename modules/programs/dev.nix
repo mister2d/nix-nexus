@@ -16,12 +16,6 @@
     devbox
   ];
 
-  # Direnv integration for automatic environment loading
-  programs.direnv = {
-    enable = true;
-    nix-direnv.enable = true;
-  };
-
   # Docker daemon is a system-wide service
   virtualisation.docker = {
     enable = true;

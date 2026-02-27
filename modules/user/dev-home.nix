@@ -118,4 +118,11 @@ in
     kubectl-rook-ceph-pkg
     kubectl-doctor
   ];
+
+  # Direnv integration for automatic environment loading
+  programs.direnv = {
+    enable = true;
+    # Enables the faster, Nix-optimized implementation of direnv
+    nix-direnv.enable = true;
+  };
 }

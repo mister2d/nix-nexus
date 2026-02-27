@@ -32,6 +32,9 @@ _:
       "checkjobs"
     ];
 
+    # Enable completion for system and user packages
+    enableCompletion = true;
+
     # Prompt and Custom Logic
     initExtra = ''
             # ------------------------------------------------------------------
@@ -78,7 +81,8 @@ _:
       \[''${symbol_color}\]➜\[\033[0m\] "
             }
 
-            PROMPT_COMMAND=set_bash_prompt
+            # Prepend to PROMPT_COMMAND to preserve other hooks (like direnv)
+            PROMPT_COMMAND="set_bash_prompt''${PROMPT_COMMAND:+; ''${PROMPT_COMMAND}}"
 
             # HashiCorp Completions (Dynamic Nix Paths)
             # These are only enabled if the packages are available in the current profile.
