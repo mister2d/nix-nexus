@@ -278,26 +278,25 @@ rec {
         devShells.''${system}.default = pkgs.mkShell {
           name = "llm-cuda-shell";
           
-          # Isolated development toolchain
-          buildInputs = with pkgs; [
-            python311
-            python311Packages.pip
-            python311Packages.virtualenv
-            stdenv.cc.cc.lib
-            zlib
-            # Modern CUDA 13.x compatibility via redistributables
-            cudaPackages.cuda_nvcc
-            cudaPackages.cuda_cudart
-          ];
-
-          # Bridge the "ABI Gap" between Nix and Host (e.g., Debian)
-          shellHook = '''
-            if [ ! -d ".venv" ]; then
-              python -m venv .venv
-            fi
-            source .venv/bin/activate
-
-            # Mapping Host Drivers to Nix Store
+                # Isolated development toolchain
+                buildInputs = with pkgs; [
+                  python312
+                  python312Packages.pip
+                  python312Packages.virtualenv
+                  stdenv.cc.cc.lib
+                  zlib
+                  # Modern CUDA 13.x compatibility via redistributables
+                  cudaPackages.cuda_nvcc
+                  cudaPackages.cuda_cudart
+                ];
+          
+                # Bridge the "ABI Gap" between Nix and Host (e.g., Debian)
+                shellHook = '''
+                  if [ ! -d ".venv" ]; then
+                    python -m venv .venv
+                  fi
+                  source .venv/bin/activate
+                      # Mapping Host Drivers to Nix Store
             # We prioritize host paths for NVIDIA drivers (libcuda.so)
             export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:''${pkgs.linuxPackages.nvidia_x11}/lib:''${pkgs.ncurses5}/lib:''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib ]}:$LD_LIBRARY_PATH"
             
