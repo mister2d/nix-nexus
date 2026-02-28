@@ -73,6 +73,9 @@ let
       inherit (pkgs.stdenv.hostPlatform) system;
       config.allowUnfree = true;
     }).kubectl-rook-ceph;
+
+  # Project-level CUDA environment generator
+  inherit ((import ../programs/custom-scripts.nix { inherit pkgs; })) llm-init;
 in
 {
   home.packages = with pkgs; [
@@ -83,6 +86,7 @@ in
     devbox
     vscodium
     docker-compose
+    llm-init
 
     # --- MCP Servers ---
     context7-mcp

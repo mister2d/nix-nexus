@@ -100,6 +100,21 @@
         };
       });
 
+      homeConfigurations = {
+        # Hostname: dualie (Debian Trixie)
+        # Usage: 'nix run home-manager/master -- switch --flake .#groot@dualie'
+        "groot@dualie" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages."x86_64-linux";
+          modules = [
+            nixvim.homeModules.nixvim
+            ./hosts/dualie/home.nix
+          ];
+          extraSpecialArgs = {
+            inherit inputs;
+          };
+        };
+      };
+
       nixosConfigurations = {
         # Hostname: sweet16
         sweet16 = nixpkgs.lib.nixosSystem {

@@ -251,4 +251,79 @@ rec {
         if __name__ == "__main__":
             main()
       '';
+
+  llm-init = pkgs.writeShellScriptBin "llm-init" ''
+        # Generate a portable LLM/CUDA project environment
+        if [ -f "flake.nix" ] || [ -f ".envrc" ]; then
+            echo "Error: flake.nix or .envrc already exists in this directory."
+            exit 1
+        fi
+
+        echo "Creating Nix Flake for CUDA/LLM development..."
+        cat <<EOF > flake.nix
+    {
+      description = "Portable LLM/CUDA Inference Environment";
+
+      inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+      };
+
+      outputs = { self, nixpkgs }: let
+        system = "x86_64-linux";
+        pkgs = import nixpkgs { 
+          inherit system; 
+          config.allowUnfree = true; 
+        };
+      in {
+        devShells.''\${system}.default = pkgs.mkShell {
+          name = "llm-cuda-shell";
+          
+          # Isolated development toolchain
+          buildInputs = with pkgs; [
+            python311
+            python311Packages.pip
+            python311Packages.virtualenv
+            stdenv.cc.cc.lib
+            zlib
+            # Modern CUDA 13.x compatibility via redistributables
+            cudaPackages.cuda_nvcc
+            cudaPackages.cuda_cudart
+          ];
+
+          # Bridge the "ABI Gap" between Nix and Host (e.g., Debian)
+          shellHook = '''
+            if [ ! -d ".venv" ]; then
+              python -m venv .venv
+            fi
+            source .venv/bin/activate
+
+            # Mapping Host Drivers to Nix Store
+            # We prioritize host paths for NVIDIA drivers (libcuda.so)
+            export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:\''${pkgs.linuxPackages.nvidia_x11}/lib:\''${pkgs.ncurses5}/lib:\''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib ]}:\$LD_LIBRARY_PATH"
+            
+            # Compiler flags for compiling llama.cpp and others from source
+            export CUDA_PATH=\''${pkgs.cudaPackages.cuda_nvcc}
+            export EXTRA_CCFLAGS="-I/usr/local/cuda/include"
+            export EXTRA_LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
+            
+            echo "🚀 CUDA LLM Environment Initialized."
+            echo "Host Driver: 590.48.01 | CUDA: 13.1 (Bridge Active)"
+          ''';
+        };
+      };
+    }
+    EOF
+
+        echo "Creating .envrc for direnv..."
+        echo "use flake" > .envrc
+
+        if command -v direnv >/dev/null 2>&1; then
+            echo "Running 'direnv allow'..."
+            direnv allow
+        else
+            echo "Tip: Install 'direnv' to automatically load this environment upon entry."
+        fi
+
+        echo "Done. Happy coding!"
+  '';
 }
