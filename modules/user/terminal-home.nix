@@ -3,13 +3,13 @@
 let
   # OLED Aesthetic Palette (Graphite-teal-Dark inspired)
   # True Black #000000 background for power savings and infinite contrast.
-  # Milder Teal #008080 for primary accents.
+  # Vibrant but Balanced Teal #00AAAA for primary accents.
   colors = {
     background = "#000000";
     foreground = "#d8d8d8"; # Light grey for softer readability than pure white
-    cursor = "#008080";
+    cursor = "#00AAAA";
     cursor_text_color = "#000000";
-    selection_background = "#008080";
+    selection_background = "#00AAAA";
     selection_foreground = "#000000";
 
     # Normal colors
@@ -19,7 +19,7 @@ let
     color3 = "#ffcc70"; # yellow
     color4 = "#6699cc"; # blue
     color5 = "#c594c5"; # magenta
-    color6 = "#008080"; # cyan (muted)
+    color6 = "#00AAAA"; # cyan (vibrant but balanced)
     color7 = "#d8d8d8"; # white
 
     # Bright colors
@@ -29,7 +29,7 @@ let
     color11 = "#ffd994"; # yellow
     color12 = "#84add6"; # blue
     color13 = "#d4afd4"; # magenta
-    color14 = "#00a0a0"; # cyan (brighter but matched)
+    color14 = "#00C0C0"; # cyan (vibrant match)
     color15 = "#ffffff"; # white
   };
 in
@@ -59,7 +59,7 @@ in
       tab_bar_edge = "top";
       tab_bar_style = "powerline";
       active_tab_foreground = "#000000";
-      active_tab_background = "#008080";
+      active_tab_background = "#00AAAA";
       inactive_tab_foreground = "#d8d8d8";
       inactive_tab_background = "#000000";
 
@@ -134,7 +134,7 @@ in
       # Smart pane switching with awareness of Vim splits.
       # This allows seamless navigation between Tmux and Neovim.
       set -g pane-border-style fg='#333333'
-      set -g pane-active-border-style fg='#008080'
+      set -g pane-active-border-style fg='#00AAAA'
     '';
   };
 }

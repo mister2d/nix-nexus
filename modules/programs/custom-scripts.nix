@@ -22,7 +22,7 @@ rec {
 
         if [ "$STATUS" = "Discharging" ] && [ "$CAPACITY" -le "$THRESHOLD" ]; then
             if [ ! -s "$ALERT_FILE" ]; then
-                echo "window#waybar { background-color: #880000; transition: none; }" > "$ALERT_FILE"
+                echo "window#waybar { background-color: #AA0000; transition: none; }" > "$ALERT_FILE"
                 ${pkgs.procps}/bin/pkill -SIGUSR2 waybar
             fi
         else
@@ -61,10 +61,10 @@ rec {
         # Configuration
         BLOCKS = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
         COLORS = {
-            "low": "#008000",
-            "med": "#808000",
-            "high": "#800000",
-            "crit": "#800080"
+            "low": "#00AA00",
+            "med": "#AAAA00",
+            "high": "#AA0000",
+            "crit": "#AA00AA"
         }
 
 

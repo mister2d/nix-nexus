@@ -13,7 +13,7 @@
         padding = 16;
         horizontal_padding = 16;
         frame_width = 2;
-        frame_color = "#008080";
+        frame_color = "#00AAAA";
         separator_color = "frame";
         font = "JetBrainsMono Nerd Font 10";
         line_height = 4;
@@ -51,7 +51,7 @@
       urgency_critical = {
         background = "#000000";
         foreground = "#FFFFFF";
-        frame_color = "#800080";
+        frame_color = "#AA00AA";
         timeout = 0;
       };
     };

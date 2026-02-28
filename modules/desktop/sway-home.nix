@@ -9,7 +9,7 @@ let
   bg = "#000000";
   fg = "#FFFFFF";
   inactive = "#333333";
-  urgent = "#800080";
+  urgent = "#AA00AA";
 in
 {
   wayland.windowManager.sway = {
@@ -30,7 +30,7 @@ in
     config = {
       modifier = mod;
       terminal = "${pkgs.kitty}/bin/kitty";
-      menu = "bemenu-run -H 32 -l 15 -W 0.3 --center --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#008080' --hf '#000000' --tb '#008080' --tf '#000000'";
+      menu = "bemenu-run -H 32 -l 15 -W 0.3 --center --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00AAAA' --hf '#000000' --tb '#00AAAA' --tf '#000000'";
 
       bars = [ ];
 
@@ -57,11 +57,11 @@ in
 
       colors = {
         focused = {
-          border = "#008080";
+          border = "#00AAAA";
           background = bg;
           text = fg;
-          indicator = "#008080";
-          childBorder = "#008080";
+          indicator = "#00AAAA";
+          childBorder = "#00AAAA";
         };
         focusedInactive = {
           border = inactive;
@@ -253,7 +253,7 @@ in
           "exec ${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; fi'";
         "${mod}+Shift+d" = "exec wdisplays";
         "${mod}+Alt+e" =
-          "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#008080' --hf '#000000' --tb '#008080' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";
+          "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00AAAA' --hf '#000000' --tb '#00AAAA' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";
         "${mod}+Shift+e" = "exec swaynag -t warning -m 'Exit sway?' -b 'Yes' 'swaymsg exit'";
         "${mod}+Escape" = "exec swaylock -f -c 000000";
 
