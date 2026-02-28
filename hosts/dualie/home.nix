@@ -1,5 +1,6 @@
 {
   pkgs,
+  inputs,
   ...
 }:
 
@@ -36,4 +37,8 @@
 
   # Allow unfree packages for the Home Manager profile
   nixpkgs.config.allowUnfree = true;
+
+  # Add Model Control Protocol (MCP) server packages via overlay
+  # This matches the system-wide configuration on sweet16.
+  nixpkgs.overlays = [ inputs.mcp-servers-nix.overlays.default ];
 }
