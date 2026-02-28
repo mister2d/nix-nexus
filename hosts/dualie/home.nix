@@ -15,7 +15,7 @@
   # Home Configuration
   home = {
     username = "groot";
-    homeDirectory = "/home/groot";
+    homeDirectory = "/mnt/ironhide/home/groot";
     stateVersion = "25.11"; # Matching codebase standard for 2026
 
     # Add $HOME/bin to user's PATH
