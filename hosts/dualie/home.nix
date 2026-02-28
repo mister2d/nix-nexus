@@ -18,9 +18,6 @@
     homeDirectory = "/mnt/ironhide/home/groot";
     stateVersion = "25.11"; # Matching codebase standard for 2026
 
-    # Automatically backup existing files that would be clobbered
-    backupFileExtension = "bak";
-
     # Add $HOME/bin to user's PATH
     sessionPath = [
       "$HOME/bin"
