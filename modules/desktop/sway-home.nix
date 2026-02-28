@@ -283,12 +283,14 @@ in
           "${mod}+r" = "mode \"default\"";
         };
         redshift = {
-          "a" = "exec pkill wlsunset; wlsunset -l 39.7 -L -105.0, mode \"default\"";
-          "r" = "exec pkill wlsunset, mode \"default\"";
-          "2" = "exec pkill wlsunset; wlsunset -t 2500, mode \"default\"";
-          "3" = "exec pkill wlsunset; wlsunset -t 3000, mode \"default\"";
-          "4" = "exec pkill wlsunset; wlsunset -t 4000, mode \"default\"";
-          "5" = "exec pkill wlsunset; wlsunset -t 5000, mode \"default\"";
+          # Use single quotes around complex exec commands to ensure Sway
+          # correctly identifies the 'mode "default"' command as a separate action.
+          "a" = "exec 'pkill -9 wlsunset; wlsunset -l 39.7 -L -105.0', mode \"default\"";
+          "r" = "exec 'pkill -9 wlsunset', mode \"default\"";
+          "2" = "exec 'pkill -9 wlsunset; wlsunset -t 2500', mode \"default\"";
+          "3" = "exec 'pkill -9 wlsunset; wlsunset -t 3000', mode \"default\"";
+          "4" = "exec 'pkill -9 wlsunset; wlsunset -t 4000', mode \"default\"";
+          "5" = "exec 'pkill -9 wlsunset; wlsunset -t 5000', mode \"default\"";
           "Return" = "mode \"default\"";
           "Escape" = "mode \"default\"";
         };
