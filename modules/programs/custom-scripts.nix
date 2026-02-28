@@ -61,10 +61,10 @@ rec {
         # Configuration
         BLOCKS = [" ", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
         COLORS = {
-            "low": "#00FF00",
-            "med": "#FFFF00",
-            "high": "#FF0000",
-            "crit": "#FF00FF"
+            "low": "#008000",
+            "med": "#808000",
+            "high": "#800000",
+            "crit": "#800080"
         }
 
 

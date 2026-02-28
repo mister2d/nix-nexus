@@ -208,31 +208,31 @@ in
       }
 
       #workspaces button.urgent {
-          background-color: #FF00FF;
+          background-color: #800080;
           color: #FFFFFF;
       }
 
-      /* Module Specific Colors */
-      #custom-kanshi { color: #FF00FF; border-bottom: 3px solid #FF00FF; }
-      #custom-system-stats { color: #00FF00; border-bottom: 3px solid #00FF00; }
+      /* Module Specific Colors - Muted Palette */
+      #custom-kanshi { color: #800080; border-bottom: 3px solid #800080; }
+      #custom-system-stats { color: #008000; border-bottom: 3px solid #008000; }
       #clock { color: #008080; border-bottom: 3px solid #008080; }
-      #memory { color: #FF69B4; border-bottom: 3px solid #FF69B4; }
-      #disk { color: #FFA500; border-bottom: 3px solid #FFA500; }
-      #pulseaudio { color: #BD93F9; border-bottom: 3px solid #BD93F9; }
+      #memory { color: #87005F; border-bottom: 3px solid #87005F; }
+      #disk { color: #875F00; border-bottom: 3px solid #875F00; }
+      #pulseaudio { color: #5F5FAF; border-bottom: 3px solid #5F5FAF; }
 
       #pulseaudio.muted { color: #666666; border-bottom-color: #666666; }
-      #pulseaudio.microphone { color: #FF7F50; border-bottom: 3px solid #FF7F50; }
+      #pulseaudio.microphone { color: #AF5F00; border-bottom: 3px solid #AF5F00; }
       #pulseaudio.microphone.source-muted { color: #666666; border-bottom-color: #666666; }
 
-      #network { color: #00BFFF; border-bottom: 3px solid #00BFFF; }
-      #network.disconnected { color: #FF0000; border-bottom-color: #FF0000; }
+      #network { color: #005F87; border-bottom: 3px solid #005F87; }
+      #network.disconnected { color: #800000; border-bottom-color: #800000; }
 
       #battery { border-bottom: 3px solid #FFFFFF; }
-      #battery.charging { color: #00FF00; border-bottom-color: #00FF00; }
-      #battery.warning:not(.charging) { color: #FFFF00; border-bottom-color: #FFFF00; }
+      #battery.charging { color: #008000; border-bottom-color: #008000; }
+      #battery.warning:not(.charging) { color: #808000; border-bottom-color: #808000; }
       #battery.critical:not(.charging) {
-          color: #FF0000;
-          border-bottom-color: #FF0000;
+          color: #800000;
+          border-bottom-color: #800000;
           animation-name: blink;
           animation-duration: 0.5s;
           animation-timing-function: linear;
@@ -241,7 +241,7 @@ in
       }
 
       @keyframes blink {
-          to { background-color: #FF0000; color: #000000; }
+          to { background-color: #800000; color: #000000; }
       }
 
       @import "/tmp/waybar-style-alert.css";

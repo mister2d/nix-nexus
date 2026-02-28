@@ -9,7 +9,7 @@ let
   bg = "#000000";
   fg = "#FFFFFF";
   inactive = "#333333";
-  urgent = "#FF00FF";
+  urgent = "#800080";
 in
 {
   wayland.windowManager.sway = {
