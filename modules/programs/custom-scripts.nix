@@ -264,50 +264,56 @@ rec {
     {
       description = "Portable LLM/CUDA Inference Environment";
 
-      inputs = {
-        nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-      };
-
-      outputs = { self, nixpkgs }: let
-        system = "x86_64-linux";
-        pkgs = import nixpkgs { 
-          inherit system; 
-          config.allowUnfree = true; 
+        inputs = {
+          nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
         };
-      in {
-        devShells.''${system}.default = pkgs.mkShell {
-          name = "llm-cuda-shell";
-          
-                # Isolated development toolchain
-                buildInputs = with pkgs; [
-                  python312
-                  python312Packages.pip
-                  python312Packages.virtualenv
-                  stdenv.cc.cc.lib
-                  zlib
-                  # Modern CUDA 13.x compatibility via redistributables
-                  cudaPackages.cuda_nvcc
-                  cudaPackages.cuda_cudart
-                ];
-          
-                # Bridge the "ABI Gap" between Nix and Host (e.g., Debian)
-                shellHook = '''
-                  if [ ! -d ".venv" ]; then
-                    python -m venv .venv
-                  fi
-                  source .venv/bin/activate
-                      # Mapping Host Drivers to Nix Store
-            # We prioritize host paths for NVIDIA drivers (libcuda.so)
-            export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:''${pkgs.linuxPackages.nvidia_x11}/lib:''${pkgs.ncurses5}/lib:''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib ]}:$LD_LIBRARY_PATH"
+      
+        outputs = { self, nixpkgs }: let
+          system = "x86_64-linux";
+          pkgs = import nixpkgs { 
+            inherit system; 
+            config.allowUnfree = true; 
+          };
+        in {
+          devShells.''${system}.default = pkgs.mkShell {
+            name = "llm-cuda-shell";
             
-            # Compiler flags for compiling llama.cpp and others from source
-            export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
-            export EXTRA_CCFLAGS="-I/usr/local/cuda/include"
-            export EXTRA_LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
-            
-            echo "🚀 CUDA LLM Environment Initialized."
-            echo "Host Driver: 590.48.01 | CUDA: 13.1 (Bridge Active)"
-          ''';
+            # Isolated development toolchain
+            buildInputs = with pkgs; [
+              python312
+              python312Packages.pip
+              python312Packages.virtualenv
+              uv
+              stdenv.cc.cc.lib
+              zlib
+              # Modern CUDA 13.x compatibility via redistributables
+              cudaPackages.cuda_nvcc
+              cudaPackages.cuda_cudart
+            ];
+      
+            # Bridge the "ABI Gap" between Nix and Host (e.g., Debian)
+            shellHook = '''
+              # 1. Setup Virtual Environment
+              if [ ! -d ".venv" ]; then
+                echo "Creating virtual environment with uv..."
+                uv venv .venv
+              fi
+              source .venv/bin/activate
+      
+              # 2. Bridge the ABI Gap
+              # We prioritize host paths for NVIDIA drivers (libcuda.so)
+              export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:''${pkgs.linuxPackages.nvidia_x11}/lib:''${pkgs.ncurses5}/lib:''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib ]}:$LD_LIBRARY_PATH"
+              
+              # 3. Compiler flags for compiling llama.cpp and others from source
+              export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
+              export EXTRA_CCFLAGS="-I/usr/local/cuda/include"
+              export EXTRA_LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
+              
+              echo "🚀 CUDA LLM Environment Initialized."
+              echo "Host Driver: 590.48.01 | CUDA: 13.1 (Bridge Active)"
+              echo "Tip: Use 'uv pip install <package>' for 10x faster installs."
+            ''';
+      
         };
       };
     }

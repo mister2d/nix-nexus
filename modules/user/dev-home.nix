@@ -132,6 +132,7 @@ in
         vscodium
         docker-compose
         llm-init
+        uv
 
         # --- Versioned Infrastructure Tools ---
         nomad-pkg
