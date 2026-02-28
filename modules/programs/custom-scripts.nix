@@ -300,16 +300,19 @@ rec {
               fi
               source .venv/bin/activate
       
-              # 2. Bridge the ABI Gap
-              # We prioritize host paths for NVIDIA drivers (libcuda.so)
-              export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:''${pkgs.linuxPackages.nvidia_x11}/lib:''${pkgs.ncurses5}/lib:''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib ]}:$LD_LIBRARY_PATH"
-              
-              # 3. Compiler flags for compiling llama.cpp and others from source
-              export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
-              export EXTRA_CCFLAGS="-I/usr/local/cuda/include"
-              export EXTRA_LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
-              
-              echo "🚀 CUDA LLM Environment Initialized."
+                      # 2. Bridge the ABI Gap
+                      # CRITICAL: We MUST place Nix libraries FIRST in LD_LIBRARY_PATH.
+                      # This prevents Nix binaries (like 'rm' or 'bash') from crashing by trying
+                      # to link against host Debian libraries (like libc.so).
+                      # Your AI tools will still find libcuda.so in the host path because Nix 
+                      # doesn't provide it.
+                      export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ncurses5 ]}:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+                      
+                      # 3. Compiler flags for compiling llama.cpp and others from source
+                      export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
+                      export EXTRA_CCFLAGS="-I/usr/local/cuda/include"
+                      export EXTRA_LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
+                            echo "🚀 CUDA LLM Environment Initialized."
               echo "Host Driver: 590.48.01 | CUDA: 13.1 (Bridge Active)"
               echo "Tip: Use 'uv pip install <package>' for 10x faster installs."
             ''';
