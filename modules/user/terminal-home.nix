@@ -41,6 +41,9 @@ in
       size = 13;
     };
     settings = {
+      # Standard terminfo for broad compatibility (fixes 'xterm-kitty' missing on remote hosts)
+      term = "xterm-256color";
+
       # OLED Optimization
       background_opacity = "1.0";
       dynamic_background_opacity = "no";
@@ -94,7 +97,8 @@ in
   programs.tmux = {
     enable = true;
     shell = "${pkgs.bash}/bin/bash";
-    terminal = "xterm-kitty"; # Optimized for Kitty
+    # Standard terminal for compatibility with legacy tools like screen
+    terminal = "tmux-256color";
     historyLimit = 100000;
     keyMode = "vi";
     mouse = true;
