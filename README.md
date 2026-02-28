@@ -1,110 +1,88 @@
-# Nix-Nexus: A Structured NixOS Configuration Framework
+# Nix-Nexus: Structured Configuration Framework
 
-Nix-Nexus is a modular, branching configuration framework for NixOS designed for portability, scalability, and ease of management. It separates system-wide logic, functional suites, and machine-specific hardware details into distinct layers.
+Nix-Nexus is a modular, dendritic NixOS configuration framework designed for high-performance workstations, servers, and portable user environments. It follows a layered architecture to separate hardware quirks, system policies, and functional software suites.
 
-## Architectural Overview
+## 📋 Table of Contents
+- [Architecture Overview](#-architecture-overview)
+- [Directory Structure](#-directory-structure)
+- [Getting Started (NixOS)](#-getting-started-nixos)
+- [Non-NixOS Environments (Standalone)](#-non-nixos-environments-standalone)
+- [Development Workflow](#-development-workflow)
+- [Technical Documentation](#-technical-documentation)
 
+---
+
+## 🏛️ Architecture Overview
 The configuration follows a three-tier hierarchy to ensure concerns are properly separated:
 
-1.  **Core (Global)**: Settings that apply to every machine in the fleet, such as timezones, global security policies, and foundational system modules.
-    -   Location: `profiles/core/`
-2.  **Profiles (Suites)**: Hardware-agnostic functional bundles of software and configuration (e.g., `profiles/desktop` for GUI environments or `profiles/development` for toolchains).
-    -   Location: `profiles/`
-3.  **Hosts**: Machine-specific configurations where physical hardware is defined and specific functional profiles are enabled.
-    -   Location: `hosts/`
+1.  **Core (Global)**: Foundational settings (Timezones, ZFS, Security) that apply to every machine in the fleet.
+2.  **Profiles (Suites)**: Hardware-agnostic functional bundles (Desktop environments, Dev toolchains).
+3.  **Hosts**: Machine-specific entry points where physical hardware is defined and profiles are selected.
 
-## Directory Structure
-
+## 📁 Directory Structure
 ```text
 .
 ├── flake.nix               # Project entry point and dependency management
+├── docs/                   # Deep-dive technical guides
 ├── hosts/                  # Machine-specific configurations
-│   └── z16/                # ThinkPad Z16 Gen 1 definition
-├── profiles/               # Functional suites and logical groupings
-│   ├── core/               # Global system settings
-│   ├── desktop/            # Desktop environment and UI components
-│   ├── development/        # Development tools and scripts
-│   └── hardware/           # Hardware-specific profile entry points
-├── modules/                # Reusable component building blocks
-│   ├── core/               # Low-level system modules (Boot, ZFS, Users)
-│   ├── hardware/           
-│   │   └── thinkpad-z16/   # Drivers and quirks for the Z16
-│   ├── desktop/            # UI modules (Sway, Waybar, etc.)
-│   ├── programs/           # Application-specific configurations
-│   └── user/               
-│       └── home.nix        # Home Manager user environment
-└── HARDWARE-GUIDE.md       # Technical hardware reference
+│   ├── z16/                # ThinkPad Z16 Gen 1 (Workstation)
+│   └── dualie/             # Debian Trixie (Standalone Development)
+├── profiles/               # Functional suites (Core, Desktop, Development)
+├── modules/                # Reusable building blocks (Boot, Networking, Users)
+└── docs/
+    ├── hardware.md         # Hardware-specific quirks (OLED, GPU, P-State)
+    ├── packages.md         # Pinned toolchains (Nomad, Vault, Terraform)
+    ├── storage.md          # CephFS and ZFS mount management
+    └── non-nixos.md        # Standalone Home Manager on Debian/Work laptops
 ```
 
-## Getting Started
+---
 
+## 🚀 Getting Started (NixOS)
 ### Applying Configuration
-To apply the configuration to a local machine, use the following command (substituting `#sweet16` for your specific host):
+To apply the configuration to a NixOS machine:
 ```bash
 sudo nixos-rebuild switch --flake .#sweet16
 ```
 
-### Testing Changes
-To evaluate a configuration without committing it to the boot menu:
+### Testing & Rollbacks
+- **Eval without boot entry:** `sudo nixos-rebuild test --flake .#sweet16`
+- **Instant recovery:** `sudo nixos-rebuild switch --rollback`
+
+---
+
+## 💻 Non-NixOS Environments (Standalone)
+Nix-Nexus can manage your user environment on existing distributions (Debian, Ubuntu) or locked-down corporate laptops without replacing the host OS.
+
+1. **Bootstrap Nix:** Install the Nix daemon in multi-user mode.
+2. **Apply Profile:** 
+   ```bash
+   nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
+   ```
+3. **Learn More:** See the [Non-NixOS Guide](./docs/non-nixos.md) for safe migration and GPU bridging.
+
+---
+
+## 🛠️ Development Workflow
+### Standardized Environment
+- **Activate:** `nix develop` (installs git hooks automatically).
+- **Validate:** `nix flake check` (evaluates tree-wide integrity).
+
+### Isolated AI/LLM Projects
+While the global environment is managed by Nix-Nexus, project-level AI toolchains utilize the **`llm-init`** script to bridge host GPU drivers to isolated Nix shells.
 ```bash
-sudo nixos-rebuild test --flake .#sweet16
+# Inside a project directory
+llm-init
+direnv allow
 ```
 
-### Rollbacks
-NixOS retains previous generations. If a change causes issues, select an older generation at boot or run:
-```bash
-sudo nixos-rebuild switch --rollback
-```
+---
 
-## Development Workflow
+## 📚 Technical Documentation
+- [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and Hybrid GPU management.
+- [**Package Inventory**](./docs/packages.md): Versions and use cases for pinned DevOps and Infrastructure tools.
+- [**Storage Management**](./docs/storage.md): Centralized CephFS mounting and ZFS dataset strategies.
+- [**Standalone Migration**](./docs/non-nixos.md): Moving your dotfiles to Nix securely on non-NixOS hosts.
 
-### Standardized Environment (DevShell)
-The project includes a declarative development environment that automatically manages toolchains and git hooks. Entering the environment ensures all contributors use consistent formatting and linting standards.
-
-1. **Activate Environment:** `nix develop` (installs git hooks automatically)
-2. **Manual Validation:** `nix flake check` (runs all lints, formatters, and builds)
-3. **Manual Hook Run:** `pre-commit run --all-files`
-
-### Isolated Project Environments (Devbox)
-While the `nix-nexus` framework defines the system-wide architecture, project-specific toolchains are managed using `devbox`. This keeps the global Nix store lean while providing isolated, reproducible environments for complex or bleeding-edge software (e.g., AI toolchains like `llama-cpp-vulkan`).
-
-1. **Initialize Project:** `devbox init`
-2. **Manage Dependencies:** `devbox add <package>@latest`
-3. **Execute:** `devbox shell` (or use `direnv` for automatic loading)
-
-## Terminal & Workflow
-
-The system utilizes **Alacritty** paired with **Tmux** for a high-performance, OLED-optimized terminal environment.
-
-### Tmux for Screen Users
-The Tmux configuration is designed to be approachable for long-time `screen` users while leveraging modern features:
-
-- **Prefix**: `Ctrl-a` (Matches traditional Screen).
-- **Windows**:
-  - `Ctrl-a` + `c`: Create new window.
-  - `Shift-Left` / `Shift-Right`: Switch between windows.
-- **Panes (Splits)**:
-  - `Ctrl-a` + `|`: Split horizontally.
-  - `Ctrl-a` + `-`: Split vertically.
-  - `Ctrl-a` + `h/j/k/l`: Navigate panes (Vim-style).
-- **General**:
-  - **Mouse Support**: Enabled for scrolling and pane resizing.
-  - **OLED Aesthetic**: True black background with Teal status indicators.
-
-## Connectivity and Security
-
-This framework prioritizes security and repository portability:
--   **SSIDs**: Network identifiers are managed via declarative profiles but are not hardcoded with secrets to remain Git-safe.
--   **Passwords**: NetworkManager persists credentials securely in the system keyfile or user keyring. They are never stored in the Nix store.
-
-## Hardware Support
-
-For detailed technical information regarding optimizations for specific hardware (such as the ThinkPad Z16's OLED panel and hybrid graphics), refer to the [HARDWARE-GUIDE.md](./HARDWARE-GUIDE.md).
-
-## Software and Toolchains
-
-A comprehensive inventory of managed packages, version-pinned DevOps tools, and their specific use cases can be found in the [PACKAGES.md](./PACKAGES.md) guide.
-
-For information on managing remote storage and using the CephFS mount controller, refer to the [STORAGE.md](./STORAGE.md) documentation.
-
-Enjoy your reproducible, structured NixOS environment.
+---
+Enjoy your reproducible, structured environment.
