@@ -33,10 +33,12 @@
   };
 
   # Development Home Profile
-  # Disabled MCP servers because they require AVX2 (Illegal Instruction on Ivy Bridge Xeons)
+  # Disabled MCP servers and LLM agents because they require modern CPU instructions (e.g. AVX2)
+  # that are missing on Ivy Bridge Xeons.
   programs.dev-home = {
     enable = true;
     enableMcpServers = false;
+    enableLlmAgents = false;
   };
 
   # Let Home Manager install and manage itself.

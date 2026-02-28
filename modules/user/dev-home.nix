@@ -96,6 +96,17 @@ let
       ]
     else
       [ ];
+
+  llmAgentPackages =
+    if cfg.enableLlmAgents then
+      [
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.gemini-cli
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.mcporter
+      ]
+    else
+      [ ];
 in
 {
   options.programs.dev-home = {
@@ -105,6 +116,11 @@ in
       default = true;
       description = "Whether to install MCP servers (may fail on older CPUs lacking AVX2).";
     };
+    enableLlmAgents = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to install AI Coding Agents (e.g. opencode, gemini-cli).";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -112,19 +128,10 @@ in
       with pkgs;
       [
         # --- Core Development Tools ---
-        # These are high-level tools that don't depend on global interpreters.
-        # Languages and interpreters should be managed via project-specific
-        # flakes or dev shells with direnv.
         devbox
         vscodium
         docker-compose
         llm-init
-
-        # --- AI Coding Agents (Nix Native via llm-agents.nix) ---
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.gemini-cli
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.mcporter
 
         # --- Versioned Infrastructure Tools ---
         nomad-pkg
@@ -145,7 +152,8 @@ in
         kubectl-rook-ceph-pkg
         kubectl-doctor
       ]
-      ++ mcpPackages;
+      ++ mcpPackages
+      ++ llmAgentPackages;
 
     # Direnv integration for automatic environment loading
     programs.direnv = {
