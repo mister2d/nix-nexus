@@ -8,6 +8,7 @@ _:
     shellAliases = {
       ".." = "cd ..";
       "..." = "cd ../..";
+      "ll" = "ls -ltr";
       "lrt" = "ls -ltr";
 
       # Tailscale
