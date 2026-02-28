@@ -262,7 +262,8 @@ in
         "${mod}+Print" = "exec grim - | wl-copy";
 
         # Redshift (wlsunset) Mode
-        "${mod}+Shift+u" = "mode \"redshift\"";
+        "${mod}+Shift+u" =
+          "mode \"redshift\"; exec 'swaynag -t warning -m \"Redshift Mode: (a)uto, (r)eset, (2)500K, (3)000K, (4)4000K, (5)5000K\"'";
 
         # Resize
         "${mod}+r" = "mode \"resize\"";
@@ -285,14 +286,15 @@ in
         redshift = {
           # Use single quotes around complex exec commands to ensure Sway
           # correctly identifies the 'mode "default"' command as a separate action.
-          "a" = "exec 'pkill -9 wlsunset; wlsunset -l 39.7 -L -105.0', mode \"default\"";
-          "r" = "exec 'pkill -9 wlsunset', mode \"default\"";
-          "2" = "exec 'pkill -9 wlsunset; wlsunset -t 2500', mode \"default\"";
-          "3" = "exec 'pkill -9 wlsunset; wlsunset -t 3000', mode \"default\"";
-          "4" = "exec 'pkill -9 wlsunset; wlsunset -t 4000', mode \"default\"";
-          "5" = "exec 'pkill -9 wlsunset; wlsunset -t 5000', mode \"default\"";
-          "Return" = "mode \"default\"";
-          "Escape" = "mode \"default\"";
+          # We also pkill swaynag to dismiss the menu.
+          "a" = "exec 'pkill -9 wlsunset; wlsunset -l 39.7 -L -105.0; pkill swaynag', mode \"default\"";
+          "r" = "exec 'pkill -9 wlsunset; pkill swaynag', mode \"default\"";
+          "2" = "exec 'pkill -9 wlsunset; wlsunset -t 2500; pkill swaynag', mode \"default\"";
+          "3" = "exec 'pkill -9 wlsunset; wlsunset -t 3000; pkill swaynag', mode \"default\"";
+          "4" = "exec 'pkill -9 wlsunset; wlsunset -t 4000; pkill swaynag', mode \"default\"";
+          "5" = "exec 'pkill -9 wlsunset; wlsunset -t 5000; pkill swaynag', mode \"default\"";
+          "Return" = "exec 'pkill swaynag', mode \"default\"";
+          "Escape" = "exec 'pkill swaynag', mode \"default\"";
         };
       };
 

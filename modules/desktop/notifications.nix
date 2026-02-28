@@ -13,7 +13,7 @@
         padding = 16;
         horizontal_padding = 16;
         frame_width = 2;
-        frame_color = "#00FFFF";
+        frame_color = "#008080";
         separator_color = "frame";
         font = "JetBrainsMono Nerd Font 10";
         line_height = 4;

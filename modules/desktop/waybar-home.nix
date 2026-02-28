@@ -203,8 +203,8 @@ in
       }
 
       #workspaces button.focused {
-          color: #00FFFF;
-          border-bottom: 3px solid #00FFFF;
+          color: #008080;
+          border-bottom: 3px solid #008080;
       }
 
       #workspaces button.urgent {
@@ -215,7 +215,7 @@ in
       /* Module Specific Colors */
       #custom-kanshi { color: #FF00FF; border-bottom: 3px solid #FF00FF; }
       #custom-system-stats { color: #00FF00; border-bottom: 3px solid #00FF00; }
-      #clock { color: #00FFFF; border-bottom: 3px solid #00FFFF; }
+      #clock { color: #008080; border-bottom: 3px solid #008080; }
       #memory { color: #FF69B4; border-bottom: 3px solid #FF69B4; }
       #disk { color: #FFA500; border-bottom: 3px solid #FFA500; }
       #pulseaudio { color: #BD93F9; border-bottom: 3px solid #BD93F9; }
