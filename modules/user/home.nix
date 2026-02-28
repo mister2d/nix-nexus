@@ -57,7 +57,11 @@ in
     ./terminal-home.nix
     ./ceph-mount.nix
     ./audio-effects.nix
+    ./dev-home.nix
   ];
+
+  # Development Home Profile
+  programs.dev-home.enable = true;
 
   # Home Configuration
   home = {

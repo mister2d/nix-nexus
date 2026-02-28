@@ -1,10 +1,16 @@
 {
   pkgs,
+  lib,
+  config,
   inputs,
   ...
 }:
 
+with lib;
+
 let
+  cfg = config.programs.dev-home;
+
   # Versioned package helpers
   nomad-pkg =
     (import inputs.pkgs-nomad {
@@ -76,57 +82,76 @@ let
 
   # Project-level CUDA environment generator
   inherit ((import ../programs/custom-scripts.nix { inherit pkgs; })) llm-init;
+
+  mcpPackages =
+    if cfg.enableMcpServers then
+      [
+        pkgs.context7-mcp
+        pkgs.mcp-nixos
+        pkgs.mcp-server-fetch
+        pkgs.mcp-server-git
+        pkgs.mcp-server-sequential-thinking
+        pkgs.mcp-server-time
+        pkgs.terraform-mcp-server
+      ]
+    else
+      [ ];
 in
 {
-  home.packages = with pkgs; [
-    # --- Core Development Tools ---
-    # These are high-level tools that don't depend on global interpreters.
-    # Languages and interpreters should be managed via project-specific
-    # flakes or dev shells with direnv.
-    devbox
-    vscodium
-    docker-compose
-    llm-init
+  options.programs.dev-home = {
+    enable = mkEnableOption "development home profile";
+    enableMcpServers = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Whether to install MCP servers (may fail on older CPUs lacking AVX2).";
+    };
+  };
 
-    # --- MCP Servers ---
-    context7-mcp
-    mcp-nixos
-    mcp-server-fetch
-    mcp-server-git
-    mcp-server-sequential-thinking
-    mcp-server-time
-    terraform-mcp-server
+  config = mkIf cfg.enable {
+    home.packages =
+      with pkgs;
+      [
+        # --- Core Development Tools ---
+        # These are high-level tools that don't depend on global interpreters.
+        # Languages and interpreters should be managed via project-specific
+        # flakes or dev shells with direnv.
+        devbox
+        vscodium
+        docker-compose
+        llm-init
 
-    # --- AI Coding Agents (Nix Native via llm-agents.nix) ---
-    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.gemini-cli
-    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
-    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
-    inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.mcporter
+        # --- AI Coding Agents (Nix Native via llm-agents.nix) ---
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.gemini-cli
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
+        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.mcporter
 
-    # --- Versioned Infrastructure Tools ---
-    nomad-pkg
-    vault-pkg
-    consul-pkg
-    terraform-pkg
-    omnictl-pkg
-    talosctl-pkg
-    meld-pkg
-    helm-pkg
-    butane-pkg
-    envsubst-pkg
-    tflint-pkg
-    freelens-bin
+        # --- Versioned Infrastructure Tools ---
+        nomad-pkg
+        vault-pkg
+        consul-pkg
+        terraform-pkg
+        omnictl-pkg
+        talosctl-pkg
+        meld-pkg
+        helm-pkg
+        butane-pkg
+        envsubst-pkg
+        tflint-pkg
+        freelens-bin
 
-    # --- Kubernetes Tools ---
-    kubelogin-oidc-pkg
-    kubectl-rook-ceph-pkg
-    kubectl-doctor
-  ];
+        # --- Kubernetes Tools ---
+        kubelogin-oidc-pkg
+        kubectl-rook-ceph-pkg
+        kubectl-doctor
+      ]
+      ++ mcpPackages;
 
-  # Direnv integration for automatic environment loading
-  programs.direnv = {
-    enable = true;
-    # Enables the faster, Nix-optimized implementation of direnv
-    nix-direnv.enable = true;
+    # Direnv integration for automatic environment loading
+    programs.direnv = {
+      enable = true;
+      # Enables the faster, Nix-optimized implementation of direnv
+      nix-direnv.enable = true;
+    };
   };
 }

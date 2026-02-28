@@ -32,6 +32,13 @@
     ];
   };
 
+  # Development Home Profile
+  # Disabled MCP servers because they require AVX2 (Illegal Instruction on Ivy Bridge Xeons)
+  programs.dev-home = {
+    enable = true;
+    enableMcpServers = false;
+  };
+
   # Let Home Manager install and manage itself.
   programs.home-manager.enable = true;
 
