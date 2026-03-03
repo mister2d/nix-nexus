@@ -18,6 +18,9 @@
     # Ceph Integration
     ../../modules/core/ceph.nix
 
+    # Printing Support
+    ../../modules/core/printing.nix
+
     # Functional Profiles (Suites)
     ../../profiles/desktop
     ../../profiles/development

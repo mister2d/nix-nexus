@@ -8,8 +8,11 @@
   boot = {
     kernelParams = [
       "amdgpu.sg_display=0" # Fix for white flickering on Ryzen 6000 + OLED
-      "amdgpu.dcdebugmask=0x10" # Fix for some RDNA2 display/PM timeouts
+      "amdgpu.dcdebugmask=0x410" # Fix for RDNA2 display/PM timeouts + stability
+      "amdgpu.gpu_recovery=1" # Enable soft-recovery for GPU resets
+      "amdgpu.lockup_timeout=1000" # Increase timeout threshold for stability
       "amdgpu.gttsize=8192" # Increase iGPU dynamic memory (GTT) to 8GB (Note: Set UMA in BIOS for dedicated VRAM)
+      "iommu=pt" # Passthrough mode for better GPU memory stability on Ryzen
       "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
       "amd_pstate=active" # Use active P-States for better power/performance on Ryzen 6000
     ];
@@ -20,6 +23,8 @@
       options snd_sof_amd_rembrandt dmic_acp_check=1
       # Fix for WiFi firmware crashes (Qualcomm WCN6855)
       options ath11k_pci disable_aspm=1
+      # GPU stability: Disable retry on page faults
+      options amdgpu noretry=0
     '';
 
     # Correct ThinkPad ACPI options
