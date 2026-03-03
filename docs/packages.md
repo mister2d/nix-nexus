@@ -50,3 +50,4 @@ These tools are pinned to specific versions to ensure absolute reproducibility a
 - **Grim/Slurp**: High-performance screenshot and region selection tools.
 - **Clipman**: History-persistent clipboard manager.
 - **Pamixer**: Command-line PulseAudio/PipeWire volume control.
+- **Battery-travel-mode**: Helper script for ThinkPad Z16 to temporarily override battery charging thresholds for long trips.

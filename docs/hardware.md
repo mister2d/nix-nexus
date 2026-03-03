@@ -5,18 +5,22 @@ This guide details the technical configurations and hardware optimizations appli
 ## Technical Optimizations
 
 ### 1. Power Management
-Standard power profiles are replaced by **TLP** to provide granular control over the discrete Radeon 6500M GPU and PCIe ASPM (Active State Power Management) states.
+The system utilizes **power-profiles-daemon** (PPD) for native ACPI platform profile management, paired with the **AMD P-State (active)** driver. This replaces TLP to ensure seamless negotiation with the Ryzen 6000 "Rembrandt" architecture.
 
-#### "Max Battery" Profile Refinements
-The configuration implements an aggressive power-saving posture designed for maximum endurance while preserving the ability to spike performance:
--   **AMD P-State (EPP)**: Uses `active` mode with `balance_power` on battery. This drops the clock floor significantly while allowing hardware-managed boost spikes in microseconds.
--   **Platform Profiles**: Leverages Lenovo's `low-power` platform profile on battery to reduce internal power rails and fan activity.
+#### Optimized Power Policy
+The configuration implements a modern power-saving posture designed for maximum endurance while preserving the ability to spike performance:
+-   **AMD P-State (EPP)**: Uses `active` mode. This allows the hardware to manage clock floors and boost spikes in microseconds.
+-   **Platform Profiles**: PPD manages Lenovo's platform profiles (Quiet/Balanced/Performance) which are accessible via the desktop UI.
+-   **Kernel Optimization**: Pinned to the **6.12 LTS kernel** to ensure ZFS compatibility while providing the latest `amdgpu` stability patches.
+-   **Battery Health (Native)**: 
+    -   Persistent charging thresholds (**75% start / 80% stop**) are enforced via a declarative **udev rule**.
+    -   A helper script, `battery-travel-mode`, is provided to temporarily override these limits for 100% charging when traveling.
 -   **GPU Power Management**: 
-    -   Forces the discrete Radeon 6500M into **D3Cold** (0W) when idle via `powersupersave` ASPM.
-    -   Sets a declarative **30W power cap** via udev to match the VBIOS limit and avoid driver errors.
-    -   Increases iGPU dynamic memory (**GTT**) to 8GB for smooth UI performance without reserving physical RAM.
--   **Aggressive Peripherals**: Enables NVMe runtime power management (`auto`), WiFi power saving, and USB autosuspend on battery.
--   **OLED Optimization**: Enables AMD **ABM (Adaptive Backlight Management)** at level 4 to reduce panel power draw.
+    -   Enables **GPU soft-recovery** and increased lockup timeouts to prevent hard hangs during intensive tasks like video conferencing.
+    -   Sets a declarative **30W power cap** via udev for the discrete Radeon 6500M.
+    -   Increases iGPU dynamic memory (**GTT**) to 8GB for smooth UI performance.
+-   **Modern Standby**: Forced to `s2idle` to correctly utilize the Z16's Modern Standby capabilities and reduce sleep-state battery drain.
+-   **Connectivity**: Disables ASPM on the Qualcomm WiFi card to prevent firmware crashes under high load.
 
 ### 2. Graphics and Display
 -   **OLED Panel**: The `amdgpu.sg_display=0` kernel parameter is enabled to resolve a known flickering issue during Wayland compositor transitions.
