@@ -38,64 +38,63 @@ _:
 
     # Prompt and Custom Logic
     initExtra = ''
-            # ------------------------------------------------------------------
-            # 6. Custom Prompt: "The Stacked Professional"
-            # ------------------------------------------------------------------
+      # ------------------------------------------------------------------
+      # 6. Custom Prompt: "The Stacked Professional"
+      # ------------------------------------------------------------------
 
-            # Git Branch with Status Indicator
-            parse_git_branch() {
-              # Returns: (master *) or (main)
-              local branch
-              branch=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
-              if [ -n "$branch" ]; then
-                local status=""
-                # Check for uncommitted changes
-                if [[ $(git status --porcelain 2> /dev/null) ]]; then
-                  status="*"
-                fi
-                echo " ($branch$status)"
-              fi
-            }
+      # Git Branch with Status Indicator
+      parse_git_branch() {
+        # Returns: (master *) or (main)
+        local branch
+        branch=$(git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/')
+        if [ -n "$branch" ]; then
+          local status=""
+          # Check for uncommitted changes
+          if [[ $(git status --porcelain 2> /dev/null) ]]; then
+            status="*"
+          fi
+          echo " ($branch$status)"
+        fi
+      }
 
-            # Formatting Constants (raw escape codes, no readline markers)
-            BOLD="\033[1m"
-            RESET="\033[0m"
-            # Solarized-ish Colors
-            GREEN="\033[38;5;64m"
-            BLUE="\033[38;5;33m"
-            PURPLE="\033[38;5;135m"
-            RED="\033[38;5;124m"
-            GREY="\033[38;5;240m"
+      # Formatting Constants (raw escape codes, no readline markers)
+      BOLD="\033[1m"
+      RESET="\033[0m"
+      # Solarized-ish Colors
+      GREEN="\033[38;5;64m"
+      BLUE="\033[38;5;33m"
+      PURPLE="\033[38;5;135m"
+      RED="\033[38;5;124m"
+      GREY="\033[38;5;240m"
 
-            # Build prompt dynamically to handle exit status color
-            set_bash_prompt() {
-              local exit_status=$?
-              local symbol_color
-              
-              if [ $exit_status -eq 0 ]; then
-                symbol_color="$GREEN"
-              else
-                symbol_color="$RED"
-              fi
-              
-              PS1="\[\033[38;5;240m\][\A] \[\033[38;5;64m\]\u@\h \[\033[38;5;33m\]\w\[\033[38;5;135m\]\$(parse_git_branch)\[\033[0m\]
-      \[''${symbol_color}\]➜\[\033[0m\] "
-            }
+      # Build prompt dynamically to handle exit status color
+      set_bash_prompt() {
+        local exit_status=$?
+        local symbol_color
+        
+        if [ $exit_status -eq 0 ]; then
+          symbol_color="$GREEN"
+        else
+          symbol_color="$RED"
+        fi
+        
+        PS1="\[\033[38;5;240m\][\A] \[\033[38;5;64m\]\u@\h \[\033[38;5;33m\]\w\[\033[38;5;135m\]\$(parse_git_branch)\[\033[0m\]\n\[''${symbol_color}\]➜\[\033[0m\] "
+      }
 
-            # Prepend to PROMPT_COMMAND to preserve other hooks (like direnv)
-            PROMPT_COMMAND="set_bash_prompt''${PROMPT_COMMAND:+; ''${PROMPT_COMMAND}}"
+      # Prepend to PROMPT_COMMAND to preserve other hooks (like direnv)
+      PROMPT_COMMAND="set_bash_prompt''${PROMPT_COMMAND:+; ''${PROMPT_COMMAND}}"
 
-            # HashiCorp Completions (Dynamic Nix Paths)
-            # These are only enabled if the packages are available in the current profile.
-            # We use 'command -v' to find the actual location in the Nix store.
-            for cmd in vault boundary consul nomad; do
-              if command -v "$cmd" >/dev/null 2>&1; then
-                complete -C "$(command -v "$cmd")" "$cmd"
-              fi
-            done
+      # HashiCorp Completions (Dynamic Nix Paths)
+      # These are only enabled if the packages are available in the current profile.
+      # We use 'command -v' to find the actual location in the Nix store.
+      for cmd in vault boundary consul nomad waypoint; do
+        if command -v "$cmd" >/dev/null 2>&1; then
+          complete -C "$(command -v "$cmd")" "$cmd"
+        fi
+      done
 
-            # Load legacy Aliases if they exist
-            test -s ~/.alias && . ~/.alias || true
+      # Load legacy Aliases if they exist
+      test -s ~/.alias && . ~/.alias || true
     '';
   };
 
