@@ -29,7 +29,7 @@ in
 
     config = {
       modifier = mod;
-      terminal = "${pkgs.alacritty}/bin/alacritty";
+      terminal = "${pkgs.kitty}/bin/kitty";
       menu = "bemenu-run -H 32 -l 15 -W 0.3 --center --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00AAAA' --hf '#000000' --tb '#00AAAA' --tf '#000000'";
 
       bars = [ ];
@@ -248,7 +248,7 @@ in
         "${mod}+Shift+m" = "exec audio-selector source";
 
         # Apps
-        "${mod}+Return" = "exec ${pkgs.alacritty}/bin/alacritty";
+        "${mod}+Return" = "exec ${pkgs.kitty}/bin/kitty";
         "${mod}+Shift+b" =
           "exec ${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --disable-features=ExtensionManifestV2Unsupported; fi'";
         "${mod}+Shift+d" = "exec wdisplays";
