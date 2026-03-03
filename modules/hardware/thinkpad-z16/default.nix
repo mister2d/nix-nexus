@@ -1,11 +1,16 @@
 {
   lib,
+  pkgs,
   ...
 }:
 
 {
   # Boot-time optimizations for Ryzen 6000 and AMD hardware
   boot = {
+    # The Z16 benefits greatly from modern kernels for AMDGPU fixes.
+    # We pin to 6.12 (LTS) for maximum stability with ZFS while meeting the 6.6+ requirement.
+    kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
+
     kernelParams = [
       "amdgpu.sg_display=0" # Fix for white flickering on Ryzen 6000 + OLED
       "amdgpu.dcdebugmask=0x410" # Fix for RDNA2 display/PM timeouts + stability
@@ -15,6 +20,8 @@
       "iommu=pt" # Passthrough mode for better GPU memory stability on Ryzen
       "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
       "amd_pstate=active" # Use active P-States for better power/performance on Ryzen 6000
+      "initcall_blacklist=acpi_cpufreq_init" # Prevent legacy driver from competing with P-State
+      "mem_sleep_default=s2idle" # Modern Standby (S0ix) is required for the Z16's Rembrandt APU
     ];
 
     # Hardware Modprobe Options
@@ -31,63 +38,20 @@
     kernelModules = [ "thinkpad_acpi" ];
   };
 
+  # Set ThinkPad battery charge thresholds natively via udev
+  # This replaces TLP's START_CHARGE_THRESH_BAT0 and STOP_CHARGE_THRESH_BAT0
+  services.udev.extraRules = ''
+    # Wait for the battery to be initialized, then set thresholds to 75% start / 80% stop
+    SUBSYSTEM=="power_supply", KERNEL=="BAT0", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
+  '';
+
   # Services and Power Management
   services = {
     # 1. Power Management: TLP vs Power Profiles
-    # The Z16 benefits significantly from TLP tuning due to the dGPU.
-    # We disable power-profiles-daemon to avoid conflicts with TLP.
-    power-profiles-daemon.enable = false;
-
-    tlp = {
-      enable = true;
-      settings = {
-        # --- CPU & Performance ---
-        # AMD P-State EPP (Active Mode) optimization for Ryzen 6000 (Rembrandt)
-        # We use 'balance_performance' instead of 'performance' on AC to reduce
-        # aggressive clock boosting for short tasks, lowering chassis heat.
-        CPU_ENERGY_PERF_POLICY_ON_AC = "balance_performance";
-        CPU_ENERGY_PERF_POLICY_ON_BAT = "balance_power";
-
-        # Scaling Governor for P-State Driver
-        # In 'active' mode, the EPP (above) is the primary driver.
-        CPU_SCALING_GOVERNOR_ON_AC = "performance";
-        CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
-
-        # --- Platform & Thermal Management ---
-        # Lenovo Platform Profiles: Lowers the EC thermal ceiling on battery.
-        # This reduces fan noise and improves endurance while allowing CPU spikes.
-        PLATFORM_PROFILE_ON_BAT = "low-power";
-        PLATFORM_PROFILE_ON_AC = "performance";
-
-        # --- Battery Health ---
-        # Z16 Specific: Limit charging to extend battery health (ThinkPad classic)
-        START_CHARGE_THRESH_BAT0 = 20;
-        STOP_CHARGE_THRESH_BAT0 = 80;
-
-        # --- GPU & PCIe Management ---
-        # Discrete GPU (Radeon 6500M) power management
-        # Ensure the dGPU can power down completely (D3Cold) when not in use (DRI_PRIME=1)
-        # 'powersupersave' enables the deepest possible PCIe link states (L1.1/L1.2).
-        PCIE_ASPM_ON_AC = "performance";
-        PCIE_ASPM_ON_BAT = "powersupersave";
-
-        # Runtime PM for NVMe and other PCIe devices.
-        # We use 'on' instead of 'auto' on battery to prevent the haptic ForcePad
-        # and internal bridge from entering unrecoverable sleep states.
-        RUNTIME_PM_ON_AC = "on";
-        RUNTIME_PM_ON_BAT = "on";
-
-        # --- Connectivity & Peripherals ---
-        # Put WiFi into power saving, but disable USB autosuspend as it
-        # causes issues with the Z16's haptic sensors and cameras.
-        WIFI_PWR_ON_BAT = "on";
-        USB_AUTOSUSPEND = 0;
-
-        # Enable Audio power saving for the AMD ACP (Audio Coprocessor)
-        SOUND_QUERY_CHIPS = "false";
-        RST_PHASE_1 = 1;
-      };
-    };
+    # The Z16 benefits significantly from modern AMD P-State negotiation.
+    # We use power-profiles-daemon for native ACPI profile handling.
+    power-profiles-daemon.enable = true;
+    tlp.enable = false;
 
     # The Z16 has a haptic "ForcePad". The 'lenovo-thinkpad-z' base handles the
     # ELAN trackpoint, but we ensure the libinput settings are optimal.
@@ -111,7 +75,11 @@
 
   # 2. Audio Quirks (Z16 Audio & Mic)
   # The Z16 uses AMD ACP (Audio Coprocessor) for DMIC and Cirrus Amps for speakers.
-  hardware.enableAllFirmware = true;
+  hardware = {
+    enableAllFirmware = true;
+    enableRedistributableFirmware = true;
+    cpu.amd.updateMicrocode = true;
+  };
 
   # Fix for Mic LED: Link it to the kernel's audio-micmute trigger
   systemd.tmpfiles.rules = [
@@ -121,4 +89,37 @@
   # 6. Machine-Specific Networking
   # The Z16 WiFi device is specifically named 'wlp4s0'.
   networking.interfaces.wlp4s0.useDHCP = lib.mkDefault true;
+
+  environment.systemPackages = [
+    (pkgs.writeShellScriptBin "battery-travel-mode" ''
+      #!/usr/bin/env bash
+      # Battery Travel Mode Override
+      # Temporarily allow the battery to charge to 100% until next reboot.
+
+      BATTERY="/sys/class/power_supply/BAT0"
+
+      if [ ! -d "$BATTERY" ]; then
+        echo "Error: Battery BAT0 not found."
+        exit 1
+      fi
+
+      echo "Current thresholds:"
+      echo "  Start: $(cat $BATTERY/charge_control_start_threshold)%"
+      echo "  Stop:  $(cat $BATTERY/charge_control_end_threshold)%"
+
+      if [ "$1" == "--reset" ]; then
+        echo "Resetting to persistent NixOS thresholds (75/80)..."
+        echo 75 | sudo tee $BATTERY/charge_control_start_threshold > /dev/null
+        echo 80 | sudo tee $BATTERY/charge_control_end_threshold > /dev/null
+      else
+        echo "Enabling travel mode (charging to 100%)..."
+        echo 0 | sudo tee $BATTERY/charge_control_start_threshold > /dev/null
+        echo 100 | sudo tee $BATTERY/charge_control_end_threshold > /dev/null
+      fi
+
+      echo "New thresholds:"
+      echo "  Start: $(cat $BATTERY/charge_control_start_threshold)%"
+      echo "  Stop:  $(cat $BATTERY/charge_control_end_threshold)%"
+    '')
+  ];
 }

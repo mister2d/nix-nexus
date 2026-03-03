@@ -4,7 +4,7 @@
   # Graphics
   hardware.graphics = {
     enable = true;
-    enable32Bit = false; # Disabled: No Steam/legacy 32-bit apps needed
+    enable32Bit = true; # Required for some meeting/web effects and game compatibility
     extraPackages = with pkgs; [
       rocmPackages.clr.icd
     ];
