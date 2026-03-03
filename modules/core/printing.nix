@@ -20,12 +20,12 @@
   hardware.printers = {
     ensurePrinters = [
       {
-        name = "HP_Color_LaserJet_MFP_M283fdw";
+        name = "HP_ColorLaserJet_MFP_M283fdw";
         location = "Home Office";
-        deviceUri = "hp:/net/HP_Color_LaserJet_Pro_MFP_M282-M285?ip=10.0.5.10";
-        model = "drv:///hp/hp-color_laserjet_mfp_m282-m285.ppd";
+        deviceUri = "hp:/net/HP_ColorLaserJet_MFP_M282-M285?ip=10.0.5.10";
+        model = "HP/hp-color_laserjet_m282-m285-ps.ppd.gz";
       }
     ];
-    ensureDefaultPrinter = "HP_Color_LaserJet_MFP_M283fdw";
+    ensureDefaultPrinter = "HP_ColorLaserJet_MFP_M283fdw";
   };
 }

@@ -44,6 +44,12 @@ in
       # Standard terminfo for broad compatibility (fixes 'xterm-kitty' missing on remote hosts)
       term = "xterm-256color";
 
+      # Mouse behavior
+      copy_on_select = "yes";
+      # Click then Shift-Click to select range
+      "mouse_map shift+left press" = "ungrabbed,grabbed mouse_selection extend";
+      "mouse_map shift+left click" = "ungrabbed,grabbed mouse_selection extend";
+
       # OLED Optimization
       background_opacity = "1.0";
       dynamic_background_opacity = "no";
