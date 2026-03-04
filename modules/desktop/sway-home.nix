@@ -258,8 +258,12 @@ in
         "${mod}+Escape" = "exec swaylock -f -c 000000";
 
         # Screenshots
-        "Control+Shift+BackSpace" = "exec grim -g \"$(slurp)\" - | wl-copy";
-        "${mod}+Print" = "exec grim - | wl-copy";
+        "Control+Shift+BackSpace" =
+          "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.wl-clipboard}/bin/wl-copy";
+        "Print" = "exec ${pkgs.grim}/bin/grim - | ${pkgs.wl-clipboard}/bin/wl-copy";
+        "Shift+Print" =
+          "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.wl-clipboard}/bin/wl-copy";
+        "${mod}+Print" = "exec ${pkgs.grim}/bin/grim - | ${pkgs.wl-clipboard}/bin/wl-copy";
 
         # Redshift (wlsunset) Mode
         "${mod}+Shift+u" =
