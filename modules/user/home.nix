@@ -104,6 +104,7 @@ in
       clipman # Clipboard manager
       networkmanagerapplet # WiFi/Network management tray icon
       inotify-tools # File watch utilities
+      kdePackages.okular # PDF viewer
       procps # System process utilities
       kdePackages.kate # Advanced text editor
       bemenu # Dynamic menu (replaces dmenu)
