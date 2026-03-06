@@ -284,7 +284,6 @@ rec {
               python312Packages.pip
               python312Packages.virtualenv
               uv
-              glibc
               stdenv.cc.cc.lib
               zlib
               # Modern CUDA 13.x compatibility via redistributables
@@ -302,12 +301,16 @@ rec {
               source .venv/bin/activate
       
                       # 2. Bridge the ABI Gap
-                      # CRITICAL: We MUST place Nix libraries FIRST in LD_LIBRARY_PATH.
-                      # This prevents Nix binaries (like 'rm' or 'bash') from crashing by trying
-                      # to link against host Debian libraries (like libc.so).
-                      # Your AI tools will still find libcuda.so in the host path because Nix 
-                      # doesn't provide it.
-                      export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.glibc pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ncurses5 ]}:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+                      # We only add specific libraries from the host to avoid glibc poisoning.
+                      CUDA_BRIDGE_DIR="/tmp/nix-cuda-bridge-$USER"
+                      mkdir -p "$CUDA_BRIDGE_DIR"
+                      for lib in libcuda.so.1 libnvidia-ml.so.1 libnvidia-ptxjitcompiler.so.1 libcuda.so; do
+                        if [ -f "/usr/lib/x86_64-linux-gnu/$lib" ]; then
+                          ln -sf "/usr/lib/x86_64-linux-gnu/$lib" "$CUDA_BRIDGE_DIR/$lib"
+                        fi
+                      done
+
+                      export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ncurses5 ]}:$CUDA_BRIDGE_DIR:$LD_LIBRARY_PATH"
                       
                       # 3. Compiler flags for compiling llama.cpp and others from source
                       export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
