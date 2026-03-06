@@ -284,6 +284,7 @@ rec {
               python312Packages.pip
               python312Packages.virtualenv
               uv
+              glibc
               stdenv.cc.cc.lib
               zlib
               # Modern CUDA 13.x compatibility via redistributables
@@ -306,7 +307,7 @@ rec {
                       # to link against host Debian libraries (like libc.so).
                       # Your AI tools will still find libcuda.so in the host path because Nix 
                       # doesn't provide it.
-                      export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ncurses5 ]}:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+                      export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.glibc pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ncurses5 ]}:/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
                       
                       # 3. Compiler flags for compiling llama.cpp and others from source
                       export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
