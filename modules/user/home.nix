@@ -113,6 +113,15 @@ in
       easyeffects # System-wide audio effects
       lsp-plugins # Essential plugins for EasyEffects
 
+      # Secret Management & VPN
+      libsecret # DBus interface for secrets (CLI: secret-tool)
+      seahorse # GNOME GUI for managing keys and passwords
+      protonvpn-gui # Official ProtonVPN GTK client
+
+      # Yubikey & FIDO2 Tools
+      yubikey-manager # GUI/CLI to manage YubiKeys
+      libfido2 # Authentication library for FIDO2 devices
+
       # Appearance & Themes
       graphite-gtk-theme # OLED-optimized dark theme
       adwaita-icon-theme # Core theme engine/icons (fixes GTK module errors)

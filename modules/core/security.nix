@@ -12,6 +12,26 @@
     ];
   };
 
+  # System Services
+  services = {
+    # Secret Service for password management (required for ProtonVPN, etc.)
+    gnome.gnome-keyring.enable = true;
+
+    # Yubikey & FIDO2 Support
+    pcscd.enable = true; # Smartcard daemon for Yubikey
+    udev.packages = [ pkgs.yubikey-personalization ]; # Udev rules for hardware access
+
+    # Enable OpenSSH
+    openssh = {
+      enable = true;
+      settings = {
+        PasswordAuthentication = false; # Secure by default, use keys
+        KbdInteractiveAuthentication = false;
+        PermitRootLogin = "no";
+      };
+    };
+  };
+
   programs = {
     # Enable FUSE for unprivileged mounting
     fuse.userAllowOther = true;
@@ -29,16 +49,6 @@
 
   # Disable vim as the default editor to avoid conflicts
   programs.vim.defaultEditor = false;
-
-  # Enable OpenSSH
-  services.openssh = {
-    enable = true;
-    settings = {
-      PasswordAuthentication = false; # Secure by default, use keys
-      KbdInteractiveAuthentication = false;
-      PermitRootLogin = "no";
-    };
-  };
 
   # Sudo rules
   security.sudo = {
