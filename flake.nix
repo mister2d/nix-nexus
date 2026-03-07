@@ -5,6 +5,12 @@
     # Official NixOS package source - Using 25.11 for 2026 stability
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
 
+    # Add Devenv 2.0 for native development environments
+    devenv = {
+      url = "github:cachix/devenv";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Unstable for absolute latest packages
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 

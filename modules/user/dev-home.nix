@@ -128,6 +128,7 @@ in
       with pkgs;
       [
         # --- Core Development Tools ---
+        inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv
         devbox
         vscodium
         docker-compose

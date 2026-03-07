@@ -83,6 +83,7 @@ direnv allow
 - [**Package Inventory**](./docs/packages.md): Versions and use cases for pinned DevOps and Infrastructure tools.
 - [**Storage Management**](./docs/storage.md): Centralized CephFS mounting and ZFS dataset strategies.
 - [**Standalone Migration**](./docs/non-nixos.md): Moving your dotfiles to Nix securely on non-NixOS hosts.
+- [**Devenv 2.0 Workflows**](./docs/devenv.md): Modern declarative development environments replacing Docker Compose.
 
 ---
 Enjoy your reproducible, structured environment.
