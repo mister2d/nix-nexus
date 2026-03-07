@@ -8,7 +8,6 @@
     # Add Devenv 2.0 for native development environments
     devenv = {
       url = "github:cachix/devenv";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Unstable for absolute latest packages
