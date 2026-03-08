@@ -128,6 +128,8 @@ in
       with pkgs;
       [
         # --- Core Development Tools ---
+        # Devenv 2.0 is the primary engine for declarative project environments.
+        # We retain 'devbox' and 'docker-compose' for legacy project interoperability.
         inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv
         devbox
         vscodium

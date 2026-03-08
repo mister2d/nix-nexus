@@ -16,7 +16,7 @@
       "amdgpu.dcdebugmask=0x410" # Fix for RDNA2 display/PM timeouts + stability
       "amdgpu.gpu_recovery=1" # Enable soft-recovery for GPU resets
       "amdgpu.lockup_timeout=1000" # Increase timeout threshold for stability
-      "amdgpu.gttsize=8192" # Increase iGPU dynamic memory (GTT) to 8GB (Note: Set UMA in BIOS for dedicated VRAM)
+      "amdgpu.gttsize=4096" # Limit iGPU dynamic memory (GTT) to 4GB to preserve physical RAM for ARC/Apps
       "iommu=pt" # Passthrough mode for better GPU memory stability on Ryzen
       "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
       "amd_pstate=active" # Use active P-States for better power/performance on Ryzen 6000

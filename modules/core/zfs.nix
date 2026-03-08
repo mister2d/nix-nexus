@@ -25,10 +25,12 @@ _:
 
     # ZFS Performance and Memory Tuning
     extraModprobeConfig = ''
-      # Limit ZFS ARC to 8GB to prevent competition with application RAM
-      options zfs zfs_arc_max=8589934592
-      # Ensure ZFS leaves at least 1GB of system memory free
-      options zfs zfs_arc_sys_free=1073741824
+      # Limit ZFS ARC to 4GB to prevent competition with application RAM during
+      # resource-intensive Nix builds or GPU-heavy workloads.
+      options zfs zfs_arc_max=4294967296
+      # Ensure ZFS leaves at least 2GB of system memory free for the kernel and
+      # userspace applications, reducing the likelihood of OOM events.
+      options zfs zfs_arc_sys_free=2147483648
     '';
   };
 

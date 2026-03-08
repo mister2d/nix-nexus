@@ -21,7 +21,9 @@
       "flakes"
     ];
 
-    # Binary Caches for Devenv toolchain
+    # Global Binary Caches
+    # These ensure that specialized toolchains (like Devenv 2.0) are pulled
+    # as pre-built binaries rather than triggered into failing local builds.
     substituters = [
       "https://cache.nixos.org"
       "https://devenv.cachix.org"
@@ -31,7 +33,7 @@
       "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
     ];
 
-    # Ensure users can use the binary caches
+    # Trusted Users: Allow specific accounts to utilize the binary caches.
     trusted-users = [
       "root"
       "ddukes"
