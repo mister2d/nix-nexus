@@ -55,6 +55,7 @@ in
     ./bash.nix
     ./neovim-home.nix
     ./terminal-home.nix
+    ./television-home.nix
     ./ceph-mount.nix
     ./audio-effects.nix
     ./dev-home.nix
