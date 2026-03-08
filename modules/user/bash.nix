@@ -15,6 +15,9 @@ _:
       "tup" = "sudo tailscale up";
       "tdown" = "sudo tailscale down";
       "tstatus" = "tailscale status";
+
+      # Modern CLI Tooling Shorthand
+      "tv" = "television";
     };
 
     # History Control (Nix way)

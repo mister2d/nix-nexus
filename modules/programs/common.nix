@@ -30,6 +30,12 @@
     pinentry-curses
     input-leap
 
+    # Modern CLI Enhancements
+    # These tools replace or augment traditional Unix utilities with faster,
+    # more visual alternatives that respect modern terminal capabilities.
+    bat # Syntax highlighting for 'cat'
+    television # Blazingly fast fuzzy finder TUI (alias 'tv')
+
     # Suite
     libreoffice
   ];
