@@ -1,9 +1,11 @@
-_:
+{ pkgs, ... }:
 
 {
   # Television: Blazingly fast general purpose fuzzy finder TUI.
   # This module manages the global 'tv' configuration, specialized cable channels,
   # and seamless shell integration for a modern, high-performance CLI workflow.
+  home.packages = [ pkgs.television ];
+
   programs.television = {
     enable = true;
     enableBashIntegration = true;

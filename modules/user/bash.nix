@@ -17,7 +17,7 @@ _:
       "tstatus" = "tailscale status";
 
       # Modern CLI Tooling Shorthand
-      "tv" = "television";
+      "tv" = "tv";
     };
 
     # History Control (Nix way)
