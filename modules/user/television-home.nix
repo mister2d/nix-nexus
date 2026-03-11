@@ -1,10 +1,16 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   # Television: Blazingly fast general purpose fuzzy finder TUI.
   # This module manages the global 'tv' configuration, specialized cable channels,
   # and seamless shell integration for a modern, high-performance CLI workflow.
   home.packages = [ pkgs.television ];
+
+  # Restore native bash ctrl-r (television's 'init bash' binds it by default)
+  programs.bash.initExtra = lib.mkAfter ''
+    # Television init hardcodes ctrl-r; unbind it to return to native bash search.
+    bind -r "\C-r"
+  '';
 
   programs.television = {
     enable = true;
