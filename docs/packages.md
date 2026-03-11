@@ -32,6 +32,9 @@ These tools are pinned to specific versions to ensure absolute reproducibility a
 | Package | Description | Use Case |
 |:---:|:--- |:--- |
 | **Google Chrome** | Enterprise-grade web browser. | Primary web interface and web application development. |
+| **Tmux** | Terminal multiplexer. | High-performance session management and pane splitting. |
+| **Kitty** | GPU-accelerated terminal. | Fast, feature-rich terminal with ligatures and Nerd Font. |
+| **Bash** | Standard UNIX shell. | Custom prompt, git integration, and HashiCorp completions. |
 | **Librewolf** | Privacy-focused browser. | Secure web browsing with telemetry disabled. |
 | **Meld** | Visual diff and merge tool. | Comparing files and directories; resolving git conflicts. |
 | **Television** | Fuzzy finder TUI. | Blazingly fast file and channel navigation (managed via Home Manager). |

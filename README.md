@@ -82,6 +82,7 @@ direnv allow
 - [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and Hybrid GPU management.
 - [**Package Inventory**](./docs/packages.md): Versions and use cases for pinned DevOps and Infrastructure tools.
 - [**Storage Management**](./docs/storage.md): Centralized CephFS mounting and ZFS dataset strategies.
+- [**Terminal & Multiplexing**](./docs/terminal.md): High-performance Kitty/Tmux configuration and Bash aliases.
 - [**Standalone Migration**](./docs/non-nixos.md): Moving your dotfiles to Nix securely on non-NixOS hosts.
 - [**Devenv 2.0 Workflows**](./docs/devenv.md): Modern declarative development environments replacing Docker Compose.
 

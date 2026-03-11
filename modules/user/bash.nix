@@ -41,8 +41,13 @@ _:
 
     # Prompt and Custom Logic
     initExtra = ''
+      # Dynamically source the secret file if it exists, keeping it out of /nix/store
+      if [ -f "$HOME/workspace/secrets/github_pat_mcp_server.env" ]; then
+        source "$HOME/workspace/secrets/github_pat_mcp_server.env"
+      fi
+
       # ------------------------------------------------------------------
-      # 6. Custom Prompt: "The Stacked Professional"
+      # Custom Prompt: "The Stacked Professional"
       # ------------------------------------------------------------------
 
       # Git Branch with Status Indicator

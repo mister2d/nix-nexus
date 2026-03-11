@@ -87,6 +87,7 @@ let
     if cfg.enableMcpServers then
       [
         pkgs.context7-mcp
+        pkgs.github-mcp-server
         pkgs.mcp-nixos
         pkgs.mcp-server-fetch
         pkgs.mcp-server-git

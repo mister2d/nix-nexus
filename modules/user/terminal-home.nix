@@ -115,6 +115,11 @@ in
     shortcut = "a";
 
     extraConfig = ''
+      # Fix mangled PATH on non-NixOS hosts (e.g. dualie/Debian)
+      # By default tmux starts a login shell, which often resets the PATH.
+      # Setting default-command to bash ensures it starts a non-login shell.
+      set -g default-command "${pkgs.bash}/bin/bash"
+
       # OLED High-Contrast Status Bar
       set -g status-style bg=black,fg=white
       set -g status-left "#[fg=cyan,bold] #S #[default]| "

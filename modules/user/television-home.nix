@@ -176,7 +176,6 @@
         };
         keybindings = {
           "smart_autocomplete" = "ctrl-t";
-          "command_history" = "ctrl-r";
         };
       };
     };
