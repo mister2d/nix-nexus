@@ -21,6 +21,8 @@
   environment.systemPackages = with pkgs; [
     nvtopPackages.amd
     pkgs.amdgpu_top
+    clinfo
+    rocmPackages.rocminfo
     (pkgs.writeShellScriptBin "gpu-launch" ''
       # GPU Selector for Hybrid AMD Systems
       # Usage: gpu-launch <command> [args...]
@@ -53,5 +55,7 @@
     # VAAPI / VDPAU
     LIBVA_DRIVER_NAME = "radeonsi";
     VDPAU_DRIVER = "radeonsi";
+    # ROCm RDNA2 Override (gfx1030/1031 support)
+    HSA_OVERRIDE_GFX_VERSION = "10.3.0";
   };
 }

@@ -77,7 +77,10 @@
     }@inputs:
     let
       inherit (nixpkgs) lib;
-      systems = [ "x86_64-linux" ];
+      systems = [
+        "x86_64-linux"
+        "aarch64-linux"
+      ];
       forAllSystems = lib.genAttrs systems;
     in
     {
@@ -113,6 +116,19 @@
           modules = [
             nixvim.homeModules.nixvim
             ./hosts/dualie/home.nix
+          ];
+          extraSpecialArgs = {
+            inherit inputs;
+          };
+        };
+
+        # Hostname: rk3588 (ARM64 SBC Fleet)
+        # Usage: 'nix run home-manager/release-25.11 -- switch --flake .#groot@rk3588'
+        "groot@rk3588" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages."aarch64-linux";
+          modules = [
+            nixvim.homeModules.nixvim
+            ./hosts/rk3588/home.nix
           ];
           extraSpecialArgs = {
             inherit inputs;

@@ -337,4 +337,72 @@ rec {
 
     echo "Done. Happy coding!"
   '';
+
+  rocm-init = pkgs.writeShellScriptBin "rocm-init" ''
+    # Generate a portable ROCm project environment for AMD GPUs (Z16)
+    if [ -f "flake.nix" ] || [ -f ".envrc" ]; then
+        echo "Error: flake.nix or .envrc already exists in this directory."
+        exit 1
+    fi
+
+    echo "Creating Nix Flake for ROCm/LLM development..."
+    cat <<'EOF' > flake.nix
+    {
+      description = "Portable ROCm/LLM Inference Environment";
+
+      inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+      };
+
+      outputs = { self, nixpkgs }: let
+        system = "x86_64-linux";
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      in {
+        devShells.''${system}.default = pkgs.mkShell {
+          name = "rocm-llm-shell";
+
+          buildInputs = with pkgs; [
+            python312
+            python312Packages.pip
+            python312Packages.virtualenv
+            uv
+            # ROCm Packages for development
+            rocmPackages.clr
+            rocmPackages.rocminfo
+            clinfo
+            stdenv.cc.cc.lib
+          ];
+
+          shellHook = '''
+            if [ ! -d ".venv" ]; then
+              echo "Creating virtual environment with uv..."
+              uv venv .venv
+            fi
+            source .venv/bin/activate
+
+            # ROCm/PyTorch Compatibility Variables
+            export HSA_OVERRIDE_GFX_VERSION=10.3.0
+            export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.rocmPackages.clr ]}:$LD_LIBRARY_PATH"
+
+            echo "🚀 ROCm LLM Environment Initialized."
+            echo "GPU: AMD Radeon (RDNA2 Override Active)"
+            echo "Tip: Install torch with ROCm support via: uv pip install torch --index-url https://download.pytorch.org/whl/rocm6.2"
+          ''';
+        };
+      };
+    }
+    EOF
+
+    echo "Creating .envrc for direnv..."
+    echo "use flake" > .envrc
+
+    if command -v direnv >/dev/null 2>&1; then
+        echo "Running 'direnv allow'..."
+        direnv allow
+    fi
+    echo "Done. Use 'nix develop' or allow direnv to enter the shell."
+  '';
 }
