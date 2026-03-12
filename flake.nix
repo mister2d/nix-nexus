@@ -149,7 +149,7 @@
             nixos-hardware.nixosModules.common-pc-ssd
 
             # Main configuration entry point
-            ./hosts/z16/default.nix
+            ./hosts/sweet16/default.nix
 
             # Home Manager configuration
             home-manager.nixosModules.home-manager
@@ -164,7 +164,7 @@
                 users.ddukes = {
                   imports = [
                     nixvim.homeModules.nixvim
-                    ./hosts/z16/home.nix
+                    ./hosts/sweet16/home.nix
                   ];
                 };
               };
