@@ -164,7 +164,7 @@
                 users.ddukes = {
                   imports = [
                     nixvim.homeModules.nixvim
-                    ./modules/user/home.nix
+                    ./hosts/z16/home.nix
                   ];
                 };
               };

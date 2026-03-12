@@ -17,6 +17,16 @@ in
       mainBar = {
         layer = "top";
         position = "top";
+
+        # Restrict Waybar to physical outputs to prevent redundant bars on "phantom"
+        # outputs (e.g., DP-2, DP-3) created by some docks, while supporting daisy-chaining.
+        output = [
+          "eDP-1"
+          "DP-1"
+          "DP-2"
+          "DP-3"
+          "DP-4"
+        ];
         height = 32;
         spacing = 4;
         modules-left = [
