@@ -30,12 +30,16 @@ let
           bypass = false;
           input-gain = 0.0;
           output-gain = 0.0;
-          # Correcting Z16 mid-range dip (Approximate correction)
-          "0" = {
-            type = "peak";
+          num-bands = 1;
+          "band0" = {
+            type = "Bell";
             frequency = 1000.0;
             gain = 3.0;
             q = 1.0;
+            mode = "APO (DR)";
+            slope = "x1";
+            mute = false;
+            solo = false;
             bypass = false;
           };
         };
