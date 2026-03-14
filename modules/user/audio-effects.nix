@@ -5,7 +5,8 @@ let
   # These assets were extracted from the official Lenovo Z16 Windows driver (ds557051)
   # using the 'speaker-tuning-to-easyeffects' converter.
   irsPath = ./../../assets/audio/irs;
-  presetsPath = ./../../assets/audio/presets;
+  # Pivot to "enhanced" presets which have additional correction stages.
+  presetsPath = ./../../assets/audio/presets/enhanced;
 
   # Helper to bulk map assets from the repository to the EasyEffects XDG spec
   # Note: EasyEffects 8.x+ uses ~/.local/share/easyeffects/ instead of ~/.config/
@@ -49,7 +50,8 @@ in
   # Enable the EasyEffects Daemon in the background
   services.easyeffects = {
     enable = true;
-    preset = "Dolby-Music-Balanced";
+    # Using the enhanced music preset as the new default
+    preset = "Z16-Music-Balanced";
   };
 
   # Wire assets into EasyEffects XDG spec for v8.x
