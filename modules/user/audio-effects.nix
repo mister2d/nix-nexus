@@ -8,14 +8,15 @@ let
     sha256 = "sha256-9Ft1HZLFTBiGRfh/wJiGZ9WstMtvdtX+u3lVY3JCVAM=";
   };
 
-  # 2. Output Pipeline (Dolby Atmos Convolution + Bass Enhancer)
-  # Simulated Windows proprietary DSP pipeline.
+  # 2. Output Pipeline (Dolby Atmos Convolution + Parametric EQ + Bass Enhancer)
+  # Simulated Windows proprietary DSP pipeline with mid-range correction.
   outputPreset = pkgs.writeText "z16-dolby-output.json" (
     builtins.toJSON {
       output = {
         blocklist = [ ];
         plugins_order = [
           "convolver"
+          "parametric_equalizer"
           "bass_enhancer"
         ];
         convolver = {
@@ -24,6 +25,19 @@ let
           ir-width = 100;
           kernel-path = "dolby_atmos.irs";
           output-gain = 0.0;
+        };
+        parametric_equalizer = {
+          bypass = false;
+          input-gain = 0.0;
+          output-gain = 0.0;
+          # Correcting Z16 mid-range dip (Approximate correction)
+          "0" = {
+            type = "peak";
+            frequency = 1000.0;
+            gain = 3.0;
+            q = 1.0;
+            bypass = false;
+          };
         };
         bass_enhancer = {
           amount = 0.5;
@@ -61,7 +75,10 @@ in
   ];
 
   # Enable the EasyEffects Daemon in the background
-  services.easyeffects.enable = false;
+  services.easyeffects = {
+    enable = true;
+    preset = "Z16_Dolby_Atmos";
+  };
 
   # Wire the data and configurations into the EasyEffects XDG spec
   xdg.configFile = {
