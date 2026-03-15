@@ -134,6 +134,19 @@
             inherit inputs;
           };
         };
+
+        # Hostname: forge (Debian 12)
+        # Usage: 'nix run home-manager/release-25.11 -- switch --flake .#groot@forge'
+        "groot@forge" = home-manager.lib.homeManagerConfiguration {
+          pkgs = nixpkgs.legacyPackages."x86_64-linux";
+          modules = [
+            nixvim.homeModules.nixvim
+            ./hosts/forge/home.nix
+          ];
+          extraSpecialArgs = {
+            inherit inputs;
+          };
+        };
       };
 
       nixosConfigurations = {
