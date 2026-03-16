@@ -9,6 +9,8 @@ result-*
 # flake.lock # Keep this if you want reproducible builds!
 
 # User-specific
+.mcp.json
+.claude/
 .env
 .direnv/
 debug/

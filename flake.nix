@@ -73,6 +73,8 @@
       home-manager,
       pre-commit-hooks,
       nixvim,
+      niri,
+      dms,
       ...
     }@inputs:
     let
@@ -178,6 +180,43 @@
                   imports = [
                     nixvim.homeModules.nixvim
                     ./hosts/sweet16/home.nix
+                  ];
+                };
+              };
+            }
+          ];
+        };
+
+        # Hostname: petunia
+        petunia = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = { inherit inputs; };
+          modules = [
+            # Hardware specific configuration
+            nixos-hardware.nixosModules.common-cpu-amd
+            nixos-hardware.nixosModules.common-gpu-nvidia
+            nixos-hardware.nixosModules.common-pc-ssd
+
+            # Main configuration entry point
+            ./hosts/petunia/default.nix
+
+            # Home Manager configuration
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                backupFileExtension = "bak";
+                extraSpecialArgs = {
+                  inherit inputs;
+                };
+                users.ddukes = {
+                  imports = [
+                    nixvim.homeModules.nixvim
+                    niri.homeModules.niri
+                    dms.homeModules.default
+                    dms.homeModules.niri
+                    ./hosts/petunia/home.nix
                   ];
                 };
               };

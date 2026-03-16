@@ -12,12 +12,6 @@ let
   };
 in
 {
-  # DANK LINUX 1.4 STABLE FIX: Import both main and niri-specific DMS modules.
-  imports = [
-    inputs.dms.homeModules.default
-    inputs.dms.homeModules.niri
-  ];
-
   # Niri Configuration (Validated at build-time by niri-flake)
   programs.niri.settings = {
     input = {
@@ -31,30 +25,6 @@ in
     };
 
     xwayland-satellite.enable = false;
-
-    outputs."eDP-1" = {
-      scale = 1.15;
-      mode = {
-        width = 3840;
-        height = 2400;
-      };
-      position = {
-        x = 0;
-        y = 0;
-      };
-    };
-
-    outputs."DP-1" = {
-      scale = 1.0;
-      mode = {
-        width = 3440;
-        height = 1440;
-      };
-      position = {
-        x = 3344;
-        y = 0;
-      };
-    };
 
     layout = {
       gaps = 8.0;
