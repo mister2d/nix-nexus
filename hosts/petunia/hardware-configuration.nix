@@ -59,7 +59,10 @@
     };
 
     "/boot" = {
-      device = "/dev/disk/by-uuid/FFE5-09FE"; # UUID from recon of nvme0n1p1
+      # Use GPT partition label, not FAT UUID. mkfs.vfat generates a new random
+      # volume serial on every format, so the UUID changes with each reinstall.
+      # The GPT partlabel "BOOT" is set by parted and survives every reinstall.
+      device = "/dev/disk/by-partlabel/BOOT";
       fsType = "vfat";
       options = [
         "fmask=0077"

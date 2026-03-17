@@ -65,7 +65,7 @@ parted "$DISK" -- set 1 esp on
 parted "$DISK" -- mkpart "$LUKS_PART_LABEL" 1GiB 100%
 
 # Inform kernel of partition changes
-udevadm settle
+udevadm settle --timeout=30
 sleep 2
 
 BOOT_DEV="/dev/disk/by-partlabel/$BOOT_PART_LABEL"
@@ -106,7 +106,7 @@ zfs create -V 66G -b 16k -o compression=zle \
     -o primarycache=metadata -o secondarycache=none \
     -o com.sun:auto-snapshot=false "$ZPOOL/swap"
 
-udevadm settle
+udevadm settle --timeout=30
 sleep 2
 mkswap -f "/dev/zvol/$ZPOOL/swap"
 
@@ -121,15 +121,35 @@ mount "$BOOT_DEV" /mnt/boot
 swapon "/dev/zvol/$ZPOOL/swap"
 
 # --- Installation ---
-log "Building NixOS system profile to target NVMe (/mnt)..."
-# 1. Ensure the Git tree is clean so Nix sees all files
+# cd to the repo root so that '.' resolves correctly for the flake and git.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+cd "$REPO_ROOT"
+
+# Ensure all tracked files are staged so Nix's git filter sees them.
 git add . || true
 
-# 2. Build the system toplevel profile DIRECTLY into the target NVMe store.
-# This bypasses the installer's 32GB RAM-disk (tmpfs) and uses the 833GB ZFS pool.
+# Verify network connectivity before attempting a 43GB+ download.
+log "Checking network connectivity..."
+curl -sf --max-time 10 https://cache.nixos.org > /dev/null \
+    || error "Cannot reach cache.nixos.org. Ensure the live ISO has network access."
+
+# Build the system toplevel directly into the target NVMe store (/mnt).
+#
+# --store /mnt          : Install packages into the target ZFS pool, not the
+#                         live ISO's tmpfs (which cannot hold 43GB+).
+# --eval-store auto     : Evaluate derivations using the running system's local
+#                         store (/). This is the fix for the Nix assertion bug
+#                         in derivation-goal.cc:186 that fires when substituting
+#                         packages to an alternate store. Separating eval-store
+#                         from build-store prevents builtOutputs tracking failure.
+# --fallback            : Build from source if a binary cache substitution fails
+#                         (important because devenv.cachix.org is a secondary cache).
 export NIXPKGS_ALLOW_UNFREE=1
+log "Building NixOS system profile into /mnt..."
 if ! nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
     --store /mnt \
+    --eval-store auto \
     --extra-experimental-features "nix-command flakes" \
     --impure \
     --fallback \
@@ -141,8 +161,9 @@ fi
 
 TOPLEVEL=$(cat /tmp/nixos-toplevel)
 
-log "Executing nixos-install..."
-# Since the toplevel is already in /mnt/nix/store, this is now a fast activation.
+log "Activating system via nixos-install..."
+# The toplevel is already in /mnt/nix/store. nixos-install --system skips the
+# build step and only sets the profile, runs activation, and installs the bootloader.
 nixos-install --system "$TOPLEVEL" --no-root-passwd
 
 log "SUCCESS! System installed on petunia."
