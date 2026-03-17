@@ -70,7 +70,7 @@ nix --experimental-features "nix-command flakes" \
     "$REPO_ROOT/hosts/$TARGET_HOSTNAME/disko.nix"
 
 # --- System Instantiation (NixOS Install) ---
-log "Executing system build (Installer Store)..."
+log "Executing native NixOS installation..."
 # We move to the repository root to ensure the flake can be evaluated.
 cd "$REPO_ROOT"
 
@@ -79,25 +79,18 @@ cd "$REPO_ROOT"
 git config --global --add safe.directory "$REPO_ROOT" || true
 git add -A || true
 
-# We build in the local installer store (tmpfs + NVMe swap) to bypass
-# the 'derivation-goal.cc' assertion bug that occurs during cross-store builds.
+# Using the native 'nixos-install --flake' is the most robust way to bootstrap.
+# It automatically handles building directly into the target store (/mnt/nix/store),
+# which avoids exhausting the live ISO's RAM (tmpfs).
+#
+# --max-jobs 1: Limits concurrency to prevent OOM on the live environment.
+# --option fallback true: Ensures we build from source if a binary cache is flaky.
 export NIXPKGS_ALLOW_UNFREE=1
-if ! nix build ".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel" \
-    --extra-experimental-features "nix-command flakes" \
-    --impure \
-    --option fallback true \
-    --no-link \
-    --print-out-paths > /tmp/nixos-toplevel; then
-    error "NixOS system build failed. Check the error log above."
-fi
-
-TOPLEVEL=$(cat /tmp/nixos-toplevel)
-
-log "Executing nixos-install (System Activation)..."
-# Now we use the pre-built toplevel. nixos-install will copy the closure to /mnt.
-# This avoids the internal build logic that triggers the assertion failure.
-if ! nixos-install --system "$TOPLEVEL" --no-root-passwd; then
-    error "NixOS installation failed during activation."
+if ! nixos-install --flake ".#$TARGET_HOSTNAME" \
+    --no-root-passwd \
+    --max-jobs 1 \
+    --option fallback true; then
+    error "NixOS installation failed. Check the error log above."
 fi
 
 # --- Finalization ---
