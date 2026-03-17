@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# NixOS Petunia Bootstrap Script (LUKS + ZFS)
+# NixOS Petunia Bootstrap Script (Declarative via Disko)
 # Optimized for Ryzen 5600X + RTX 3080 Desktop.
 
 set -euo pipefail
@@ -18,27 +18,16 @@ if [[ $EUID -ne 0 ]]; then
    error "This script must be run as root."
 fi
 
-# --- Interactive Prompts ---
-echo -e "${BLUE}=== NixOS Petunia Installation Setup ===${NC}"
-
-# 1. Disk Selection (Fixed to nvme0n1 based on recon)
-DISK="/dev/nvme0n1"
-[[ ! -b "$DISK" ]] && error "Device $DISK not found."
-
-# 2. Network & Identity
+# --- Identity ---
 HOSTNAME="petunia"
 USERNAME="ddukes"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
-# 3. ZFS Parameters (Theme: Hostname)
-ZPOOL="petunia"
-
-# 4. Confirmation
-echo -e "${RED}DANGER: This will DESTROY all data on $DISK.${NC}"
+# --- Interactive Prompts ---
+echo -e "${BLUE}=== NixOS Petunia Declarative Installation ===${NC}"
 echo "Hostname: $HOSTNAME"
 echo "Username: $USERNAME"
-echo "ZFS Pool: $ZPOOL"
-echo "Target Disk: $DISK"
-echo "Encryption: LUKS (Yes)"
+echo "Method: Disko (Declarative ZFS-on-LUKS)"
 echo
 read -rp "Proceed with installation? (type 'yes'): " confirm
 [[ "$confirm" != "yes" ]] && error "Aborted by user."
@@ -47,98 +36,34 @@ read -rp "Proceed with installation? (type 'yes'): " confirm
 log "Cleaning up existing mounts..."
 swapoff -a || true
 umount -R /mnt 2>/dev/null || true
-zpool export "$ZPOOL" 2>/dev/null || true
+# Specific to ZFS
+zpool export -a 2>/dev/null || true
 cryptsetup close crypted 2>/dev/null || true
-
-# --- Partitioning ---
-log "Wiping $DISK..."
-wipefs -af "$DISK"
-sgdisk --zap-all "$DISK"
-
-log "Partitioning $DISK..."
-BOOT_PART_LABEL="BOOT"
-LUKS_PART_LABEL="DISK_LUKS"
-
-parted "$DISK" -- mklabel gpt
-parted "$DISK" -- mkpart "$BOOT_PART_LABEL" fat32 1MiB 1GiB
-parted "$DISK" -- set 1 esp on
-parted "$DISK" -- mkpart "$LUKS_PART_LABEL" 1GiB 100%
-
-# Inform kernel of partition changes
-udevadm settle
-sleep 2
-
-BOOT_DEV="/dev/disk/by-partlabel/$BOOT_PART_LABEL"
-LUKS_DEV="/dev/disk/by-partlabel/$LUKS_PART_LABEL"
-
-# --- Formatting Boot ---
-log "Formatting Boot partition..."
-mkfs.vfat -F 32 -n "$BOOT_PART_LABEL" "$BOOT_DEV"
-
-# --- LUKS Setup ---
-log "Setting up LUKS Encryption..."
-cryptsetup luksFormat --type luks2 --batch-mode "$LUKS_DEV"
-cryptsetup open "$LUKS_DEV" crypted
-
-# --- ZFS Setup ---
-log "Creating ZFS Pool: $ZPOOL..."
-zpool create -f \
-    -o ashift=12 \
-    -o autotrim=on \
-    -O compression=lz4 \
-    -O acltype=posixacl \
-    -O xattr=sa \
-    -O relatime=on \
-    -O mountpoint=none \
-    "$ZPOOL" /dev/mapper/crypted
-
-log "Creating Datasets..."
-zfs create -o mountpoint=legacy "$ZPOOL/root"
-zfs snapshot "$ZPOOL/root@blank"
-zfs create -o mountpoint=legacy "$ZPOOL/nix"
-zfs create -o mountpoint=legacy "$ZPOOL/home"
-zfs create -o mountpoint=legacy "$ZPOOL/var"
-
-# Swap (66G for 64GB RAM)
-log "Creating Swap ZVOL..."
-zfs create -V 66G -b 16k -o compression=zle \
-    -o logbias=throughput -o sync=always \
-    -o primarycache=metadata -o secondarycache=none \
-    -o com.sun:auto-snapshot=false "$ZPOOL/swap"
-
-udevadm settle
-sleep 2
-mkswap -f "/dev/zvol/$ZPOOL/swap"
-
-# --- Mounting ---
-log "Mounting filesystems..."
-mount -t zfs "$ZPOOL/root" /mnt
-mkdir -p /mnt/{nix,home,var,boot}
-mount -t zfs "$ZPOOL/nix" /mnt/nix
-mount -t zfs "$ZPOOL/home" /mnt/home
-mount -t zfs "$ZPOOL/var" /mnt/var
-mount "$BOOT_DEV" /mnt/boot
-swapon "/dev/zvol/$ZPOOL/swap"
 
 # --- Store Optimization ---
 log "Optimizing live store for large build..."
-# Resize the writable part of the Nix store to 60G. 
-# Since swap is enabled on the NVMe, this uses physical disk space instead of just RAM.
-# This prevents "No space left on device" during the build phase.
+# Resize the writable part of the Nix store to 60G to handle large builds
+# This uses the available RAM/Swap in the live environment.
 mount -o remount,size=60G /nix/.rw-store
+
+# --- Disko Execution ---
+log "Executing Disko (Partitioning, Formatting, Mounting)..."
+# We run disko directly from the flake to ensure it uses our declarative definition.
+# This handles LUKS, ZFS, Datasets, and Mounts to /mnt.
+nix --experimental-features "nix-command flakes" \
+    run github:nix-community/disko -- \
+    --mode disko \
+    "$REPO_ROOT/hosts/$HOSTNAME/disko.nix"
 
 # --- Installation ---
 log "Executing native NixOS installation..."
-# 1. cd to repo root for flake resolution
-cd "$(dirname "$0")/../.."
+cd "$REPO_ROOT"
 
-# 2. Ensure the Git tree is clean so Nix sees all files
+# Ensure the Git tree is clean so Nix sees all files (Disko + HM configs)
 git add . || true
 
-# 3. Run the native install command.
-# Using --max-jobs 1 ensures maximum stability for complex 
-# dependencies (like NVIDIA/libidn2) and avoids the split-store assertion bug.
-# We pass 'fallback' via --option because nixos-install doesn't support --fallback directly.
+# Run the native install command using the flake.
+# Using --max-jobs 1 and fallback options for stability on complex builds.
 export NIXPKGS_ALLOW_UNFREE=1
 if ! nixos-install --flake ".#$HOSTNAME" \
     --no-root-passwd \

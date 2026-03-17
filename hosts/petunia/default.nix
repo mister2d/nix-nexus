@@ -2,6 +2,9 @@
 
 {
   imports = [
+    # Declarative Disk Partitioning (LUKS + ZFS)
+    ./disko.nix
+
     # Include the results of the hardware scan (generated at install time)
     ./hardware-configuration.nix
 

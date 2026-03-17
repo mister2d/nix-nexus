@@ -52,6 +52,12 @@
     # DankMaterialShell - Material Design Shell for Wayland
     dms.url = "github:AvengeMedia/DankMaterialShell/v1.4.2";
 
+    # Disko - Declarative disk partitioning
+    disko = {
+      url = "github:nix-community/disko";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Nixvim - Neovim configuration via Nix
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
 
@@ -192,6 +198,9 @@
           system = "x86_64-linux";
           specialArgs = { inherit inputs; };
           modules = [
+            # Disko declarative partitioning
+            inputs.disko.nixosModules.disko
+
             # Hardware specific configuration
             nixos-hardware.nixosModules.common-cpu-amd
             nixos-hardware.nixosModules.common-gpu-nvidia
