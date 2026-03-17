@@ -70,22 +70,34 @@ nix --experimental-features "nix-command flakes" \
     "$REPO_ROOT/hosts/$TARGET_HOSTNAME/disko.nix"
 
 # --- System Instantiation (NixOS Install) ---
-# With the physical layer prepared, we now populate the target with 
-# the system configuration defined in our flake.
-log "Executing nixos-install: Building system toplevel..."
+log "Executing system build (Installer Store)..."
+# We move to the repository root to ensure the flake can be evaluated.
 cd "$REPO_ROOT"
 
-# Flakes strictly ignore untracked files; ensure local changes are staged.
-git add . || true
+# Handle Git ownership and staging. Flakes strictly ignore untracked files.
+# We use 'add -A' and 'safe.directory' to ensure the tree is seen as clean by Nix.
+git config --global --add safe.directory "$REPO_ROOT" || true
+git add -A || true
 
-# We enforce --max-jobs 1 to prevent resource exhaustion/race conditions
-# on the live ISO, ensuring a stable build of mission-critical components.
+# We build in the local installer store (tmpfs + NVMe swap) to bypass
+# the 'derivation-goal.cc' assertion bug that occurs during cross-store builds.
 export NIXPKGS_ALLOW_UNFREE=1
-if ! nixos-install --flake ".#$TARGET_HOSTNAME" \
-    --no-root-passwd \
-    --max-jobs 1 \
-    --option fallback true; then
-    error "NixOS installation failed. Check the error log above."
+if ! nix build ".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel" \
+    --extra-experimental-features "nix-command flakes" \
+    --impure \
+    --option fallback true \
+    --no-link \
+    --print-out-paths > /tmp/nixos-toplevel; then
+    error "NixOS system build failed. Check the error log above."
+fi
+
+TOPLEVEL=$(cat /tmp/nixos-toplevel)
+
+log "Executing nixos-install (System Activation)..."
+# Now we use the pre-built toplevel. nixos-install will copy the closure to /mnt.
+# This avoids the internal build logic that triggers the assertion failure.
+if ! nixos-install --system "$TOPLEVEL" --no-root-passwd; then
+    error "NixOS installation failed during activation."
 fi
 
 # --- Finalization ---
