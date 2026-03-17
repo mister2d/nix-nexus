@@ -121,10 +121,22 @@ mount "$BOOT_DEV" /mnt/boot
 swapon "/dev/zvol/$ZPOOL/swap"
 
 # --- Installation ---
+log "Building NixOS system profile..."
+# We build the system toplevel on the host first to populate the store.
+# This bypasses a known assertion bug in some nixos-install versions.
+# We also use --impure to ensure environment variables like NIXPKGS_ALLOW_UNFREE are respected.
+export NIXPKGS_ALLOW_UNFREE=1
+nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
+    --extra-experimental-features "nix-command flakes" \
+    --impure \
+    --print-out-paths \
+    --no-link \
+    > /tmp/nixos-toplevel
+
+TOPLEVEL=$(cat /tmp/nixos-toplevel)
+
 log "Executing nixos-install..."
-# Ensure we are in the flake directory and state is clean for Nix
-git add .
-nixos-install --flake ".#$HOSTNAME" --no-root-passwd
+nixos-install --system "$TOPLEVEL" --no-root-passwd
 
 log "SUCCESS! System installed on petunia."
 log "Reboot now to enter your new NixOS environment."
