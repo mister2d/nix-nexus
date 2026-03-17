@@ -65,7 +65,7 @@ parted "$DISK" -- set 1 esp on
 parted "$DISK" -- mkpart "$LUKS_PART_LABEL" 1GiB 100%
 
 # Inform kernel of partition changes
-udevadm settle --timeout=30
+udevadm settle
 sleep 2
 
 BOOT_DEV="/dev/disk/by-partlabel/$BOOT_PART_LABEL"
@@ -106,7 +106,7 @@ zfs create -V 66G -b 16k -o compression=zle \
     -o primarycache=metadata -o secondarycache=none \
     -o com.sun:auto-snapshot=false "$ZPOOL/swap"
 
-udevadm settle --timeout=30
+udevadm settle
 sleep 2
 mkswap -f "/dev/zvol/$ZPOOL/swap"
 
@@ -120,52 +120,31 @@ mount -t zfs "$ZPOOL/var" /mnt/var
 mount "$BOOT_DEV" /mnt/boot
 swapon "/dev/zvol/$ZPOOL/swap"
 
-# --- Installation ---
-# cd to the repo root so that '.' resolves correctly for the flake and git.
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-cd "$REPO_ROOT"
+# --- Store Optimization ---
+log "Optimizing live store for large build..."
+# Resize the writable part of the Nix store to 60G. 
+# Since swap is enabled on the NVMe, this uses physical disk space instead of just RAM.
+# This prevents "No space left on device" during the build phase.
+mount -o remount,size=60G /nix/.rw-store
 
-# Ensure all tracked files are staged so Nix's git filter sees them.
+# --- Installation ---
+log "Executing native NixOS installation..."
+# 1. cd to repo root for flake resolution
+cd "$(dirname "$0")/../.."
+
+# 2. Ensure the Git tree is clean so Nix sees all files
 git add . || true
 
-# Verify network connectivity before attempting a 43GB+ download.
-log "Checking network connectivity..."
-curl -sf --max-time 10 https://cache.nixos.org > /dev/null \
-    || error "Cannot reach cache.nixos.org. Ensure the live ISO has network access."
-
-# Build the system toplevel directly into the target NVMe store (/mnt).
-#
-# --store /mnt          : Install packages into the target ZFS pool, not the
-#                         live ISO's tmpfs (which cannot hold 43GB+).
-# --eval-store auto     : Evaluate derivations using the running system's local
-#                         store (/). This is the fix for the Nix assertion bug
-#                         in derivation-goal.cc:186 that fires when substituting
-#                         packages to an alternate store. Separating eval-store
-#                         from build-store prevents builtOutputs tracking failure.
-# --fallback            : Build from source if a binary cache substitution fails
-#                         (important because devenv.cachix.org is a secondary cache).
+# 3. Run the native install command.
+# Using --max-jobs 1 and --fallback ensures maximum stability for complex 
+# dependencies (like NVIDIA/libidn2) and avoids the split-store assertion bug.
 export NIXPKGS_ALLOW_UNFREE=1
-log "Building NixOS system profile into /mnt..."
-if ! nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
-    --store /mnt \
-    --eval-store auto \
-    --extra-experimental-features "nix-command flakes" \
-    --impure \
-    --fallback \
-    --option require-sigs false \
-    --print-out-paths \
-    --no-link \
-    > /tmp/nixos-toplevel; then
-    error "NixOS system build failed. Check the error messages above."
+if ! nixos-install --flake ".#$HOSTNAME" \
+    --no-root-passwd \
+    --max-jobs 1 \
+    --fallback; then
+    error "NixOS installation failed. Check the error messages above."
 fi
-
-TOPLEVEL=$(cat /tmp/nixos-toplevel)
-
-log "Activating system via nixos-install..."
-# The toplevel is already in /mnt/nix/store. nixos-install --system skips the
-# build step and only sets the profile, runs activation, and installs the bootloader.
-nixos-install --system "$TOPLEVEL" --no-root-passwd
 
 log "SUCCESS! System installed on petunia."
 log "Reboot now to enter your new NixOS environment."
