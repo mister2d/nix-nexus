@@ -1,31 +1,58 @@
 { pkgs, ... }:
 
 {
-  # Enable CUPS to print documents.
-  services.printing = {
-    enable = true;
-    drivers = [
-      (pkgs.hplip.override { withPlugin = true; })
-    ];
+  # Core Printing and Discovery Stack
+  # This module provides a stateless, declarative printing environment powered by CUPS.
+  # It leverages Avahi for network-wide printer discovery and provides intuitive
+  # systemd aliases for standard administrative operations.
+
+  services = {
+    # CUPS Printing Service
+    printing = {
+      enable = true;
+      browsing = true;
+
+      # Enforcement of a stateless configuration prevents manual drift and ensures
+      # the printer environment is reset to the declarative baseline on every boot.
+      stateless = true;
+
+      drivers = [
+        (pkgs.hplip.override { withPlugin = true; })
+      ];
+
+      # Network discovery for shared printers
+      browsed.enable = true;
+    };
+
+    # Zero-Configuration Networking (mDNS/DNS-SD)
+    # Required for resolving .local printer addresses and automated discovery.
+    avahi = {
+      enable = true;
+      nssmdns4 = true;
+      nssmdns6 = true;
+      openFirewall = true;
+    };
   };
 
-  # Enable Avahi for network printer discovery
-  services.avahi = {
-    enable = true;
-    nssmdns4 = true;
-    openFirewall = true;
+  # Systemd Service Abstractions
+  # These aliases provide human-readable entry points for managing the printing stack.
+  systemd.services = {
+    cups.aliases = [ "printing.service" ];
+    ensure-printers.aliases = [ "printing-provision.service" ];
   };
 
-  # Declarative printer configuration
+  # Declarative Printer Inventory
   hardware.printers = {
     ensurePrinters = [
       {
-        name = "HP_ColorLaserJet_MFP_M283fdw";
+        # Primary Office Printer
+        name = "hp-m283fdw";
+        description = "HP Color LaserJet MFP M283fdw";
         location = "Home Office";
         deviceUri = "ipp://hp-mfp.home.lan/ipp/print";
         model = "everywhere";
       }
     ];
-    ensureDefaultPrinter = "HP_ColorLaserJet_MFP_M283fdw";
+    ensureDefaultPrinter = "hp-m283fdw";
   };
 }
