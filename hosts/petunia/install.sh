@@ -121,19 +121,19 @@ mount "$BOOT_DEV" /mnt/boot
 swapon "/dev/zvol/$ZPOOL/swap"
 
 # --- Installation ---
-log "Building NixOS system profile..."
+log "Building NixOS system profile to target NVMe (/mnt)..."
 # 1. Ensure the Git tree is clean so Nix sees all files
 git add . || true
 
 # 2. Clear any cached failed paths that might trigger the assertion bug
 nix-store --clear-failed-paths || true
 
-# 3. Build the system toplevel with --fallback.
-# --fallback is CRITICAL here: it tells Nix that if a binary substitute (like libidn2)
-# fails its assertion/checksum check, it should attempt to build from source
-# instead of core-dumping.
+# 3. Build the system toplevel profile DIRECTLY into the target NVMe store.
+# This bypasses the installer's 32GB RAM-disk (tmpfs) and uses the 833GB ZFS pool.
+# We use --fallback to handle binary cache issues and --impure for unfree drivers.
 export NIXPKGS_ALLOW_UNFREE=1
 nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
+    --store /mnt \
     --extra-experimental-features "nix-command flakes" \
     --impure \
     --fallback \
@@ -144,6 +144,7 @@ nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
 TOPLEVEL=$(cat /tmp/nixos-toplevel)
 
 log "Executing nixos-install..."
+# Since the toplevel is already in /mnt/nix/store, this is now a fast activation.
 nixos-install --system "$TOPLEVEL" --no-root-passwd
 
 log "SUCCESS! System installed on petunia."
