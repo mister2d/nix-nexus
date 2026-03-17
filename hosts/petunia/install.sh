@@ -122,13 +122,21 @@ swapon "/dev/zvol/$ZPOOL/swap"
 
 # --- Installation ---
 log "Building NixOS system profile..."
-# We build the system toplevel on the host first to populate the store.
-# This bypasses a known assertion bug in some nixos-install versions.
-# We also use --impure to ensure environment variables like NIXPKGS_ALLOW_UNFREE are respected.
+# 1. Ensure the Git tree is clean so Nix sees all files
+git add . || true
+
+# 2. Clear any cached failed paths that might trigger the assertion bug
+nix-store --clear-failed-paths || true
+
+# 3. Build the system toplevel with --fallback.
+# --fallback is CRITICAL here: it tells Nix that if a binary substitute (like libidn2)
+# fails its assertion/checksum check, it should attempt to build from source
+# instead of core-dumping.
 export NIXPKGS_ALLOW_UNFREE=1
 nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
     --extra-experimental-features "nix-command flakes" \
     --impure \
+    --fallback \
     --print-out-paths \
     --no-link \
     > /tmp/nixos-toplevel
