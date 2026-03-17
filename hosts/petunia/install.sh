@@ -84,25 +84,51 @@ mkdir -p /mnt/etc/nixos
 cp -a "$REPO_ROOT/." /mnt/etc/nixos/
 sync
 
-# --- System Instantiation (NixOS Install) ---
-log "Executing native NixOS installation from ZFS disk..."
-# We move into the target disk repo to ensure the flake is evaluated from ZFS.
-cd /mnt/etc/nixos
+# --- System Instantiation (Two-Step NixOS Install) ---
+# We use a two-step approach to resolve two competing failure modes:
+#
+#   BUG 1 (assertion crash): `nixos-install --flake` internally calls
+#   `nix build --store /mnt` without `--eval-store`, causing a Nix assertion
+#   failure: `buildResult.builtOutputs.count(wantedOutput) > 0`
+#
+#   BUG 2 (OOM): Building without `--store /mnt` puts the full ~43GB closure
+#   into live tmpfs, exhausting RAM on the installer ISO.
+#
+# SOLUTION: `nix build --store /mnt --eval-store auto`
+#   - `--store /mnt`      → packages build directly into the ZFS target store,
+#                           never touching live tmpfs (no OOM).
+#   - `--eval-store auto` → derivation evaluation uses the running system's local
+#                           store, separating eval context from build context
+#                           (prevents the builtOutputs assertion).
+#   - `nixos-install --system` → receives the pre-built path and only sets up
+#                           bootloader/profiles (no rebuild, no large copy).
 
-# Handle Git ownership and staging for the new path.
+log "Step 1/2: Building system closure into target store (/mnt)..."
+# We move into the migrated repo so the flake is evaluated from ZFS.
+cd /mnt/etc/nixos
 git config --global --add safe.directory /mnt/etc/nixos || true
 git add -A || true
 
-# Using the native 'nixos-install --flake' is the most robust way to bootstrap.
-# It handles building directly into the target store (/mnt/nix/store).
-#
-# --max-jobs 1: Crucial for stability on the live ISO to prevent OOM.
-# --option fallback true: Ensures we build from source if a binary cache is flaky.
 export NIXPKGS_ALLOW_UNFREE=1
-if ! nixos-install --flake ".#$TARGET_HOSTNAME" \
-    --no-root-passwd \
+if ! nix \
+    --extra-experimental-features "nix-command flakes" \
+    build \
+    --store /mnt \
+    --eval-store auto \
+    --impure \
     --max-jobs 1 \
-    --option fallback true; then
+    --option fallback true \
+    ".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel" \
+    --out-link /tmp/nixos-toplevel; then
+    error "System closure build failed. Check the error log above."
+fi
+
+TOPLEVEL=$(readlink /tmp/nixos-toplevel)
+log "Step 2/2: Installing NixOS with pre-built closure (${TOPLEVEL})..."
+if ! nixos-install \
+    --system "$TOPLEVEL" \
+    --no-root-passwd \
+    --max-jobs 1; then
     error "NixOS installation failed. Check the error log above."
 fi
 
