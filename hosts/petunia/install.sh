@@ -51,6 +51,10 @@ zpool export "$ZPOOL" 2>/dev/null || true
 cryptsetup close crypted 2>/dev/null || true
 
 # --- Partitioning ---
+log "Wiping $DISK..."
+wipefs -af "$DISK"
+sgdisk --zap-all "$DISK"
+
 log "Partitioning $DISK..."
 BOOT_PART_LABEL="BOOT"
 LUKS_PART_LABEL="DISK_LUKS"
@@ -73,7 +77,7 @@ mkfs.vfat -F 32 -n "$BOOT_PART_LABEL" "$BOOT_DEV"
 
 # --- LUKS Setup ---
 log "Setting up LUKS Encryption..."
-cryptsetup luksFormat --type luks2 "$LUKS_DEV"
+cryptsetup luksFormat --type luks2 --batch-mode "$LUKS_DEV"
 cryptsetup open "$LUKS_DEV" crypted
 
 # --- ZFS Setup ---
@@ -118,7 +122,8 @@ swapon "/dev/zvol/$ZPOOL/swap"
 
 # --- Installation ---
 log "Executing nixos-install..."
-# Ensure we are in the flake directory before running
+# Ensure we are in the flake directory and state is clean for Nix
+git add .
 nixos-install --flake ".#$HOSTNAME" --no-root-passwd
 
 log "SUCCESS! System installed on petunia."
