@@ -136,13 +136,14 @@ cd "$(dirname "$0")/../.."
 git add . || true
 
 # 3. Run the native install command.
-# Using --max-jobs 1 and --fallback ensures maximum stability for complex 
+# Using --max-jobs 1 ensures maximum stability for complex 
 # dependencies (like NVIDIA/libidn2) and avoids the split-store assertion bug.
+# We pass 'fallback' via --option because nixos-install doesn't support --fallback directly.
 export NIXPKGS_ALLOW_UNFREE=1
 if ! nixos-install --flake ".#$HOSTNAME" \
     --no-root-passwd \
     --max-jobs 1 \
-    --fallback; then
+    --option fallback true; then
     error "NixOS installation failed. Check the error messages above."
 fi
 
