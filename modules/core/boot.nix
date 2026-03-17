@@ -1,4 +1,8 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  lib,
+  ...
+}:
 
 {
   # Kernel and Boot Configuration
@@ -22,7 +26,8 @@
       # LUKS (Disk Encryption) Configuration
       luks.devices = {
         "crypted" = {
-          device = "/dev/disk/by-partlabel/DISK_LUKS";
+          # Use mkDefault to allow disko or host-specific overrides
+          device = lib.mkDefault "/dev/disk/by-partlabel/DISK_LUKS";
           allowDiscards = true; # Enable TRIM support for SSD longevity
           bypassWorkqueues = true; # Performance optimization for modern NVMe drives
         };
