@@ -69,21 +69,34 @@ nix --experimental-features "nix-command flakes" \
     --mode disko \
     "$REPO_ROOT/hosts/$TARGET_HOSTNAME/disko.nix"
 
-# --- System Instantiation (NixOS Install) ---
-log "Executing native NixOS installation..."
-# We move to the repository root to ensure the flake can be evaluated.
-cd "$REPO_ROOT"
+# --- Memory Pressure Mitigation ---
+# ZFS ARC can expand and starve the Nix daemon of memory during massive 
+# downloads. We cap the ARC at 2GB during the installation phase.
+log "Throttling ZFS ARC to 2GB to preserve RAM for Nix daemon..."
+echo 2147483648 > /sys/module/zfs/parameters/zfs_arc_max || true
 
-# Handle Git ownership and staging. Flakes strictly ignore untracked files.
-# We use 'add -A' and 'safe.directory' to ensure the tree is seen as clean by Nix.
-git config --global --add safe.directory "$REPO_ROOT" || true
+# --- Configuration Migration ---
+# Evaluating a flake from RAM (/root/nix-nexus) creates significant memory 
+# overhead. By migrating the configuration to the target ZFS pool, we 
+# offload memory pressure to the physical disk.
+log "Migrating configuration to target disk (/mnt/etc/nixos)..."
+mkdir -p /mnt/etc/nixos
+cp -a "$REPO_ROOT/." /mnt/etc/nixos/
+sync
+
+# --- System Instantiation (NixOS Install) ---
+log "Executing native NixOS installation from ZFS disk..."
+# We move into the target disk repo to ensure the flake is evaluated from ZFS.
+cd /mnt/etc/nixos
+
+# Handle Git ownership and staging for the new path.
+git config --global --add safe.directory /mnt/etc/nixos || true
 git add -A || true
 
 # Using the native 'nixos-install --flake' is the most robust way to bootstrap.
-# It automatically handles building directly into the target store (/mnt/nix/store),
-# which avoids exhausting the live ISO's RAM (tmpfs).
+# It handles building directly into the target store (/mnt/nix/store).
 #
-# --max-jobs 1: Limits concurrency to prevent OOM on the live environment.
+# --max-jobs 1: Crucial for stability on the live ISO to prevent OOM.
 # --option fallback true: Ensures we build from source if a binary cache is flaky.
 export NIXPKGS_ALLOW_UNFREE=1
 if ! nixos-install --flake ".#$TARGET_HOSTNAME" \
