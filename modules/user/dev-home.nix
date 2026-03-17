@@ -103,7 +103,6 @@ let
       [
         inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code
         inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.gemini-cli
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.localgpt
         inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.mcporter
         inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
         inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
