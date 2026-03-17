@@ -153,6 +153,7 @@ if ! nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
     --extra-experimental-features "nix-command flakes" \
     --impure \
     --fallback \
+    --option require-sigs false \
     --print-out-paths \
     --no-link \
     > /tmp/nixos-toplevel; then
