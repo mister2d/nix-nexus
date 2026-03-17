@@ -125,21 +125,19 @@ log "Building NixOS system profile to target NVMe (/mnt)..."
 # 1. Ensure the Git tree is clean so Nix sees all files
 git add . || true
 
-# 2. Clear any cached failed paths that might trigger the assertion bug
-nix-store --clear-failed-paths || true
-
-# 3. Build the system toplevel profile DIRECTLY into the target NVMe store.
+# 2. Build the system toplevel profile DIRECTLY into the target NVMe store.
 # This bypasses the installer's 32GB RAM-disk (tmpfs) and uses the 833GB ZFS pool.
-# We use --fallback to handle binary cache issues and --impure for unfree drivers.
 export NIXPKGS_ALLOW_UNFREE=1
-nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
+if ! nix build ".#nixosConfigurations.$HOSTNAME.config.system.build.toplevel" \
     --store /mnt \
     --extra-experimental-features "nix-command flakes" \
     --impure \
     --fallback \
     --print-out-paths \
     --no-link \
-    > /tmp/nixos-toplevel
+    > /tmp/nixos-toplevel; then
+    error "NixOS system build failed. Check the error messages above."
+fi
 
 TOPLEVEL=$(cat /tmp/nixos-toplevel)
 
