@@ -118,6 +118,7 @@ if ! nix \
     --impure \
     --max-jobs 1 \
     --option fallback true \
+    --option require-sigs false \
     ".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel" \
     --out-link /tmp/nixos-toplevel; then
     error "System closure build failed. Check the error log above."
