@@ -38,13 +38,6 @@
     kernelModules = [ "thinkpad_acpi" ];
   };
 
-  # Set ThinkPad battery charge thresholds natively via udev
-  # This replaces TLP's START_CHARGE_THRESH_BAT0 and STOP_CHARGE_THRESH_BAT0
-  services.udev.extraRules = ''
-    # Wait for the battery to be initialized, then set thresholds to 75% start / 80% stop
-    SUBSYSTEM=="power_supply", KERNEL=="BAT0", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
-  '';
-
   # Services and Power Management
   services = {
     # 1. Power Management: TLP vs Power Profiles
@@ -64,6 +57,15 @@
 
     # 5. Firmware Updates
     fwupd.enable = true;
+
+    udev.extraRules = ''
+      # Set battery charge thresholds to 75% start / 80% stop
+      SUBSYSTEM=="power_supply", KERNEL=="BAT0", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
+
+      # Force mic mute LED off at boot. thinkpad_acpi initialises it on; write 0
+      # to brightness the instant the sysfs node appears (race-free vs tmpfiles).
+      ACTION=="add", SUBSYSTEM=="leds", KERNEL=="platform::micmute", ATTR{brightness}="0"
+    '';
   };
 
   # Fingerprint Support for PAM services (Hardware-Specific)
@@ -80,11 +82,6 @@
     enableRedistributableFirmware = true;
     cpu.amd.updateMicrocode = true;
   };
-
-  # Fix for Mic LED: Link it to the kernel's audio-micmute trigger
-  systemd.tmpfiles.rules = [
-    "w /sys/class/leds/platform::micmute/trigger - - - - audio-micmute"
-  ];
 
   # 6. Machine-Specific Networking
   # The Z16 WiFi device is specifically named 'wlp4s0'.
