@@ -56,12 +56,31 @@ TARGET_USER="${TARGET_USER:-ddukes}"
 DISKO_REV=$(nix eval --raw --impure \
   --expr "(builtins.fromJSON (builtins.readFile \"$REPO_ROOT/flake.lock\")).nodes.disko.locked.rev")
 
-echo -e "${BLUE}=== NixOS ${TARGET_HOSTNAME^} Install (with-clone) ===${NC}"
+# --- Identity & Resume Detection ---
+# We check if the ZFS pool is already active to support resuming an 
+# interrupted installation without wiping progress.
+if zpool list "$TARGET_HOSTNAME" >/dev/null 2>&1; then
+    RESUME_MODE=true
+    DISKO_MODE="mount"
+else
+    RESUME_MODE=false
+    DISKO_MODE="disko"
+fi
+
+echo -e "${BLUE}=== NixOS ${TARGET_HOSTNAME^} Install (${DISKO_MODE^^} mode) ===${NC}"
 echo "Hostname:  $TARGET_HOSTNAME"
 echo "Repo:      $REPO_ROOT"
 echo "Disko rev: $DISKO_REV"
 echo
-read -rp "Proceed? This will DESTROY all data on the target disk. (type 'yes'): " confirm
+
+if [ "$RESUME_MODE" = true ]; then
+    log "Existing ZFS pool detected. Resuming installation (keeping existing data)..."
+    read -rp "Proceed with resume? (type 'yes'): " confirm
+else
+    echo -e "${RED}DANGER: No active pool found. This will DESTROY all data on the target disk.${NC}"
+    read -rp "Proceed with FRESH installation? (type 'yes'): " confirm
+fi
+
 [[ "$confirm" != "yes" ]] && error "Aborted."
 
 # --- Collect LUKS passphrase ---
@@ -85,16 +104,6 @@ zpool export -a 2>/dev/null || true
 cryptsetup close crypted 2>/dev/null || true
 
 # --- Partitioning & Mounting (Disko) ---
-# We check if the ZFS pool is already active to support resuming an 
-# interrupted installation without wiping progress.
-if zpool list "$TARGET_HOSTNAME" >/dev/null 2>&1; then
-    log "Existing ZFS pool '$TARGET_HOSTNAME' detected. Resuming in MOUNT mode..."
-    DISKO_MODE="mount"
-else
-    log "No existing pool found. Initializing in DISKO (WIPE) mode..."
-    DISKO_MODE="disko"
-fi
-
 # Uses the pinned disko rev to partition, format (LUKS2+ZFS), and mount to /mnt.
 # The LUKS passphrase is read from /tmp/disko-luks-password (see disko.nix).
 log "Executing Disko ($DISKO_MODE) via rev ${DISKO_REV::8}...)"
