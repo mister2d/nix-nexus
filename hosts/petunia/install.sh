@@ -53,7 +53,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TARGET_USER="${TARGET_USER:-ddukes}"
 
 # Pin disko to the exact rev locked in flake.lock to prevent version skew
-DISKO_REV=$(nix eval --raw --impure \
+DISKO_REV=$(nix --extra-experimental-features "nix-command flakes" eval --raw --impure \
   --expr "(builtins.fromJSON (builtins.readFile \"$REPO_ROOT/flake.lock\")).nodes.disko.locked.rev")
 
 # --- Identity & Resume Detection ---
