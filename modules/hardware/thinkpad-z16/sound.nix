@@ -9,13 +9,24 @@ _:
     pulse.enable = true;
     jack.enable = true;
 
-    # Enable libcamera support in WirePlumber
-    wireplumber.enable = true;
-    wireplumber.extraConfig."10-libcamera" = {
-      "wireplumber.profiles" = {
-        "main" = {
-          "libcamera" = "optional";
+    # WirePlumber configuration: Hardware support and persistent monitoring
+    wireplumber = {
+      enable = true;
+      extraConfig."10-libcamera" = {
+        "wireplumber.profiles" = {
+          "main" = {
+            "libcamera" = "optional";
+          };
         };
+      };
+      # Persistent USB input monitoring: Disable session suspension to ensure immediate availability
+      extraConfig."51-disable-suspend" = {
+        "monitor.alsa.rules" = [
+          {
+            matches = [ [ { "node.name" = "~alsa_input.*usb.*"; } ] ];
+            actions.update-props."session.suspend-timeout-seconds" = 0;
+          }
+        ];
       };
     };
 
