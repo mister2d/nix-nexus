@@ -1,0 +1,13 @@
+{
+    "input": {
+        "blocklist": [],
+        "deepfilternet": {
+            "attenuation": 60.0,
+            "bypass": false,
+            "min-processing-thresh": 0.0
+        },
+        "plugins_order": [
+            "deepfilternet"
+        ]
+    }
+}

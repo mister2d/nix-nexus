@@ -113,6 +113,8 @@ in
       wtype # Virtual keyboard input
       easyeffects # System-wide audio effects
       lsp-plugins # Essential plugins for EasyEffects
+      zam-plugins # EasyEffects zam-plugins-lv2
+      mda_lv2 # EasyEffects mda.lv2
 
       # Secret Management & VPN
       libsecret # DBus interface for secrets (CLI: secret-tool)
