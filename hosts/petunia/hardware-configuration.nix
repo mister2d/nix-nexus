@@ -24,15 +24,8 @@
 
     # Kernel Modules (from hardware scan + X570 specifics)
     initrd = {
-      availableKernelModules = [
-        "nvme"
-        "xhci_pci"
-        "ahci"
-        "usbhid"
-        "usb_storage"
-        "sd_mod"
-      ];
-      kernelModules = [ "nvidia" ]; # Early load for KMS
+      # availableKernelModules duplicated in modules/hardware/petunia/ryzen.nix — merged by NixOS
+      kernelModules = [ "nvidia" ]; # Early load for KMS / splash continuity
     };
   };
 

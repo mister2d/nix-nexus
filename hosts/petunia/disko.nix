@@ -20,7 +20,7 @@
                 ];
               };
             };
-            luks = {
+            DISK_LUKS = {
               size = "100%";
               content = {
                 type = "luks";
