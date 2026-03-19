@@ -6,10 +6,17 @@
 #
 # OPTION A — Run directly on the live ISO (repo pulled from GitHub on demand):
 #
-#   Boot NixOS ISO, get network up, then:
-#     curl -fsSL https://raw.githubusercontent.com/mister2d/nix-nexus/main/hosts/petunia/install-remote.sh \
-#       | sudo bash
-#   OR copy this script to the ISO any other way and run it as root.
+#   Boot NixOS ISO, get network up, then run ONE of these (as root):
+#
+#   ✓ CORRECT — script is read from a separate FD, stdin stays as your terminal:
+#     sudo bash <(curl -fsSL https://raw.githubusercontent.com/mister2d/nix-nexus/main/hosts/petunia/install-remote.sh)
+#
+#   ✓ CORRECT — download first, then run:
+#     curl -fsSL https://raw.githubusercontent.com/mister2d/nix-nexus/main/hosts/petunia/install-remote.sh -o /tmp/install.sh
+#     sudo bash /tmp/install.sh
+#
+#   ✗ WRONG — do NOT pipe through bash:
+#     curl ... | sudo bash   # stdin is the pipe; 'read' prompts break
 #
 #   NOTE: Requires the GitHub repo to be public, OR that you have authenticated
 #   the Nix GitHub fetcher (e.g., via a GITHUB_TOKEN env var or git credentials).
@@ -45,6 +52,18 @@ log()   { echo -e "${GREEN}[BOOTSTRAP] $1${NC}"; }
 error() { echo -e "${RED}[ERROR] $1${NC}"; exit 1; }
 
 [[ $EUID -ne 0 ]] && error "Must be run as root."
+
+# Guard: stdin must be a terminal so that 'read' prompts work correctly.
+# 'curl URL | bash' pipes the script through stdin, so 'read' reads script
+# lines instead of user input. Use 'bash <(curl URL)' or download first.
+if [[ ! -t 0 ]]; then
+    echo -e "\033[0;31m[ERROR] stdin is not a terminal — interactive prompts will not work.\033[0m"
+    echo
+    echo "Run this script using one of these methods instead:"
+    echo "  sudo bash <(curl -fsSL <URL>)"
+    echo "  curl -fsSL <URL> -o /tmp/install.sh && sudo bash /tmp/install.sh"
+    exit 1
+fi
 
 # ==============================================================================
 # Configuration
