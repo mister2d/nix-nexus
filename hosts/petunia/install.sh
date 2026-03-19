@@ -84,13 +84,23 @@ umount -R /mnt 2>/dev/null || true
 zpool export -a 2>/dev/null || true
 cryptsetup close crypted 2>/dev/null || true
 
-# --- Partitioning (Disko) ---
+# --- Partitioning & Mounting (Disko) ---
+# We check if the ZFS pool is already active to support resuming an 
+# interrupted installation without wiping progress.
+if zpool list "$TARGET_HOSTNAME" >/dev/null 2>&1; then
+    log "Existing ZFS pool '$TARGET_HOSTNAME' detected. Resuming in MOUNT mode..."
+    DISKO_MODE="mount"
+else
+    log "No existing pool found. Initializing in DISKO (WIPE) mode..."
+    DISKO_MODE="disko"
+fi
+
 # Uses the pinned disko rev to partition, format (LUKS2+ZFS), and mount to /mnt.
 # The LUKS passphrase is read from /tmp/disko-luks-password (see disko.nix).
-log "Partitioning via disko (rev ${DISKO_REV::8}...)..."
+log "Executing Disko ($DISKO_MODE) via rev ${DISKO_REV::8}...)"
 nix --extra-experimental-features "nix-command flakes" \
     run "github:nix-community/disko/$DISKO_REV" -- \
-    --mode disko \
+    --mode "$DISKO_MODE" \
     "$REPO_ROOT/hosts/$TARGET_HOSTNAME/disko.nix"
 
 # --- Memory Pressure Mitigation ---
