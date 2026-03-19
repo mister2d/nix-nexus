@@ -30,7 +30,10 @@ in
   # HEEDING THE WARNING: Using niri 25.11 from nixpkgs as required by DMS.
   programs.niri = {
     enable = true;
-    # Package is already overridden via overlay above.
+    # Force the package override to ensure tests are skipped system-wide.
+    package = lib.mkForce (pkgs.niri.overrideAttrs (old: {
+      doCheck = false;
+    }));
   };
 
   # Dank Material Shell (DMS) configuration

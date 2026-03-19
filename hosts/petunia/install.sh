@@ -114,19 +114,21 @@ nix --extra-experimental-features "nix-command flakes" \
     --mode "$DISKO_MODE" \
     "$REPO_ROOT/hosts/$TARGET_HOSTNAME/disko.nix"
 
-# --- Memory Pressure Mitigation ---
-# ZFS ARC can expand and starve the Nix daemon of memory during massive 
-# downloads. We cap the ARC at 2GB during the installation phase.
+# --- Memory & Resource Pressure Mitigation ---
+# 1. Constrain ZFS ARC memory usage.
+# On a live ISO, ZFS ARC can expand and starve the Nix daemon of memory.
 log "Throttling ZFS ARC to 2GB to preserve RAM for Nix daemon..."
 echo 2147483648 > /sys/module/zfs/parameters/zfs_arc_max || true
 
-# --- Migrate repo to NVMe ---
-# Evaluating a large flake from tmpfs is memory-intensive. Moving it to the
-# target ZFS pool offloads that pressure to NVMe.
-log "Copying repo to /mnt/etc/nixos (eval will run from NVMe)..."
-mkdir -p /mnt/etc/nixos
-cp -a "$REPO_ROOT/." /mnt/etc/nixos/
-sync
+# 2. Increase Open File and Process Limits.
+# Building complex Rust projects (like Niri) on a live ISO often hits the 
+# default 1024 ulimit, causing 'Too many open files' and allocation failures.
+log "Injecting high resource limits (ulimit/sysctl)..."
+ulimit -n 65536 || true
+ulimit -u 16384 || true
+sysctl -w fs.file-max=2097152 || true
+
+# 3. Resize the writable part of the Nix store to 60G.
 
 # --- Step 1: Build system closure into /mnt ---
 log "Step 1/3: Building system closure into target store..."
