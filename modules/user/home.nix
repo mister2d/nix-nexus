@@ -58,6 +58,7 @@ in
     ./television-home.nix
     ./ceph-mount.nix
     ./audio-effects.nix
+    ./audio-routing.nix
     ./dev-home.nix
   ];
 
