@@ -72,7 +72,9 @@ echo "Hostname:  $TARGET_HOSTNAME"
 echo "Repo:      $REPO_ROOT"
 echo "Disko rev: $DISKO_REV"
 echo
-
+log "IMPORTANT: Ensure your local clone is up to date before proceeding."
+log "Run: git pull origin main (if needed)"
+echo
 if [ "$RESUME_MODE" = true ]; then
     log "Existing ZFS pool detected. Resuming installation (keeping existing data)..."
     read -rp "Proceed with resume? (type 'yes'): " confirm
