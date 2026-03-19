@@ -11,6 +11,15 @@ let
   };
 in
 {
+  nixpkgs.overlays = [
+    (final: prev: {
+      # Globally disable tests for niri to prevent build failures in ISO/resource-constrained environments.
+      niri = prev.niri.overrideAttrs (old: {
+        doCheck = false;
+      });
+    })
+  ];
+
   imports = [
     # DMS 1.4 Stable NixOS Module
     inputs.dms.nixosModules.default
@@ -19,12 +28,9 @@ in
 
   # Niri Configuration
   # HEEDING THE WARNING: Using niri 25.11 from nixpkgs as required by DMS.
-  # WORKAROUND: Disable checkPhase because it fails in headless/ISO environments.
   programs.niri = {
     enable = true;
-    package = pkgs.niri.overrideAttrs (old: {
-      doCheck = false;
-    });
+    # Package is already overridden via overlay above.
   };
 
   # Dank Material Shell (DMS) configuration
