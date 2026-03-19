@@ -72,6 +72,17 @@ echo
 read -rp "Proceed? This will DESTROY all data on the target disk. (type 'yes'): " confirm
 [[ "$confirm" != "yes" ]] && error "Aborted."
 
+# --- Collect LUKS passphrase ---
+echo
+log "Enter LUKS passphrase for the encrypted volume."
+read -rs -p "  Passphrase: " LUKS_PASS; echo
+read -rs -p "  Confirm:    " LUKS_PASS2; echo
+[[ "$LUKS_PASS" == "$LUKS_PASS2" ]] || error "Passphrases do not match."
+[[ -n "$LUKS_PASS" ]] || error "Passphrase must not be empty."
+printf '%s' "$LUKS_PASS" > /tmp/disko-luks-password
+unset LUKS_PASS LUKS_PASS2
+trap 'rm -f /tmp/disko-luks-password' EXIT
+
 # --- Cleanup ---
 log "Tearing down any existing mounts/pools..."
 swapoff -a || true
@@ -80,22 +91,11 @@ zpool export -a 2>/dev/null || true
 cryptsetup close crypted 2>/dev/null || true
 
 # --- Fetch disko.nix from the remote flake ---
-# We need the disko partition definition locally to run disko.
-# Fetching via nix eval extracts the file from the flake's store path.
-log "Fetching disko config from $FLAKE_URI ..."
-FLAKE_STORE_PATH=$(nix eval --raw \
-    --extra-experimental-features "nix-command flakes" \
-    --impure \
-    "${FLAKE_URI}#nixosConfigurations.${TARGET_HOSTNAME}.config.system.build.toplevel.drvPath" \
-    2>/dev/null || true)
-
-# Simpler: copy disko.nix from the fetched flake source
 FLAKE_SOURCE=$(nix eval --raw \
     --extra-experimental-features "nix-command flakes" \
     --impure \
     "(builtins.getFlake \"${FLAKE_URI}\").outPath")
 DISKO_NIX="$FLAKE_SOURCE/hosts/$TARGET_HOSTNAME/disko.nix"
-
 log "disko.nix resolved at: $DISKO_NIX"
 
 # --- Partitioning (Disko) ---

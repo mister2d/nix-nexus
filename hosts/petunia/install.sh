@@ -64,6 +64,19 @@ echo
 read -rp "Proceed? This will DESTROY all data on the target disk. (type 'yes'): " confirm
 [[ "$confirm" != "yes" ]] && error "Aborted."
 
+# --- Collect LUKS passphrase ---
+# Disko's interactive prompting has a variable-scoping bug (password: unbound
+# variable). We collect the passphrase here and pass it via passwordFile instead.
+echo
+log "Enter LUKS passphrase for the encrypted volume."
+read -rs -p "  Passphrase: " LUKS_PASS; echo
+read -rs -p "  Confirm:    " LUKS_PASS2; echo
+[[ "$LUKS_PASS" == "$LUKS_PASS2" ]] || error "Passphrases do not match."
+[[ -n "$LUKS_PASS" ]] || error "Passphrase must not be empty."
+printf '%s' "$LUKS_PASS" > /tmp/disko-luks-password
+unset LUKS_PASS LUKS_PASS2
+trap 'rm -f /tmp/disko-luks-password' EXIT
+
 # --- Cleanup ---
 log "Tearing down any existing mounts/pools..."
 swapoff -a || true
@@ -73,6 +86,7 @@ cryptsetup close crypted 2>/dev/null || true
 
 # --- Partitioning (Disko) ---
 # Uses the pinned disko rev to partition, format (LUKS2+ZFS), and mount to /mnt.
+# The LUKS passphrase is read from /tmp/disko-luks-password (see disko.nix).
 log "Partitioning via disko (rev ${DISKO_REV::8}...)..."
 nix --extra-experimental-features "nix-command flakes" \
     run "github:nix-community/disko/$DISKO_REV" -- \

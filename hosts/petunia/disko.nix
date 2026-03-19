@@ -27,7 +27,10 @@
                 name = "crypted";
                 # Disko uses LUKS2 by default.
                 settings.allowDiscards = true;
-                # Password is provided interactively during nixos-install or disko execution
+                # Passphrase is collected by install.sh before disko runs and
+                # written to this path. Bypasses disko's interactive prompting,
+                # which has a variable-scoping bug (password: unbound variable).
+                passwordFile = "/tmp/disko-luks-password";
                 content = {
                   type = "zfs";
                   pool = "petunia";
