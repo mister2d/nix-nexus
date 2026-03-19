@@ -113,7 +113,7 @@ cryptsetup close crypted 2>/dev/null || true
 FLAKE_SOURCE=$(nix eval --raw \
     --extra-experimental-features "nix-command flakes" \
     --impure \
-    "(builtins.getFlake \"${FLAKE_URI}\").outPath")
+    --expr "(builtins.getFlake \"${FLAKE_URI}\").outPath")
 DISKO_NIX="$FLAKE_SOURCE/hosts/$TARGET_HOSTNAME/disko.nix"
 log "disko.nix resolved at: $DISKO_NIX"
 
