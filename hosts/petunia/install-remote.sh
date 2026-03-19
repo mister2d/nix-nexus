@@ -129,24 +129,34 @@ log "Capping ZFS ARC at 2GB..."
 echo 2147483648 > /sys/module/zfs/parameters/zfs_arc_max || true
 
 # --- Step 1: Build system closure into /mnt ---
-# Same two-step strategy as install.sh — builds to NVMe to avoid OOM,
-# uses --eval-store auto to prevent the assertion crash.
-log "Step 1/3: Building system closure into target store (from $FLAKE_URI)..."
-
+# Builds to NVMe via --store /mnt (avoids live tmpfs OOM).
+# --eval-store auto prevents the derivation-goal.cc assertion on older Nix,
+# but the coroutine-based substituter (Goal::Co, Nix ≥2.22) has a separate
+# race in builtOutputs tracking. Mitigations: --max-jobs 1 serialises goal
+# execution; --option max-substitution-jobs 4 limits concurrent downloads.
+# Packages already in /mnt/nix from a prior attempt are reused on retry.
 export NIXPKGS_ALLOW_UNFREE=1
-if ! nix \
-    --extra-experimental-features "nix-command flakes" \
-    build \
-    --store /mnt \
-    --eval-store auto \
-    --impure \
-    --max-jobs 4 \
-    --option fallback true \
-    --option require-sigs false \
-    "${FLAKE_URI}#nixosConfigurations.${TARGET_HOSTNAME}.config.system.build.toplevel" \
-    --out-link /tmp/nixos-toplevel; then
-    error "System closure build failed."
-fi
+
+BUILD_FLAKE="${FLAKE_URI}#nixosConfigurations.${TARGET_HOSTNAME}.config.system.build.toplevel"
+for attempt in 1 2 3; do
+    log "Step 1/3: Build attempt $attempt/3 (from $FLAKE_URI)..."
+    if nix \
+        --extra-experimental-features "nix-command flakes" \
+        build \
+        --store /mnt \
+        --eval-store auto \
+        --impure \
+        --max-jobs 1 \
+        --option max-substitution-jobs 4 \
+        --option fallback true \
+        --option require-sigs false \
+        "$BUILD_FLAKE" \
+        --out-link /tmp/nixos-toplevel; then
+        break
+    fi
+    [[ $attempt -eq 3 ]] && error "Build failed after 3 attempts. Check errors above."
+    log "Build crashed (likely assertion race). Retrying — packages in /mnt/nix are reused."
+done
 
 # --- Step 2: Bridge the store gap ---
 log "Step 2/3: Registering /mnt store paths with running Nix daemon..."

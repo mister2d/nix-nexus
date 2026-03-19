@@ -113,19 +113,35 @@ git config --global --add safe.directory /mnt/etc/nixos || true
 git add -A || true
 
 export NIXPKGS_ALLOW_UNFREE=1
-if ! nix \
-    --extra-experimental-features "nix-command flakes" \
-    build \
-    --store /mnt \
-    --eval-store auto \
-    --impure \
-    --max-jobs 4 \
-    --option fallback true \
-    --option require-sigs false \
-    ".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel" \
-    --out-link /tmp/nixos-toplevel; then
-    error "System closure build failed. See above for details."
-fi
+
+# The nix coroutine-based substituter (Goal::Co, Nix ≥2.22) has a race in
+# builtOutputs tracking when multiple substitution goals complete simultaneously
+# against an alternate store (--store /mnt). This triggers:
+#   derivation-goal.cc:186: Assertion `builtOutputs.count(wantedOutput) > 0' failed
+# even with --eval-store auto. Mitigations:
+#   --max-jobs 1              serialises goal execution, preventing the race
+#   --option max-substitution-jobs 4   limits concurrent downloads (default is 16)
+# Packages already in /mnt/nix from a prior attempt are reused, so retries are fast.
+BUILD_FLAKE=".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel"
+for attempt in 1 2 3; do
+    log "Step 1/3: Build attempt $attempt/3..."
+    if nix \
+        --extra-experimental-features "nix-command flakes" \
+        build \
+        --store /mnt \
+        --eval-store auto \
+        --impure \
+        --max-jobs 1 \
+        --option max-substitution-jobs 4 \
+        --option fallback true \
+        --option require-sigs false \
+        "$BUILD_FLAKE" \
+        --out-link /tmp/nixos-toplevel; then
+        break
+    fi
+    [[ $attempt -eq 3 ]] && error "Build failed after 3 attempts. Check errors above."
+    log "Build crashed (likely assertion race). Retrying — packages in /mnt/nix are reused."
+done
 
 # --- Step 2: Bridge the store gap ---
 # After building with --store /mnt, the paths are in /mnt's Nix DB but
