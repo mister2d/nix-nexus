@@ -19,9 +19,12 @@ in
 
   # Niri Configuration
   # HEEDING THE WARNING: Using niri 25.11 from nixpkgs as required by DMS.
+  # WORKAROUND: Disable checkPhase because it fails in headless/ISO environments.
   programs.niri = {
     enable = true;
-    package = pkgs.niri;
+    package = pkgs.niri.overrideAttrs (old: {
+      doCheck = false;
+    });
   };
 
   # Dank Material Shell (DMS) configuration

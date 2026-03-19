@@ -93,9 +93,10 @@ nix --extra-experimental-features "nix-command flakes" \
     --mode disko \
     "$REPO_ROOT/hosts/$TARGET_HOSTNAME/disko.nix"
 
-# --- ZFS ARC cap ---
-# Prevent ZFS from consuming RAM needed by the Nix daemon during the build.
-log "Capping ZFS ARC at 2GB..."
+# --- Memory Pressure Mitigation ---
+# ZFS ARC can expand and starve the Nix daemon of memory during massive 
+# downloads. We cap the ARC at 2GB during the installation phase.
+log "Throttling ZFS ARC to 2GB to preserve RAM for Nix daemon..."
 echo 2147483648 > /sys/module/zfs/parameters/zfs_arc_max || true
 
 # --- Migrate repo to NVMe ---
