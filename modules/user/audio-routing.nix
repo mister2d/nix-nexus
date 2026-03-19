@@ -9,8 +9,8 @@ let
   # preventing the need for external catalysts like pavucontrol to trigger the chain.
   keepaliveScript = pkgs.writeShellScript "ee-input-keepalive" ''
     echo "Waiting for EasyEffects source node..."
-    while ! ${pkgs.pipewire}/bin/pw-cli ls Node 2>/dev/null | grep -q "${eeSrcNode}"; do
-      sleep 2
+    while ! ${pkgs.pipewire}/bin/pw-cli ls Node 2>/dev/null | ${pkgs.gnugrep}/bin/grep -q "${eeSrcNode}"; do
+      ${pkgs.coreutils}/bin/sleep 2
     done
     echo "Node found. Starting keepalive consumer."
 
