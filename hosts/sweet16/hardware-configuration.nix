@@ -65,7 +65,10 @@
     "/data" = {
       device = "cake/data";
       fsType = "zfs";
-      options = [ "atime=off" ];
+      options = [
+        "atime=off"
+        "nofail"
+      ];
     };
 
     "/boot" = {

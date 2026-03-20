@@ -83,6 +83,7 @@
           data = {
             type = "zfs_fs";
             mountpoint = "/data";
+            mountOptions = [ "nofail" ];
             options = {
               mountpoint = "legacy";
               # Optimized for large sequential reads (Model Weights, Datasets)
