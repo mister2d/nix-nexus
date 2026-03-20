@@ -41,21 +41,31 @@
     "/" = {
       device = "cake/root";
       fsType = "zfs";
+      options = [ "atime=off" ];
     };
 
     "/nix" = {
       device = "cake/nix";
       fsType = "zfs";
+      options = [ "atime=off" ];
     };
 
     "/var" = {
       device = "cake/var";
       fsType = "zfs";
+      options = [ "atime=off" ];
     };
 
     "/home" = {
       device = "cake/home";
       fsType = "zfs";
+      options = [ "atime=off" ];
+    };
+
+    "/data" = {
+      device = "cake/data";
+      fsType = "zfs";
+      options = [ "atime=off" ];
     };
 
     "/boot" = {

@@ -52,7 +52,7 @@
           compression = "lz4";
           acltype = "posixacl";
           xattr = "sa";
-          relatime = "on";
+          atime = "off";
           mountpoint = "none";
         };
         datasets = {
@@ -65,12 +65,32 @@
           nix = {
             type = "zfs_fs";
             mountpoint = "/nix";
-            options.mountpoint = "legacy";
+            options = {
+              mountpoint = "legacy";
+              atime = "off"; # Explicitly disable atime for the nix store
+            };
           };
           home = {
             type = "zfs_fs";
             mountpoint = "/home";
-            options.mountpoint = "legacy";
+            options = {
+              mountpoint = "legacy";
+              # Standard recordsize is good for general use and coding
+              recordsize = "128k";
+            };
+          };
+          # Specialized dataset for AI Models and Datasets (Large Files)
+          data = {
+            type = "zfs_fs";
+            mountpoint = "/data";
+            options = {
+              mountpoint = "legacy";
+              # Optimized for large sequential reads (Model Weights, Datasets)
+              recordsize = "1M";
+              # Large models are often already compressed or incompressible (weights),
+              # but lz4 handles this with negligible overhead.
+              compression = "lz4";
+            };
           };
           var = {
             type = "zfs_fs";
