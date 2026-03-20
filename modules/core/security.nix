@@ -17,11 +17,11 @@
     # Secret Service for password management (required for ProtonVPN, etc.)
     gnome.gnome-keyring.enable = true;
 
-    # Yubikey & FIDO2 Support
+    # Hardware-based Authentication (Yubikey & FIDO2)
     pcscd.enable = true; # Smartcard daemon for Yubikey
     udev.packages = [ pkgs.yubikey-personalization ]; # Udev rules for hardware access
 
-    # Enable OpenSSH
+    # Secure Remote Access (OpenSSH)
     openssh = {
       enable = true;
       settings = {
@@ -33,30 +33,38 @@
   };
 
   programs = {
+    # File System Permissions
     # Enable FUSE for unprivileged mounting
     fuse.userAllowOther = true;
 
+    # System Integration
     # Enable dconf (required for EasyEffects and GTK portals)
     dconf.enable = true;
 
-    # Enable GPG Agent
+    # Secret & Key Management
+    # The GPG Agent is configured to provide both OpenPGP and SSH agent services.
     gnupg.agent = {
       enable = true;
       enableSSHSupport = true;
       pinentryPackage = pkgs.pinentry-curses;
+
+      # Session Caching
+      # Extended TTL settings reduce the frequency of authentication prompts
+      # during long working sessions.
       settings = {
         default-cache-ttl = 28800; # 8 hours
         max-cache-ttl = 86400; # 24 hours
-        default-cache-ttl-ssh = 28800;
-        max-cache-ttl-ssh = 86400;
+        default-cache-ttl-ssh = 28800; # 8 hours
+        max-cache-ttl-ssh = 86400; # 24 hours
       };
     };
   };
 
-  # Disable vim as the default editor to avoid conflicts
+  # Editor Environment
+  # Disable vim as the default editor to prevent overlaps with custom neovim profiles.
   programs.vim.defaultEditor = false;
 
-  # Sudo rules
+  # Privilege Escalation
   security.sudo = {
     # security.sudo.wheelNeedsPassword = false;
     extraConfig = ''

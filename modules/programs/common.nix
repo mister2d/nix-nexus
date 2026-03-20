@@ -2,42 +2,51 @@
 
 {
   environment.systemPackages = with pkgs; [
+    # Core Connectivity & System Inspection
     wget
     curl
     git
-    htop
     pciutils
     usbutils
     lshw
     lm_sensors
     iotop
+
+    # Modern System Monitoring
+    htop
     ripgrep
     fd
+
+    # File & Archive Management
     file
     tree
     unzip
     zip
     jq
+
+    # Networking & Audio Utilities
     iw
     bind.dnsutils
-    dmenu
     pulseaudio
+
+    # Display & Input Management
+    dmenu
+    input-leap
 
     # Browsers
     librewolf
 
-    # Utilities
+    # Security & Secret Management
     pass
     gnupg
     pinentry-curses
-    input-leap
 
     # Modern CLI Enhancements
     # These tools replace or augment traditional Unix utilities with faster,
     # more visual alternatives that respect modern terminal capabilities.
     bat # Syntax highlighting for 'cat'
 
-    # Suite
+    # Productivity Suite
     libreoffice
   ];
 }
