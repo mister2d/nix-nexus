@@ -41,6 +41,10 @@
       # NVIDIA configuration utilities.
       nvidiaSettings = true;
 
+      # The persistence daemon ensures the driver remains loaded and the GPU
+      # initialized, reducing initialization latency for graphical sessions.
+      nvidiaPersistenced = true;
+
       # Driver version selection.
       package = config.boot.kernelPackages.nvidiaPackages.stable;
 
@@ -69,19 +73,6 @@
       nvidia = {
         path = "${pkgs.nvidia-container-toolkit}/bin/nvidia-container-runtime";
       };
-    };
-  };
-
-  # Performance & Initialization
-  # The persistence daemon ensures the driver remains loaded and the GPU
-  # initialized, reducing initialization latency for graphical sessions.
-  systemd.services.nvidia-persistenced = {
-    description = "NVIDIA Persistence Daemon";
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "forking";
-      ExecStart = "${config.hardware.nvidia.package.bin}/bin/nvidia-persistenced --user root";
-      Restart = "always";
     };
   };
 

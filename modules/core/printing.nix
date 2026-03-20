@@ -38,7 +38,11 @@
   # These aliases provide human-readable entry points for managing the printing stack.
   systemd.services = {
     cups.aliases = [ "printing.service" ];
-    ensure-printers.aliases = [ "printing-provision.service" ];
+    ensure-printers = {
+      aliases = [ "printing-provision.service" ];
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+    };
   };
 
   # Declarative Printer Inventory
