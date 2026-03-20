@@ -1,6 +1,7 @@
 {
   inputs,
   pkgs,
+  lib,
   ...
 }:
 
@@ -12,9 +13,9 @@ let
 in
 {
   nixpkgs.overlays = [
-    (final: prev: {
+    (_final: prev: {
       # Globally disable tests for niri to prevent build failures in ISO/resource-constrained environments.
-      niri = prev.niri.overrideAttrs (old: {
+      niri = prev.niri.overrideAttrs (_old: {
         doCheck = false;
       });
     })
@@ -31,9 +32,11 @@ in
   programs.niri = {
     enable = true;
     # Force the package override to ensure tests are skipped system-wide.
-    package = lib.mkForce (pkgs.niri.overrideAttrs (old: {
-      doCheck = false;
-    }));
+    package = lib.mkForce (
+      pkgs.niri.overrideAttrs (_old: {
+        doCheck = false;
+      })
+    );
   };
 
   # Dank Material Shell (DMS) configuration

@@ -44,6 +44,12 @@
       enable = true;
       enableSSHSupport = true;
       pinentryPackage = pkgs.pinentry-curses;
+      settings = {
+        default-cache-ttl = 28800; # 8 hours
+        max-cache-ttl = 86400; # 24 hours
+        default-cache-ttl-ssh = 28800;
+        max-cache-ttl-ssh = 86400;
+      };
     };
   };
 

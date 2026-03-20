@@ -9,6 +9,8 @@
     pciutils
     usbutils
     lshw
+    lm_sensors
+    iotop
     ripgrep
     fd
     file

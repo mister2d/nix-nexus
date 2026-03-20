@@ -157,8 +157,8 @@ in
   # Resource Monitor
   programs.btop = {
     enable = true;
-    # Enable ROCm SMI support for AMD GPU monitoring
-    package = pkgs.btop.override { rocmSupport = true; };
+    # Default to generic package. Hosts override with rocmSupport/cudaSupport.
+    package = lib.mkDefault pkgs.btop;
     settings = {
       color_theme = "TTY";
       theme_background = false;
