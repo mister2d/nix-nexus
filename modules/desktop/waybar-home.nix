@@ -259,16 +259,34 @@ in
   };
 
   # Ensure the waybar service has the correct PATH for its custom scripts
-  systemd.user.services.waybar.Service.ExecStartPre =
-    "${pkgs.coreutils}/bin/touch /tmp/waybar-style-alert.css";
-  systemd.user.services.waybar.Service.Environment = lib.mkForce "PATH=${
-    lib.makeBinPath [
-      pkgs.wofi
-      pkgs.pulseaudio
-      pkgs.procps
-      pkgs.coreutils
-      pkgs.networkmanagerapplet
-      pkgs.kitty
-    ]
-  }:/run/current-system/sw/bin";
+  # and is robust against audio service restarts/disconnections.
+  systemd.user.services.waybar = {
+    Unit = {
+      # Bind to audio services to prevent FD leaks when PipeWire is stopped.
+      # This ensures Waybar stops cleanly when the audio stack is taken down.
+      After = [
+        "pipewire.service"
+        "wireplumber.service"
+        "pipewire-pulse.service"
+      ];
+      BindsTo = [ "pipewire.service" ];
+    };
+    Service = {
+      ExecStartPre = "${pkgs.coreutils}/bin/touch /tmp/waybar-style-alert.css";
+      Environment = lib.mkForce "PATH=${
+        lib.makeBinPath [
+          pkgs.wofi
+          pkgs.pulseaudio
+          pkgs.procps
+          pkgs.coreutils
+          pkgs.networkmanagerapplet
+          pkgs.kitty
+        ]
+      }:/run/current-system/sw/bin";
+
+      # Throttling and resource limits to mitigate "Too many open files"
+      RestartSec = 5;
+      LimitNOFILE = 16384;
+    };
+  };
 }
