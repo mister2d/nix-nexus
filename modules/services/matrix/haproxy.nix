@@ -2,6 +2,7 @@
   pkgs,
   lib,
   matrixDomain,
+  callDomain,
   ...
 }:
 let
@@ -79,12 +80,14 @@ in
         acl is_matrix      path_beg /_matrix
         acl is_synapse     path_beg /_synapse
         acl is_wellknown   path_beg /.well-known
+        acl is_call        hdr(host) -i ${callDomain}
 
         use_backend mas_backend       if is_mas_login or is_mas_logout or is_mas_refresh or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
         use_backend wellknown_backend if is_wellknown
         use_backend synapse_backend   if is_matrix or is_synapse
+        use_backend element_call_backend if is_call
         default_backend element_backend
 
       # ── Stats and Prometheus metrics ──────────────────────────────────────────
@@ -117,6 +120,9 @@ in
 
       backend wellknown_backend
         server wellknown 127.0.0.1:8083
+
+      backend element_call_backend
+        server element_call 127.0.0.1:8084
 
       backend element_backend
         server element 127.0.0.1:8082

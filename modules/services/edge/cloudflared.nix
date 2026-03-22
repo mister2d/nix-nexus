@@ -2,6 +2,7 @@
   matrixDomain,
   elementDomain,
   masDomain,
+  callDomain,
   ...
 }:
 {
@@ -14,6 +15,7 @@
         "${matrixDomain}" = "http://127.0.0.1:8080";
         "${elementDomain}" = "http://127.0.0.1:8080";
         "${masDomain}" = "http://127.0.0.1:8080";
+        "${callDomain}" = "http://127.0.0.1:8080";
       };
       default = "http_status:404";
     };
