@@ -14,6 +14,9 @@ result-*
 .env
 .direnv/
 debug/
+PDB.md
+AGENTS.md
+CLAUDE.md
 
 # System specific
 hardware-configuration.nix.bak

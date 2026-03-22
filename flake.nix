@@ -196,7 +196,9 @@
         # Hostname: petunia
         petunia = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs;
+          };
           modules = [
             # Disko declarative partitioning
             inputs.disko.nixosModules.disko
@@ -226,6 +228,40 @@
                     dms.homeModules.default
                     dms.homeModules.niri
                     ./hosts/petunia/home.nix
+                  ];
+                };
+              };
+            }
+          ];
+        };
+
+        # Hostname: avina
+        avina = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs;
+          };
+          modules = [
+            # Disko declarative partitioning
+            inputs.disko.nixosModules.disko
+
+            # Main configuration entry point
+            ./hosts/avina/default.nix
+
+            # Home Manager configuration
+            home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                useGlobalPkgs = true;
+                useUserPackages = true;
+                backupFileExtension = "bak";
+                extraSpecialArgs = {
+                  inherit inputs;
+                };
+                users.ddukes = {
+                  imports = [
+                    nixvim.homeModules.nixvim
+                    ./hosts/avina/home.nix
                   ];
                 };
               };
