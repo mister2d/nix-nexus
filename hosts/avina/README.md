@@ -6,7 +6,8 @@ Avina is a high-performance, secure, and fully public **Matrix 2.0** homeserver 
 
 The Avina stack consists of several integrated components:
 
-*   **Synapse**: The core Matrix homeserver (backend).
+*   **Element Web**: The primary Matrix web client.
+*   **Element Call**: A specialized, React-based application for multi-party video/audio calls using MatrixRTC.
 *   **Matrix Authentication Service (MAS)**: A native OIDC provider that handles all user authentication, delegating to an upstream SSO provider (Keycloak).
 *   **LiveKit**: A WebRTC SFU providing high-quality audio and video via MatrixRTC.
 *   **Coturn**: A STUN/TURN relay to ensure media connectivity across restrictive networks.
@@ -158,6 +159,7 @@ Avina uses dedicated ZFS datasets for persistent data, allowing for atomic snaps
 *   `/var/lib/postgresql`: Database state.
 *   `/var/lib/matrix-synapse`: Media uploads and Synapse state.
 *   `/var/lib/matrix-authentication-service`: OIDC session data.
+*   `/run/element-call`: Runtime directory for Element Call (static assets + config).
 
 You can create a backup snapshot with:
 ```bash

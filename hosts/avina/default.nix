@@ -8,6 +8,7 @@ let
   matrixDomain = "matrix.example.com";
   elementDomain = "element.example.com";
   masDomain = "auth.example.com";
+  callDomain = "call.example.com";
   coturnRealm = "turn.example.com";
   # ─────────────────────────────────────────────────────────────────────────
 in
@@ -26,6 +27,7 @@ in
       matrixDomain
       elementDomain
       masDomain
+      callDomain
       coturnRealm
       ;
   };
