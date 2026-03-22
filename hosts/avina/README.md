@@ -14,6 +14,14 @@ The Avina stack consists of several integrated components:
 *   **HAProxy**: The sole HTTP/S reverse proxy managing traffic between components.
 *   **Cloudflared**: Creates a secure tunnel to the Cloudflare edge, exposing services without opening port 80/443.
 
+## 🔒 Federated Posture (Private Federation)
+
+Avina implements a **least-privilege federation model**. By default, it only federates with its own domain and a specific set of trusted partners.
+
+*   **Whitelist Enforcement**: Only domains listed in the `federation_domain_whitelist` can exchange messages with this homeserver.
+*   **Safety**: Your own `matrixDomain` is automatically included to ensure internal lookups and signature verification function correctly.
+*   **Adding Partners**: To add a new federated server, add its domain to the `federatedDomains` list in `hosts/avina/default.nix`.
+
 ## 🔐 Security & Secret Management
 
 Avina follows a "Zero Secrets in Nix Store" policy. No passwords, API keys, or tokens are ever stored in the Nix configuration or the globally-readable `/nix/store`.
@@ -26,6 +34,7 @@ All sensitive data is provisioned manually by the operator into `/run/secrets/`.
 | `/run/secrets/synapse-secrets.yaml` | Master keys for Synapse (Macaroon, TURN, OIDC) |
 | `/run/secrets/mas-config.yaml` | Full configuration for MAS, including DB and SSO secrets |
 | `/run/secrets/cloudflared-creds.json` | Credentials for the Cloudflare Tunnel |
+| `/run/secrets/synapse-email.yaml` | SMTP credentials for Mailgun notifications |
 | `/run/secrets/vault-token.env` | Token for fetching TLS certificates from Vault |
 | `/run/secrets/coturn-secret` | Shared secret for TURN authentication |
 
@@ -79,7 +88,14 @@ matrix_authentication_service:
   secret: "<MAS_TO_SYNAPSE_SHARED_SECRET>"
 EOF
 
-# 3. MAS Configuration (Full YAML)
+# 3. Synapse Email Secrets (YAML)
+# smtp_pass: Your Mailgun SMTP password.
+cat <<EOF | sudo tee /run/secrets/synapse-email.yaml > /dev/null
+email:
+  smtp_pass: "<MAILGUN_SMTP_PASSWORD>"
+EOF
+
+# 4. MAS Configuration (Full YAML)
 # encryption: master key for OIDC sessions (Generate ONCE, never rotate)
 # matrix.secret: matches the client_secret in synapse-secrets.yaml
 cat <<EOF | sudo tee /run/secrets/mas-config.yaml > /dev/null
