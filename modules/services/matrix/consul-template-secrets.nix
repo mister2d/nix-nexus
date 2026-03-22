@@ -1,0 +1,211 @@
+{
+  pkgs,
+  ...
+}:
+let
+  certDir = "/run/certs";
+  secretDir = "/run/secrets";
+  persistentSecretDir = "/var/lib/secrets"; # Survives reboots, stores the "Master Key"
+  kvPath = "kv-v2/letsencrypt/certificates/live/novuscotia.com";
+  matrixKvPath = "kv-v2/matrix/avina";
+
+  # ── Templates ─────────────────────────────────────────────────────────────
+
+  # 1. SSL/TLS Certificates
+  haproxyTmpl = pkgs.writeText "haproxy-cert.ctmpl" ''
+    {{ with secret "${kvPath}" }}
+    {{ .Data.data.fullchain }}{{ .Data.data.privkey }}
+    {{ end }}
+  '';
+
+  coturnCertTmpl = pkgs.writeText "coturn-cert.ctmpl" ''
+    {{ with secret "${kvPath}" }}
+    {{ .Data.data.fullchain }}
+    {{ end }}
+  '';
+
+  coturnKeyTmpl = pkgs.writeText "coturn-key.ctmpl" ''
+    {{ with secret "${kvPath}" }}
+    {{ .Data.data.privkey }}
+    {{ end }}
+  '';
+
+  # 2. Synapse Master Secrets
+  synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
+    {{ with secret "${matrixKvPath}/synapse" }}
+    macaroon_secret_key: "{{ .Data.data.macaroon_secret_key }}"
+    form_secret: "{{ .Data.data.form_secret }}"
+    registration_shared_secret: "{{ .Data.data.registration_shared_secret }}"
+    turn_shared_secret: "{{ .Data.data.turn_shared_secret }}"
+    matrix_authentication_service:
+      secret: "{{ .Data.data.mas_shared_secret }}"
+    {{ end }}
+  '';
+
+  # 3. Synapse Email (SMTP)
+  synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
+    {{ with secret "${matrixKvPath}/email" }}
+    email:
+      smtp_pass: "{{ .Data.data.smtp_pass }}"
+    {{ end }}
+  '';
+
+  # 4. MAS Full Config
+  # Note: MAS kind: synapse and other non-secret fields are rendered here
+  # to keep the entire MAS config source-of-truth in Vault.
+  masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
+    {{ with secret "${matrixKvPath}/mas" }}
+    http:
+      listeners:
+        - name: web
+          resources: [discovery, human, oauth, compat, graphql, assets]
+          binds: [{ host: "127.0.0.1", port: 8181 }]
+    database:
+      host: "/run/postgresql"
+      database: "matrix-authentication-service"
+      username: "matrix-authentication-service"
+    secrets:
+      encryption: "{{ .Data.data.encryption_key }}"
+    upstream_oauth2:
+      providers:
+        - id: keycloak
+          issuer: "{{ .Data.data.oidc_issuer }}"
+          client_id: "mas"
+          client_secret: "{{ .Data.data.oidc_client_secret }}"
+    matrix:
+      kind: synapse
+      homeserver: "{{ .Data.data.matrix_domain }}"
+      secret: "{{ .Data.data.mas_shared_secret }}"
+      endpoint: "http://127.0.0.1:8008"
+    {{ end }}
+  '';
+
+  # 5. Cloudflare Tunnel Credentials
+  cloudflaredTmpl = pkgs.writeText "cloudflared.ctmpl" ''
+    {{ with secret "${matrixKvPath}/cloudflared" }}
+    {
+      "AccountTag": "{{ .Data.data.account_id }}",
+      "TunnelID": "{{ .Data.data.tunnel_id }}",
+      "TunnelName": "avina-tunnel",
+      "TunnelSecret": "{{ .Data.data.tunnel_secret }}"
+    }
+    {{ end }}
+  '';
+
+  # 6. Coturn & LiveKit shared secrets
+  coturnSecretTmpl = pkgs.writeText "coturn-secret.ctmpl" ''
+    {{ with secret "${matrixKvPath}/synapse" }}{{ .Data.data.turn_shared_secret }}{{ end }}
+  '';
+
+  coturnSecretEnvTmpl = pkgs.writeText "coturn-env.ctmpl" ''
+    {{ with secret "${matrixKvPath}/synapse" }}
+    LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}
+    {{ end }}
+  '';
+
+  # ── Configurations ────────────────────────────────────────────────────────
+
+  # Vault Agent Config: Handles AppRole authentication and token rotation.
+  vaultAgentConfig = pkgs.writeText "vault-agent.hcl" ''
+    exit_after_auth = false
+    pid_file = "/run/vault-agent.pid"
+
+    auto_auth {
+      method "approle" {
+        config = {
+          role_id_file_path   = "${persistentSecretDir}/vault-role-id"
+          secret_id_file_path = "${persistentSecretDir}/vault-secret-id"
+          remove_secret_id_file_after_reading = false
+        }
+      }
+      sink "file" {
+        config = {
+          path = "${secretDir}/vault-token"
+          mode = 0600
+        }
+      }
+    }
+
+    vault {
+      address = "https://vault.service.consul:8200"
+    }
+  '';
+
+  # Consul Template Config: Watches the sinked token and renders all templates.
+  ctConfig = pkgs.writeText "consul-template-secrets.hcl" ''
+    vault {
+      address      = "https://vault.service.consul:8200"
+      vault_agent_token_file = "${secretDir}/vault-token"
+      renew_token  = false # Vault Agent handles renewal
+    }
+
+    # SSL Certs
+    template { source = "${haproxyTmpl}"; destination = "${certDir}/haproxy.pem"; perms = 0640; command = "${pkgs.systemd}/bin/systemctl reload haproxy.service || true" }
+    template { source = "${coturnCertTmpl}"; destination = "${certDir}/coturn-fullchain.pem"; perms = 0644; command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
+    template { source = "${coturnKeyTmpl}"; destination = "${certDir}/coturn.key"; perms = 0640; command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
+
+    # Application Secrets
+    template { source = "${synapseSecretsTmpl}"; destination = "${secretDir}/synapse-secrets.yaml"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${synapseEmailTmpl}"; destination = "${secretDir}/synapse-email.yaml"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${masConfigTmpl}"; destination = "${secretDir}/mas-config.yaml"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" }
+    template { source = "${cloudflaredTmpl}"; destination = "${secretDir}/cloudflared-creds.json"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart cloudflared-74839201-abcd-efgh-ijkl-1234567890ab.service || true" }
+    template { source = "${coturnSecretTmpl}"; destination = "${secretDir}/coturn-secret"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart coturn.service || true" }
+    template { source = "${coturnSecretEnvTmpl}"; destination = "${secretDir}/coturn-secret-env"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart livekit.service || true" }
+  '';
+in
+{
+  systemd = {
+    tmpfiles.rules = [
+      "d ${certDir} 0755 root root -"
+      "d ${secretDir} 0700 root root -"
+      "d ${persistentSecretDir} 0700 root root -"
+    ];
+
+    # Vault Agent: The persistent "Master Key" authenticator.
+    services.vault-agent = {
+      description = "Vault Agent: AppRole authentication for avina bootstrap";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
+        Restart = "on-failure";
+        RestartSec = "10s";
+        NoNewPrivileges = true;
+        ReadWritePaths = [
+          secretDir
+          "/run"
+        ];
+        ReadOnlyPaths = [ persistentSecretDir ];
+      };
+    };
+
+    # Consul Template: The runtime secrets renderer.
+    services.consul-template-secrets = {
+      description = "consul-template: render all Matrix 2.0 secrets from Vault";
+      after = [ "vault-agent.service" ];
+      requires = [ "vault-agent.service" ];
+      wantedBy = [ "multi-user.target" ];
+      # Ensure secrets are rendered before applications start
+      before = [
+        "matrix-synapse.service"
+        "matrix-authentication-service.service"
+        "coturn.service"
+        "haproxy.service"
+        "cloudflared-74839201-abcd-efgh-ijkl-1234567890ab.service"
+        "livekit.service"
+      ];
+      serviceConfig = {
+        ExecStart = "${pkgs.consul-template}/bin/consul-template -config=${ctConfig}";
+        Restart = "on-failure";
+        RestartSec = "10s";
+        NoNewPrivileges = true;
+        PrivateTmp = false;
+        ReadWritePaths = [
+          certDir
+          secretDir
+        ];
+      };
+    };
+  };
+}
