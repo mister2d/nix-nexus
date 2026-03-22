@@ -19,6 +19,13 @@ NC='\033[0m'
 log()   { echo -e "${GREEN}[BOOTSTRAP] $1${NC}"; }
 error() { echo -e "${RED}[ERROR] $1${NC}"; exit 1; }
 
+cleanup() {
+    log "Cleaning up temporary installer files..."
+    rm -f /tmp/ct-install.hcl /tmp/*.ctmpl
+    unset VAULT_TOKEN
+}
+trap cleanup EXIT
+
 [[ $EUID -ne 0 ]] && error "Must be run as root."
 
 TARGET_HOSTNAME="$(basename "$(cd "$(dirname "$0")" && pwd)")"
@@ -62,7 +69,7 @@ fi
 export VAULT_ADDR
 
 if [[ -z "${VAULT_TOKEN:-}" ]]; then
-    read -rsp "  Enter Vault Token (Root/Admin): " VAULT_TOKEN; echo
+    read -rsp "  Enter Vault Token (Administrative): " VAULT_TOKEN; echo
 fi
 export VAULT_TOKEN
 
@@ -96,34 +103,13 @@ matrixKvPath="kv-v2/matrix/avina"
 cat <<EOF > /tmp/ct-install.hcl
 vault { address = "$VAULT_ADDR" }
 
-template {
-  source = "/tmp/haproxy.ctmpl"
-  destination = "/run/certs/haproxy.pem"
-}
-template {
-  source = "/tmp/synapse.ctmpl"
-  destination = "/run/secrets/synapse-secrets.yaml"
-}
-template {
-  source = "/tmp/mas.ctmpl"
-  destination = "/run/secrets/mas-config.yaml"
-}
-template {
-  source = "/tmp/cloudflared.ctmpl"
-  destination = "/run/secrets/cloudflared-creds.json"
-}
-template {
-  source = "/tmp/email.ctmpl"
-  destination = "/run/secrets/synapse-email.yaml"
-}
-template {
-  source = "/tmp/turn.ctmpl"
-  destination = "/run/secrets/coturn-secret"
-}
-template {
-  source = "/tmp/turn-env.ctmpl"
-  destination = "/run/secrets/coturn-secret-env"
-}
+template { source = "/tmp/haproxy.ctmpl"; destination = "/run/certs/haproxy.pem" }
+template { source = "/tmp/synapse.ctmpl"; destination = "/run/secrets/synapse-secrets.yaml" }
+template { source = "/tmp/mas.ctmpl";     destination = "/run/secrets/mas-config.yaml" }
+template { source = "/tmp/cf.ctmpl";      destination = "/run/secrets/cloudflared-creds.json" }
+template { source = "/tmp/email.ctmpl";   destination = "/run/secrets/synapse-email.yaml" }
+template { source = "/tmp/turn.ctmpl";    destination = "/run/secrets/coturn-secret" }
+template { source = "/tmp/turnenv.ctmpl"; destination = "/run/secrets/coturn-secret-env" }
 EOF
 
 echo "{{ with secret \"$kvPath\" }}{{ .Data.data.fullchain }}{{ .Data.data.privkey }}{{ end }}" > /tmp/haproxy.ctmpl
@@ -168,7 +154,7 @@ echo "{{ with secret \"$matrixKvPath/cloudflared\" }}
   \"TunnelName\": \"avina-tunnel\",
   \"TunnelSecret\": \"{{ .Data.data.tunnel_secret }}\"
 }
-{{ end }}" > /tmp/cloudflared.ctmpl
+{{ end }}" > /tmp/cf.ctmpl
 
 echo "{{ with secret \"$matrixKvPath/email\" }}
 email:
@@ -176,7 +162,7 @@ email:
 {{ end }}" > /tmp/email.ctmpl
 
 echo "{{ with secret \"$matrixKvPath/synapse\" }}{{ .Data.data.turn_shared_secret }}{{ end }}" > /tmp/turn.ctmpl
-echo "{{ with secret \"$matrixKvPath/synapse\" }}LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}{{ end }}" > /tmp/turn-env.ctmpl
+echo "{{ with secret \"$matrixKvPath/synapse\" }}LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}{{ end }}" > /tmp/turnenv.ctmpl
 
 # Execute consul-template once to render
 nix --extra-experimental-features "nix-command flakes" \
@@ -185,6 +171,9 @@ nix --extra-experimental-features "nix-command flakes" \
 
 log "Secrets rendered successfully to /run/secrets."
 chmod 600 /run/secrets/*
+
+# Clear token from environment immediately
+unset VAULT_TOKEN
 
 # --- Resource Pressure Mitigation (12GB RAM) ---
 log "Throttling ZFS ARC to 1GB to preserve RAM for Nix daemon..."
@@ -197,7 +186,6 @@ export NIXPKGS_ALLOW_UNFREE=1
 BUILD_FLAKE=".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel"
 for attempt in 1 2 3; do
     log "Step 1/3: Build attempt $attempt/3..."
-    # Constrain to 2 cores to avoid OOM on 12GB RAM during heavy eval/build
     if nix \
         --extra-experimental-features "nix-command flakes" \
         build \

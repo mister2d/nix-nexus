@@ -25,7 +25,7 @@ Avina implements a **least-privilege federation model**. By default, it only fed
 
 ## 🔐 Security & Secret Management
 
-Avina follows a **Zero Secrets in Nix Store** policy combined with an **Automated Bootstrap** model.
+Avina follows a **Zero Secrets in Nix Store** policy combined with an **Automated Bootstrap** model. 
 
 ### 1. The Bootstrap Model ("The Master Key")
 Instead of manually provisioning dozens of secrets, Avina uses a single persistent "Master Key" to unlock the rest of its configuration from **HashiCorp Vault** at boot time.
@@ -36,7 +36,7 @@ Instead of manually provisioning dozens of secrets, Avina uses a single persiste
 
 ### 2. Secret Lifecycle & Persistence
 *   **Memory-Backed (`tmpfs`)**: All operational secrets (Synapse keys, SMTP passes, OIDC secrets) live in RAM (`/run/secrets`). They are **wiped on every reboot** for maximum security.
-*   **Self-Healing**: On boot, the system automatically authenticates to Vault and restores the `/run/secrets` directory.
+*   **Self-Healing**: On boot, the system automatically authenticates to Vault and restores the `/run/secrets` directory. 
 *   **Live Updates**: Changes made in the Vault UI/CLI are detected by the system within seconds. Services (HAProxy, Synapse, MAS) are automatically reloaded or restarted to apply the new secrets without a NixOS rebuild.
 
 ### 3. Automated TLS (Vault + Consul-Template)
@@ -59,20 +59,16 @@ Both **Synapse** and **MAS** are configured to trust the proxy headers passed by
 
 ## 💿 Installation Guide
 
-If you are new to NixOS, follow these steps to deploy Avina.
+Deployment involves preparing your Vault infrastructure and then running the interactive installer on the target host.
 
-### Prerequisites
-1.  A VM with at least **12GB RAM** and **4 CPU cores**.
-2.  A 64-bit NixOS Installation ISO (Minimal recommended).
-3.  Access to `/dev/sda` for installation.
+### 1. Pre-Installation: Vault Setup
+Ensure your Vault instance has the following:
+1.  An **AppRole** created for Avina with a policy allowing `read` access to your Matrix KV paths.
+2.  A **Role-ID** and **Secret-ID** generated for the AppRole.
+3.  The Matrix secrets populated in the KV-v2 engine at the paths defined in `modules/services/matrix/consul-template-secrets.nix`.
 
-### 1. Boot the Installer
-Boot your VM from the NixOS ISO. Once at the prompt, set a temporary password for the `nixos` user:
-```bash
-sudo passwd nixos
-```
-
-### 2. Clone the Configuration
+### 2. Boot the Installer
+Boot the target VM from a standard NixOS Installation ISO. Once at the prompt, clone the configuration:
 ```bash
 git clone https://github.com/mister2d/nix-nexus.git
 cd nix-nexus
@@ -86,10 +82,10 @@ sudo ./hosts/avina/install.sh
 ```
 
 The script will guide you through the following steps:
-1.  **Vault Bootstrap**: Prompts for `VAULT_ADDR`, `VAULT_TOKEN`, and the host's **AppRole** (Role-ID and Secret-ID).
-2.  **Validation**: Uses a pinned `nix-shell` to fetch and render all runtime secrets into `/run/secrets`, validating the connection to your Vault infrastructure before any changes are made to the disk.
+1.  **Vault Bootstrap**: Prompts for your Vault URL and administrative token.
+2.  **Secret Validation**: Uses a pinned `nix-shell` to fetch and render all runtime secrets into `/run/secrets`. This ensures your Vault configuration is correct before any changes are made to the disk.
 3.  **Master Key Provisioning**: Automatically stores the AppRole credentials on the persistent `/var/lib/secrets` dataset.
-4.  **Two-Step Build**: Builds the system directly onto the disk (`/mnt`) using memory-optimized settings.
+4.  **Two-Step Build**: Builds the system directly onto the disk (`/mnt`) to preserve RAM.
 5.  **Final Confirmation**: Asks for a firm confirmation before the final unattended installation stage.
 
 ### 4. Reboot
@@ -106,12 +102,7 @@ Avina uses dedicated ZFS datasets for persistent data, allowing for atomic snaps
 *   `/var/lib/postgresql`: Database state.
 *   `/var/lib/matrix-synapse`: Media uploads and Synapse state.
 *   `/var/lib/matrix-authentication-service`: OIDC session data.
-*   `/var/lib/secrets`: Persistent Vault bootstrap keys.
-
-You can create a backup snapshot with:
-```bash
-zfs snapshot avina/postgresql@backup-$(date +%Y-%m-%d)
-```
+*   `/var/lib/secrets`: Persistent Vault bootstrap keys (The "Master Key").
 
 ## 🛠️ Maintenance
 
