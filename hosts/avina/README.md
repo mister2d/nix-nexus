@@ -152,6 +152,27 @@ Once the script finishes successfully, reboot the VM:
 sudo reboot
 ```
 
+## 📈 Observability & Traceability
+
+Avina is configured to leverage Cloudflare's edge headers for deep visibility into incoming traffic.
+
+### 1. HAProxy Logging
+HAProxy captures the following Cloudflare-specific metadata in its logs:
+*   **`CF-Ray`**: Unique request ID for tracing through the Cloudflare network.
+*   **`CF-Connecting-IP`**: The real IP of the client.
+*   **`CF-IPCountry`**: The country code associated with the client IP.
+
+The custom log format allows for easy parsing by external tools while providing immediate security awareness in the journal:
+```
+# Example log entry
+haproxy[...]: 127.0.0.1:54321 [...] matrix_ingress mas_backend/mas ... "GET /auth HTTP/1.1" 8hf73js92lkf0 203.0.113.45 US
+```
+
+### 2. Backend Awareness
+Both **Synapse** and **MAS** are configured to trust the proxy headers passed by HAProxy.
+*   **Synapse**: Uses `trusted_proxies = ["127.0.0.1"]` to correctly resolve the client IP from the `X-Forwarded-For` header.
+*   **Traceability**: HAProxy explicitly injects `X-Cloudflare-Ray` and `X-Cloudflare-Country` into backend requests, enabling application-level logging of the edge metadata.
+
 ## 📊 Persistence & Backups (ZFS)
 
 Avina uses dedicated ZFS datasets for persistent data, allowing for atomic snapshots and efficient "data shipping" (backups).

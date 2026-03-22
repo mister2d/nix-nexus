@@ -53,9 +53,12 @@ in
       global
         maxconn 4096
         stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+        log stdout format raw local0
 
       defaults
         mode    http
+        log     global
+        option  httplog
         timeout connect 5s
         timeout client  600s
         timeout server  600s
@@ -63,9 +66,27 @@ in
         option  forwardfor
         option  http-server-close
 
+        # Custom log format for observability including Cloudflare headers
+        # Reference: https://developers.cloudflare.com/fundamentals/reference/http-headers/
+        log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r %[var(txn.cf_ray)] %[var(txn.cf_ip)] %[var(txn.cf_country)]"
+
       # ── Matrix ingress (from cloudflared) ────────────────────────────────────
       frontend matrix_ingress
         bind 127.0.0.1:8080
+
+        # Capture Cloudflare headers for observability
+        http-request set-var(txn.cf_ray)     hdr(CF-Ray)
+        http-request set-var(txn.cf_ip)      hdr(CF-Connecting-IP)
+        http-request set-var(txn.cf_country) hdr(CF-IPCountry)
+
+        # Secure awareness: Use CF-Connecting-IP as the source IP for internal ACLs and tracking
+        # This allows stats/metrics and other logic to see the real client IP.
+        http-request set-src hdr(CF-Connecting-IP) if { hdr(CF-Connecting-IP) -m found }
+
+        # Pass Cloudflare headers to backends for application-level observability
+        http-request set-header X-Forwarded-For %[hdr(CF-Connecting-IP)] if { hdr(CF-Connecting-IP) -m found }
+        http-request set-header X-Cloudflare-Ray %[hdr(CF-Ray)] if { hdr(CF-Ray) -m found }
+        http-request set-header X-Cloudflare-Country %[hdr(CF-IPCountry)] if { hdr(CF-IPCountry) -m found }
 
         # MSC3861 auth endpoint routing
         acl is_mas_login   path_beg /_matrix/client/v3/login
