@@ -1,6 +1,7 @@
 {
   matrixDomain,
   coturnRealm,
+  federatedDomains ? [ ],
   ...
 }:
 {
@@ -36,7 +37,21 @@
       ];
       turn_user_lifetime = "86400000ms";
 
-      federation_domain_whitelist = [ matrixDomain ];
+      # Federated Posture:
+      # Restrict federation to a specific set of trusted domains (Private Federation).
+      # Inclusion of matrixDomain is mandatory for server health.
+      federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;
+
+      # Email Notifications (Mailgun):
+      # Sensitive values (smtp_pass) are provisioned via synapse-email.yaml.
+      email = {
+        enable_notifs = true;
+        smtp_host = "smtp.mailgun.org";
+        smtp_port = 587;
+        smtp_user = "postmaster@${matrixDomain}";
+        require_transport_security = true;
+        notif_from = "Matrix <matrix@${matrixDomain}>";
+      };
 
       # Proxy Trust Model:
       # Trust HAProxy on the local loopback for secure header propagation.
@@ -78,7 +93,10 @@
       ];
     };
 
-    extraConfigFiles = [ "/run/secrets/synapse-secrets.yaml" ];
+    extraConfigFiles = [
+      "/run/secrets/synapse-secrets.yaml"
+      "/run/secrets/synapse-email.yaml"
+    ];
   };
 
   # Service ordering

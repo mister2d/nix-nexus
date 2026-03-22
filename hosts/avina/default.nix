@@ -10,6 +10,14 @@ let
   masDomain = "auth.example.com";
   callDomain = "call.example.com";
   coturnRealm = "turn.example.com";
+
+  # Federated Posture:
+  # Least-privilege model. Add domains of external homeservers you wish to
+  # federate with. Always includes matrixDomain automatically.
+  federatedDomains = [
+    # "matrix.org"
+    # "trusted-partner.com"
+  ];
   # ─────────────────────────────────────────────────────────────────────────
 in
 {
@@ -29,6 +37,7 @@ in
       masDomain
       callDomain
       coturnRealm
+      federatedDomains
       ;
   };
 
