@@ -20,11 +20,9 @@
         # client_secret is in /run/secrets/synapse-secrets.yaml
       };
 
-      # MatrixRTC features
+      # MatrixRTC features (advising clients of support)
       experimental_features = {
-        msc3843_enabled = true;
-        msc3401_enabled = true;
-        msc3401_native_native_webrtc_enabled = true;
+        # MSC3401 and MSC3843 are stable/integrated in 1.149.1
       };
 
       # Disable password auth (handled by MAS)
@@ -54,6 +52,11 @@
           host = "/run/postgresql";
           cp_min = 5;
           cp_max = 10;
+          # ── Resilience ──────────────────────────────────────────────────────
+          # Prevent silent connection drops
+          keepalives_idle = 10;
+          keepalives_interval = 10;
+          keepalives_count = 3;
         };
       };
 
