@@ -42,6 +42,9 @@
       # Federation
       federation_domain_whitelist = [ matrixDomain ];
 
+      # Proxy Trust
+      trusted_proxies = [ "127.0.0.1" ];
+
       # Database
       database = {
         name = "psycopg2";
