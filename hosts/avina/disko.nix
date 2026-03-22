@@ -91,6 +91,17 @@
               recordsize = "128k";
             };
           };
+          # Persistent Bootstrap Secrets:
+          # Stores the Vault AppRole credentials ("Master Key") required to
+          # fetch all runtime secrets into RAM at boot.
+          secrets = {
+            type = "zfs_fs";
+            mountpoint = "/var/lib/secrets";
+            options = {
+              mountpoint = "legacy";
+              recordsize = "128k";
+            };
+          };
           swap = {
             type = "zfs_volume";
             size = "8G";
