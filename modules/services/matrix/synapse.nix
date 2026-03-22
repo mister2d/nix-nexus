@@ -48,9 +48,9 @@
         enable_notifs = true;
         smtp_host = "smtp.mailgun.org";
         smtp_port = 587;
-        smtp_user = "postmaster@${matrixDomain}";
+        smtp_user = "postmaster@mg.novuscotia.com";
         require_transport_security = true;
-        notif_from = "Matrix <matrix@${matrixDomain}>";
+        notif_from = "Matrix <noreply@novuscotia.com>";
       };
 
       # Proxy Trust Model:
