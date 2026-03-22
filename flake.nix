@@ -61,6 +61,9 @@
     # Nixvim - Neovim configuration via Nix
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
 
+    # Stable Matrix Stack Components (Pinned to 25.11 for stability)
+    pkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
+
     # Pinned package versions
     pkgs-nomad.url = "github:nixos/nixpkgs/ae67888ff7ef9dff69b3cf0cc0fbfbcd3a722abe";
     pkgs-hashicorp.url = "github:nixos/nixpkgs/a1bab9e494f5f4939442a57a58d0449a109593fe"; # vault, consul, helm, envsubst, ipmitool
@@ -247,6 +250,27 @@
 
             # Main configuration entry point
             ./hosts/avina/default.nix
+
+            # Pin matrix components to stable nixpkgs
+            (
+              { pkgs, ... }:
+              {
+                nixpkgs.overlays = [
+                  (_final: _prev: {
+                    inherit (inputs.pkgs-stable.legacyPackages.${pkgs.system})
+                      matrix-synapse-unwrapped
+                      matrix-authentication-service
+                      livekit
+                      lk-jwt-service
+                      coturn
+                      element-web
+                      element-call
+                      postgresql_16
+                      ;
+                  })
+                ];
+              }
+            )
 
             # Home Manager configuration
             home-manager.nixosModules.home-manager

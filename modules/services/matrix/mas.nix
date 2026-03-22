@@ -22,7 +22,9 @@ in
     after = [
       "network.target"
       "postgresql.service"
+      "matrix-synapse.service"
     ];
+    wants = [ "matrix-synapse.service" ];
     requires = [ "postgresql.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
