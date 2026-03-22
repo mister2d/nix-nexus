@@ -7,7 +7,8 @@ let
   secretDir = "/run/secrets";
   persistentSecretDir = "/var/lib/secrets"; # Survives reboots, stores the "Master Key"
   kvPath = "kv-v2/letsencrypt/certificates/live/novuscotia.com";
-  matrixKvPath = "kv-v2/matrix/avina";
+  matrixKvPath = "kv-v2/infrastructure/matrix/avina";
+  smtpKvPath = "kv-v2/infrastructure/smtp";
 
   # ── Templates ─────────────────────────────────────────────────────────────
 
@@ -43,16 +44,15 @@ let
   '';
 
   # 3. Synapse Email (SMTP)
+  # Source: kv-v2/infrastructure/smtp (Existing)
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
-    {{ with secret "${matrixKvPath}/email" }}
+    {{ with secret "${smtpKvPath}" }}
     email:
-      smtp_pass: "{{ .Data.data.smtp_pass }}"
+      smtp_pass: "{{ .Data.data.smtp_password }}"
     {{ end }}
   '';
 
   # 4. MAS Full Config
-  # Note: MAS kind: synapse and other non-secret fields are rendered here
-  # to keep the entire MAS config source-of-truth in Vault.
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
     {{ with secret "${matrixKvPath}/mas" }}
     http:
@@ -105,7 +105,6 @@ let
 
   # ── Configurations ────────────────────────────────────────────────────────
 
-  # Vault Agent Config: Handles AppRole authentication and token rotation.
   vaultAgentConfig = pkgs.writeText "vault-agent.hcl" ''
     exit_after_auth = false
     pid_file = "/run/vault-agent.pid"
@@ -131,7 +130,6 @@ let
     }
   '';
 
-  # Consul Template Config: Watches the sinked token and renders all templates.
   ctConfig = pkgs.writeText "consul-template-secrets.hcl" ''
     vault {
       address      = "https://vault.service.consul:8200"

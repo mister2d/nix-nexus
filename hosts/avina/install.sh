@@ -96,9 +96,10 @@ log "Rendering runtime secrets into /run/secrets using pinned consul-template...
 mkdir -p /run/secrets /run/certs
 chmod 700 /run/secrets
 
-# Define temporary templates for the installer
+# Paths must match modules/services/matrix/consul-template-secrets.nix
 kvPath="kv-v2/letsencrypt/certificates/live/novuscotia.com"
-matrixKvPath="kv-v2/matrix/avina"
+matrixKvPath="kv-v2/infrastructure/matrix/avina"
+smtpKvPath="kv-v2/infrastructure/smtp"
 
 cat <<EOF > /tmp/ct-install.hcl
 vault { address = "$VAULT_ADDR" }
@@ -156,9 +157,9 @@ echo "{{ with secret \"$matrixKvPath/cloudflared\" }}
 }
 {{ end }}" > /tmp/cf.ctmpl
 
-echo "{{ with secret \"$matrixKvPath/email\" }}
+echo "{{ with secret \"$smtpKvPath\" }}
 email:
-  smtp_pass: \"{{ .Data.data.smtp_pass }}\"
+  smtp_pass: \"{{ .Data.data.smtp_password }}\"
 {{ end }}" > /tmp/email.ctmpl
 
 echo "{{ with secret \"$matrixKvPath/synapse\" }}{{ .Data.data.turn_shared_secret }}{{ end }}" > /tmp/turn.ctmpl

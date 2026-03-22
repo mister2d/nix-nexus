@@ -62,10 +62,20 @@ Both **Synapse** and **MAS** are configured to trust the proxy headers passed by
 Deployment involves preparing your Vault infrastructure and then running the interactive installer on the target host.
 
 ### 1. Pre-Installation: Vault Setup
-Ensure your Vault instance has the following:
-1.  An **AppRole** created for Avina with a policy allowing `read` access to your Matrix KV paths.
-2.  A **Role-ID** and **Secret-ID** generated for the AppRole.
-3.  The Matrix secrets populated in the KV-v2 engine at the paths defined in `modules/services/matrix/consul-template-secrets.nix`.
+You must configure Vault to provide the host with its initial bootstrap credentials. A helper script is provided to automate this:
+
+1.  **Environment**: Ensure you have the `vault` binary installed and are authenticated with administrative privileges.
+2.  **Run Seeder**: Execute the seeding script from your local workstation:
+    ```bash
+    export VAULT_ADDR="https://your-vault-url"
+    export VAULT_TOKEN="your-admin-token"
+    ./hosts/avina/seed-vault.sh
+    ```
+3.  **Process**: The script will:
+    *   Enable the **AppRole** authentication method.
+    *   Create a **least-privilege policy** allowing the host to read only its required secrets.
+    *   Interactively prompt you for Synapse, MAS, and Cloudflare credentials to seed the KV-v2 engine.
+4.  **Note credentials**: At the end, the script will provide the command to obtain the **Role-ID** and **Secret-ID**. You will need these for the next step.
 
 ### 2. Boot the Installer
 Boot the target VM from a standard NixOS Installation ISO. Once at the prompt, clone the configuration:
