@@ -7,14 +7,15 @@ let
   certDir = "/run/certs";
   kvPath = "kv-v2/letsencrypt/certificates/live/novuscotia.com";
 
-  # HAProxy needs fullchain + privkey in a single PEM file.
+  # Certificate Template Definitions:
+  # Templates fetch fullchain and private keys from the fleet Vault instance (KV-v2 secrets engine).
+  # HAProxy requires a combined PEM file, while Coturn requires separate cert/key files.
   haproxyTmpl = pkgs.writeText "haproxy-cert.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.fullchain }}{{ .Data.data.privkey }}
     {{ end }}
   '';
 
-  # Coturn needs cert and key as separate files.
   coturnCertTmpl = pkgs.writeText "coturn-cert.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.fullchain }}
@@ -27,10 +28,11 @@ let
     {{ end }}
   '';
 
+  # Consul Template Configuration:
+  # Orchestrates the rendering and rotation of certificates.
+  # Automatically reloads dependent services upon certificate renewal.
   ctConfig = pkgs.writeText "consul-template-certs.hcl" ''
     vault {
-      # VAULT_ADDR is injected via Environment= in the systemd unit.
-      # VAULT_TOKEN is injected via EnvironmentFile= from the secrets file.
       unwrap_token = false
       renew_token  = true
     }
@@ -39,7 +41,6 @@ let
       source      = "${haproxyTmpl}"
       destination = "${certDir}/haproxy.pem"
       perms       = "0640"
-      # Reload HAProxy after cert renders; || true is safe if HAProxy not yet started
       command     = "${pkgs.systemd}/bin/systemctl reload haproxy.service || true"
     }
 
@@ -61,20 +62,20 @@ in
 {
   systemd.tmpfiles.rules = [ "d ${certDir} 0755 root root -" ];
 
+  # Certificate Lifecycle Service:
+  # Manages the automated provisioning of TLS certificates from the centralized Vault PKI/KV.
   systemd.services.consul-template-certs = {
     description = "consul-template: render TLS certs from Vault KV for avina services";
     after = [ "network-online.target" ];
     wants = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
-    # Both cert consumers must start after this service has rendered certs
     before = [
       "coturn.service"
       "haproxy.service"
     ];
     serviceConfig = {
-      # VAULT_ADDR: non-secret; set directly. Matches ambient env from modules/user/bash.nix.
+      # Integration with fleet-wide Vault infrastructure.
       Environment = [ "VAULT_ADDR=https://vault.service.consul:8200" ];
-      # VAULT_TOKEN: secret; injected from file. File contains: VAULT_TOKEN=<token>
       EnvironmentFile = "/run/secrets/vault-token.env";
       ExecStart = lib.escapeShellArgs [
         "${pkgs.consul-template}/bin/consul-template"
@@ -84,7 +85,7 @@ in
       Restart = "on-failure";
       RestartSec = "30s";
       NoNewPrivileges = true;
-      PrivateTmp = false; # must write to /run/certs
+      PrivateTmp = false; # Permissions needed to write to shared /run/certs
       ProtectSystem = "strict";
       ReadWritePaths = [ certDir ];
     };

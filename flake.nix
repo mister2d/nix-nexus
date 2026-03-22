@@ -251,7 +251,9 @@
             # Main configuration entry point
             ./hosts/avina/default.nix
 
-            # Pin matrix components to stable nixpkgs
+            # Stability Policy:
+            # Pin the Matrix 2.0 stack to the current stable release cycle (25.11)
+            # to ensure long-term reliability and spec compatibility.
             (
               { pkgs, ... }:
               {

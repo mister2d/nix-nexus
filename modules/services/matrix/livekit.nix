@@ -13,18 +13,22 @@ in
     inherit keyFile;
     settings = {
       port = 7880;
-      # Mandatory: prevents unauthenticated room creation
+      # Authentication Policy:
+      # Prevent unauthenticated SFU room creation.
       room.auto_create = false;
 
-      # TURN configuration for media relay
+      # Media Relay Policy:
+      # Force all WebRTC traffic through the fleet TURN relay to ensure
+      # connectivity across restrictive networks and maintain a minimal footprint.
       turn = {
         enabled = true;
         domain = coturnRealm;
-        # shared_secret should be passed via environment if not supported in settings
       };
     };
   };
 
+  # MatrixRTC Token Service:
+  # Provides JWT-based authentication for clients connecting to the SFU.
   services.lk-jwt-service = {
     enable = true;
     port = 8081;
@@ -33,6 +37,8 @@ in
   };
 
   systemd.services = {
+    # Key Management:
+    # Automated, idempotent generation of SFU access keys.
     livekit-key = {
       before = [
         "lk-jwt-service.service"
@@ -53,7 +59,6 @@ in
     };
 
     livekit.serviceConfig.EnvironmentFile = "/run/secrets/coturn-secret-env";
-    # The file should contain: LIVEKIT_TURN_SHARED_SECRET=<secret>
 
     lk-jwt-service.serviceConfig.Environment = [
       "LIVEKIT_URL=wss://${matrixDomain}/livekit/sfu"

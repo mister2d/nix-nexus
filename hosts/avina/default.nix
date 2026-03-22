@@ -17,9 +17,9 @@ in
     inputs.disko.nixosModules.disko
     ./disko.nix
     ./hardware-configuration.nix
-    ../../profiles/core # imports ZFS, networking, boot, security, users
-    ../../modules/services/matrix # Matrix 2.0 stack aggregator
-    ../../modules/services/edge/cloudflared.nix
+    ../../profiles/core # Core system policies (ZFS, networking, security)
+    ../../modules/services/matrix # Matrix 2.0 communications suite
+    ../../modules/services/edge/cloudflared.nix # Secure edge ingress
   ];
 
   _module.args = {
@@ -34,78 +34,66 @@ in
 
   networking = {
     hostName = "avina";
-    hostId = "a6b7c8d9"; # Example, should be generated properly by operator
+    hostId = "a6b7c8d9";
 
-    # ── Firewall: Coturn + SSH directly exposed ──────────────────────────────
-    # modules/core/networking.nix sets trustedInterfaces = ["tailscale0"] and
-    # allowedUDPPorts that includes config.services.tailscale.port.
-    # Override the entire firewall block to eliminate Tailscale references.
+    # Public Network Exposure Model:
+    # Only Coturn and SSH are exposed directly. All HTTP/S traffic enters via Cloudflare Tunnel.
+    # This configuration overrides core networking policies to ensure a minimal attack surface.
     firewall = lib.mkForce {
       enable = true;
-      trustedInterfaces = [ ]; # no VPN interface on this host
+      trustedInterfaces = [ ];
       allowedTCPPorts = [
         22
         5349
         8404
-      ]; # SSH + Coturn TURNS/TLS + HAProxy stats
+      ]; # SSH + Coturn (TURNS) + HAProxy stats
       allowedUDPPorts = [
         3478
         5349
-      ]; # Coturn STUN/TURN + TURNS
+      ]; # Coturn (STUN/TURN)
       allowedUDPPortRanges = [
         {
           from = 49000;
           to = 49999;
-        } # Coturn relay range
-      ];
+        }
+      ]; # Coturn dynamic relay range
       allowedTCPPortRanges = [
         {
           from = 3478;
           to = 3478;
-        } # Coturn STUN/TURN TCP
+        }
       ];
-      # LiveKit (7881, 50100-50200) NOT exposed; media relayed through Coturn.
     };
   };
 
-  # ── ZFS: conservative for Matrix-only workload ───────────────────────────
-  # profiles/core already imports modules/core/zfs.nix; set options here.
+  # ZFS Performance Tuning:
+  # Optimized for a Matrix workload on a memory-constrained VM (12GB RAM).
   nix-nexus.zfs = {
-    arcMax = 2147483648; # 2 GB — scale up if RAM ≥ 16 GB
-    arcMin = 536870912; # 512 MB
-    arcSysFree = 3221225472; # 3 GB headroom for PostgreSQL, Synapse, MAS, LiveKit
+    arcMax = 2147483648; # 2 GB ARC limit to prevent OOM
+    arcMin = 536870912;
+    arcSysFree = 3221225472; # Ensure 3GB for system/app overhead
     metaLimitPercent = 75;
     dnodeLimitPercent = 10;
   };
 
   services = {
-    # ── Tailscale: disabled — confirmed present in modules/core/networking.nix ──
-    # Future: enroll in self-hosted Headscale when that infrastructure is deployed.
-    # The autoconnect service references tailscaled.service; both must be disabled.
+    # VPN Policy:
+    # Tailscale is disabled in favour of future Headscale integration.
     tailscale.enable = lib.mkForce false;
 
-    # ── SSH: cert-based auth; open to all; prohibit-password root ────────────
-    # Password auth is disabled globally. Certificate-based authentication is
-    # enforced via a trusted SSH CA whose public key lives in the nix-nexus
-    # certs/ directory alongside the internal PKI CA (certs/int_cert.crt).
-    # Operator manages network-level SSH access restrictions externally.
+    # Secure Remote Access:
+    # Certificate-based authentication via repository-managed SSH CA.
     openssh = {
       enable = true;
       settings = {
         PasswordAuthentication = lib.mkForce false;
         KbdInteractiveAuthentication = lib.mkForce false;
         PermitRootLogin = lib.mkForce "prohibit-password";
-        # Trust user certificates signed by the fleet SSH CA.
-        # Operator places the CA public key at certs/ssh_user_ca.pub.
-        # Pattern matches modules/core/security.nix: ../../certs/int_cert.crt
         TrustedUserCAKeys = toString ../../certs/trusted_ssh_ca.pub;
       };
-      # No listenAddresses restriction — open to 0.0.0.0/0.
     };
 
-    # ── VM guest tools ───────────────────────────────────────────────────────
-    # avina runs as a virtual machine. Install the QEMU guest agent for
-    # hypervisor integration (graceful shutdown, time sync, snapshot quiescing).
+    # Hypervisor Integration:
     qemuGuest.enable = true;
   };
 

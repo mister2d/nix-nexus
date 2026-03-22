@@ -4,6 +4,9 @@
   ...
 }:
 let
+  # Client Configuration:
+  # Element Call requires explicit registration of the LiveKit JWT service
+  # to handle MatrixRTC media signaling.
   elementCallConfig = pkgs.writeText "element-call-config.json" (
     builtins.toJSON {
       default_server_config = {
@@ -13,28 +16,21 @@ let
         };
       };
       livekit_service_url = "https://${matrixDomain}/livekit/jwt";
-      # Element Call specific settings
       brand = "Element Call";
     }
   );
 
-  # The element-call package provides the static assets.
-  # We override it to include our custom config if the package supports it,
-  # otherwise we'll just serve the config alongside it.
-  elementCall = pkgs.element-call.override {
-    # Check nixpkgs for exact override pattern if needed.
-    # Usually we can just drop the config.json into the folder or use a wrapper.
-  };
+  elementCall = pkgs.element-call;
 in
 {
-  # Simple static server for Element Call on port 8084
+  # Static Asset Distribution:
+  # Serves the Element Call client. A symlink forest is created at runtime
+  # to merge the static assets with the dynamically generated configuration.
   systemd.services.element-call = {
     description = "Element Call static server";
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      # We serve the element-call package, but we must ensure config.json is present.
-      # A simple way is to create a symlink forest or just serve from a combined directory.
       ExecStartPre = pkgs.writeShellScript "prep-element-call" ''
         mkdir -p /run/element-call
         ln -sf ${elementCall}/* /run/element-call/

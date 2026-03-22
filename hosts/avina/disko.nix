@@ -64,16 +64,17 @@
             mountpoint = "/var";
             options.mountpoint = "legacy";
           };
-          # Specialized dataset for PostgreSQL — optimized for snapshots/shipping
+          # Matrix Stack Persistence:
+          # These datasets are isolated to enable atomic ZFS snapshots for
+          # backup, restore, and data shipping of the entire communication stack.
           postgresql = {
             type = "zfs_fs";
             mountpoint = "/var/lib/postgresql";
             options = {
               mountpoint = "legacy";
-              recordsize = "128k";
+              recordsize = "128k"; # Optimized for DB/Media balance
             };
           };
-          # Specialized dataset for Matrix Synapse (Media & State)
           matrix-synapse = {
             type = "zfs_fs";
             mountpoint = "/var/lib/matrix-synapse";
@@ -82,7 +83,6 @@
               recordsize = "128k";
             };
           };
-          # Specialized dataset for MAS (State)
           matrix-authentication-service = {
             type = "zfs_fs";
             mountpoint = "/var/lib/matrix-authentication-service";
@@ -96,7 +96,7 @@
             size = "8G";
             content = {
               type = "swap";
-              randomEncryption = false; # No LUKS outer layer, simple swap
+              randomEncryption = false; # No LUKS outer layer on this host
             };
           };
         };

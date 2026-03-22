@@ -66,29 +66,31 @@ in
         option  forwardfor
         option  http-server-close
 
-        # Custom log format for observability including Cloudflare headers
-        # Reference: https://developers.cloudflare.com/fundamentals/reference/http-headers/
+        # Traceability & Observability:
+        # Custom log format incorporating Cloudflare edge metadata (Ray ID, Real IP, Country).
         log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r %[var(txn.cf_ray)] %[var(txn.cf_ip)] %[var(txn.cf_country)]"
 
-      # ── Matrix ingress (from cloudflared) ────────────────────────────────────
+      # Matrix Ingress:
+      # Unified entry point for all stack components. Handles OIDC routing,
+      # media signaling, and static asset distribution.
       frontend matrix_ingress
         bind 127.0.0.1:8080
 
-        # Capture Cloudflare headers for observability
+        # Edge Metadata Processing:
+        # Capture and propagate Cloudflare headers to internal backends for end-to-end traceability.
         http-request set-var(txn.cf_ray)     hdr(CF-Ray)
         http-request set-var(txn.cf_ip)      hdr(CF-Connecting-IP)
         http-request set-var(txn.cf_country) hdr(CF-IPCountry)
 
-        # Secure awareness: Use CF-Connecting-IP as the source IP for internal ACLs and tracking
-        # This allows stats/metrics and other logic to see the real client IP.
+        # Source Identity:
+        # Treat the Cloudflare connecting IP as the source for all internal tracking and ACLs.
         http-request set-src hdr(CF-Connecting-IP) if { hdr(CF-Connecting-IP) -m found }
 
-        # Pass Cloudflare headers to backends for application-level observability
         http-request set-header X-Forwarded-For %[hdr(CF-Connecting-IP)] if { hdr(CF-Connecting-IP) -m found }
         http-request set-header X-Cloudflare-Ray %[hdr(CF-Ray)] if { hdr(CF-Ray) -m found }
         http-request set-header X-Cloudflare-Country %[hdr(CF-IPCountry)] if { hdr(CF-IPCountry) -m found }
 
-        # MSC3861 auth endpoint routing
+        # Component Routing Logic:
         acl is_mas_login   path_beg /_matrix/client/v3/login
         acl is_mas_login   path_beg /_matrix/client/r0/login
         acl is_mas_logout  path_beg /_matrix/client/v3/logout
@@ -111,9 +113,9 @@ in
         use_backend element_call_backend if is_call
         default_backend element_backend
 
-      # ── Stats and Prometheus metrics ──────────────────────────────────────────
-      # Binds on all interfaces on the designated stats port with TLS.
-      # /run/certs/haproxy.pem is rendered by consul-template from Vault KV.
+      # System Health & Metrics:
+      # Exposes HAProxy stats and Prometheus metrics on a dedicated port.
+      # TLS is enforced; access restricted to trusted administrative subnets.
       frontend stats
         bind *:8404 ssl crt /run/certs/haproxy.pem
         option  http-use-htx
@@ -121,9 +123,7 @@ in
         stats   show-legends
         stats   show-modules
         stats   uri /stats
-        # Admin level for RFC-1918 + loopback source addresses
         stats   admin if { src ${lib.concatStringsSep " " adminIPs} }
-        # Prometheus metrics endpoint
         http-request use-service prometheus-exporter if { path /metrics }
 
       backend synapse_backend

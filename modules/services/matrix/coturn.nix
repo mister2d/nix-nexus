@@ -11,9 +11,17 @@
     max-port = 49999;
     use-auth-secret = true;
     realm = coturnRealm;
-    cert = "/run/certs/coturn-fullchain.pem"; # rendered by consul-template
-    pkey = "/run/certs/coturn.key"; # rendered by consul-template
+
+    # TLS Configuration:
+    # Certificates are provisioned via Vault and rendered to runtime paths
+    # by the consul-template module.
+    cert = "/run/certs/coturn-fullchain.pem";
+    pkey = "/run/certs/coturn.key";
+
     static-auth-secret-file = "/run/secrets/coturn-secret";
+
+    # Security Policy:
+    # Prevent SSRF by explicitly denying access to internal network ranges.
     extraConfig = ''
       no-multicast-peers
       denied-peer-ip=0.0.0.0-0.255.255.255
