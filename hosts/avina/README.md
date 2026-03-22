@@ -38,7 +38,17 @@ All sensitive data is provisioned manually by the operator into `/run/secrets/`.
 | `/run/secrets/vault-token.env` | Token for fetching TLS certificates from Vault |
 | `/run/secrets/coturn-secret` | Shared secret for TURN authentication |
 
-### 2. Automated TLS (Vault + Consul-Template)
+### 2. Secret Lifecycle & Persistence
+It is critical to understand how these secrets interact with the NixOS lifecycle:
+
+*   **Memory-Backed (`tmpfs`)**: The `/run` directory lives in RAM. This means **secrets are wiped on every reboot**. This is a intentional security posture to ensure secrets do not persist on disk unencrypted.
+*   **Installation Phase**: When you provision secrets during the `install.sh` phase (on the Live ISO), they are used to validate the build. However, **NixOS will NOT copy these secrets to the target disk**. You must re-provision them once you boot into the installed system for the first time.
+*   **Successive Rebuilds**: Running `sudo nixos-rebuild switch` **never clobbers** your secrets. It only updates the service configurations to point to the existing files. You can safely rebuild and switch configurations as many times as needed without losing your settings.
+*   **Successive Installs**: If you run `install.sh` multiple times (e.g., a fresh wipe), you must ensure the secrets are present in the installer environment each time.
+
+**Pro-Tip**: For a production environment, most operators keep a backup of the "Provision Runtime Secrets" block (below) in a secure password manager or an encrypted volume to quickly restore them after a planned reboot.
+
+### 3. Automated TLS (Vault + Consul-Template)
 Avina does not use ACME/Let's Encrypt locally. Instead, a `consul-template` daemon fetches certificates from a centralized **Vault** instance and renders them to `/run/certs/`. This ensures certificates are consistent across the fleet and never stored in the Nix store.
 
 ### 3. SSH Security
