@@ -4,6 +4,9 @@
   ...
 }:
 let
+  # Client Configuration:
+  # Generates the element-web config.json to ensure users are automatically
+  # routed to the fleet homeserver with secure defaults.
   elementConfig = pkgs.writeText "element-config.json" (
     builtins.toJSON {
       default_server_config = {
@@ -23,7 +26,9 @@ let
   };
 in
 {
-  # Simple static server for Element Web
+  # Static Asset Distribution:
+  # Serves the Element Web client via a lightweight static server.
+  # Ingress is managed by the fleet HAProxy.
   systemd.services.element-web = {
     description = "Element Web static server";
     after = [ "network.target" ];

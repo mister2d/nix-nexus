@@ -32,13 +32,18 @@ in
       Group = "matrix-authentication-service";
       StateDirectory = "matrix-authentication-service";
       WorkingDirectory = stateDir;
-      # DB migrations must complete before server starts
+
+      # Process Lifecycle:
+      # Ensure database schema is up-to-date before the application server starts.
       ExecStartPre =
         "${pkgs.matrix-authentication-service}/bin/mas-cli " + "database migrate --config ${configFile}";
       ExecStart = "${pkgs.matrix-authentication-service}/bin/mas-cli " + "server --config ${configFile}";
+
       Restart = "on-failure";
       RestartSec = "5s";
-      # Hardening — matches nix-nexus patterns from modules/core/security.nix
+
+      # Security & Sandboxing:
+      # Strict process isolation following the nix-nexus core security patterns.
       NoNewPrivileges = true;
       PrivateTmp = true;
       ProtectSystem = "strict";
