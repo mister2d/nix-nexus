@@ -1,0 +1,30 @@
+{
+  coturnRealm,
+  ...
+}:
+{
+  services.coturn = {
+    enable = true;
+    no-cli = true;
+    no-tcp-relay = true;
+    min-port = 49000;
+    max-port = 49999;
+    use-auth-secret = true;
+    realm = coturnRealm;
+    cert = "/run/certs/coturn-fullchain.pem"; # rendered by consul-template
+    pkey = "/run/certs/coturn.key"; # rendered by consul-template
+    static-auth-secret-file = "/run/secrets/coturn-secret";
+    extraConfig = ''
+      no-multicast-peers
+      denied-peer-ip=0.0.0.0-0.255.255.255
+      denied-peer-ip=10.0.0.0-10.255.255.255
+      denied-peer-ip=100.64.0.0-100.127.255.255
+      denied-peer-ip=127.0.0.0-127.255.255.255
+      denied-peer-ip=169.254.0.0-169.254.255.255
+      denied-peer-ip=172.16.0.0-172.31.255.255
+      denied-peer-ip=192.168.0.0-192.168.255.255
+      denied-peer-ip=::1
+      denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+    '';
+  };
+}
