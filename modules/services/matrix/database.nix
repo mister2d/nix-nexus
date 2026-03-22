@@ -7,7 +7,23 @@
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
-    settings.listen_addresses = lib.mkForce ""; # Unix socket only
+    settings = {
+      listen_addresses = lib.mkForce ""; # Unix socket only
+      # ── Synapse Tuning (12GB RAM Target) ──────────────────────────────────
+      # Reference: https://matrix-org.github.io/synapse/latest/postgres.html
+      max_connections = 100;
+      shared_buffers = "3GB"; # 25% of RAM
+      effective_cache_size = "8GB"; # 75% of RAM
+      maintenance_work_mem = "512MB";
+      checkpoint_completion_target = 0.9;
+      wal_buffers = "16MB";
+      default_statistics_target = 100;
+      random_page_cost = 1.1; # Optimized for SSD (ZFS on NVMe/SSD)
+      effective_io_concurrency = 200; # Optimized for SSD
+      work_mem = "16MB";
+      min_wal_size = "1GB";
+      max_wal_size = "4GB";
+    };
     ensureUsers = [
       {
         name = "matrix-synapse";
