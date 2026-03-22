@@ -12,16 +12,16 @@
       server_name = matrixDomain;
       public_baseurl = "https://${matrixDomain}";
 
-      # MSC3861: Native OIDC delegation to MAS
+      # Native OIDC delegation to MAS (Stable since 1.103.0)
+      matrix_authentication_service = {
+        enabled = true;
+        issuer = "https://auth.${matrixDomain}"; # matches MAS_DOMAIN
+        client_id = "synapse"; # Matches 'matrix.secret' in MAS config
+        # client_secret is in /run/secrets/synapse-secrets.yaml
+      };
+
+      # MatrixRTC features
       experimental_features = {
-        msc3861 = {
-          enabled = true;
-          issuer = "https://auth.${matrixDomain}"; # matches MAS_DOMAIN
-          client_id = "synapse"; # Matches 'matrix.secret' in MAS config
-          client_auth_method = "client_secret_basic";
-          # client_secret is in /run/secrets/synapse-secrets.yaml
-        };
-        # MatrixRTC features
         msc3843_enabled = true;
         msc3401_enabled = true;
         msc3401_native_native_webrtc_enabled = true;

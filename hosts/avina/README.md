@@ -75,9 +75,8 @@ macaroon_secret_key: "<SECURE_TOKEN>"
 form_secret: "<SECURE_TOKEN>"
 registration_shared_secret: "<SECURE_TOKEN>"
 turn_shared_secret: "<TURN_SHARED_SECRET>"
-experimental_features:
-  msc3861:
-    client_secret: "<MAS_TO_SYNAPSE_SHARED_SECRET>"
+matrix_authentication_service:
+  secret: "<MAS_TO_SYNAPSE_SHARED_SECRET>"
 EOF
 
 # 3. MAS Configuration (Full YAML)
@@ -102,6 +101,7 @@ upstream_oauth2:
       client_id: "mas"
       client_secret: "<KEYCLOAK_CLIENT_SECRET>"
 matrix:
+  kind: synapse
   homeserver: "MATRIX_DOMAIN"
   secret: "<MAS_TO_SYNAPSE_SHARED_SECRET>"
   endpoint: "http://127.0.0.1:8008"
