@@ -78,34 +78,26 @@ git clone https://github.com/mister2d/nix-nexus.git
 cd nix-nexus
 ```
 
-### 3. Provision the Bootstrap "Master Key"
-Before installing, you **must** provision the Vault AppRole credentials. This allows the host to fetch its own secrets during the first boot.
+### 3. Run the Interactive Install Script
+The `install.sh` script handles partitioning, ZFS setup, and automated secret bootstrap. It is optimized for the VM's 12GB RAM to prevent Out-of-Memory (OOM) failures.
 
-```bash
-# 1. Create the persistent secrets directory
-sudo mkdir -p /var/lib/secrets
-sudo chmod 700 /var/lib/secrets
-
-# 2. Provision the AppRole credentials (obtained from your Vault admin)
-echo "your-role-id-here"   | sudo tee /var/lib/secrets/vault-role-id > /dev/null
-echo "your-secret-id-here" | sudo tee /var/lib/secrets/vault-secret-id > /dev/null
-
-# 3. Set strict permissions
-sudo chmod 600 /var/lib/secrets/*
-```
-
-### 4. Run the Install Script
 ```bash
 sudo ./hosts/avina/install.sh
 ```
-The script will detect the bootstrap keys and include them in the initial system setup.
 
-### 5. Reboot
-Once the script finishes, reboot the VM:
+The script will guide you through the following steps:
+1.  **Vault Bootstrap**: Prompts for `VAULT_ADDR`, `VAULT_TOKEN`, and the host's **AppRole** (Role-ID and Secret-ID).
+2.  **Validation**: Uses a pinned `nix-shell` to fetch and render all runtime secrets into `/run/secrets`, validating the connection to your Vault infrastructure before any changes are made to the disk.
+3.  **Master Key Provisioning**: Automatically stores the AppRole credentials on the persistent `/var/lib/secrets` dataset.
+4.  **Two-Step Build**: Builds the system directly onto the disk (`/mnt`) using memory-optimized settings.
+5.  **Final Confirmation**: Asks for a firm confirmation before the final unattended installation stage.
+
+### 4. Reboot
+Once the script finishes successfully, reboot the VM:
 ```bash
 sudo reboot
 ```
-The system will boot, talk to Vault, and start all Matrix 2.0 services automatically.
+The system will boot, authenticate to Vault using the stored Master Key, and start the entire Matrix 2.0 stack automatically.
 
 ## 📊 Persistence & Backups (ZFS)
 
