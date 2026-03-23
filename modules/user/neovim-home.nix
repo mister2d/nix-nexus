@@ -7,7 +7,6 @@
 
     viAlias = true;
     vimAlias = true;
-    vimdiffAlias = true;
 
     # --- Core Options (The Nix Way) ---
     opts = {
