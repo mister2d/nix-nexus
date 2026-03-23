@@ -9,6 +9,7 @@
     ./disko.nix
     ./hardware-configuration.nix
     ../../modules/core/users.nix
+    ../../modules/core/networking.nix # Align networking stack early
     ../../modules/user/neovim-home.nix # Common Nixvim configuration
   ];
 
