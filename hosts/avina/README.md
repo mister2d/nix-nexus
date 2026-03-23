@@ -27,7 +27,16 @@ Avina implements a **least-privilege federation model**. By default, it only fed
 
 Avina follows a **Zero Secrets in Nix Store** policy combined with an **Automated Bootstrap** model. 
 
-### 1. The Bootstrap Model ("The Master Key")
+### 1. The Security Hierarchy
+To maintain a least-privilege posture, Avina uses three distinct levels of authentication:
+
+| Level | Key Type | Purpose | Persistent? |
+| :--- | :--- | :--- | :--- |
+| **High** | **Admin Token** | Used locally to run `seed-vault.sh`. | No |
+| **Med** | **Install Token** | Temporary lease used by `install.sh` to fetch secrets. | No |
+| **Low** | **AppRole** | The host's permanent ID used to self-bootstrap at boot. | **Yes** |
+
+### 2. The Bootstrap Model ("The Master Key")
 Instead of manually provisioning dozens of secrets, Avina uses a single persistent "Master Key" to unlock the rest of its configuration from **HashiCorp Vault** at boot time.
 
 *   **Persistent Secret**: A Vault **AppRole** (Role-ID and Secret-ID) is stored on a dedicated persistent ZFS dataset at `/var/lib/secrets/`. This is the only secret that survives a reboot.
@@ -92,9 +101,13 @@ sudo ./hosts/avina/install.sh
 ```
 
 The script will guide you through the following steps:
-1.  **Vault Bootstrap**: Prompts for your Vault URL and administrative token.
-2.  **Secret Validation**: Uses a pinned `nix-shell` to fetch and render all runtime secrets into `/run/secrets`. This ensures your Vault configuration is correct before any changes are made to the disk.
-3.  **Master Key Provisioning**: Automatically stores the AppRole credentials on the persistent `/var/lib/secrets` dataset.
+1.  **Vault Authentication**: 
+    *   **Vault URL**: The address of your Vault server.
+    *   **Installation Token**: Provide the **renewable orphan token** generated in Step 1. This token is used *only* during installation to verify the stack and is never stored on the host.
+2.  **Host Identity (AppRole)**: 
+    *   **Role-ID & Secret-ID**: Provide the AppRole credentials generated in Step 1.
+    *   **Persistence**: These are stored securely on the persistent `/var/lib/secrets` dataset. This is the "Master Key" the host uses to recover its own secrets after a reboot.
+3.  **Validation**: The script uses the Installation Token to render all runtime secrets into `/run/secrets`. This confirms your Vault configuration is valid before any changes are made to the disk.
 4.  **Two-Step Build**: Builds the system directly onto the disk (`/mnt`) to preserve RAM.
 5.  **Final Confirmation**: Asks for a firm confirmation before the final unattended installation stage.
 

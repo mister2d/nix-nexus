@@ -69,7 +69,7 @@ fi
 export VAULT_ADDR
 
 if [[ -z "${VAULT_TOKEN:-}" ]]; then
-    read -rsp "  Enter Vault Token (Administrative): " VAULT_TOKEN; echo
+    read -rsp "  Enter Installation Token (Renewable Orphan Token): " VAULT_TOKEN; echo
 fi
 export VAULT_TOKEN
 
