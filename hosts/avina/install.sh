@@ -105,6 +105,27 @@ read -rp "  Enter AppRole Role-ID for this host: " ROLE_ID
 read -rsp "  Enter AppRole Secret-ID for this host: " SECRET_ID; echo
 
 # --- Partitioning & Mounting (Disko) ---
+# Tearing down any existing mounts/pools to prevent blockdev busy errors
+log "Tearing down any existing mounts/pools..."
+swapoff -a || true
+umount -R /mnt 2>/dev/null || true
+# Force export the specific host pool if it exists
+if zpool list "$TARGET_HOSTNAME" >/dev/null 2>&1; then
+    log "Force exporting existing ZFS pool '$TARGET_HOSTNAME'..."
+    zpool export -f "$TARGET_HOSTNAME" || true
+fi
+zpool export -a 2>/dev/null || true
+
+if [[ "$DISKO_MODE" == "disko" ]]; then
+    log "Wiping existing signatures and settling device /dev/sda..."
+    wipefs -a /dev/sda || true
+    # Zero out GPT and ZFS headers to be absolutely sure
+    dd if=/dev/zero of=/dev/sda bs=1M count=10 conv=fdatasync status=none
+    partprobe /dev/sda || true
+    udevadm settle
+    sleep 2
+fi
+
 log "Executing Disko ($DISKO_MODE)..."
 nix --extra-experimental-features "nix-command flakes" \
     run "github:nix-community/disko/$DISKO_REV" -- \
