@@ -231,6 +231,11 @@ log "Injecting high resource limits and Nix optimizations..."
 ulimit -n 65536 || true
 ulimit -u 16384 || true
 
+# Set HostID for the installer session to match target
+# This prevents "pool was last accessed by another system" errors
+# Value matches networking.hostId in hosts/avina/default.nix
+printf "\xd9\xc8\xb7\xa6" > /etc/hostid 
+
 # --- Step 1: Build system closure into /mnt ---
 log "Step 1/3: Building system closure into target store..."
 export NIXPKGS_ALLOW_UNFREE=1
