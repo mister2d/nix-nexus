@@ -2,6 +2,7 @@
   pkgs,
   vaultAddr,
   cloudflaredTunnelId,
+  matrixDomain,
   ...
 }:
 let
@@ -78,7 +79,7 @@ let
           client_secret: "{{ .Data.data.oidc_client_secret }}"
     matrix:
       kind: synapse
-      homeserver: "{{ .Data.data.matrix_domain }}"
+      homeserver: "${matrixDomain}"
       secret: "{{ .Data.data.mas_shared_secret }}"
       endpoint: "http://127.0.0.1:8008"
     {{ end }}
