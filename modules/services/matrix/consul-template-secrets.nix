@@ -16,11 +16,7 @@ let
   cloudflaredService = "cloudflared-tunnel-${cloudflaredTunnelId}.service";
 
   # ── Runtime Templates ───────────────────────────────────────────────────
-  # Templates define the mapping between Vault secrets and the local
-  # filesystem. Changes in Vault trigger automatic re-rendering and
-  # targeted service reloads.
 
-  # 1. Identity & Encryption (SSL/TLS)
   haproxyTmpl = pkgs.writeText "haproxy-cert.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.fullchain }}{{ .Data.data.privkey }}
@@ -39,7 +35,6 @@ let
     {{ end }}
   '';
 
-  # 2. Communications Core (Synapse)
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}
     macaroon_secret_key: "{{ .Data.data.macaroon_secret_key }}"
@@ -58,10 +53,10 @@ let
     {{ end }}
   '';
 
-  # 3. Identity Provider (MAS)
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
     {{ with secret "${matrixKvPath}/mas" }}
     http:
+      public_base: "https://${matrixDomain}"
       listeners:
         - name: web
           resources:
@@ -92,7 +87,6 @@ let
     {{ end }}
   '';
 
-  # 4. Edge Connectivity (Cloudflare)
   cloudflaredTmpl = pkgs.writeText "cloudflared.ctmpl" ''
     {{ with secret "${matrixKvPath}/cloudflared" }}
     {
@@ -110,7 +104,6 @@ let
     {{ end }}
   '';
 
-  # 5. Media Relay (Coturn/LiveKit)
   coturnSecretTmpl = pkgs.writeText "coturn-secret.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}{{ .Data.data.turn_shared_secret }}{{ end }}
   '';
@@ -122,8 +115,6 @@ let
   '';
 
   # ── Vault Agent Configuration ──────────────────────────────────────────
-  # The Vault Agent serves as the local custodian of secrets, handling
-  # AppRole authentication and dynamic template rendering.
 
   vaultAgentConfig = pkgs.writeText "vault-agent.hcl" ''
     exit_after_auth = false
@@ -225,9 +216,6 @@ let
   '';
 in
 {
-  # Access Control:
-  # Services requiring access to rendered secrets must be members
-  # of the 'matrix-secrets' group.
   users.groups.matrix-secrets = { };
 
   systemd = {
@@ -238,26 +226,42 @@ in
     ];
 
     services = {
-      # Secret Orchestration:
-      # Vault Agent manages the lifecycle of runtime secrets, ensuring that
-      # applications always have access to the latest credentials.
-      vault-agent = {
-        description = "Vault Agent: AppRole authentication and secret templating";
+      # Initial Rendering:
+      # Ensures that all secrets and certificates exist before any application
+      # attempts to start, eliminating race conditions.
+      vault-agent-init = {
+        description = "Vault Agent: Initial Secret Rendering";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
 
-        # Sequencing:
-        # Secrets must be rendered and permissions established before
-        # application services attempt to start.
-        before = [
-          "matrix-synapse.service"
-          "matrix-authentication-service.service"
-          "coturn.service"
-          "haproxy.service"
-          "${cloudflaredService}"
-          "livekit.service"
+        path = [
+          pkgs.glibc.bin
+          pkgs.systemd
+          pkgs.bash
         ];
+
+        serviceConfig = {
+          Type = "oneshot";
+          ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig} -exit-after-auth";
+          Environment = [ "HOME=/tmp" ];
+          ReadWritePaths = [
+            secretDir
+            certDir
+            "/run"
+          ];
+          ReadOnlyPaths = [ persistentSecretDir ];
+        };
+      };
+
+      # Background Daemon:
+      # Watches for secret changes in Vault and re-renders templates
+      # to maintain system freshness.
+      vault-agent = {
+        description = "Vault Agent: Background Secret Refresh";
+        after = [ "vault-agent-init.service" ];
+        requires = [ "vault-agent-init.service" ];
+        wantedBy = [ "multi-user.target" ];
 
         path = [
           pkgs.glibc.bin
@@ -280,8 +284,15 @@ in
         };
       };
 
-      # Identity Delegation:
-      # Propagate the 'matrix-secrets' group to individual service environments.
+      # Service Dependencies:
+      # Applications MUST wait for the initial secret rendering to complete.
+      coturn.after = [ "vault-agent-init.service" ];
+      haproxy.after = [ "vault-agent-init.service" ];
+      matrix-synapse.after = [ "vault-agent-init.service" ];
+      matrix-authentication-service.after = [ "vault-agent-init.service" ];
+      livekit.after = [ "vault-agent-init.service" ];
+      "${cloudflaredService}".after = [ "vault-agent-init.service" ];
+
       coturn.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       haproxy.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       matrix-synapse.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
