@@ -166,9 +166,9 @@ echo "{{ with secret \"$matrixKvPath/synapse\" }}{{ .Data.data.turn_shared_secre
 echo "{{ with secret \"$matrixKvPath/synapse\" }}LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}{{ end }}" > /tmp/turnenv.ctmpl
 
 # Execute consul-template once to render
+# Uses the package exposed in the local flake outputs
 nix --extra-experimental-features "nix-command flakes" \
-    shell "$REPO_ROOT#pkgs-stable.legacyPackages.x86_64-linux.consul-template" -- \
-    consul-template -config /tmp/ct-install.hcl -once
+    run "$REPO_ROOT#consul-template" -- -config /tmp/ct-install.hcl -once
 
 log "Secrets rendered successfully to /run/secrets."
 chmod 600 /run/secrets/*
