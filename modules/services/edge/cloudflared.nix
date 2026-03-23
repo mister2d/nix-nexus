@@ -15,11 +15,12 @@
     tunnels."${cloudflaredTunnelId}" = {
       credentialsFile = "/run/secrets/cloudflared-creds.json";
       ingress = {
-        "${matrixDomain}" = "http://127.0.0.1:8080";
-        "${elementDomain}" = "http://127.0.0.1:8080";
-        "${masDomain}" = "http://127.0.0.1:8080";
-        "${callDomain}" = "http://127.0.0.1:8080";
+        "${matrixDomain}" = "https://127.0.0.1:8443";
+        "${elementDomain}" = "https://127.0.0.1:8443";
+        "${masDomain}" = "https://127.0.0.1:8443";
+        "${callDomain}" = "https://127.0.0.1:8443";
       };
+      originRequest.noTLSVerify = true;
       default = "http_status:404";
     };
   };

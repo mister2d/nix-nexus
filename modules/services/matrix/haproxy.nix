@@ -77,9 +77,9 @@ in
       # Unified entry point for all stack components. Handles OIDC routing,
       # media signaling, and static asset distribution.
       frontend matrix_ingress
-        # Bind to localhost 8080 (from cloudflared) OR public 443 with certs
+        # Public entry and local secure tunnel entry
         bind *:443 ssl crt /run/certs/haproxy.pem
-        bind 127.0.0.1:8080
+        bind 127.0.0.1:8443 ssl crt /run/certs/haproxy.pem
 
         # Edge Metadata Processing:
         # Capture and propagate Cloudflare headers to internal backends for end-to-end traceability.
