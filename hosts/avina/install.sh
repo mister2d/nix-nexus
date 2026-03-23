@@ -104,13 +104,13 @@ smtpKvPath="kv-v2/infrastructure/smtp"
 cat <<EOF > /tmp/ct-install.hcl
 vault { address = "$VAULT_ADDR" }
 
-template { source = "/tmp/haproxy.ctmpl"; destination = "/run/certs/haproxy.pem" }
-template { source = "/tmp/synapse.ctmpl"; destination = "/run/secrets/synapse-secrets.yaml" }
-template { source = "/tmp/mas.ctmpl";     destination = "/run/secrets/mas-config.yaml" }
-template { source = "/tmp/cf.ctmpl";      destination = "/run/secrets/cloudflared-creds.json" }
-template { source = "/tmp/email.ctmpl";   destination = "/run/secrets/synapse-email.yaml" }
-template { source = "/tmp/turn.ctmpl";    destination = "/run/secrets/coturn-secret" }
-template { source = "/tmp/turnenv.ctmpl"; destination = "/run/secrets/coturn-secret-env" }
+template { source = "/tmp/haproxy.ctmpl" destination = "/run/certs/haproxy.pem" }
+template { source = "/tmp/synapse.ctmpl" destination = "/run/secrets/synapse-secrets.yaml" }
+template { source = "/tmp/mas.ctmpl"     destination = "/run/secrets/mas-config.yaml" }
+template { source = "/tmp/cf.ctmpl"      destination = "/run/secrets/cloudflared-creds.json" }
+template { source = "/tmp/email.ctmpl"   destination = "/run/secrets/synapse-email.yaml" }
+template { source = "/tmp/turn.ctmpl"    destination = "/run/secrets/coturn-secret" }
+template { source = "/tmp/turnenv.ctmpl" destination = "/run/secrets/coturn-secret-env" }
 EOF
 
 echo "{{ with secret \"$kvPath\" }}{{ .Data.data.fullchain }}{{ .Data.data.privkey }}{{ end }}" > /tmp/haproxy.ctmpl
