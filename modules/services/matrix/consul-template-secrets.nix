@@ -43,17 +43,26 @@ let
     {{ end }}
   '';
 
+  # Synapse Email Configuration:
+  # Static and secret settings are consolidated here to prevent configuration
+  # shadowing during Synapse's multi-file config merge.
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with secret "${smtpKvPath}" }}
     email:
+      enable_notifs: true
+      smtp_host: "smtp.mailgun.org"
+      smtp_port: 587
+      smtp_user: "postmaster@mg.novuscotia.com"
       smtp_pass: "{{ .Data.data.smtp_password }}"
+      require_transport_security: true
+      notif_from: "Matrix <noreply@${matrixDomain}>"
     {{ end }}
   '';
 
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
     {{ with secret "${matrixKvPath}/mas" }}
     http:
-      public_base: "https://${matrixDomain}"
+      public_base: "https://auth.${matrixDomain}"
       listeners:
         - name: web
           resources:
@@ -76,6 +85,7 @@ let
           issuer: "{{ .Data.data.oidc_issuer }}"
           client_id: "{{ .Data.data.oidc_client_id }}"
           client_secret: "{{ .Data.data.oidc_client_secret }}"
+          token_endpoint_auth_method: "client_secret_basic"
     matrix:
       kind: synapse
       homeserver: "${matrixDomain}"
@@ -237,6 +247,9 @@ in
         };
       };
 
+      # Identity Delegation & Sequencing:
+      # Inject the 'matrix-secrets' group into service environments and
+      # ensure they wait for the initial rendering.
       coturn = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
