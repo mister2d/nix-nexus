@@ -174,10 +174,12 @@ in
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
+        path = [ pkgs.glibc.bin ];
         serviceConfig = {
           ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
           Restart = "on-failure";
           RestartSec = "10s";
+          Environment = [ "HOME=/tmp" ];
           # Required to read the Master Key and write the Token
           ReadWritePaths = [
             secretDir
@@ -202,10 +204,15 @@ in
           "${cloudflaredService}"
           "livekit.service"
         ];
+        path = [
+          pkgs.glibc.bin
+          pkgs.systemd
+        ];
         serviceConfig = {
           ExecStart = "${pkgs.consul-template}/bin/consul-template -config=${ctConfig}";
           Restart = "on-failure";
           RestartSec = "10s";
+          Environment = [ "HOME=/tmp" ];
           ReadWritePaths = [
             certDir
             secretDir
