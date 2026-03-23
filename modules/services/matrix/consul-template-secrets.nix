@@ -43,9 +43,6 @@ let
     {{ end }}
   '';
 
-  # Synapse Email Configuration:
-  # Static and secret settings are consolidated here to prevent configuration
-  # shadowing during Synapse's multi-file config merge.
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with secret "${smtpKvPath}" }}
     email:
@@ -130,26 +127,30 @@ let
       address = "${vaultAddr}"
     }
 
+    # Template Commands:
+    # Use '--no-block' to prevent deadlocks during systemd activation.
+    # Use 'reload-or-restart' to be graceful where supported.
+
     template { 
       source = "${haproxyTmpl}" 
       destination = "${certDir}/haproxy.pem" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload haproxy.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload-or-restart --no-block haproxy.service || true'" 
     }
     template { 
       source = "${coturnCertTmpl}" 
       destination = "${certDir}/coturn-fullchain.pem" 
       perms = 0644 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'" 
     }
     template { 
       source = "${coturnKeyTmpl}" 
       destination = "${certDir}/coturn.key" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'" 
     }
 
     template { 
@@ -157,35 +158,35 @@ let
       destination = "${secretDir}/synapse-secrets.yaml" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-synapse.service || true'" 
     }
     template { 
       source = "${synapseEmailTmpl}" 
       destination = "${secretDir}/synapse-email.yaml" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-synapse.service || true'" 
     }
     template { 
       source = "${masConfigTmpl}" 
       destination = "${secretDir}/mas-config.yaml" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'" 
     }
     template { 
       source = "${coturnSecretTmpl}" 
       destination = "${secretDir}/coturn-secret" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'" 
     }
     template { 
       source = "${coturnSecretEnvTmpl}" 
       destination = "${secretDir}/coturn-secret-env" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart livekit.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'" 
     }
   '';
 in
@@ -248,8 +249,6 @@ in
       };
 
       # Identity Delegation & Sequencing:
-      # Inject the 'matrix-secrets' group into service environments and
-      # ensure they wait for the initial rendering.
       coturn = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
