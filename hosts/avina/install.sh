@@ -198,6 +198,15 @@ unset VAULT_TOKEN
 log "Throttling ZFS ARC to 1GB to preserve RAM for Nix daemon..."
 echo 1073741824 > /sys/module/zfs/parameters/zfs_arc_max || true
 
+log "Checking for swap and creating emergency buffer if needed..."
+if [[ $(swapon --show | wc -l) -eq 0 ]]; then
+    log "No swap detected. Creating 8GB emergency swap file..."
+    dd if=/dev/zero of=/swapfile bs=1M count=8192 status=progress
+    chmod 600 /swapfile
+    mkswap /swapfile
+    swapon /swapfile
+fi
+
 log "Injecting high resource limits and Nix optimizations..."
 ulimit -n 65536 || true
 ulimit -u 16384 || true
@@ -213,6 +222,7 @@ for attempt in 1 2 3; do
     # - max-jobs 1: Prevents OOM during heavy evaluation/linking on 12GB RAM.
     # - download-buffer-size: Increased to 1GB to prevent "buffer full" warnings.
     # - http2 false: Workaround for intermittent download-related assertion failures.
+    # - cores 2: Restrict compilation to 2 cores to reduce memory pressure per job.
     if nix \
         --extra-experimental-features "nix-command flakes" \
         build \
@@ -220,6 +230,7 @@ for attempt in 1 2 3; do
         --eval-store auto \
         --impure \
         --max-jobs 1 \
+        --cores 2 \
         --option max-substitution-jobs 4 \
         --option download-buffer-size 1073741824 \
         --option http2 false \
