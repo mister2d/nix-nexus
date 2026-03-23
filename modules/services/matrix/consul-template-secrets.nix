@@ -108,7 +108,7 @@ let
     {{ end }}
   '';
 
-  # ── Configurations ────────────────────────────────────────────────────────
+  # ── Configuration ──────────────────────────────────────────────────────────
 
   vaultAgentConfig = pkgs.writeText "vault-agent.hcl" ''
     exit_after_auth = false
@@ -133,27 +133,19 @@ let
     vault {
       address = "${vaultAddr}"
     }
-  '';
-
-  ctConfig = pkgs.writeText "consul-template-secrets.hcl" ''
-    vault {
-      address      = "${vaultAddr}"
-      vault_agent_token_file = "${secretDir}/vault-token"
-      renew_token  = false # Vault Agent handles renewal
-    }
 
     # SSL Certs
-    template { source = "${haproxyTmpl}" destination = "${certDir}/haproxy.pem" perms = "0640" command = "${pkgs.systemd}/bin/systemctl reload haproxy.service || true" }
-    template { source = "${coturnCertTmpl}" destination = "${certDir}/coturn-fullchain.pem" perms = "0644" command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
-    template { source = "${coturnKeyTmpl}" destination = "${certDir}/coturn.key" perms = "0640" command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
+    template { source = "${haproxyTmpl}" destination = "${certDir}/haproxy.pem" perms = 0640 command = "${pkgs.systemd}/bin/systemctl reload haproxy.service || true" }
+    template { source = "${coturnCertTmpl}" destination = "${certDir}/coturn-fullchain.pem" perms = 0644 command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
+    template { source = "${coturnKeyTmpl}" destination = "${certDir}/coturn.key" perms = 0640 command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
 
     # Application Secrets
-    template { source = "${synapseSecretsTmpl}" destination = "${secretDir}/synapse-secrets.yaml" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
-    template { source = "${synapseEmailTmpl}" destination = "${secretDir}/synapse-email.yaml" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
-    template { source = "${masConfigTmpl}" destination = "${secretDir}/mas-config.yaml" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" }
-    template { source = "${cloudflaredTmpl}" destination = "${secretDir}/cloudflared-creds.json" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true" }
-    template { source = "${coturnSecretTmpl}" destination = "${secretDir}/coturn-secret" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart coturn.service || true" }
-    template { source = "${coturnSecretEnvTmpl}" destination = "${secretDir}/coturn-secret-env" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart livekit.service || true" }
+    template { source = "${synapseSecretsTmpl}" destination = "${secretDir}/synapse-secrets.yaml" perms = 0640 command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${synapseEmailTmpl}" destination = "${secretDir}/synapse-email.yaml" perms = 0640 command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${masConfigTmpl}" destination = "${secretDir}/mas-config.yaml" perms = 0640 command = "${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" }
+    template { source = "${cloudflaredTmpl}" destination = "${secretDir}/cloudflared-creds.json" perms = 0640 command = "${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true" }
+    template { source = "${coturnSecretTmpl}" destination = "${secretDir}/coturn-secret" perms = 0640 command = "${pkgs.systemd}/bin/systemctl restart coturn.service || true" }
+    template { source = "${coturnSecretEnvTmpl}" destination = "${secretDir}/coturn-secret-env" perms = 0640 command = "${pkgs.systemd}/bin/systemctl restart livekit.service || true" }
   '';
 in
 {
@@ -168,33 +160,13 @@ in
     ];
 
     services = {
-      # Vault Agent: The persistent "Master Key" authenticator.
+      # Vault Agent: Handles both authentication and secret delivery via templates.
       vault-agent = {
-        description = "Vault Agent: AppRole authentication for avina bootstrap";
+        description = "Vault Agent: AppRole authentication and secret templating";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
-        path = [ pkgs.glibc.bin ];
-        serviceConfig = {
-          ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
-          Restart = "on-failure";
-          RestartSec = "10s";
-          Environment = [ "HOME=/tmp" ];
-          # Required to read the Master Key and write the Token
-          ReadWritePaths = [
-            secretDir
-            "/run"
-          ];
-          ReadOnlyPaths = [ persistentSecretDir ];
-        };
-      };
 
-      # Consul Template: The runtime secrets renderer.
-      consul-template-secrets = {
-        description = "consul-template: render all Matrix 2.0 secrets from Vault";
-        after = [ "vault-agent.service" ];
-        requires = [ "vault-agent.service" ];
-        wantedBy = [ "multi-user.target" ];
         # Ensure secrets are rendered before applications start
         before = [
           "matrix-synapse.service"
@@ -204,19 +176,25 @@ in
           "${cloudflaredService}"
           "livekit.service"
         ];
+
         path = [
           pkgs.glibc.bin
           pkgs.systemd
         ];
+
         serviceConfig = {
-          ExecStart = "${pkgs.consul-template}/bin/consul-template -config=${ctConfig}";
+          ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
           Restart = "on-failure";
           RestartSec = "10s";
           Environment = [ "HOME=/tmp" ];
+
+          # Required for templating and authentication sinks
           ReadWritePaths = [
-            certDir
             secretDir
+            certDir
+            "/run"
           ];
+          ReadOnlyPaths = [ persistentSecretDir ];
         };
       };
 
