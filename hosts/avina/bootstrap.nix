@@ -8,17 +8,26 @@
     inputs.disko.nixosModules.disko
     ./disko.nix
     ./hardware-configuration.nix
-    ../../modules/core/users.nix
-    ../../modules/core/networking.nix # Align networking stack early
+    ../../profiles/core # Core system policies (ZFS, networking, security, internal CA)
     ../../modules/user/neovim-home.nix # Common Nixvim configuration
   ];
 
-  networking.hostName = "avina-bootstrap";
-  networking.hostId = "a6b7c8d9";
+  networking = {
+    hostName = "avina-bootstrap";
+    hostId = "a6b7c8d9";
+    firewall.allowedTCPPorts = [ 22 ];
+  };
 
   _module.args = {
     vaultAddr = "https://vault.service.consul:8200";
     cloudflaredTunnelId = "bootstrap-placeholder";
+  };
+
+  # ZFS Performance Tuning (Optimized for 12GB RAM)
+  nix-nexus.zfs = {
+    arcMax = 2147483648; # 2 GB ARC limit to prevent OOM
+    arcMin = 536870912;
+    arcSysFree = 3221225472; # Ensure 3GB for system/app overhead
   };
 
   # Secure Remote Access (Stage 1):
@@ -57,13 +66,17 @@
     lib.mkDefault
       (import inputs.nixpkgs { system = "x86_64-linux"; }).linuxPackages;
 
-  # Nix Configuration:
-  # Enable modern Nix features and allow unfree packages (e.g. Vault)
-  # for the Stage 2 deployment script.
-  nix.settings.experimental-features = [
-    "nix-command"
-    "flakes"
-  ];
+  # Nix Configuration (Alignment)
+  nix.settings = {
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+    # Boost resource limits for large builds
+    max-jobs = lib.mkForce 2;
+    cores = lib.mkForce 2;
+  };
+
   environment.variables.NIXPKGS_ALLOW_UNFREE = "1";
 
   system.stateVersion = "25.11";
