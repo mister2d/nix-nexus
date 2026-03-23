@@ -8,17 +8,19 @@
 let
   certDir = "/run/certs";
   secretDir = "/run/secrets";
-  persistentSecretDir = "/var/lib/secrets"; # Survives reboots, stores the "Master Key"
+  persistentSecretDir = "/var/lib/secrets";
   kvPath = "kv-v2/letsencrypt/certificates/live/novuscotia.com";
   matrixKvPath = "kv-v2/infrastructure/matrix/avina";
   smtpKvPath = "kv-v2/infrastructure/smtp";
 
-  # Dynamic service names derived from configuration
   cloudflaredService = "cloudflared-tunnel-${cloudflaredTunnelId}.service";
 
-  # ── Templates ─────────────────────────────────────────────────────────────
+  # ── Runtime Templates ───────────────────────────────────────────────────
+  # Templates define the mapping between Vault secrets and the local
+  # filesystem. Changes in Vault trigger automatic re-rendering and
+  # targeted service reloads.
 
-  # 1. SSL/TLS Certificates
+  # 1. Identity & Encryption (SSL/TLS)
   haproxyTmpl = pkgs.writeText "haproxy-cert.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.fullchain }}{{ .Data.data.privkey }}
@@ -37,7 +39,7 @@ let
     {{ end }}
   '';
 
-  # 2. Synapse Master Secrets
+  # 2. Communications Core (Synapse)
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}
     macaroon_secret_key: "{{ .Data.data.macaroon_secret_key }}"
@@ -49,7 +51,6 @@ let
     {{ end }}
   '';
 
-  # 3. Synapse Email (SMTP)
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with secret "${smtpKvPath}" }}
     email:
@@ -57,7 +58,7 @@ let
     {{ end }}
   '';
 
-  # 4. MAS Full Config
+  # 3. Identity Provider (MAS)
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
     {{ with secret "${matrixKvPath}/mas" }}
     http:
@@ -91,7 +92,7 @@ let
     {{ end }}
   '';
 
-  # 5. Cloudflare Tunnel Credentials
+  # 4. Edge Connectivity (Cloudflare)
   cloudflaredTmpl = pkgs.writeText "cloudflared.ctmpl" ''
     {{ with secret "${matrixKvPath}/cloudflared" }}
     {
@@ -109,7 +110,7 @@ let
     {{ end }}
   '';
 
-  # 6. Coturn & LiveKit shared secrets
+  # 5. Media Relay (Coturn/LiveKit)
   coturnSecretTmpl = pkgs.writeText "coturn-secret.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}{{ .Data.data.turn_shared_secret }}{{ end }}
   '';
@@ -120,7 +121,9 @@ let
     {{ end }}
   '';
 
-  # ── Configuration ──────────────────────────────────────────────────────────
+  # ── Vault Agent Configuration ──────────────────────────────────────────
+  # The Vault Agent serves as the local custodian of secrets, handling
+  # AppRole authentication and dynamic template rendering.
 
   vaultAgentConfig = pkgs.writeText "vault-agent.hcl" ''
     exit_after_auth = false
@@ -146,7 +149,7 @@ let
       address = "${vaultAddr}"
     }
 
-    # SSL Certs
+    # Certificate Management
     template { 
       source = "${haproxyTmpl}" 
       destination = "${certDir}/haproxy.pem" 
@@ -169,7 +172,7 @@ let
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
     }
 
-    # Application Secrets
+    # Secret Management
     template { 
       source = "${synapseSecretsTmpl}" 
       destination = "${secretDir}/synapse-secrets.yaml" 
@@ -222,7 +225,9 @@ let
   '';
 in
 {
-  # Create a group for services that need to read rendered secrets
+  # Access Control:
+  # Services requiring access to rendered secrets must be members
+  # of the 'matrix-secrets' group.
   users.groups.matrix-secrets = { };
 
   systemd = {
@@ -233,14 +238,18 @@ in
     ];
 
     services = {
-      # Vault Agent: Handles both authentication and secret delivery via templates.
+      # Secret Orchestration:
+      # Vault Agent manages the lifecycle of runtime secrets, ensuring that
+      # applications always have access to the latest credentials.
       vault-agent = {
         description = "Vault Agent: AppRole authentication and secret templating";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
 
-        # Ensure secrets are rendered before applications start
+        # Sequencing:
+        # Secrets must be rendered and permissions established before
+        # application services attempt to start.
         before = [
           "matrix-synapse.service"
           "matrix-authentication-service.service"
@@ -262,7 +271,6 @@ in
           RestartSec = "10s";
           Environment = [ "HOME=/tmp" ];
 
-          # Required for templating and authentication sinks
           ReadWritePaths = [
             secretDir
             certDir
@@ -272,7 +280,8 @@ in
         };
       };
 
-      # Grant group-based access to rendered secrets for specific services
+      # Identity Delegation:
+      # Propagate the 'matrix-secrets' group to individual service environments.
       coturn.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       haproxy.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       matrix-synapse.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
