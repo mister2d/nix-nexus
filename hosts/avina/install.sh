@@ -43,12 +43,9 @@ DISKO_REV=$(nix --extra-experimental-features "nix-command flakes" eval --raw --
   --expr "(builtins.fromJSON (builtins.readFile \"$REPO_ROOT/flake.lock\")).nodes.disko.locked.rev")
 
 # --- Interactive Confirmation ---
+RESUME_MODE=false
 if zpool list "$TARGET_HOSTNAME" >/dev/null 2>&1; then
     RESUME_MODE=true
-    DISKO_MODE="mount"
-else
-    RESUME_MODE=false
-    DISKO_MODE="disko"
 fi
 
 echo -e "${BLUE}=== NixOS ${TARGET_HOSTNAME^} Interactive Install ===${NC}"
@@ -57,13 +54,24 @@ echo "Repo:      $REPO_ROOT"
 echo
 
 if [ "$RESUME_MODE" = true ]; then
-    log "Existing ZFS pool detected. Resuming installation..."
-    read -rp "Proceed with resume? (type 'yes'): " confirm
+    log "Existing ZFS pool detected."
+    echo -e "1) ${GREEN}Resume${NC} (Mount existing partitions, keep data)"
+    echo -e "2) ${RED}Fresh Install${NC} (WIPE disk, create new partitions)"
+    read -rp "Select mode (1 or 2): " mode_select
+    if [[ "$mode_select" == "1" ]]; then
+        DISKO_MODE="mount"
+    else
+        log "DANGER: You have selected Fresh Install. This will DESTROY all data on /dev/sda."
+        read -rp "Are you absolutely sure? (type 'yes'): " confirm
+        [[ "$confirm" != "yes" ]] && error "Aborted."
+        DISKO_MODE="disko"
+    fi
 else
     echo -e "${RED}DANGER: No active pool found. This will DESTROY all data on /dev/sda.${NC}"
     read -rp "Proceed with FRESH installation? (type 'yes'): " confirm
+    [[ "$confirm" != "yes" ]] && error "Aborted."
+    DISKO_MODE="disko"
 fi
-[[ "$confirm" != "yes" ]] && error "Aborted."
 
 # --- Vault & Secrets Phase ---
 echo -e "\n${BLUE}=== Vault Secret Bootstrap ===${NC}"
