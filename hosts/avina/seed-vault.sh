@@ -90,12 +90,14 @@ vault kv put "kv-v2/$KV_BASE/synapse" \
 echo -e "\n[Matrix Authentication Service]"
 read -rp "  encryption_key (64 char hex): " MAS_ENC
 read -rp "  oidc_issuer (e.g. Keycloak URL): " MAS_ISS
+read -rp "  oidc_client_id: " MAS_OIDC_ID
 read -rp "  oidc_client_secret: " MAS_OIDC_SECRET
 read -rp "  matrix_domain (e.g. matrix.example.com): " MAT_DOM
 
 vault kv put "kv-v2/$KV_BASE/mas" \
     encryption_key="$MAS_ENC" \
     oidc_issuer="$MAS_ISS" \
+    oidc_client_id="$MAS_OIDC_ID" \
     oidc_client_secret="$MAS_OIDC_SECRET" \
     matrix_domain="$MAT_DOM" \
     mas_shared_secret="$MAS_SHARED"

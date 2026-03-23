@@ -70,7 +70,7 @@ let
       providers:
         - id: keycloak
           issuer: "{{ .Data.data.oidc_issuer }}"
-          client_id: "mas"
+          client_id: "{{ .Data.data.oidc_client_id }}"
           client_secret: "{{ .Data.data.oidc_client_secret }}"
     matrix:
       kind: synapse
