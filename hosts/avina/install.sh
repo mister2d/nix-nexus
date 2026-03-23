@@ -240,13 +240,7 @@ nix-store --load-db < <(nix-store --store /mnt --dump-db)
 
 # --- Step 3: Install (profile + bootloader) ---
 TOPLEVEL=$(readlink /tmp/nixos-toplevel)
-echo -e "\n${BLUE}=== Final Confirmation ===${NC}"
-echo "Ready to install system profile: $TOPLEVEL"
-echo "All secrets provisioned and Master Key stored."
-read -rp "Proceed with final unattended install? (type 'yes'): " final_confirm
-[[ "$final_confirm" != "yes" ]] && error "Installation aborted before final stage."
-
-log "Step 3/3: Installing bootloader and system profile..."
+log "Step 3/3: Installing bootloader and system profile (${TOPLEVEL})..."
 if ! nixos-install \
     --system "$TOPLEVEL" \
     --no-root-passwd \

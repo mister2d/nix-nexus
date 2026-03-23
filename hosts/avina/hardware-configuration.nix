@@ -11,8 +11,13 @@
 
   boot = {
     loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
+      # Use GRUB for Legacy BIOS compatibility
+      grub = {
+        enable = true;
+        devices = lib.mkForce [ "/dev/sda" ]; # Target install disk
+        efiSupport = false; # Set to true only if using EFI
+      };
+      # systemd-boot.enable = true; # Removed: EFI only
     };
     initrd = {
       availableKernelModules = [
