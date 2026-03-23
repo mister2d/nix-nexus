@@ -78,10 +78,9 @@ in
         log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r %[var(txn.cf_ray)] %[var(txn.cf_ip)] %[var(txn.cf_country)]"
 
       # Matrix Ingress Frontend:
-      # Secure entry point for all stack components. Listens exclusively on the 
-      # local loopback via TLS to interface with the Cloudflare edge tunnel.
+      # Secure entry point for all stack components.
       frontend matrix_ingress
-        bind 127.0.0.1:8443 ssl crt /run/certs/haproxy.pem
+        bind *:443 ssl crt /run/certs/haproxy.pem
 
         # Edge Metadata Processing:
         # Captures and propagates Cloudflare headers to internal backends.

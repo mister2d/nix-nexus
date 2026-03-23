@@ -11,7 +11,6 @@ let
   callDomain = "call.example.com";
   coturnRealm = "turn.example.com";
   vaultAddr = "https://vault.service.consul:8200";
-  cloudflaredTunnelId = "74839201-abcd-efgh-ijkl-1234567890ab"; # Provided by operator
 
   # Federated Posture:
   # Least-privilege model. Add domains of external homeservers you wish to
@@ -29,7 +28,6 @@ in
     ./hardware-configuration.nix
     ../../profiles/core # Core system policies (ZFS, networking, security)
     ../../modules/services/matrix # Matrix 2.0 communications suite
-    ../../modules/services/edge/cloudflared.nix # Secure edge ingress
   ];
 
   _module.args = {
@@ -41,7 +39,6 @@ in
       coturnRealm
       federatedDomains
       vaultAddr
-      cloudflaredTunnelId
       ;
   };
 
@@ -50,16 +47,17 @@ in
     hostId = "a6b7c8d9";
 
     # Public Network Exposure Model:
-    # Only Coturn and SSH are exposed directly. All HTTP/S traffic enters via Cloudflare Tunnel.
+    # Direct ingress on 443 (HAProxy) and 22 (SSH).
     # This configuration overrides core networking policies to ensure a minimal attack surface.
     firewall = lib.mkForce {
       enable = true;
       trustedInterfaces = [ ];
       allowedTCPPorts = [
         22
+        443
         5349
         8404
-      ]; # SSH + Coturn (TURNS) + HAProxy stats
+      ]; # SSH + HTTPS + Coturn (TURNS) + HAProxy stats
       allowedUDPPorts = [
         3478
         5349

@@ -1,7 +1,6 @@
 {
   pkgs,
   vaultAddr,
-  cloudflaredTunnelId,
   matrixDomain,
   ...
 }:
@@ -12,8 +11,6 @@ let
   kvPath = "kv-v2/letsencrypt/certificates/live/novuscotia.com";
   matrixKvPath = "kv-v2/infrastructure/matrix/avina";
   smtpKvPath = "kv-v2/infrastructure/smtp";
-
-  cloudflaredService = "cloudflared-tunnel-${cloudflaredTunnelId}.service";
 
   # ── Runtime Templates ───────────────────────────────────────────────────
 
@@ -87,23 +84,6 @@ let
     {{ end }}
   '';
 
-  cloudflaredTmpl = pkgs.writeText "cloudflared.ctmpl" ''
-    {{ with secret "${matrixKvPath}/cloudflared" }}
-    {
-      "AccountTag": "{{ .Data.data.account_id }}",
-      "TunnelID": "{{ .Data.data.tunnel_id }}",
-      "TunnelName": "avina-tunnel",
-      "TunnelSecret": "{{ .Data.data.tunnel_secret }}"
-    }
-    {{ end }}
-  '';
-
-  cloudflaredCertTmpl = pkgs.writeText "cloudflared-cert.ctmpl" ''
-    {{ with secret "kv-v2/cloudflare/vpc-origin-cert" }}
-    {{- .Data.data.fullchain -}}
-    {{ end }}
-  '';
-
   coturnSecretTmpl = pkgs.writeText "coturn-secret.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}{{ .Data.data.turn_shared_secret }}{{ end }}
   '';
@@ -140,7 +120,6 @@ let
       address = "${vaultAddr}"
     }
 
-    # Certificate Management
     template { 
       source = "${haproxyTmpl}" 
       destination = "${certDir}/haproxy.pem" 
@@ -163,7 +142,6 @@ let
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
     }
 
-    # Secret Management
     template { 
       source = "${synapseSecretsTmpl}" 
       destination = "${secretDir}/synapse-secrets.yaml" 
@@ -184,20 +162,6 @@ let
       perms = 0640 
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true'" 
-    }
-    template { 
-      source = "${cloudflaredTmpl}" 
-      destination = "${secretDir}/cloudflared-creds.json" 
-      perms = 0640 
-      group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true'" 
-    }
-    template { 
-      source = "${cloudflaredCertTmpl}" 
-      destination = "${secretDir}/cloudflared-cert.pem" 
-      perms = 0640 
-      group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true'" 
     }
     template { 
       source = "${coturnSecretTmpl}" 
@@ -273,9 +237,6 @@ in
         };
       };
 
-      # Identity Delegation & Sequencing:
-      # Inject the 'matrix-secrets' group into service environments and
-      # ensure they wait for the initial rendering.
       coturn = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
@@ -293,10 +254,6 @@ in
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
       livekit = {
-        after = [ "vault-agent-init.service" ];
-        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      };
-      "${cloudflaredService}" = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
