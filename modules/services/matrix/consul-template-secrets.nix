@@ -231,12 +231,20 @@ in
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
-        path = [ pkgs.glibc.bin pkgs.systemd pkgs.bash ];
+        path = [
+          pkgs.glibc.bin
+          pkgs.systemd
+          pkgs.bash
+        ];
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig} -exit-after-auth";
           Environment = [ "HOME=/tmp" ];
-          ReadWritePaths = [ secretDir certDir "/run" ];
+          ReadWritePaths = [
+            secretDir
+            certDir
+            "/run"
+          ];
           ReadOnlyPaths = [ persistentSecretDir ];
         };
       };
@@ -246,19 +254,27 @@ in
         after = [ "vault-agent-init.service" ];
         requires = [ "vault-agent-init.service" ];
         wantedBy = [ "multi-user.target" ];
-        path = [ pkgs.glibc.bin pkgs.systemd pkgs.bash ];
+        path = [
+          pkgs.glibc.bin
+          pkgs.systemd
+          pkgs.bash
+        ];
         serviceConfig = {
           ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
           Restart = "on-failure";
           RestartSec = "10s";
           Environment = [ "HOME=/tmp" ];
-          ReadWritePaths = [ secretDir certDir "/run" ];
+          ReadWritePaths = [
+            secretDir
+            certDir
+            "/run"
+          ];
           ReadOnlyPaths = [ persistentSecretDir ];
         };
       };
 
       # Identity Delegation & Sequencing:
-      # Inject the 'matrix-secrets' group into service environments and 
+      # Inject the 'matrix-secrets' group into service environments and
       # ensure they wait for the initial rendering.
       coturn = {
         after = [ "vault-agent-init.service" ];
