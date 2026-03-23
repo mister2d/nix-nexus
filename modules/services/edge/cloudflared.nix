@@ -1,5 +1,4 @@
 {
-  config,
   lib,
   pkgs,
   ...
@@ -50,7 +49,7 @@ in
       # Bypassing LoadCredential to resolve systemd execution failures ('Protocol error').
       # The credentials file is accessed directly from its source path.
       ExecStart = lib.mkForce "${pkgs.cloudflared}/bin/cloudflared tunnel --credentials-file ${credentialsFile} run ${tunnelId}";
-
+      
       # Origin Identity:
       # Propagates the VPC-specific origin certificate for tunnel authentication.
       Environment = [ "TUNNEL_ORIGIN_CERT=${originCertFile}" ];
