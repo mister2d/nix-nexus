@@ -11,12 +11,8 @@
 
   boot = {
     loader = {
-      # Use GRUB for Legacy BIOS compatibility
-      grub = {
-        enable = true;
-        devices = lib.mkForce [ "/dev/sda" ]; # Target install disk
-        efiSupport = false; # Set to true only if using EFI
-      };
+      systemd-boot.enable = true;
+      efi.canTouchEfiVariables = true;
     };
     initrd = {
       # Ensure ZFS is available early in the boot process

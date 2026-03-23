@@ -7,15 +7,10 @@
         content = {
           type = "gpt";
           partitions = {
-            boot = {
-              size = "1M";
-              type = "EF02"; # BIOS boot partition
-              priority = 1;
-            };
             ESP = {
               size = "1G";
               type = "EF00";
-              priority = 2;
+              priority = 1;
               content = {
                 type = "filesystem";
                 format = "vfat";
@@ -28,7 +23,7 @@
             };
             zfs = {
               size = "100%";
-              priority = 3;
+              priority = 2;
               content = {
                 type = "zfs";
                 pool = "avina";
