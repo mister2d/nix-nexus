@@ -46,6 +46,9 @@ in
   # loading to ensure reliable tunnel establishment.
   systemd.services."cloudflared-tunnel-${tunnelId}" = {
     serviceConfig = {
+      # Use the specific group that owns the secrets.
+      Group = "matrix-secrets";
+
       # Bypassing LoadCredential to resolve systemd execution failures ('Protocol error').
       # The credentials file is accessed directly from its source path.
       ExecStart = lib.mkForce "${pkgs.cloudflared}/bin/cloudflared tunnel --credentials-file ${credentialsFile} run ${tunnelId}";

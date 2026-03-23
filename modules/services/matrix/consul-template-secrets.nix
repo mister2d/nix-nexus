@@ -75,7 +75,7 @@ let
       encryption: "{{ .Data.data.encryption_key }}"
     upstream_oauth2:
       providers:
-        - id: keycloak
+        - id: "01H75Z9682SZK6WEZKD98Z2YBP"
           issuer: "{{ .Data.data.oidc_issuer }}"
           client_id: "{{ .Data.data.oidc_client_id }}"
           client_secret: "{{ .Data.data.oidc_client_secret }}"
