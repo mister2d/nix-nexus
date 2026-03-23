@@ -8,9 +8,11 @@ let
   certDir = "/run/certs";
   secretDir = "/run/secrets";
   persistentSecretDir = "/var/lib/secrets";
-  kvPath = "kv-v2/letsencrypt/certificates/live/novuscotia.com";
-  matrixKvPath = "kv-v2/infrastructure/matrix/avina";
-  smtpKvPath = "kv-v2/infrastructure/smtp";
+
+  # KV-v2 paths MUST include the 'data/' segment for direct template access.
+  kvPath = "kv-v2/data/letsencrypt/certificates/live/novuscotia.com";
+  matrixKvPath = "kv-v2/data/infrastructure/matrix/avina";
+  smtpKvPath = "kv-v2/data/infrastructure/smtp";
 
   # ── Runtime Templates ───────────────────────────────────────────────────
 
@@ -32,13 +34,20 @@ let
     {{ end }}
   '';
 
+  # Synapse Core Secrets:
+  # Consolidates all top-level secrets and the ENTIRE MAS block to ensure
+  # deep-merge success and bypass Synapse's strict validation.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}
     macaroon_secret_key: "{{ .Data.data.macaroon_secret_key }}"
     form_secret: "{{ .Data.data.form_secret }}"
     registration_shared_secret: "{{ .Data.data.registration_shared_secret }}"
     turn_shared_secret: "{{ .Data.data.turn_shared_secret }}"
+
     matrix_authentication_service:
+      enabled: true
+      issuer: "https://auth.${matrixDomain}"
+      client_id: "synapse"
       secret: "{{ .Data.data.mas_shared_secret }}"
     {{ end }}
   '';
@@ -126,10 +135,6 @@ let
     vault {
       address = "${vaultAddr}"
     }
-
-    # Template Commands:
-    # Use '--no-block' to prevent deadlocks during systemd activation.
-    # Use 'reload-or-restart' to be graceful where supported.
 
     template { 
       source = "${haproxyTmpl}" 
@@ -248,7 +253,6 @@ in
         };
       };
 
-      # Identity Delegation & Sequencing:
       coturn = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
