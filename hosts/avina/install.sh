@@ -198,6 +198,10 @@ unset VAULT_TOKEN
 log "Throttling ZFS ARC to 1GB to preserve RAM for Nix daemon..."
 echo 1073741824 > /sys/module/zfs/parameters/zfs_arc_max || true
 
+log "Injecting high resource limits and Nix optimizations..."
+ulimit -n 65536 || true
+ulimit -u 16384 || true
+
 # --- Step 1: Build system closure into /mnt ---
 log "Step 1/3: Building system closure into target store..."
 export NIXPKGS_ALLOW_UNFREE=1
@@ -205,14 +209,20 @@ export NIXPKGS_ALLOW_UNFREE=1
 BUILD_FLAKE=".#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel"
 for attempt in 1 2 3; do
     log "Step 1/3: Build attempt $attempt/3..."
+    # Optimization Strategy:
+    # - max-jobs 1: Prevents OOM during heavy evaluation/linking on 12GB RAM.
+    # - download-buffer-size: Increased to 1GB to prevent "buffer full" warnings.
+    # - http2 false: Workaround for intermittent download-related assertion failures.
     if nix \
         --extra-experimental-features "nix-command flakes" \
         build \
         --store /mnt \
         --eval-store auto \
         --impure \
-        --max-jobs 2 \
+        --max-jobs 1 \
         --option max-substitution-jobs 4 \
+        --option download-buffer-size 1073741824 \
+        --option http2 false \
         --option require-sigs false \
         "$REPO_ROOT/$BUILD_FLAKE" \
         --out-link /tmp/nixos-toplevel; then
