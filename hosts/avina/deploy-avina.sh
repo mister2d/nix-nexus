@@ -62,6 +62,7 @@ fi
 
 vault policy write "$POLICY_NAME" - <<EOF
 path "kv-v2/data/$LE_CERT_PATH" { capabilities = ["read"] }
+path "kv-v2/data/cloudflare/vpc-origin-cert" { capabilities = ["read"] }
 path "kv-v2/data/$SMTP_PATH"    { capabilities = ["read"] }
 path "kv-v2/data/$KV_BASE/*"    { capabilities = ["read"] }
 path "auth/token/renew-self"    { capabilities = ["update"] }
