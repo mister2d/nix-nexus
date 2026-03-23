@@ -114,9 +114,14 @@ vault kv put "kv-v2/$KV_BASE/cloudflared" \
     tunnel_secret="$CF_SEC"
 
 log "SUCCESS — Vault is seeded and AppRole '$APPROLE_NAME' is ready."
-echo -e "\n${BLUE}Option A: Obtain credentials for automated AppRole installation:${NC}"
-echo "Role-ID:   \$(vault read -field=role_id auth/approle/role/$APPROLE_NAME/role-id)"
-echo "Secret-ID: \$(vault write -f -field=secret_id auth/approle/role/$APPROLE_NAME/secret-id)"
 
-echo -e "\n${BLUE}Option B: Generate a renewable orphan token (96h period):${NC}"
-echo "vault token create -policy=\"$POLICY_NAME\" -orphan -renewable=true -period=\"96h\""
+echo -e "\n${BLUE}--- INSTALLATION CREDENTIALS ---${NC}"
+echo "These values are required by 'install.sh' to provision the host."
+
+echo -e "\n${BLUE}1. Persistent Master Key (The AppRole):${NC}"
+echo "   Role-ID:   $(vault read -field=role_id auth/approle/role/$APPROLE_NAME/role-id)"
+echo "   Secret-ID: $(vault write -f -field=secret_id auth/approle/role/$APPROLE_NAME/secret-id)"
+
+echo -e "\n${BLUE}2. Temporary Installation Token (Least-Privilege Orphan):${NC}"
+echo "   Used to validate the build environment without exposing administrative keys."
+echo "   Command: vault token create -policy=\"$POLICY_NAME\" -orphan -renewable=true -period=\"96h\" -field=token"
