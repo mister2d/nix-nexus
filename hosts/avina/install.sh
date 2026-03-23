@@ -73,6 +73,23 @@ if [[ -z "${VAULT_TOKEN:-}" ]]; then
 fi
 export VAULT_TOKEN
 
+# --- Token Validation ---
+log "Validating Installation Token policy..."
+TOKEN_POLICIES=$(nix --extra-experimental-features "nix-command flakes" \
+    run "$REPO_ROOT#vault" -- token lookup -format=json | \
+    nix --extra-experimental-features "nix-command flakes" shell "nixpkgs#jq" -- \
+    jq -r '.data.policies | join(",")')
+
+if [[ "$TOKEN_POLICIES" == *"root"* ]]; then
+    echo -e "${RED}WARNING: You are using a ROOT token.${NC}"
+    echo "This violates the least-privilege model for installation."
+    read -rp "Are you SURE you want to continue with a root token? (type 'yes'): " root_confirm
+    [[ "$root_confirm" != "yes" ]] && error "Aborted. Please use an orphan Installation Token."
+elif [[ "$TOKEN_POLICIES" != *"avina-policy"* ]]; then
+    error "Token is missing 'avina-policy'. It cannot access Matrix secrets."
+fi
+log "Token validated (Policies: $TOKEN_POLICIES)"
+
 read -rp "  Enter AppRole Role-ID for this host: " ROLE_ID
 read -rsp "  Enter AppRole Secret-ID for this host: " SECRET_ID; echo
 
