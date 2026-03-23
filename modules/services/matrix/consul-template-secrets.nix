@@ -138,17 +138,17 @@ let
     }
 
     # SSL Certs
-    template { source = "${haproxyTmpl}"; destination = "${certDir}/haproxy.pem"; perms = 0640; command = "${pkgs.systemd}/bin/systemctl reload haproxy.service || true" }
-    template { source = "${coturnCertTmpl}"; destination = "${certDir}/coturn-fullchain.pem"; perms = 0644; command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
-    template { source = "${coturnKeyTmpl}"; destination = "${certDir}/coturn.key"; perms = 0640; command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
+    template { source = "${haproxyTmpl}" destination = "${certDir}/haproxy.pem" perms = "0640" command = "${pkgs.systemd}/bin/systemctl reload haproxy.service || true" }
+    template { source = "${coturnCertTmpl}" destination = "${certDir}/coturn-fullchain.pem" perms = "0644" command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
+    template { source = "${coturnKeyTmpl}" destination = "${certDir}/coturn.key" perms = "0640" command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
 
     # Application Secrets
-    template { source = "${synapseSecretsTmpl}"; destination = "${secretDir}/synapse-secrets.yaml"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
-    template { source = "${synapseEmailTmpl}"; destination = "${secretDir}/synapse-email.yaml"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
-    template { source = "${masConfigTmpl}"; destination = "${secretDir}/mas-config.yaml"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" }
-    template { source = "${cloudflaredTmpl}"; destination = "${secretDir}/cloudflared-creds.json"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart cloudflared-74839201-abcd-efgh-ijkl-1234567890ab.service || true" }
-    template { source = "${coturnSecretTmpl}"; destination = "${secretDir}/coturn-secret"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart coturn.service || true" }
-    template { source = "${coturnSecretEnvTmpl}"; destination = "${secretDir}/coturn-secret-env"; perms = 0600; command = "${pkgs.systemd}/bin/systemctl restart livekit.service || true" }
+    template { source = "${synapseSecretsTmpl}" destination = "${secretDir}/synapse-secrets.yaml" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${synapseEmailTmpl}" destination = "${secretDir}/synapse-email.yaml" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${masConfigTmpl}" destination = "${secretDir}/mas-config.yaml" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" }
+    template { source = "${cloudflaredTmpl}" destination = "${secretDir}/cloudflared-creds.json" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart cloudflared-74839201-abcd-efgh-ijkl-1234567890ab.service || true" }
+    template { source = "${coturnSecretTmpl}" destination = "${secretDir}/coturn-secret" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart coturn.service || true" }
+    template { source = "${coturnSecretEnvTmpl}" destination = "${secretDir}/coturn-secret-env" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart livekit.service || true" }
   '';
 in
 {
