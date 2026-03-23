@@ -1,37 +1,68 @@
 {
-  matrixDomain,
-  elementDomain,
-  masDomain,
-  callDomain,
-  cloudflaredTunnelId,
+  config,
+  lib,
+  pkgs,
   ...
 }:
+let
+  tunnelId = "74839201-abcd-efgh-ijkl-1234567890ab";
+  matrixDomain = "novuscotia.com";
+  callDomain = "call.novuscotia.com";
+  # Path managed by vault-agent
+  credentialsFile = "/run/secrets/cloudflared-creds.json";
+  originCertFile = "/run/secrets/cloudflared-cert.pem";
+in
 {
-  # Edge Ingress Tunnel:
-  # Exposes internal stack components to the Cloudflare edge without opening
-  # any inbound HTTP/S ports on the local firewall.
+  # Cloudflare Edge Connectivity:
+  # Establishes a secure, encrypted tunnel to the Cloudflare network,
+  # routing external traffic to the local HAProxy ingress.
   services.cloudflared = {
     enable = true;
-    tunnels."${cloudflaredTunnelId}" = {
-      credentialsFile = "/run/secrets/cloudflared-creds.json";
-      ingress = {
-        "${matrixDomain}" = "https://127.0.0.1:8443";
-        "${elementDomain}" = "https://127.0.0.1:8443";
-        "${masDomain}" = "https://127.0.0.1:8443";
-        "${callDomain}" = "https://127.0.0.1:8443";
-      };
-      originRequest.noTLSVerify = true;
+    tunnels.${tunnelId} = {
+      inherit credentialsFile;
       default = "http_status:404";
+      ingress = {
+        # Matrix Client/Federation/MAS Ingress:
+        # Routes traffic to HAProxy on the secure loopback port.
+        "${matrixDomain}" = {
+          service = "https://127.0.0.1:8443";
+          originRequest = {
+            # Bypasses hostname validation for the internal loopback link.
+            noTLSVerify = true;
+          };
+        };
+        # Element Call Ingress:
+        "${callDomain}" = {
+          service = "https://127.0.0.1:8443";
+          originRequest = {
+            noTLSVerify = true;
+          };
+        };
+      };
     };
   };
 
-  # Inject origin certificate via environment variable as the NixOS module
-  # does not expose an 'originCert' option for individual tunnels.
-  systemd.services."cloudflared-tunnel-${cloudflaredTunnelId}".serviceConfig.Environment = [
-    "TUNNEL_ORIGIN_CERT=/run/secrets/cloudflared-cert.pem"
-  ];
+  # Tunnel Hardening & Identity:
+  # Injects the Cloudflare origin certificate and bypasses systemd credential
+  # loading to ensure reliable tunnel establishment.
+  systemd.services."cloudflared-tunnel-${tunnelId}" = {
+    serviceConfig = {
+      # Bypassing LoadCredential to resolve systemd execution failures ('Protocol error').
+      # The credentials file is accessed directly from its source path.
+      ExecStart = lib.mkForce "${pkgs.cloudflared}/bin/cloudflared tunnel --credentials-file ${credentialsFile} run ${tunnelId}";
 
-  # VPN Transition Policy:
-  # This host will join the fleet-wide Headscale mesh once the coordination
-  # infrastructure is deployed, replacing the current edge-only connectivity model.
+      # Origin Identity:
+      # Propagates the VPC-specific origin certificate for tunnel authentication.
+      Environment = [ "TUNNEL_ORIGIN_CERT=${originCertFile}" ];
+
+      # Security:
+      # Restricts the service to minimal required capabilities.
+      CapabilityBoundingSet = "CAP_NET_BIND_SERVICE";
+      NoNewPrivileges = true;
+    };
+  };
+
+  # Transition Strategy:
+  # Note: Avina will join the self-hosted Headscale VPN mesh in a future phase.
+  # Until then, administration is handled via Cloudflare SSH and direct console.
 }
