@@ -1,5 +1,7 @@
 {
   pkgs,
+  vaultAddr,
+  cloudflaredTunnelId,
   ...
 }:
 let
@@ -9,6 +11,9 @@ let
   kvPath = "kv-v2/letsencrypt/certificates/live/novuscotia.com";
   matrixKvPath = "kv-v2/infrastructure/matrix/avina";
   smtpKvPath = "kv-v2/infrastructure/smtp";
+
+  # Dynamic service names derived from configuration
+  cloudflaredService = "cloudflared-tunnel-${cloudflaredTunnelId}.service";
 
   # ── Templates ─────────────────────────────────────────────────────────────
 
@@ -44,7 +49,6 @@ let
   '';
 
   # 3. Synapse Email (SMTP)
-  # Source: kv-v2/infrastructure/smtp (Existing)
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with secret "${smtpKvPath}" }}
     email:
@@ -120,19 +124,19 @@ let
       sink "file" {
         config = {
           path = "${secretDir}/vault-token"
-          mode = 0600
+          mode = 0640
         }
       }
     }
 
     vault {
-      address = "https://vault.service.consul:8200"
+      address = "${vaultAddr}"
     }
   '';
 
   ctConfig = pkgs.writeText "consul-template-secrets.hcl" ''
     vault {
-      address      = "https://vault.service.consul:8200"
+      address      = "${vaultAddr}"
       vault_agent_token_file = "${secretDir}/vault-token"
       renew_token  = false # Vault Agent handles renewal
     }
@@ -143,67 +147,78 @@ let
     template { source = "${coturnKeyTmpl}" destination = "${certDir}/coturn.key" perms = "0640" command = "${pkgs.systemd}/bin/systemctl reload coturn.service || true" }
 
     # Application Secrets
-    template { source = "${synapseSecretsTmpl}" destination = "${secretDir}/synapse-secrets.yaml" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
-    template { source = "${synapseEmailTmpl}" destination = "${secretDir}/synapse-email.yaml" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
-    template { source = "${masConfigTmpl}" destination = "${secretDir}/mas-config.yaml" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" }
-    template { source = "${cloudflaredTmpl}" destination = "${secretDir}/cloudflared-creds.json" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart cloudflared-74839201-abcd-efgh-ijkl-1234567890ab.service || true" }
-    template { source = "${coturnSecretTmpl}" destination = "${secretDir}/coturn-secret" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart coturn.service || true" }
-    template { source = "${coturnSecretEnvTmpl}" destination = "${secretDir}/coturn-secret-env" perms = "0600" command = "${pkgs.systemd}/bin/systemctl restart livekit.service || true" }
+    template { source = "${synapseSecretsTmpl}" destination = "${secretDir}/synapse-secrets.yaml" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${synapseEmailTmpl}" destination = "${secretDir}/synapse-email.yaml" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" }
+    template { source = "${masConfigTmpl}" destination = "${secretDir}/mas-config.yaml" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" }
+    template { source = "${cloudflaredTmpl}" destination = "${secretDir}/cloudflared-creds.json" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true" }
+    template { source = "${coturnSecretTmpl}" destination = "${secretDir}/coturn-secret" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart coturn.service || true" }
+    template { source = "${coturnSecretEnvTmpl}" destination = "${secretDir}/coturn-secret-env" perms = "0640" command = "${pkgs.systemd}/bin/systemctl restart livekit.service || true" }
   '';
 in
 {
+  # Create a group for services that need to read rendered secrets
+  users.groups.matrix-secrets = { };
+
   systemd = {
     tmpfiles.rules = [
       "d ${certDir} 0755 root root -"
-      "d ${secretDir} 0700 root root -"
+      "d ${secretDir} 0750 root matrix-secrets -"
       "d ${persistentSecretDir} 0700 root root -"
     ];
 
-    # Vault Agent: The persistent "Master Key" authenticator.
-    services.vault-agent = {
-      description = "Vault Agent: AppRole authentication for avina bootstrap";
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
-        Restart = "on-failure";
-        RestartSec = "10s";
-        NoNewPrivileges = true;
-        ReadWritePaths = [
-          secretDir
-          "/run"
-        ];
-        ReadOnlyPaths = [ persistentSecretDir ];
+    services = {
+      # Vault Agent: The persistent "Master Key" authenticator.
+      vault-agent = {
+        description = "Vault Agent: AppRole authentication for avina bootstrap";
+        after = [ "network-online.target" ];
+        wants = [ "network-online.target" ];
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
+          Restart = "on-failure";
+          RestartSec = "10s";
+          # Required to read the Master Key and write the Token
+          ReadWritePaths = [
+            secretDir
+            "/run"
+          ];
+          ReadOnlyPaths = [ persistentSecretDir ];
+        };
       };
-    };
 
-    # Consul Template: The runtime secrets renderer.
-    services.consul-template-secrets = {
-      description = "consul-template: render all Matrix 2.0 secrets from Vault";
-      after = [ "vault-agent.service" ];
-      requires = [ "vault-agent.service" ];
-      wantedBy = [ "multi-user.target" ];
-      # Ensure secrets are rendered before applications start
-      before = [
-        "matrix-synapse.service"
-        "matrix-authentication-service.service"
-        "coturn.service"
-        "haproxy.service"
-        "cloudflared-74839201-abcd-efgh-ijkl-1234567890ab.service"
-        "livekit.service"
-      ];
-      serviceConfig = {
-        ExecStart = "${pkgs.consul-template}/bin/consul-template -config=${ctConfig}";
-        Restart = "on-failure";
-        RestartSec = "10s";
-        NoNewPrivileges = true;
-        PrivateTmp = false;
-        ReadWritePaths = [
-          certDir
-          secretDir
+      # Consul Template: The runtime secrets renderer.
+      consul-template-secrets = {
+        description = "consul-template: render all Matrix 2.0 secrets from Vault";
+        after = [ "vault-agent.service" ];
+        requires = [ "vault-agent.service" ];
+        wantedBy = [ "multi-user.target" ];
+        # Ensure secrets are rendered before applications start
+        before = [
+          "matrix-synapse.service"
+          "matrix-authentication-service.service"
+          "coturn.service"
+          "haproxy.service"
+          "${cloudflaredService}"
+          "livekit.service"
         ];
+        serviceConfig = {
+          ExecStart = "${pkgs.consul-template}/bin/consul-template -config=${ctConfig}";
+          Restart = "on-failure";
+          RestartSec = "10s";
+          ReadWritePaths = [
+            certDir
+            secretDir
+          ];
+        };
       };
+
+      # Grant group-based access to rendered secrets for specific services
+      coturn.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      haproxy.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      matrix-synapse.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      matrix-authentication-service.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      livekit.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      "${cloudflaredService}".serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
     };
   };
 }

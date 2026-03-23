@@ -15,6 +15,11 @@
   networking.hostName = "avina-bootstrap";
   networking.hostId = "a6b7c8d9";
 
+  _module.args = {
+    vaultAddr = "https://vault.service.consul:8200";
+    cloudflaredTunnelId = "bootstrap-placeholder";
+  };
+
   # Secure Remote Access (Stage 1):
   # Certificate-based authentication via repository-managed SSH CA.
   services.openssh = {
