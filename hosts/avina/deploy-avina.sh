@@ -119,15 +119,32 @@ vault write -f -field=secret_id "auth/approle/role/$APPROLE_NAME/secret-id" > /v
 chmod 600 /var/lib/secrets/*
 log "Master Key provisioned to persistent storage."
 
-# --- 4. Final Rebuild ---
-log "Executing final nixos-rebuild switch to the full Avina flake..."
-# Keep VAULT_ADDR in environment for the rebuild to verify connectivity
-# but ensure VAULT_TOKEN is gone.
+# --- 4. Final Build & Switch ---
+log "Step 4a: Pre-building system closure while network is stable..."
+# Pre-building ensures all binaries are in store before the network stack is touched
+if ! nix build "$REPO_ROOT#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel" --impure --out-link /tmp/avina-toplevel; then
+    error "Failed to build system closure. Check network connectivity."
+fi
+
+log "Step 4b: Verifying DNS and connectivity..."
+for i in {1..10}; do
+    if getent hosts cache.nixos.org >/dev/null; then
+        log "DNS verified."
+        break
+    fi
+    log "Waiting for DNS... ($i/10)"
+    sleep 2
+    [[ $i -eq 10 ]] && error "DNS resolution failed."
+done
+
+log "Step 4c: Executing nixos-rebuild switch..."
+# Clear admin token from environment before switch
 unset VAULT_TOKEN
 
 if nixos-rebuild switch --flake "$REPO_ROOT#$TARGET_HOSTNAME" --impure; then
     log "SUCCESS — Avina Matrix 2.0 server is fully deployed."
     log "The system will now bootstrap its own runtime secrets from Vault."
+    rm -f /tmp/avina-toplevel
 else
     error "nixos-rebuild failed. Check logs above."
 fi
