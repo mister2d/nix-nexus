@@ -139,7 +139,7 @@ upstream_oauth2:
   providers:
     - id: keycloak
       issuer: \"{{ .Data.data.oidc_issuer }}\"
-      client_id: \"mas\"
+      client_id: \"{{ .Data.data.oidc_client_id }}\"
       client_secret: \"{{ .Data.data.oidc_client_secret }}\"
 matrix:
   kind: synapse
@@ -195,7 +195,8 @@ for attempt in 1 2 3; do
         --impure \
         --max-jobs 2 \
         --option max-substitution-jobs 4 \
-        "$BUILD_FLAKE" \
+        --option require-sigs false \
+        "$REPO_ROOT/$BUILD_FLAKE" \
         --out-link /tmp/nixos-toplevel; then
         break
     fi
