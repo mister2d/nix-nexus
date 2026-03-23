@@ -303,6 +303,7 @@
             inherit inputs;
           };
           modules = [
+            nixvim.nixosModules.nixvim
             ./hosts/avina/bootstrap.nix
           ];
         };
