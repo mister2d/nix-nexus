@@ -119,22 +119,8 @@
         };
       });
 
-      # Bootstrap Packages
-      # These are exposed for the installer to ensure pinned versions are used.
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = import inputs.pkgs-stable {
-            inherit system;
-            config.allowUnfree = true;
-          };
-        in
-        {
-          inherit (pkgs) consul-template vault;
-        }
-      );
-
       homeConfigurations = {
+
         # Hostname: dualie (Debian Trixie)
         # Usage: 'nix run home-manager/master -- switch --flake .#groot@dualie'
         "groot@dualie" = home-manager.lib.homeManagerConfiguration {
