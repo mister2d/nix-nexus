@@ -35,7 +35,7 @@
         "turn:${coturnRealm}:3478?transport=tcp"
         "turns:${coturnRealm}:5349?transport=tcp"
       ];
-      turn_user_lifetime = "86400000ms";
+      turn_user_lifetime = 86400000;
 
       # Federated Posture:
       # Restrict federation to a specific set of trusted domains (Private Federation).
