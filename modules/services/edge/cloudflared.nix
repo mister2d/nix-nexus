@@ -3,6 +3,7 @@
   elementDomain,
   masDomain,
   callDomain,
+  cloudflaredTunnelId,
   ...
 }:
 {
@@ -11,7 +12,7 @@
   # any inbound HTTP/S ports on the local firewall.
   services.cloudflared = {
     enable = true;
-    tunnels."74839201-abcd-efgh-ijkl-1234567890ab" = {
+    tunnels."${cloudflaredTunnelId}" = {
       credentialsFile = "/run/secrets/cloudflared-creds.json";
       ingress = {
         "${matrixDomain}" = "http://127.0.0.1:8080";

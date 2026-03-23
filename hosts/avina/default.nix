@@ -10,6 +10,8 @@ let
   masDomain = "auth.example.com";
   callDomain = "call.example.com";
   coturnRealm = "turn.example.com";
+  vaultAddr = "https://vault.service.consul:8200";
+  cloudflaredTunnelId = "74839201-abcd-efgh-ijkl-1234567890ab"; # Provided by operator
 
   # Federated Posture:
   # Least-privilege model. Add domains of external homeservers you wish to
@@ -38,6 +40,8 @@ in
       callDomain
       coturnRealm
       federatedDomains
+      vaultAddr
+      cloudflaredTunnelId
       ;
   };
 

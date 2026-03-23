@@ -37,7 +37,8 @@ echo
 
 # --- 1. Vault Authentication ---
 if [[ -z "${VAULT_ADDR:-}" ]]; then
-    read -rp "  Enter Vault Address (e.g. https://vault.example.com): " VAULT_ADDR
+    read -rp "  Enter Vault Address (default: https://vault.service.consul:8200): " VAULT_ADDR
+    VAULT_ADDR="${VAULT_ADDR:-https://vault.service.consul:8200}"
 fi
 export VAULT_ADDR
 
@@ -121,10 +122,11 @@ log "Master Key provisioned to persistent storage."
 
 # --- 4. Final Rebuild ---
 log "Executing final nixos-rebuild switch to the full Avina flake..."
-# Clear admin token from environment before rebuild
+# Keep VAULT_ADDR in environment for the rebuild to verify connectivity
+# but ensure VAULT_TOKEN is gone.
 unset VAULT_TOKEN
 
-if nixos-rebuild switch --flake "$REPO_ROOT#$TARGET_HOSTNAME"; then
+if nixos-rebuild switch --flake "$REPO_ROOT#$TARGET_HOSTNAME" --impure; then
     log "SUCCESS — Avina Matrix 2.0 server is fully deployed."
     log "The system will now bootstrap its own runtime secrets from Vault."
 else
