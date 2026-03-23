@@ -16,9 +16,6 @@ let
   # Dynamic service names derived from configuration
   cloudflaredService = "cloudflared-tunnel-${cloudflaredTunnelId}.service";
 
-  # Helper to ensure rendered files are readable by the matrix-secrets group
-  chgrpCmd = "${pkgs.coreutils}/bin/chgrp matrix-secrets";
-
   # ── Templates ─────────────────────────────────────────────────────────────
 
   # 1. SSL/TLS Certificates
@@ -142,19 +139,22 @@ let
       source = "${haproxyTmpl}" 
       destination = "${certDir}/haproxy.pem" 
       perms = 0640 
-      command = "${chgrpCmd} ${certDir}/haproxy.pem && ${pkgs.systemd}/bin/systemctl reload haproxy.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload haproxy.service || true'" 
     }
     template { 
       source = "${coturnCertTmpl}" 
       destination = "${certDir}/coturn-fullchain.pem" 
       perms = 0644 
-      command = "${chgrpCmd} ${certDir}/coturn-fullchain.pem && ${pkgs.systemd}/bin/systemctl reload coturn.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
     }
     template { 
       source = "${coturnKeyTmpl}" 
       destination = "${certDir}/coturn.key" 
       perms = 0640 
-      command = "${chgrpCmd} ${certDir}/coturn.key && ${pkgs.systemd}/bin/systemctl reload coturn.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
     }
 
     # Application Secrets
@@ -162,37 +162,43 @@ let
       source = "${synapseSecretsTmpl}" 
       destination = "${secretDir}/synapse-secrets.yaml" 
       perms = 0640 
-      command = "${chgrpCmd} ${secretDir}/synapse-secrets.yaml && ${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true'" 
     }
     template { 
       source = "${synapseEmailTmpl}" 
       destination = "${secretDir}/synapse-email.yaml" 
       perms = 0640 
-      command = "${chgrpCmd} ${secretDir}/synapse-email.yaml && ${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart matrix-synapse.service || true'" 
     }
     template { 
       source = "${masConfigTmpl}" 
       destination = "${secretDir}/mas-config.yaml" 
       perms = 0640 
-      command = "${chgrpCmd} ${secretDir}/mas-config.yaml && ${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart matrix-authentication-service.service || true'" 
     }
     template { 
       source = "${cloudflaredTmpl}" 
       destination = "${secretDir}/cloudflared-creds.json" 
       perms = 0640 
-      command = "${chgrpCmd} ${secretDir}/cloudflared-creds.json && ${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true'" 
     }
     template { 
       source = "${coturnSecretTmpl}" 
       destination = "${secretDir}/coturn-secret" 
       perms = 0640 
-      command = "${chgrpCmd} ${secretDir}/coturn-secret && ${pkgs.systemd}/bin/systemctl restart coturn.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart coturn.service || true'" 
     }
     template { 
       source = "${coturnSecretEnvTmpl}" 
       destination = "${secretDir}/coturn-secret-env" 
       perms = 0640 
-      command = "${chgrpCmd} ${secretDir}/coturn-secret-env && ${pkgs.systemd}/bin/systemctl restart livekit.service || true" 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart livekit.service || true'" 
     }
   '';
 in
@@ -228,12 +234,11 @@ in
         path = [
           pkgs.glibc.bin
           pkgs.systemd
-          pkgs.coreutils
+          pkgs.bash
         ];
 
         serviceConfig = {
           ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
-          ExecStartPost = "${chgrpCmd} ${secretDir}/vault-token || true"; # Fix sink permission
           Restart = "on-failure";
           RestartSec = "10s";
           Environment = [ "HOME=/tmp" ];
