@@ -4,8 +4,7 @@
 # ==============================================================================
 # Features:
 #   - Interactive Vault AppRole bootstrap
-#   - Pinned package versions via nix-shell
-#   - Automated secret rendering into /run/secrets
+#   - Automated secret rendering into /run/secrets using host binaries
 #   - Memory-optimized build for 12GB RAM / 4 Cores
 # ==============================================================================
 
@@ -28,10 +27,17 @@ trap cleanup EXIT
 
 [[ $EUID -ne 0 ]] && error "Must be run as root."
 
+# --- Dependency Check ---
+for cmd in vault consul-template jq; do
+    if ! command -v "$cmd" &>/dev/null; then
+        error "Required command '$cmd' not found in PATH."
+    fi
+done
+
 TARGET_HOSTNAME="$(basename "$(cd "$(dirname "$0")" && pwd)")"
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 
-# Pin disko and packages from flake.lock / inputs
+# Pin disko rev from flake.lock
 log "Identifying pinned versions from flake inputs..."
 DISKO_REV=$(nix --extra-experimental-features "nix-command flakes" eval --raw --impure \
   --expr "(builtins.fromJSON (builtins.readFile \"$REPO_ROOT/flake.lock\")).nodes.disko.locked.rev")
@@ -75,10 +81,7 @@ export VAULT_TOKEN
 
 # --- Token Validation ---
 log "Validating Installation Token policy..."
-TOKEN_POLICIES=$(nix --extra-experimental-features "nix-command flakes" \
-    run "$REPO_ROOT#vault" -- token lookup -format=json | \
-    nix --extra-experimental-features "nix-command flakes" shell "nixpkgs#jq" -- \
-    jq -r '.data.policies | join(",")')
+TOKEN_POLICIES=$(vault token lookup -format=json | jq -r '.data.policies | join(",")')
 
 if [[ "$TOKEN_POLICIES" == *"root"* ]]; then
     echo -e "${RED}WARNING: You are using a ROOT token.${NC}"
@@ -108,8 +111,8 @@ echo "$SECRET_ID" > /mnt/var/lib/secrets/vault-secret-id
 chmod 700 /mnt/var/lib/secrets
 chmod 600 /mnt/var/lib/secrets/*
 
-# --- Runtime Secret Rendering (nix shell) ---
-log "Rendering runtime secrets into /run/secrets using pinned consul-template..."
+# --- Runtime Secret Rendering ---
+log "Rendering runtime secrets into /run/secrets using host consul-template..."
 mkdir -p /run/secrets /run/certs
 chmod 700 /run/secrets
 
@@ -183,9 +186,7 @@ echo "{{ with secret \"$matrixKvPath/synapse\" }}{{ .Data.data.turn_shared_secre
 echo "{{ with secret \"$matrixKvPath/synapse\" }}LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}{{ end }}" > /tmp/turnenv.ctmpl
 
 # Execute consul-template once to render
-# Uses the package exposed in the local flake outputs
-nix --extra-experimental-features "nix-command flakes" \
-    run "$REPO_ROOT#consul-template" -- -config /tmp/ct-install.hcl -once
+consul-template -config /tmp/ct-install.hcl -once
 
 log "Secrets rendered successfully to /run/secrets."
 chmod 600 /run/secrets/*
