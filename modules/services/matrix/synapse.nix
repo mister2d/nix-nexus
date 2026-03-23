@@ -18,12 +18,8 @@
       suppress_key_server_warning = true;
 
       # Authentication Policy:
-      # Native OIDC delegation to the Matrix Authentication Service (MAS).
-      matrix_authentication_service = {
-        enabled = true;
-        issuer = "https://auth.${matrixDomain}";
-        client_id = "synapse";
-      };
+      # All OIDC/MAS settings (enabled, issuer, client_id, secret) are rendered
+      # as a single unit in synapse-secrets.yaml to ensure deep-merge success.
 
       experimental_features = { };
 
@@ -41,8 +37,7 @@
       federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;
 
       # Email Notifications:
-      # Static and secret email settings are consolidated in synapse-email.yaml
-      # to ensure configuration integrity across multiple files.
+      # All settings consolidated in synapse-email.yaml.
 
       # Proxy Trust Model:
       trusted_proxies = [ "127.0.0.1" ];
