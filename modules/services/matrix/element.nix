@@ -21,23 +21,27 @@ let
     }
   );
 
-  elementWeb = pkgs.element-web.override {
-    conf = elementConfig;
-  };
+  elementWeb = pkgs.element-web;
 in
 {
   # Static Asset Distribution:
-  # Serves the Element Web client via a lightweight static server.
-  # Ingress is managed by the fleet HAProxy.
+  # Serves the Element Web client. A symlink forest is created at runtime
+  # to merge the static assets with the dynamically generated configuration.
   systemd.services.element-web = {
     description = "Element Web static server";
     after = [ "network.target" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
-      ExecStart = "${pkgs.darkhttpd}/bin/darkhttpd ${elementWeb} --port 8082 --addr 127.0.0.1";
+      ExecStartPre = pkgs.writeShellScript "prep-element-web" ''
+        mkdir -p /run/element-web
+        ln -sf ${elementWeb}/* /run/element-web/
+        ln -sf ${elementConfig} /run/element-web/config.json
+      '';
+      ExecStart = "${pkgs.darkhttpd}/bin/darkhttpd /run/element-web --port 8082 --addr 127.0.0.1";
       Restart = "on-failure";
       NoNewPrivileges = true;
       PrivateTmp = true;
+      RuntimeDirectory = "element-web";
       ProtectSystem = "strict";
       ProtectHome = true;
       CapabilityBoundingSet = "";
