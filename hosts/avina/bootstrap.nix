@@ -51,5 +51,14 @@
     lib.mkDefault
       (import inputs.nixpkgs { system = "x86_64-linux"; }).linuxPackages;
 
+  # Nix Configuration:
+  # Enable modern Nix features and allow unfree packages (e.g. Vault)
+  # for the Stage 2 deployment script.
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
+  environment.variables.NIXPKGS_ALLOW_UNFREE = "1";
+
   system.stateVersion = "25.11";
 }
