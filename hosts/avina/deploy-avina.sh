@@ -90,7 +90,6 @@ if [[ "$reseed" =~ ^[Yy]$ ]]; then
     read -rp "  MAS oidc_issuer (e.g. Keycloak URL): " MAS_ISS
     read -rp "  MAS oidc_client_id: " MAS_OIDC_ID
     read -rp "  MAS oidc_client_secret: " MAS_OIDC_SECRET
-    read -rp "  Matrix Domain (e.g. matrix.example.com): " MAT_DOM
     read -rp "  Cloudflare account_id: " CF_ACC
     read -rp "  Cloudflare tunnel_id: " CF_TUN
     read -rp "  Cloudflare tunnel_secret: " CF_SEC
@@ -103,7 +102,7 @@ if [[ "$reseed" =~ ^[Yy]$ ]]; then
     vault kv put "kv-v2/$KV_BASE/mas" \
         encryption_key="$MAS_ENC" oidc_issuer="$MAS_ISS" \
         oidc_client_id="$MAS_OIDC_ID" oidc_client_secret="$MAS_OIDC_SECRET" \
-        matrix_domain="$MAT_DOM" mas_shared_secret="$MAS_SHARED"
+        mas_shared_secret="$MAS_SHARED"
 
     vault kv put "kv-v2/$KV_BASE/cloudflared" \
         account_id="$CF_ACC" tunnel_id="$CF_TUN" tunnel_secret="$CF_SEC"
