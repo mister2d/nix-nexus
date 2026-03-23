@@ -24,6 +24,12 @@
     };
   };
 
+  # Inject origin certificate via environment variable as the NixOS module
+  # does not expose an 'originCert' option for individual tunnels.
+  systemd.services."cloudflared-tunnel-${cloudflaredTunnelId}".serviceConfig.Environment = [
+    "TUNNEL_ORIGIN_CERT=/run/secrets/cloudflared-cert.pem"
+  ];
+
   # VPN Transition Policy:
   # This host will join the fleet-wide Headscale mesh once the coordination
   # infrastructure is deployed, replacing the current edge-only connectivity model.

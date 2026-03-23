@@ -63,7 +63,13 @@ let
     http:
       listeners:
         - name: web
-          resources: [discovery, human, oauth, compat, graphql, assets]
+          resources:
+            - name: discovery
+            - name: human
+            - name: oauth
+            - name: compat
+            - name: graphql
+            - name: assets
           binds: [{ host: "127.0.0.1", port: 8181 }]
     database:
       host: "/run/postgresql"
@@ -94,6 +100,12 @@ let
       "TunnelName": "avina-tunnel",
       "TunnelSecret": "{{ .Data.data.tunnel_secret }}"
     }
+    {{ end }}
+  '';
+
+  cloudflaredCertTmpl = pkgs.writeText "cloudflared-cert.ctmpl" ''
+    {{ with secret "kv-v2/cloudflare/vpc-origin-cert" }}
+    {{- .Data.data.fullchain -}}
     {{ end }}
   '';
 
@@ -182,6 +194,13 @@ let
     template { 
       source = "${cloudflaredTmpl}" 
       destination = "${secretDir}/cloudflared-creds.json" 
+      perms = 0640 
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true'" 
+    }
+    template { 
+      source = "${cloudflaredCertTmpl}" 
+      destination = "${secretDir}/cloudflared-cert.pem" 
       perms = 0640 
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart ${cloudflaredService} || true'" 

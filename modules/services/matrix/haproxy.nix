@@ -12,7 +12,6 @@ let
     "172.16.0.0/12"
     "192.168.0.0/16"
   ];
-  # wellKnownDir = "/run/avina-wellknown";
   wellKnownConfig = pkgs.writeTextDir "matrix/client" (
     builtins.toJSON {
       "m.homeserver" = {
@@ -55,10 +54,14 @@ in
         stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
         log stdout format raw local0
 
+        # Modern SSL defaults
+        ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+        ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+        ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
       defaults
         mode    http
         log     global
-        option  httplog
         timeout connect 5s
         timeout client  600s
         timeout server  600s
@@ -74,6 +77,8 @@ in
       # Unified entry point for all stack components. Handles OIDC routing,
       # media signaling, and static asset distribution.
       frontend matrix_ingress
+        # Bind to localhost 8080 (from cloudflared) OR public 443 with certs
+        bind *:443 ssl crt /run/certs/haproxy.pem
         bind 127.0.0.1:8080
 
         # Edge Metadata Processing:
@@ -118,7 +123,6 @@ in
       # TLS is enforced; access restricted to trusted administrative subnets.
       frontend stats
         bind *:8404 ssl crt /run/certs/haproxy.pem
-        option  http-use-htx
         stats   enable
         stats   show-legends
         stats   show-modules
