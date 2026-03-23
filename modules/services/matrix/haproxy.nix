@@ -30,7 +30,9 @@ let
   );
 in
 {
-  # Well-known server on 8083
+  # Matrix well-known static server:
+  # Serves the .well-known/matrix/client discovery file required for client
+  # autodiscovery and media signaling (MSC4143).
   systemd.services.avina-wellknown = {
     description = "Matrix well-known static server";
     after = [ "network.target" ];
@@ -54,7 +56,8 @@ in
         stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
         log stdout format raw local0
 
-        # Modern SSL defaults
+        # High-Security SSL configuration:
+        # Enforces modern ciphers and TLS 1.2+ to satisfy production security requirements.
         ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
         ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
         ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
@@ -70,25 +73,24 @@ in
         option  http-server-close
 
         # Traceability & Observability:
-        # Custom log format incorporating Cloudflare edge metadata (Ray ID, Real IP, Country).
+        # Custom log format incorporating Cloudflare edge metadata (Ray ID, Real IP, Country)
+        # to ensure end-to-end request visibility.
         log-format "%ci:%cp [%tr] %ft %b/%s %TR/%Tw/%Tc/%Tr/%Ta %ST %B %CC %CS %tsc %ac/%fc/%bc/%sc/%rc %sq/%bq %hr %hs %{+Q}r %[var(txn.cf_ray)] %[var(txn.cf_ip)] %[var(txn.cf_country)]"
 
-      # Matrix Ingress:
-      # Unified entry point for all stack components. Handles OIDC routing,
-      # media signaling, and static asset distribution.
+      # Matrix Ingress Frontend:
+      # Secure entry point for all stack components. Listens exclusively on the 
+      # local loopback via TLS to interface with the Cloudflare edge tunnel.
       frontend matrix_ingress
-        # Public entry and local secure tunnel entry
-        bind *:443 ssl crt /run/certs/haproxy.pem
         bind 127.0.0.1:8443 ssl crt /run/certs/haproxy.pem
 
         # Edge Metadata Processing:
-        # Capture and propagate Cloudflare headers to internal backends for end-to-end traceability.
+        # Captures and propagates Cloudflare headers to internal backends.
         http-request set-var(txn.cf_ray)     hdr(CF-Ray)
         http-request set-var(txn.cf_ip)      hdr(CF-Connecting-IP)
         http-request set-var(txn.cf_country) hdr(CF-IPCountry)
 
         # Source Identity:
-        # Treat the Cloudflare connecting IP as the source for all internal tracking and ACLs.
+        # Restores the original client IP from Cloudflare metadata for internal tracking.
         http-request set-src hdr(CF-Connecting-IP) if { hdr(CF-Connecting-IP) -m found }
 
         http-request set-header X-Forwarded-For %[hdr(CF-Connecting-IP)] if { hdr(CF-Connecting-IP) -m found }
@@ -96,6 +98,7 @@ in
         http-request set-header X-Cloudflare-Country %[hdr(CF-IPCountry)] if { hdr(CF-IPCountry) -m found }
 
         # Component Routing Logic:
+        # Dispatches traffic to the appropriate Matrix 2.0 component based on path/host.
         acl is_mas_login   path_beg /_matrix/client/v3/login
         acl is_mas_login   path_beg /_matrix/client/r0/login
         acl is_mas_logout  path_beg /_matrix/client/v3/logout
@@ -119,8 +122,8 @@ in
         default_backend element_backend
 
       # System Health & Metrics:
-      # Exposes HAProxy stats and Prometheus metrics on a dedicated port.
-      # TLS is enforced; access restricted to trusted administrative subnets.
+      # Exposes HAProxy stats and Prometheus metrics. TLS is enforced; 
+      # access is restricted to trusted administrative subnets.
       frontend stats
         bind *:8404 ssl crt /run/certs/haproxy.pem
         stats   enable
