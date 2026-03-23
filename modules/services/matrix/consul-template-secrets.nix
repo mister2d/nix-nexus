@@ -204,7 +204,7 @@ let
       destination = "${secretDir}/coturn-secret" 
       perms = 0640 
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart coturn.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload coturn.service || true'" 
     }
     template { 
       source = "${coturnSecretEnvTmpl}" 
@@ -226,79 +226,64 @@ in
     ];
 
     services = {
-      # Initial Rendering:
-      # Ensures that all secrets and certificates exist before any application
-      # attempts to start, eliminating race conditions.
       vault-agent-init = {
         description = "Vault Agent: Initial Secret Rendering";
         after = [ "network-online.target" ];
         wants = [ "network-online.target" ];
         wantedBy = [ "multi-user.target" ];
-
-        path = [
-          pkgs.glibc.bin
-          pkgs.systemd
-          pkgs.bash
-        ];
-
+        path = [ pkgs.glibc.bin pkgs.systemd pkgs.bash ];
         serviceConfig = {
           Type = "oneshot";
           ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig} -exit-after-auth";
           Environment = [ "HOME=/tmp" ];
-          ReadWritePaths = [
-            secretDir
-            certDir
-            "/run"
-          ];
+          ReadWritePaths = [ secretDir certDir "/run" ];
           ReadOnlyPaths = [ persistentSecretDir ];
         };
       };
 
-      # Background Daemon:
-      # Watches for secret changes in Vault and re-renders templates
-      # to maintain system freshness.
       vault-agent = {
         description = "Vault Agent: Background Secret Refresh";
         after = [ "vault-agent-init.service" ];
         requires = [ "vault-agent-init.service" ];
         wantedBy = [ "multi-user.target" ];
-
-        path = [
-          pkgs.glibc.bin
-          pkgs.systemd
-          pkgs.bash
-        ];
-
+        path = [ pkgs.glibc.bin pkgs.systemd pkgs.bash ];
         serviceConfig = {
           ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";
           Restart = "on-failure";
           RestartSec = "10s";
           Environment = [ "HOME=/tmp" ];
-
-          ReadWritePaths = [
-            secretDir
-            certDir
-            "/run"
-          ];
+          ReadWritePaths = [ secretDir certDir "/run" ];
           ReadOnlyPaths = [ persistentSecretDir ];
         };
       };
 
-      # Service Dependencies:
-      # Applications MUST wait for the initial secret rendering to complete.
-      coturn.after = [ "vault-agent-init.service" ];
-      haproxy.after = [ "vault-agent-init.service" ];
-      matrix-synapse.after = [ "vault-agent-init.service" ];
-      matrix-authentication-service.after = [ "vault-agent-init.service" ];
-      livekit.after = [ "vault-agent-init.service" ];
-      "${cloudflaredService}".after = [ "vault-agent-init.service" ];
-
-      coturn.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      haproxy.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      matrix-synapse.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      matrix-authentication-service.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      livekit.serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      "${cloudflaredService}".serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      # Identity Delegation & Sequencing:
+      # Inject the 'matrix-secrets' group into service environments and 
+      # ensure they wait for the initial rendering.
+      coturn = {
+        after = [ "vault-agent-init.service" ];
+        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      };
+      haproxy = {
+        after = [ "vault-agent-init.service" ];
+        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      };
+      matrix-synapse = {
+        after = [ "vault-agent-init.service" ];
+        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      };
+      matrix-authentication-service = {
+        after = [ "vault-agent-init.service" ];
+        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      };
+      livekit = {
+        after = [ "vault-agent-init.service" ];
+        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      };
+      "${cloudflaredService}" = {
+        after = [ "vault-agent-init.service" ];
+        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      };
     };
   };
 }
