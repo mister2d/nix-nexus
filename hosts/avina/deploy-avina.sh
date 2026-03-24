@@ -2,12 +2,6 @@
 # ==============================================================================
 # Avina Deployment Wrapper (Stage 2)
 # ==============================================================================
-# This script automates the full Matrix 2.0 deployment after the initial
-# bootstrap and reboot. It handles:
-#   1. Interactive Vault Seeding (idempotent)
-#   2. AppRole Master Key Provisioning
-#   3. Final NixOS Rebuild/Switch
-# ==============================================================================
 
 set -euo pipefail
 
@@ -32,8 +26,6 @@ for cmd in vault jq nixos-rebuild; do
 done
 
 echo -e "${BLUE}=== Avina Matrix 2.0 Full Deployment ===${NC}"
-echo "Repo: $REPO_ROOT"
-echo
 
 # --- 1. Vault Authentication ---
 if [[ -z "${VAULT_ADDR:-}" ]]; then
@@ -73,14 +65,32 @@ vault write "auth/approle/role/$APPROLE_NAME" \
     token_ttl="1h" \
     token_max_ttl="4h"
 
-# Check if secrets already exist before prompting
-if vault kv get "kv-v2/$KV_BASE/synapse" &>/dev/null; then
-    read -rp "Secrets detected in Vault. Re-seed interactively? (y/N): " reseed
-else
+# Check for required keys in existing secrets
+check_keys() {
+    local path=$1
+    shift
+    local keys=("$@")
+    local secret_json
+    secret_json=$(vault kv get -format=json "kv-v2/$path" 2>/dev/null) || return 1
+    for key in "${keys[@]}"; do
+        if [[ $(echo "$secret_json" | jq -r ".data.data.$key") == "null" ]]; then
+            return 1
+        fi
+    done
+    return 0
+}
+
+reseed="n"
+if ! check_keys "$KV_BASE/synapse" matrix_domain auth_domain macaroon_secret_key || \
+   ! check_keys "$KV_BASE/mas" matrix_domain auth_domain encryption_key; then
+    log "Missing required keys in Vault. Forcing re-seed..."
     reseed="y"
+else
+    read -rp "Secrets detected and valid. Re-seed anyway? (y/N): " choice
+    [[ "$choice" =~ ^[Yy]$ ]] && reseed="y"
 fi
 
-if [[ "$reseed" =~ ^[Yy]$ ]]; then
+if [[ "$reseed" == "y" ]]; then
     echo -e "\n${BLUE}--- Interactive Secret Seeding ---${NC}"
     read -rp "  Synapse matrix_domain (e.g. matrix.novuscotia.com): " MATRIX_DOMAIN
     read -rp "  Synapse auth_domain (e.g. auth.novuscotia.com): " AUTH_DOMAIN
@@ -114,42 +124,13 @@ if [[ "$reseed" =~ ^[Yy]$ ]]; then
 fi
 
 # --- 3. Master Key Provisioning ---
-log "Generating fresh AppRole credentials and provisioning /var/lib/secrets..."
+log "Generating fresh AppRole credentials..."
 mkdir -p /var/lib/secrets
 chmod 700 /var/lib/secrets
-
 vault read -field=role_id "auth/approle/role/$APPROLE_NAME/role-id" > /var/lib/secrets/vault-role-id
 vault write -f -field=secret_id "auth/approle/role/$APPROLE_NAME/secret-id" > /var/lib/secrets/vault-secret-id
-
 chmod 600 /var/lib/secrets/*
-log "Master Key provisioned to persistent storage."
 
 # --- 4. Final Build & Switch ---
-log "Step 4a: Pre-building system closure while network is stable..."
-# Pre-building ensures all binaries are in store before the network stack is touched
-if ! nix build "$REPO_ROOT#nixosConfigurations.$TARGET_HOSTNAME.config.system.build.toplevel" --impure --out-link /tmp/avina-toplevel; then
-    error "Failed to build system closure. Check network connectivity."
-fi
-
-log "Step 4b: Verifying DNS and connectivity..."
-for i in {1..10}; do
-    if getent hosts cache.nixos.org >/dev/null; then
-        log "DNS verified."
-        break
-    fi
-    log "Waiting for DNS... ($i/10)"
-    sleep 2
-    [[ $i -eq 10 ]] && error "DNS resolution failed."
-done
-
-log "Step 4c: Executing nixos-rebuild switch..."
-# Clear admin token from environment before switch
 unset VAULT_TOKEN
-
-if nixos-rebuild switch --flake "$REPO_ROOT#$TARGET_HOSTNAME" --impure; then
-    log "SUCCESS — Avina Matrix 2.0 server is fully deployed."
-    log "The system will now bootstrap its own runtime secrets from Vault."
-    rm -f /tmp/avina-toplevel
-else
-    error "nixos-rebuild failed. Check logs above."
-fi
+nixos-rebuild switch --flake "$REPO_ROOT#$TARGET_HOSTNAME" --impure
