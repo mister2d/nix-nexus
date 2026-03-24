@@ -17,9 +17,23 @@
   ];
 
   boot = {
+    # GRUB2 instead of systemd-boot.
+    # systemd-boot passes the initrd to the kernel via the LINUX_EFI_INITRD_MEDIA_GUID
+    # EFI protocol; this protocol is buggy on certain Proxmox OVMF builds and causes
+    # the kernel EFI stub to freeze at "Loaded initrd from". GRUB loads the kernel
+    # and initrd into memory itself and jumps directly to the kernel entry point,
+    # bypassing the EFI stub initrd mechanism entirely.
     loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
+      efi = {
+        canTouchEfiVariables = true;
+        efiSysMountPoint = "/boot"; # matches disko.nix ESP mountpoint
+      };
+      grub = {
+        enable = true;
+        efiSupport = true;
+        device = "nodev"; # EFI-only install; no MBR write
+        zfsSupport = true; # allow GRUB to read ZFS for kernels/configs
+      };
     };
     initrd = {
       # ZFS must be available in the initrd for pool import at boot.
