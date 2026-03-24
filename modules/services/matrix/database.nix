@@ -26,9 +26,9 @@
       "--encoding=UTF8"
     ];
 
-    # Force 'C' collation for Synapse and ensure roles exist.
-    initialScript = pkgs.writeText "synapse-db-init.sql" ''
-      -- Ensure roles exist before they are used
+    # Force 'C' collation for Synapse and ensure all roles/databases exist.
+    initialScript = pkgs.writeText "matrix-db-init.sql" ''
+      -- Ensure roles exist
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'matrix-synapse') THEN
@@ -40,11 +40,15 @@
       END
       $$;
 
-      -- Use template0 to allow 'C' collation when cluster default is different (e.g. en_US.UTF-8).
-      -- We drop the existing DB to ensure a clean state for the initial deployment.
+      -- Create Synapse DB (Strict 'C' Collation)
       SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'matrix-synapse' AND pid <> pg_backend_pid();
       DROP DATABASE IF EXISTS "matrix-synapse";
       CREATE DATABASE "matrix-synapse" WITH OWNER "matrix-synapse" TEMPLATE = template0 LC_COLLATE = 'C' LC_CTYPE = 'C';
+
+      -- Create MAS DB
+      SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'matrix-authentication-service' AND pid <> pg_backend_pid();
+      DROP DATABASE IF EXISTS "matrix-authentication-service";
+      CREATE DATABASE "matrix-authentication-service" WITH OWNER "matrix-authentication-service";
     '';
 
     ensureDatabases = [
