@@ -2,7 +2,6 @@
 {
   services.matrix-synapse = {
     enable = true;
-    withPostgresql = true;
 
     # ── Zero-Secrets-in-Store ──────────────────────────────────────────────
     # Only structural/non-secret config is here. All identities (domains,
