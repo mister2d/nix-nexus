@@ -33,9 +33,8 @@
     kernelParams = [ "zfsforce=1" ];
   };
 
-  # Networking
-  networking.useDHCP = lib.mkDefault true;
-  networking.hostId = "a6b7c8d9"; # Must match hosts/avina/default.nix
+  # hostId must match hosts/avina/default.nix
+  networking.hostId = "a6b7c8d9";
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

@@ -18,6 +18,9 @@ PDB.md
 AGENTS.md
 CLAUDE.md
 
+# Host deployment values (real domains/addresses — never commit)
+hosts/avina/site-config.nix
+
 # System specific
 hardware-configuration.nix.bak
 *.swp
