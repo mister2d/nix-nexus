@@ -1,116 +1,168 @@
-# Avina: Matrix 2.0 Communications Server
+# Avina — Matrix 2.0 Communications Server
 
-Avina is a high-performance, secure, and fully public **Matrix 2.0** homeserver built on NixOS. It leverages modern Matrix standards (OIDC, MatrixRTC) to provide a seamless real-time communication experience.
+Avina is a public-facing Matrix 2.0 homeserver built on NixOS. It implements the full
+modern Matrix stack: native OIDC authentication, MatrixRTC video/audio, and WebRTC media
+relay — all behind a single HAProxy ingress delivered via Cloudflare tunnel.
 
-## 🏛️ Architecture Overview
+## Architecture
 
-The Avina stack consists of several integrated components:
+| Component | Role |
+| :--- | :--- |
+| **Synapse** | Matrix homeserver |
+| **Matrix Authentication Service (MAS)** | Native OIDC provider; delegates upstream auth to Keycloak |
+| **Element Web** | Primary web client |
+| **Element Call** | MatrixRTC video/audio frontend |
+| **LiveKit** | WebRTC SFU for MatrixRTC media |
+| **Coturn** | STUN/TURN relay for clients behind restrictive NAT |
+| **HAProxy** | Sole TLS terminator and HTTP/S reverse proxy |
+| **Cloudflared** | Tunnel to Cloudflare edge — ports 80/443 are not exposed directly |
 
-*   **Synapse**: The core Matrix homeserver (backend).
-*   **Matrix Authentication Service (MAS)**: A native OIDC provider that handles all user authentication, delegating to an upstream SSO provider (Keycloak).
-*   **Element Web**: The primary Matrix web client.
-*   **Element Call**: A specialized, React-based application for multi-party video/audio calls using MatrixRTC.
-*   **LiveKit**: A WebRTC SFU providing high-quality audio and video via MatrixRTC.
-*   **Coturn**: A STUN/TURN relay to ensure media connectivity across restrictive networks.
-*   **HAProxy**: The sole HTTP/S reverse proxy managing traffic between components.
-*   **Cloudflared**: Creates a secure tunnel to the Cloudflare edge, exposing services without opening port 80/443.
+## Secret Management
 
-## 🔐 Security & Secret Management
+Avina enforces a **zero secrets in Nix store** policy. All cryptographic material lives
+in Vault and is rendered into the memory-backed `/run/secrets/` directory at boot by
+`vault-agent`. Nothing sensitive persists across reboots except the Vault AppRole
+credential pair that authorises the initial fetch.
 
-Avina follows a **Zero Secrets in Nix Store** policy combined with an **Automated Bootstrap** model. 
+### Credential hierarchy
 
-### 1. The Security Hierarchy
-To maintain a least-privilege posture, Avina uses three distinct levels of authentication:
-
-| Level | Key Type | Purpose | Persistent? |
+| Level | Material | Purpose | Survives reboot? |
 | :--- | :--- | :--- | :--- |
-| **High** | **Admin Token** | Used locally to run `deploy-avina.sh`. | No |
-| **Low** | **AppRole** | The host's permanent ID used to self-bootstrap at boot. | **Yes** |
+| **Operator** | Admin Vault token | Runs `deploy-avina.sh` once | No |
+| **Host** | AppRole (role-id + secret-id) | Self-bootstraps at every boot | Yes — `/var/lib/secrets/` |
 
-### 2. The Bootstrap Model ("The Master Key")
-Instead of manually provisioning dozens of secrets, Avina uses a single persistent "Master Key" to unlock the rest of its configuration from **Hashicorp Vault** at boot time.
+### Boot sequence
 
-*   **Persistent Secret**: A Vault **AppRole** (Role-ID and Secret-ID) is stored on a dedicated persistent ZFS dataset at `/var/lib/secrets/`. This is the only secret that survives a reboot.
-*   **Vault Agent**: A sidecar service authenticates with Vault using the Master Key and maintains a short-lived access token in memory.
-*   **Consul Template**: A rendering engine uses the token to fetch Synapse keys, MAS configs, and TLS certificates from Vault, writing them directly to the memory-backed `/run/secrets/` directory.
+1. `vault-agent-init` (oneshot) authenticates via AppRole and renders all secrets and
+   TLS certificates into `/run/secrets/` and `/run/certs/`.
+2. `vault-agent` (daemon) takes over, maintaining token renewal and re-rendering secrets
+   whenever upstream KV versions increment.
+3. Coturn, HAProxy, Synapse, MAS, and LiveKit are all ordered after `vault-agent-init`
+   via systemd dependencies — no service starts before secrets are present.
 
-## 💿 Installation Guide (Two-Stage UEFI)
+### Build-time deployment values
 
-Avina uses a two-stage deployment process to ensure a clean ZFS bootstrap followed by a secure, automated application deployment.
+Domain names and the Vault address are **not secrets** but are kept out of the repository
+for OPSEC. They live in a gitignored `site-config.nix` file created on the server before
+deployment. See `site-config.nix.example` for the required keys and their relationship to
+the Vault KV `config` tier.
+
+---
+
+## Installation — Two-Stage UEFI Deployment
 
 ### Prerequisites
-1.  A VM with **UEFI** enabled (OVMF).
-2.  At least **12GB RAM** and **4 CPU cores**.
-3.  A 64-bit NixOS Installation ISO.
-4.  Access to a **Hashicorp Vault** instance.
+
+- VM with UEFI/OVMF firmware, `/dev/sda` as the primary disk
+- 12 GB RAM minimum, 4 vCPUs
+- NixOS installation ISO (x86_64)
+- Vault instance reachable from the VM at boot
 
 ---
 
-### Stage 1: Minimal ZFS Bootstrap
-This stage partitions your disk, sets up ZFS, and installs a minimal NixOS base.
+### Stage 1 — ZFS Bootstrap
 
-1.  **Boot the ISO** and clone the repository:
-    ```bash
-    git clone https://github.com/mister2d/nix-nexus.git
-    cd nix-nexus
-    ```
-2.  **Run the partitioner**:
-    ```bash
-    # This will wipe /dev/sda and create the ZFS pool 'avina'
-    sudo nix run github:nix-community/disko -- --mode disko ./hosts/avina/disko.nix
-    ```
-3.  **Perform the base install**:
-    ```bash
-    # Installs the 'avina-bootstrap' profile to /mnt
-    sudo nixos-install --flake .#avina-bootstrap
-    ```
-4.  **Reboot** into your new minimal system.
+Boot the NixOS ISO, then from the live environment:
 
----
+```bash
+# Clone the repository
+git clone https://github.com/mister2d/nix-nexus.git
+cd nix-nexus
 
-### Stage 2: Full Matrix 2.0 Deployment
-Once the machine has rebooted into the base NixOS, you will use the unified deployment script to seed Vault and configure the Matrix stack.
+# Partition the disk and create the ZFS pool 'avina'
+# WARNING: this wipes /dev/sda
+sudo nix run github:nix-community/disko -- --mode disko ./hosts/avina/disko.nix
 
-1.  **Login** to the new system and enter the repository directory.
-2.  **Run the deployment wrapper**:
-    ```bash
-    sudo ./hosts/avina/deploy-avina.sh
-    ```
-3.  **Interactive Workflow**:
-    *   The script will prompt for your **Vault Address** and **Admin Token**.
-    *   It will ensure the **AppRole** and **Policies** are created.
-    *   It will interactively prompt you to seed the necessary Matrix secrets into Vault.
-    *   It will provision the **Master Key** to `/var/lib/secrets`.
-    *   Finally, it will trigger a `nixos-rebuild switch` to the full `avina` configuration.
+# Install the bootstrap profile
+sudo nixos-install --flake .#avina-bootstrap
+```
+
+Reboot. The system comes up as `avina-bootstrap` with SSH (cert auth), tmux, and the
+repository intact at its install path. No Matrix services are present yet.
 
 ---
 
-## 📈 Observability & Traceability
+### Stage 2 — Full Matrix Deployment
 
-Avina is configured to leverage Cloudflare's edge headers for deep visibility into incoming traffic.
+SSH into the bootstrap system and work inside a tmux session. The `nixos-rebuild switch`
+at the end of the deployment script transitions the network backend from NetworkManager to
+systemd-networkd, causing a brief connectivity blip. tmux ensures the switch completes
+uninterrupted even if the SSH session drops.
 
-### 1. HAProxy Logging
-HAProxy captures the following Cloudflare-specific metadata in its logs:
-*   **`CF-Ray`**: Unique request ID for tracing through the Cloudflare network.
-*   **`CF-Connecting-IP`**: The real IP of the client.
-*   **`CF-IPCountry`**: The country code associated with the client IP.
+```bash
+tmux new -s deploy
+cd /path/to/nix-nexus
+```
 
-### 2. Backend Awareness
-Both **Synapse** and **MAS** are configured to trust the proxy headers passed by HAProxy.
-*   **Synapse**: Uses `trusted_proxies = ["127.0.0.1"]` to correctly resolve the client IP from the `X-Forwarded-For` header.
-*   **Traceability**: HAProxy explicitly injects `X-Cloudflare-Ray` and `X-Cloudflare-Country` into backend requests, enabling application-level logging of the edge metadata.
+Create `site-config.nix` from the example template and fill in real values. This file is
+gitignored and must be created manually on every fresh install — it is never committed.
 
-## 📊 Persistence & Backups (ZFS)
+```bash
+cp hosts/avina/site-config.nix.example hosts/avina/site-config.nix
+$EDITOR hosts/avina/site-config.nix
+```
 
-Avina uses dedicated ZFS datasets for persistent data, allowing for atomic snapshots and efficient "data shipping" (backups).
+The values in `site-config.nix` must align with what you seed into Vault. Specifically,
+`matrixDomain` must match `matrix_domain` in `kv-v2/infrastructure/matrix/avina/config`,
+and `masDomain` must match `auth_domain`.
 
-*   `/var/lib/postgresql`: Database state.
-*   `/var/lib/matrix-synapse`: Media uploads and Synapse state.
-*   `/var/lib/matrix-authentication-service`: OIDC session data.
-*   `/var/lib/secrets`: Persistent Vault bootstrap keys (The "Master Key").
+Run the deployment script as root:
 
-## 🛠️ Maintenance
+```bash
+sudo ./hosts/avina/deploy-avina.sh
+```
 
-To update the system after deployment:
-1.  Modify the configuration in this repo.
-2.  Run: `sudo nixos-rebuild switch --flake .#avina`
+The script executes the following sequence without further manual steps:
+
+1. Prompts for the Vault address and an admin token.
+2. Creates the `avina` Vault policy and AppRole.
+3. Prompts interactively to seed the three-tier KV structure
+   (`config`, `synapse`, `mas`) if any keys are missing.
+4. Writes the AppRole `role-id` and `secret-id` to `/var/lib/secrets/` — the persistent
+   Master Key that authorises every subsequent boot.
+5. Runs `nixos-rebuild switch --flake .#avina --impure`.
+
+On the switch, the hostname changes to `avina`, systemd-networkd takes over `ens18`,
+and `vault-agent-init` runs before any Matrix service is allowed to start.
+
+---
+
+## Observability
+
+HAProxy captures Cloudflare edge metadata on every request and propagates it to backends:
+
+- `CF-Ray` → `X-Cloudflare-Ray` — unique edge request ID for end-to-end tracing
+- `CF-Connecting-IP` — real client IP; set as the HAProxy source and `X-Forwarded-For`
+- `CF-IPCountry` → `X-Cloudflare-Country` — client country code
+
+Synapse trusts `127.0.0.1` as a proxy and resolves the real client IP from
+`X-Forwarded-For` accordingly.
+
+---
+
+## Persistence — ZFS Datasets
+
+Each stateful component is isolated to its own ZFS dataset for atomic snapshot and
+restore:
+
+| Dataset | Path |
+| :--- | :--- |
+| `avina/postgresql` | `/var/lib/postgresql` |
+| `avina/matrix-synapse` | `/var/lib/matrix-synapse` |
+| `avina/matrix-authentication-service` | `/var/lib/matrix-authentication-service` |
+| `avina/secrets` | `/var/lib/secrets` — Vault AppRole (Master Key) |
+
+---
+
+## Ongoing Maintenance
+
+```bash
+# Apply a configuration change
+sudo nixos-rebuild switch --flake .#avina --impure
+
+# Rotate TLS certificates (vault-agent re-renders on KV version increment)
+# Update the cert in Vault; vault-agent detects the version change automatically.
+
+# View secret rendering status
+journalctl -u vault-agent-init -u vault-agent
+```
