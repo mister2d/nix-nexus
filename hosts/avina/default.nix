@@ -7,7 +7,7 @@ let
   # ── OPERATOR: set all values before deploying ────────────────────────────
   matrixDomain = "novuscotia.com";
   elementDomain = "element.novuscotia.com";
-  masDomain = "auth.novuscotia.com";
+  masDomain = "mas.novuscotia.com";
   callDomain = "call.novuscotia.com";
   coturnRealm = "turn.novuscotia.com";
   vaultAddr = "https://vault.service.consul:8200";
@@ -28,6 +28,7 @@ in
     ./hardware-configuration.nix
     ../../profiles/core # Core system policies (ZFS, networking, security)
     ../../modules/services/matrix # Matrix 2.0 communications suite
+    ../../modules/core/virtualization.nix # Hypervisor guest tools
   ];
 
   time.timeZone = "America/New_York";
@@ -88,6 +89,10 @@ in
     dnodeLimitPercent = 10;
   };
 
+  # Virtualization Integration:
+  # Standardized guest agent and VM optimizations.
+  nix-nexus.virtualization.guestAgent.enable = true;
+
   services = {
     # VPN Policy:
     # Tailscale is disabled in favour of future Headscale integration.
@@ -103,9 +108,6 @@ in
         TrustedUserCAKeys = toString ../../certs/trusted_ssh_ca.pub;
       };
     };
-
-    # Hypervisor Integration:
-    qemuGuest.enable = true;
   };
 
   systemd.services.tailscale-autoconnect.enable = lib.mkForce false;
