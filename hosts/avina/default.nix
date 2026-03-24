@@ -15,6 +15,7 @@ let
     callDomain
     coturnRealm
     vaultAddr
+    certDomain
     ;
 
   # Federated Posture:
@@ -47,6 +48,7 @@ in
       coturnRealm
       federatedDomains
       vaultAddr
+      certDomain
       ;
   };
 

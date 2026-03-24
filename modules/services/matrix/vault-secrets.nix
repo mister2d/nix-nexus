@@ -1,7 +1,7 @@
 {
   pkgs,
   vaultAddr,
-  matrixDomain,
+  certDomain,
   ...
 }:
 let
@@ -20,7 +20,10 @@ let
   synapsePath = "${matrixKvBase}/synapse";
   masPath = "${matrixKvBase}/mas";
 
-  kvPath = "kv-v2/data/letsencrypt/certificates/live/${matrixDomain}";
+  # certDomain is the domain under which the TLS certificate is stored in
+  # Vault KV. This is typically the root or wildcard domain (e.g.
+  # novuscotia.com) and is independent of matrixDomain (matrix.novuscotia.com).
+  kvPath = "kv-v2/data/letsencrypt/certificates/live/${certDomain}";
   smtpPath = "kv-v2/data/infrastructure/smtp";
 
   # ── Runtime Templates ───────────────────────────────────────────────────
