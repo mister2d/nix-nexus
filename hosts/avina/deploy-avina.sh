@@ -80,7 +80,7 @@ check_keys() {
 }
 
 reseed="n"
-if ! check_keys "$KV_BASE/config" matrix_domain auth_domain || \
+if ! check_keys "$KV_BASE/config" matrix_domain auth_domain instance_name || \
    ! check_keys "$KV_BASE/synapse" macaroon_secret_key || \
    ! check_keys "$KV_BASE/mas" encryption_key; then
     log "Missing keys in Three-Tier Vault structure. Forcing re-seed..."
@@ -95,6 +95,7 @@ if [[ "$reseed" == "y" ]]; then
     # Tier 1: Config
     read -rp "  Matrix Domain Namespace (e.g. matrix.novuscotia.com): " MATRIX_DOMAIN
     read -rp "  Auth Portal Domain (e.g. mas.novuscotia.com): " AUTH_DOMAIN
+    read -rp "  Synapse Instance Name (e.g. avina): " INSTANCE_NAME
     
     # Tier 2: Synapse
     read -rp "  Synapse macaroon_secret_key: " MACAROON
@@ -111,7 +112,8 @@ if [[ "$reseed" == "y" ]]; then
 
     vault kv put "kv-v2/$KV_BASE/config" \
         matrix_domain="$MATRIX_DOMAIN" \
-        auth_domain="$AUTH_DOMAIN"
+        auth_domain="$AUTH_DOMAIN" \
+        instance_name="$INSTANCE_NAME"
 
     vault kv put "kv-v2/$KV_BASE/synapse" \
         macaroon_secret_key="$MACAROON" \
