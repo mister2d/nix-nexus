@@ -9,15 +9,22 @@ let
   secretDir = "/run/secrets";
   persistentSecretDir = "/var/lib/secrets";
 
-  # KV-v2 Three-Tier Paths:
-  kvPath = "kv-v2/data/letsencrypt/certificates/live/${matrixDomain}";
+  # ── Vault KV-v2 Hierarchy ───────────────────────────────────────────────
+  # The configuration is structured into three distinct tiers of truth:
+  # 1. Config Tier (/config):  Global structural metadata (domains, names).
+  # 2. Service Tier (/synapse): Cryptographic keys for the homeserver.
+  # 3. Service Tier (/mas):     Cryptographic keys for the OIDC bridge.
+  # ─────────────────────────────────────────────────────────────────────────
   matrixKvBase = "kv-v2/data/infrastructure/matrix/avina";
   configPath = "${matrixKvBase}/config";
   synapsePath = "${matrixKvBase}/synapse";
   masPath = "${matrixKvBase}/mas";
+
+  kvPath = "kv-v2/data/letsencrypt/certificates/live/${matrixDomain}";
   smtpPath = "kv-v2/data/infrastructure/smtp";
 
   # ── Runtime Templates ───────────────────────────────────────────────────
+  # Templates are rendered to RAM (/run) and never persist in the Nix store.
 
   haproxyTmpl = pkgs.writeText "haproxy-cert.ctmpl" ''
     {{ with secret "${kvPath}" }}
@@ -37,8 +44,8 @@ let
     {{ end }}
   '';
 
-  # Synapse Core Secrets:
-  # Pulls domains AND instance_name from 'config' and secrets from 'synapse'.
+  # Synapse Identities and Keys:
+  # Pulls structural identity from 'config' and cryptographic keys from 'synapse'.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with $c := secret "${configPath}" }}
     {{ with $s := secret "${synapsePath}" }}
@@ -59,7 +66,7 @@ let
     {{ end }}
   '';
 
-  # Synapse Email:
+  # Synapse Email Configuration:
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with $smtp := secret "${smtpPath}" }}
     {{ with $c := secret "${configPath}" }}
@@ -219,6 +226,9 @@ in
     ];
 
     services = {
+      # Vault Agent Bootstrap:
+      # Ensures that all runtime secrets are rendered before any dependent
+      # services are allowed to start.
       vault-agent-init = {
         description = "Vault Agent: Initial Secret Rendering";
         after = [ "network-online.target" ];
@@ -242,6 +252,9 @@ in
         };
       };
 
+      # Vault Agent Refresh:
+      # Background daemon that maintains active Vault authentication and
+      # re-renders secrets whenever the upstream KV versions increment.
       vault-agent = {
         description = "Vault Agent: Background Secret Refresh";
         after = [ "vault-agent-init.service" ];
@@ -266,6 +279,9 @@ in
         };
       };
 
+      # Service Dependencies:
+      # All services that consume runtime secrets are sequenced after the
+      # vault-agent-init one-shot to prevent race conditions during boot.
       coturn = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
