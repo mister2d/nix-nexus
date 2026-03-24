@@ -9,10 +9,13 @@ let
   secretDir = "/run/secrets";
   persistentSecretDir = "/var/lib/secrets";
 
-  # KV-v2 paths:
+  # KV-v2 Three-Tier Paths:
   kvPath = "kv-v2/data/letsencrypt/certificates/live/${matrixDomain}";
-  matrixKvPath = "kv-v2/data/infrastructure/matrix/avina";
-  smtpKvPath = "kv-v2/data/infrastructure/smtp";
+  matrixKvBase = "kv-v2/data/infrastructure/matrix/avina";
+  configPath = "${matrixKvBase}/config";
+  synapsePath = "${matrixKvBase}/synapse";
+  masPath = "${matrixKvBase}/mas";
+  smtpPath = "kv-v2/data/infrastructure/smtp";
 
   # ── Runtime Templates ───────────────────────────────────────────────────
 
@@ -35,11 +38,12 @@ let
   '';
 
   # Synapse Core Secrets:
-  # Uses the most explicit Go template syntax to ensure keys are pulled from the correct secret payload.
+  # Pulls domains from 'config' and secrets from 'synapse'.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
-    {{ with $s := secret "${matrixKvPath}/synapse" }}
-    server_name: "{{ $s.Data.data.matrix_domain }}"
-    public_baseurl: "https://{{ $s.Data.data.matrix_domain }}"
+    {{ with $c := secret "${configPath}" }}
+    {{ with $s := secret "${synapsePath}" }}
+    server_name: "{{ $c.Data.data.matrix_domain }}"
+    public_baseurl: "https://{{ $c.Data.data.matrix_domain }}"
     macaroon_secret_key: "{{ $s.Data.data.macaroon_secret_key }}"
     form_secret: "{{ $s.Data.data.form_secret }}"
     registration_shared_secret: "{{ $s.Data.data.registration_shared_secret }}"
@@ -47,34 +51,35 @@ let
 
     matrix_authentication_service:
       enabled: true
-      issuer: "https://{{ $s.Data.data.auth_domain }}"
+      issuer: "https://{{ $c.Data.data.auth_domain }}"
       client_id: "synapse"
       secret: "{{ $s.Data.data.mas_shared_secret }}"
+    {{ end }}
     {{ end }}
   '';
 
   # Synapse Email:
-  # Explicitly scopes both secrets to avoid any interpolation ambiguity.
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
-    {{ with $smtp := secret "${smtpKvPath}" }}
-    {{ with $s := secret "${matrixKvPath}/synapse" }}
+    {{ with $smtp := secret "${smtpPath}" }}
+    {{ with $c := secret "${configPath}" }}
     email:
       enable_notifs: true
       smtp_host: "smtp.mailgun.org"
       smtp_port: 587
-      smtp_user: "postmaster@mg.{{ $s.Data.data.matrix_domain }}"
+      smtp_user: "postmaster@mg.{{ $c.Data.data.matrix_domain }}"
       smtp_pass: "{{ $smtp.Data.data.smtp_password }}"
       require_transport_security: true
-      notif_from: "Matrix <noreply@{{ $s.Data.data.matrix_domain }}>"
+      notif_from: "Matrix <noreply@{{ $c.Data.data.matrix_domain }}>"
     {{ end }}
     {{ end }}
   '';
 
   # MAS Configuration:
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
-    {{ with $m := secret "${matrixKvPath}/mas" }}
+    {{ with $c := secret "${configPath}" }}
+    {{ with $m := secret "${masPath}" }}
     http:
-      public_base: "https://{{ $m.Data.data.auth_domain }}"
+      public_base: "https://{{ $c.Data.data.auth_domain }}"
       listeners:
         - name: web
           resources:
@@ -100,18 +105,19 @@ let
           token_endpoint_auth_method: "client_secret_basic"
     matrix:
       kind: synapse
-      homeserver: "{{ $m.Data.data.matrix_domain }}"
+      homeserver: "{{ $c.Data.data.matrix_domain }}"
       secret: "{{ $m.Data.data.mas_shared_secret }}"
       endpoint: "http://127.0.0.1:8008"
+    {{ end }}
     {{ end }}
   '';
 
   coturnSecretTmpl = pkgs.writeText "coturn-secret.ctmpl" ''
-    {{ with secret "${matrixKvPath}/synapse" }}{{ .Data.data.turn_shared_secret }}{{ end }}
+    {{ with secret "${synapsePath}" }}{{ .Data.data.turn_shared_secret }}{{ end }}
   '';
 
   coturnSecretEnvTmpl = pkgs.writeText "coturn-env.ctmpl" ''
-    {{ with secret "${matrixKvPath}/synapse" }}
+    {{ with secret "${synapsePath}" }}
     LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}
     {{ end }}
   '';
@@ -259,7 +265,6 @@ in
         };
       };
 
-      # Identity Delegation & Sequencing:
       coturn = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];

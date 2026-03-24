@@ -21,6 +21,9 @@
       # server_name and public_baseurl are PULLED FROM VAULT SECRETS YAML.
       # Defining them here would override the Vault values.
 
+      # Instance Identity (Log clarity)
+      instance_name = "avina";
+
       # Federation (Structural)
       federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;
       suppress_key_server_warning = true;
