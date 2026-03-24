@@ -239,16 +239,14 @@
           ];
         };
 
-        # Hostname: avina
+        # Hostname: avina (Proxmox LXC container — Matrix 2.0 public server)
+        # Deploy: nixos-rebuild switch --flake .#avina (run inside the container)
         avina = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
             inherit inputs;
           };
           modules = [
-            # Disko declarative partitioning
-            inputs.disko.nixosModules.disko
-
             # Main configuration entry point
             ./hosts/avina/default.nix
 
@@ -296,17 +294,6 @@
           ];
         };
 
-        # Hostname: avina-bootstrap (Minimal stage 1 installer)
-        avina-bootstrap = nixpkgs.lib.nixosSystem {
-          system = "x86_64-linux";
-          specialArgs = {
-            inherit inputs;
-          };
-          modules = [
-            nixvim.nixosModules.nixvim
-            ./hosts/avina/bootstrap.nix
-          ];
-        };
       };
     };
 }

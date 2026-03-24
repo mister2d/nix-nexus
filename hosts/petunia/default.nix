@@ -12,7 +12,7 @@
     ../../profiles/hardware/petunia.nix
 
     # Core System Profile (Every machine gets this)
-    ../../profiles/core
+    ../../profiles/workstation
 
     # Ceph Integration
     ../../modules/core/ceph.nix
