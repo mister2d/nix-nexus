@@ -71,10 +71,11 @@ cd nix-nexus
 
 # Partition the disk and create the ZFS pool 'avina'
 # WARNING: this wipes /dev/sda
-sudo nix run github:nix-community/disko -- --mode disko ./hosts/avina/disko.nix
+nix run --extra-experimental-features 'flakes nix-command' \
+  github:nix-community/disko -- --mode disko ./hosts/avina/disko.nix
 
 # Install the bootstrap profile
-sudo nixos-install --flake .#avina-bootstrap
+nixos-install --flake .#avina-bootstrap
 ```
 
 Reboot. The system comes up as `avina-bootstrap` with SSH (cert auth), tmux, and the
@@ -109,7 +110,7 @@ and `masDomain` must match `auth_domain`.
 Run the deployment script as root:
 
 ```bash
-sudo ./hosts/avina/deploy-avina.sh
+./hosts/avina/deploy-avina.sh
 ```
 
 The script executes the following sequence without further manual steps:
