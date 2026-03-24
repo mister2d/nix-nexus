@@ -7,9 +7,9 @@
 {
   # Kernel and Boot Configuration
   boot = {
-    # We use the standard stable kernel. ZFS maintains compatibility
-    # with the latest LTS/Stable releases.
-    kernelPackages = pkgs.linuxPackages;
+    # Default to the current stable kernel. Hosts may override with a
+    # specific LTS version (e.g. linuxPackages_6_12) if needed.
+    kernelPackages = lib.mkDefault pkgs.linuxPackages;
 
     # Initrd Configuration
     # Using systemd-based initrd for a modern, unified boot process.
