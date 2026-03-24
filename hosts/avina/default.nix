@@ -50,6 +50,11 @@ in
       ;
   };
 
+  # Allow HAProxy to bind to port 443 as the haproxy user (non-root).
+  # net.ipv4.ip_unprivileged_port_start is namespace-scoped and settable in
+  # unprivileged LXC containers; lowering it to 443 permits binding to 443/8404.
+  boot.kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 443;
+
   networking = {
     hostName = "avina";
 

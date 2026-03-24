@@ -1,10 +1,12 @@
-_:
+{ lib, config, ... }:
 
 {
   # System Stability & Memory Pressure Handling
-  # These tunables prevent system-wide lockups during heavy Nix builds or
-  # resource-intensive research workloads, especially when using ZFS swap.
-  boot.kernel.sysctl = {
+  # vm.* sysctls are global host-kernel tunables; they are not namespace-scoped
+  # and cannot be applied from inside any LXC container (privileged or not).
+  # They are guarded here so the workstation profile benefits from them while
+  # container hosts (boot.isContainer = true) skip them without error.
+  boot.kernel.sysctl = lib.mkIf (!config.boot.isContainer) {
     # Prefer keeping application data in physical RAM; swapping to ZFS zvol
     # can lead to kernel deadlocks under extreme memory pressure.
     "vm.swappiness" = 10;
@@ -20,9 +22,8 @@ _:
   };
 
   # Early OOM Killer
-  # Proactively terminates the most memory-intensive process (typically a heavy
-  # nix-build or browser process) before the system enters a hard-lock state
-  # caused by ZFS ARC/Swap competition.
+  # Proactively terminates the most memory-intensive process before the system
+  # enters a hard-lock state. Works in both bare-metal and container environments.
   services.earlyoom = {
     enable = true;
     # Kill processes when free RAM falls below 5% or swap falls below 10%.
