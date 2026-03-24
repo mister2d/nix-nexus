@@ -1,5 +1,6 @@
 {
   lib,
+  pkgs,
   modulesPath,
   ...
 }:
@@ -36,6 +37,11 @@
     extraModulePackages = [ ];
     # Force import if HostID differs between installer and runtime
     kernelParams = [ "zfsforce=1" ];
+
+    # Pin to 6.12 LTS. Kernels 6.13 and 6.14 have an unresolved regression
+    # where the EFI stub freezes at initrd load on QEMU/OVMF VMs.
+    # Track: https://github.com/NixOS/nixpkgs/issues (search EFI stub initrd)
+    kernelPackages = pkgs.linuxPackages_6_12;
   };
 
   # hostId must match hosts/avina/default.nix

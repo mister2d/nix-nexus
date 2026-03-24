@@ -79,11 +79,6 @@
     serviceConfig.Restart = "always";
   };
 
-  # Use stable kernel for ZFS
-  boot.kernelPackages =
-    lib.mkDefault
-      (import inputs.nixpkgs { system = "x86_64-linux"; }).linuxPackages;
-
   # Nix Configuration (Alignment)
   nix.settings = {
     experimental-features = [
