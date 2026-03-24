@@ -9,6 +9,6 @@
     ./element.nix
     ./element-call.nix
     ./haproxy.nix
-    ./consul-template-secrets.nix
+    ./vault-secrets.nix
   ];
 }

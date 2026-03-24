@@ -14,7 +14,7 @@
 
     # TLS Configuration:
     # Certificates are provisioned via Vault and rendered to runtime paths
-    # by the consul-template module.
+    # by the vault-agent module.
     cert = "/run/certs/coturn-fullchain.pem";
     pkey = "/run/certs/coturn.key";
 
