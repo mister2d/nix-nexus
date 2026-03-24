@@ -1,5 +1,4 @@
 {
-  inputs,
   lib,
   ...
 }:
@@ -29,15 +28,14 @@ let
 in
 {
   imports = [
-    inputs.disko.nixosModules.disko
-    ./disko.nix
-    ./hardware-configuration.nix
-    ../../profiles/core # Core system policies (ZFS, networking, security)
+    ../../profiles/server # Base: security, sysctl, users, DNS — no ZFS, no boot, no NM
     ../../modules/services/matrix # Matrix 2.0 communications suite
-    ../../modules/core/virtualization.nix # Hypervisor guest tools
   ];
 
-  time.timeZone = "America/New_York";
+  # Container Policy:
+  # avina runs as a Proxmox LXC container. No bootloader, no kernel config,
+  # no filesystem management — the hypervisor handles all of that.
+  boot.isContainer = true;
 
   _module.args = {
     inherit
@@ -54,40 +52,30 @@ in
 
   networking = {
     hostName = "avina";
-    hostId = "a6b7c8d9";
 
-    # Server Networking Policy:
-    # NetworkManager is a workstation/mobile tool; disable it in favour of
-    # systemd-networkd, which is appropriate for a headless server.
-    networkmanager.enable = lib.mkForce false;
-    useNetworkd = true;
-    useDHCP = false; # explicit per-interface config below
-
-    # Interface Configuration:
-    # ens18 is the virtio NIC on the Proxmox host. DHCP only on this interface.
-    interfaces.ens18.useDHCP = true;
-
-    # Public Network Exposure Model:
-    # Direct ingress on 443 (HAProxy) and 22 (SSH).
-    firewall = lib.mkForce {
+    # Firewall Policy:
+    # Proxmox is configured wide-open at the hypervisor level; NixOS owns the
+    # firewall inside the container. Only the ports required by the Matrix stack
+    # and operator access are opened.
+    firewall = {
       enable = true;
       trustedInterfaces = [ ];
       allowedTCPPorts = [
-        22
-        443
-        5349
-        8404
-      ]; # SSH + HTTPS + Coturn (TURNS) + HAProxy stats
+        22 # SSH
+        443 # HAProxy (HTTP/S + Matrix federation)
+        5349 # Coturn TURNS/TLS
+        8404 # HAProxy stats (operator access)
+      ];
       allowedUDPPorts = [
-        3478
-        5349
-      ]; # Coturn (STUN/TURN)
+        3478 # Coturn STUN/TURN
+        5349 # Coturn TURNS/DTLS
+      ];
       allowedUDPPortRanges = [
         {
           from = 49000;
           to = 49999;
-        }
-      ]; # Coturn dynamic relay range
+        } # Coturn dynamic relay range
+      ];
       allowedTCPPortRanges = [
         {
           from = 3478;
@@ -97,36 +85,10 @@ in
     };
   };
 
-  # Boot Policy:
-  # No LUKS on avina — ZFS sits directly on the second GPT partition (VM, no
-  # full-disk encryption layer). Clear the LUKS device map that modules/core/boot.nix
-  # sets by default so initrd does not block on a non-existent crypto device.
-  # Disable the systemd initrd: systemd initrd + ZFS on QEMU/OVMF produces an
-  # EFI stub freeze at "Loaded initrd from". The busybox initrd handles ZFS pool
-  # import correctly on this platform.
-  boot.initrd.luks.devices = lib.mkForce { };
-  boot.initrd.systemd.enable = false;
-
-  # ZFS Performance Tuning:
-  # Optimized for a Matrix workload on a memory-constrained VM (12GB RAM).
-  nix-nexus.zfs = {
-    arcMax = 2147483648; # 2 GB ARC limit to prevent OOM
-    arcMin = 536870912;
-    arcSysFree = 3221225472; # Ensure 3GB for system/app overhead
-    metaLimitPercent = 75;
-    dnodeLimitPercent = 10;
-  };
-
-  # Virtualization Integration:
-  # Standardized guest agent and VM optimizations.
-  nix-nexus.virtualization.guestAgent.enable = true;
-
   services = {
-    # VPN Policy:
-    # Tailscale is disabled in favour of future Headscale integration.
-    tailscale.enable = lib.mkForce false;
-
     # Secure Remote Access:
+    # Certificate-based auth via repository-managed SSH CA. Password auth
+    # disabled. Root login permitted as prohibit-password (cert/key only).
     openssh = {
       enable = true;
       settings = {
@@ -138,11 +100,8 @@ in
     };
   };
 
-  systemd.services.tailscale-autoconnect.enable = lib.mkForce false;
-
   # Session Multiplexer:
-  # Matches bootstrap.nix config so operators get a consistent tmux environment
-  # across both the initial install phase and runtime.
+  # Persistent sessions for long-running deploys and maintenance.
   programs.tmux = {
     enable = true;
     shortcut = "a";
