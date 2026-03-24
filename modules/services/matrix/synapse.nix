@@ -1,47 +1,26 @@
-{
-  matrixDomain,
-  coturnRealm,
-  federatedDomains ? [ ],
-  ...
-}:
+{ matrixDomain, ... }:
 {
   services.matrix-synapse = {
     enable = true;
-    withJemalloc = true;
+    withPostgresql = true;
+
+    # ── Zero-Secrets-in-Store ──────────────────────────────────────────────
+    # Only structural/non-secret config is here. All identities (domains,
+    # keys, OIDC client secrets) are rendered from Vault to /run/secrets.
+    extraConfigFiles = [
+      "/run/secrets/synapse-secrets.yaml"
+      "/run/secrets/synapse-email.yaml"
+    ];
 
     settings = {
-      server_name = matrixDomain;
-      public_baseurl = "https://${matrixDomain}";
+      # server_name and public_baseurl are PULLED FROM VAULT SECRETS YAML.
+      # Defining them here would override the Vault values.
 
-      # Suppression Policy:
-      # Silences the 'trusted_key_servers' warning for matrix.org.
+      # Federation (Structural)
+      federation_domain_whitelist = [ matrixDomain ];
       suppress_key_server_warning = true;
 
-      # Authentication Policy:
-      # All OIDC/MAS settings (enabled, issuer, client_id, secret) are rendered
-      # as a single unit in synapse-secrets.yaml to ensure deep-merge success.
-
-      experimental_features = { };
-
-      password_config.enabled = false;
-
-      # Media Connectivity (NAT Traversal):
-      turn_uris = [
-        "turn:${coturnRealm}:3478?transport=udp"
-        "turn:${coturnRealm}:3478?transport=tcp"
-        "turns:${coturnRealm}:5349?transport=tcp"
-      ];
-      turn_user_lifetime = 86400000;
-
-      # Federated Posture:
-      federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;
-
-      # Email Notifications:
-      # All settings consolidated in synapse-email.yaml.
-
-      # Proxy Trust Model:
-      trusted_proxies = [ "127.0.0.1" ];
-
+      # Database (Structural)
       database = {
         name = "psycopg2";
         args = {
@@ -50,13 +29,15 @@
           host = "/run/postgresql";
           cp_min = 5;
           cp_max = 10;
-          keepalives_idle = 10;
-          keepalives_interval = 10;
-          keepalives_count = 3;
         };
       };
 
-      # Ingress Listeners:
+      # Resource Management (ZFS-optimized)
+      caches = {
+        global_factor = 0.5;
+      };
+
+      # Listeners
       listeners = [
         {
           port = 8008;
@@ -74,6 +55,10 @@
           ];
         }
       ];
+
+      # Registration & Identity
+      enable_registration = false;
+      allow_guest_access = false;
     };
   };
 }
