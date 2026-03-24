@@ -1,7 +1,13 @@
-{ matrixDomain, ... }:
+{
+  matrixDomain,
+  coturnRealm,
+  federatedDomains ? [ ],
+  ...
+}:
 {
   services.matrix-synapse = {
     enable = true;
+    withJemalloc = true;
 
     # ── Zero-Secrets-in-Store ──────────────────────────────────────────────
     # Only structural/non-secret config is here. All identities (domains,
@@ -16,7 +22,7 @@
       # Defining them here would override the Vault values.
 
       # Federation (Structural)
-      federation_domain_whitelist = [ matrixDomain ];
+      federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;
       suppress_key_server_warning = true;
 
       # Database (Structural)
@@ -28,6 +34,9 @@
           host = "/run/postgresql";
           cp_min = 5;
           cp_max = 10;
+          keepalives_idle = 10;
+          keepalives_interval = 10;
+          keepalives_count = 3;
         };
       };
 
@@ -35,6 +44,14 @@
       caches = {
         global_factor = 0.5;
       };
+
+      # NAT Traversal (TURN)
+      turn_uris = [
+        "turn:${coturnRealm}:3478?transport=udp"
+        "turn:${coturnRealm}:3478?transport=tcp"
+        "turns:${coturnRealm}:5349?transport=tcp"
+      ];
+      turn_user_lifetime = 86400000;
 
       # Listeners
       listeners = [
@@ -55,7 +72,8 @@
         }
       ];
 
-      # Registration & Identity
+      # Authentication and Registration
+      password_config.enabled = false;
       enable_registration = false;
       allow_guest_access = false;
     };
