@@ -1,0 +1,37 @@
+# ── site-config.nix — OPSEC deployment values ─────────────────────────────
+#
+# This file is gitignored. Never commit it.
+#
+# Usage:
+#   cp hosts/avina/site-config.nix.example hosts/avina/site-config.nix
+#   # Edit site-config.nix with your real values, then deploy.
+#
+# These are build-time parameters consumed by the Nix modules directly.
+# They are NOT secrets — do not put tokens, keys, or passwords here.
+# Secrets belong in Vault and are rendered at runtime by vault-agent.
+#
+# These values must align with what you seeded into Vault:
+#   kv-v2/infrastructure/matrix/avina/config:
+#     matrix_domain  → matrixDomain
+#     auth_domain    → masDomain
+#
+# ──────────────────────────────────────────────────────────────────────────
+{
+  # The Matrix homeserver domain. Must match `matrix_domain` in Vault config tier.
+  matrixDomain = "matrix.example.com";
+
+  # Element Web frontend domain.
+  elementDomain = "element.example.com";
+
+  # Matrix Authentication Service (OIDC) domain. Must match `auth_domain` in Vault.
+  masDomain = "mas.example.com";
+
+  # Element Call SFU frontend domain.
+  callDomain = "call.example.com";
+
+  # Coturn TURN server realm (usually a subdomain of your root domain).
+  coturnRealm = "turn.example.com";
+
+  # Vault address reachable from avina at runtime.
+  vaultAddr = "https://vault.service.consul:8200";
+}
