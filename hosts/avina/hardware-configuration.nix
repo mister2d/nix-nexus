@@ -6,8 +6,14 @@
 }:
 
 {
+  # not-detected.nix is the minimal hardware-scan stub. It does not enable
+  # systemd initrd, qemu-guest, or any profile that could interfere with the
+  # busybox initrd + ZFS boot chain on QEMU/OVMF.
+  # (qemu-guest.nix enables boot.initrd.systemd by default, which causes an
+  # EFI stub freeze at initrd load on OVMF; the guest agent is handled instead
+  # by nix-nexus.virtualization.guestAgent.enable in hosts/avina/default.nix.)
   imports = [
-    (modulesPath + "/profiles/qemu-guest.nix")
+    (modulesPath + "/installer/scan/not-detected.nix")
   ];
 
   boot = {
@@ -16,7 +22,7 @@
       efi.canTouchEfiVariables = true;
     };
     initrd = {
-      # Ensure ZFS is available early in the boot process
+      # ZFS must be available in the initrd for pool import at boot.
       supportedFilesystems = [ "zfs" ];
 
       # virtio_blk covers VirtIO Block devices (/dev/vda);
@@ -35,13 +41,12 @@
     };
     kernelModules = [ "kvm-intel" ];
     extraModulePackages = [ ];
-    # Force import if HostID differs between installer and runtime
+    # Force import if HostID differs between installer and runtime.
     kernelParams = [ "zfsforce=1" ];
 
     # Pin to 6.12 LTS. Kernels 6.13 and 6.14 have an unresolved regression
     # where the EFI stub freezes at initrd load on QEMU/OVMF VMs.
-    # Track: https://github.com/NixOS/nixpkgs/issues (search EFI stub initrd)
-    kernelPackages = pkgs.linuxPackages_6_12;
+    kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
   };
 
   # hostId must match hosts/avina/default.nix

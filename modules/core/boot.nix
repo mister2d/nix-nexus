@@ -13,8 +13,10 @@
 
     # Initrd Configuration
     # Using systemd-based initrd for a modern, unified boot process.
+    # mkDefault allows VM guests (avina) to revert to the busybox initrd when
+    # the systemd initrd + ZFS combination causes an EFI stub freeze on OVMF.
     initrd = {
-      systemd.enable = true;
+      systemd.enable = lib.mkDefault true;
 
       # LUKS (Disk Encryption) Configuration
       luks.devices = {

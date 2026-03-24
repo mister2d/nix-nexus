@@ -101,7 +101,11 @@ in
   # No LUKS on avina — ZFS sits directly on the second GPT partition (VM, no
   # full-disk encryption layer). Clear the LUKS device map that modules/core/boot.nix
   # sets by default so initrd does not block on a non-existent crypto device.
+  # Disable the systemd initrd: systemd initrd + ZFS on QEMU/OVMF produces an
+  # EFI stub freeze at "Loaded initrd from". The busybox initrd handles ZFS pool
+  # import correctly on this platform.
   boot.initrd.luks.devices = lib.mkForce { };
+  boot.initrd.systemd.enable = false;
 
   # ZFS Performance Tuning:
   # Optimized for a Matrix workload on a memory-constrained VM (12GB RAM).
