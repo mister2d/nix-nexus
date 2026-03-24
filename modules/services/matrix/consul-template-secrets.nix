@@ -9,8 +9,10 @@ let
   secretDir = "/run/secrets";
   persistentSecretDir = "/var/lib/secrets";
 
-  # KV-v2 paths MUST include the 'data/' segment for direct template access.
-  kvPath = "kv-v2/data/letsencrypt/certificates/live/novuscotia.com";
+  # KV-v2 paths:
+  # Paths are derived from the host's domain to ensure that secrets are
+  # retrieved from the correct Vault KV tree without hardcoding.
+  kvPath = "kv-v2/data/letsencrypt/certificates/live/${matrixDomain}";
   matrixKvPath = "kv-v2/data/infrastructure/matrix/avina";
   smtpKvPath = "kv-v2/data/infrastructure/smtp";
 
@@ -34,9 +36,6 @@ let
     {{ end }}
   '';
 
-  # Synapse Core Secrets:
-  # Consolidates all top-level secrets and the ENTIRE MAS block to ensure
-  # deep-merge success and bypass Synapse's strict validation.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}
     macaroon_secret_key: "{{ .Data.data.macaroon_secret_key }}"
@@ -58,7 +57,7 @@ let
       enable_notifs: true
       smtp_host: "smtp.mailgun.org"
       smtp_port: 587
-      smtp_user: "postmaster@mg.novuscotia.com"
+      smtp_user: "postmaster@mg.${matrixDomain}"
       smtp_pass: "{{ .Data.data.smtp_password }}"
       require_transport_security: true
       notif_from: "Matrix <noreply@${matrixDomain}>"
