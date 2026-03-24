@@ -103,6 +103,17 @@ in
   # sets by default so initrd does not block on a non-existent crypto device.
   boot.initrd.luks.devices = lib.mkForce { };
 
+  # Kernel Parameters:
+  # Force the complete param set for this host. Strips the desktop params
+  # (quiet, splash, mem_sleep_default) from modules/core/boot.nix that
+  # produce a black screen on a headless VM. zfsforce=1 is included
+  # explicitly since mkForce overrides hardware-configuration.nix's addition.
+  boot.kernelParams = lib.mkForce [
+    "console=tty0"
+    "console=ttyS0,115200n8"
+    "zfsforce=1"
+  ];
+
   # ZFS Performance Tuning:
   # Optimized for a Matrix workload on a memory-constrained VM (12GB RAM).
   nix-nexus.zfs = {

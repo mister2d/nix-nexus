@@ -63,6 +63,24 @@
 
   programs.screen.enable = true;
 
+  # Serial Console & Kernel Parameters:
+  # Force the complete param set — strips quiet/splash/mem_sleep_default
+  # from modules/core/boot.nix (desktop params that black-screen a headless
+  # VM). zfsforce=1 is explicit since mkForce overrides hardware-configuration.nix.
+  boot.kernelParams = lib.mkForce [
+    "console=tty0"
+    "console=ttyS0,115200n8"
+    "zfsforce=1"
+  ];
+
+  # Serial Login:
+  # Provides an interactive login prompt on ttyS0 for Proxmox serial console
+  # access during Stage 1 before SSH is available or if it fails.
+  systemd.services."serial-getty@ttyS0" = {
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig.Restart = "always";
+  };
+
   # Use stable kernel for ZFS
   boot.kernelPackages =
     lib.mkDefault
