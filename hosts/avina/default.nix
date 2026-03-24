@@ -8,7 +8,14 @@ let
   # Copy hosts/avina/site-config.nix.example → hosts/avina/site-config.nix
   # and fill in real values before building. Never commit site-config.nix.
   site = import ./site-config.nix;
-  inherit (site) matrixDomain elementDomain masDomain callDomain coturnRealm vaultAddr;
+  inherit (site)
+    matrixDomain
+    elementDomain
+    masDomain
+    callDomain
+    coturnRealm
+    vaultAddr
+    ;
 
   # Federated Posture:
   # Least-privilege model. Add domains of external homeservers you wish to
