@@ -36,8 +36,13 @@ let
     {{ end }}
   '';
 
+  # Synapse Core Secrets:
+  # All OIDC/MAS settings (enabled, issuer, client_id, secret, server_name)
+  # are pulled from Vault to ensure single-source-of-truth integrity.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}
+    server_name: "{{ .Data.data.matrix_domain }}"
+    public_baseurl: "https://{{ .Data.data.matrix_domain }}"
     macaroon_secret_key: "{{ .Data.data.macaroon_secret_key }}"
     form_secret: "{{ .Data.data.form_secret }}"
     registration_shared_secret: "{{ .Data.data.registration_shared_secret }}"
@@ -45,7 +50,7 @@ let
 
     matrix_authentication_service:
       enabled: true
-      issuer: "https://auth.${matrixDomain}"
+      issuer: "https://{{ .Data.data.auth_domain }}"
       client_id: "synapse"
       secret: "{{ .Data.data.mas_shared_secret }}"
     {{ end }}
@@ -53,21 +58,23 @@ let
 
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with secret "${smtpKvPath}" }}
+    {{ with $synapse := secret "${matrixKvPath}/synapse" }}
     email:
       enable_notifs: true
       smtp_host: "smtp.mailgun.org"
       smtp_port: 587
-      smtp_user: "postmaster@mg.${matrixDomain}"
+      smtp_user: "postmaster@mg.{{ $synapse.Data.data.matrix_domain }}"
       smtp_pass: "{{ .Data.data.smtp_password }}"
       require_transport_security: true
-      notif_from: "Matrix <noreply@${matrixDomain}>"
+      notif_from: "Matrix <noreply@{{ $synapse.Data.data.matrix_domain }}>"
+    {{ end }}
     {{ end }}
   '';
 
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
     {{ with secret "${matrixKvPath}/mas" }}
     http:
-      public_base: "https://auth.${matrixDomain}"
+      public_base: "https://{{ .Data.data.auth_domain }}"
       listeners:
         - name: web
           resources:
@@ -93,7 +100,7 @@ let
           token_endpoint_auth_method: "client_secret_basic"
     matrix:
       kind: synapse
-      homeserver: "${matrixDomain}"
+      homeserver: "{{ .Data.data.matrix_domain }}"
       secret: "{{ .Data.data.mas_shared_secret }}"
       endpoint: "http://127.0.0.1:8008"
     {{ end }}
@@ -252,6 +259,7 @@ in
         };
       };
 
+      # Identity Delegation & Sequencing:
       coturn = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];

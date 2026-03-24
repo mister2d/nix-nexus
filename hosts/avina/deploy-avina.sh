@@ -82,6 +82,8 @@ fi
 
 if [[ "$reseed" =~ ^[Yy]$ ]]; then
     echo -e "\n${BLUE}--- Interactive Secret Seeding ---${NC}"
+    read -rp "  Synapse matrix_domain (e.g. matrix.novuscotia.com): " MATRIX_DOMAIN
+    read -rp "  Synapse auth_domain (e.g. auth.novuscotia.com): " AUTH_DOMAIN
     read -rp "  Synapse macaroon_secret_key: " MACAROON
     read -rp "  Synapse form_secret: " FORM
     read -rp "  Synapse registration_shared_secret: " REG
@@ -96,11 +98,13 @@ if [[ "$reseed" =~ ^[Yy]$ ]]; then
     read -rp "  Cloudflare tunnel_secret: " CF_SEC
 
     vault kv put "kv-v2/$KV_BASE/synapse" \
+        matrix_domain="$MATRIX_DOMAIN" auth_domain="$AUTH_DOMAIN" \
         macaroon_secret_key="$MACAROON" form_secret="$FORM" \
         registration_shared_secret="$REG" turn_shared_secret="$TURN" \
         mas_shared_secret="$MAS_SHARED"
 
     vault kv put "kv-v2/$KV_BASE/mas" \
+        matrix_domain="$MATRIX_DOMAIN" auth_domain="$AUTH_DOMAIN" \
         encryption_key="$MAS_ENC" oidc_issuer="$MAS_ISS" \
         oidc_client_id="$MAS_OIDC_ID" oidc_client_secret="$MAS_OIDC_SECRET" \
         mas_shared_secret="$MAS_SHARED"
