@@ -139,5 +139,15 @@ vault write -f -field=secret_id "auth/approle/role/$APPROLE_NAME/secret-id" > /v
 chmod 600 /var/lib/secrets/*
 
 # --- 5. Final Build & Switch ---
+SITE_CONFIG="$REPO_ROOT/hosts/avina/site-config.nix"
+if [[ ! -f "$SITE_CONFIG" ]]; then
+    error "hosts/avina/site-config.nix not found. Copy from site-config.nix.example and fill in real values."
+fi
+
+# Stage site-config.nix so Nix includes it in the flake source tree.
+# The file is gitignored and never committed; staging makes it visible to
+# the flake evaluator without adding it to the repository history.
+git -C "$REPO_ROOT" add -f "$SITE_CONFIG"
+
 unset VAULT_TOKEN
 nixos-rebuild switch --flake "$REPO_ROOT#$TARGET_HOSTNAME" --impure
