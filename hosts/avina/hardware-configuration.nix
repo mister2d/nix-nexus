@@ -15,13 +15,6 @@
       efi.canTouchEfiVariables = true;
     };
     initrd = {
-      # Disable systemd initrd for this host. The systemd initrd has a race
-      # condition with ZFS where mount units fire before the pool import
-      # service completes, causing an indefinite stall. The busybox initrd
-      # sequences ZFS pool import correctly and is the right choice for a
-      # headless VM with no TPM2/FIDO2/LUKS requirements.
-      systemd.enable = lib.mkForce false;
-
       # Ensure ZFS is available early in the boot process
       supportedFilesystems = [ "zfs" ];
 
