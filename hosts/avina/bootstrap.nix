@@ -63,14 +63,12 @@
 
   programs.screen.enable = true;
 
-  # Serial Console & Kernel Parameters:
-  # Force the complete param set — strips quiet/splash/mem_sleep_default
-  # from modules/core/boot.nix (desktop params that black-screen a headless
-  # VM). zfsforce=1 is explicit since mkForce overrides hardware-configuration.nix.
-  boot.kernelParams = lib.mkForce [
+  # Serial Console:
+  # Merged with hardware-configuration.nix (zfsforce=1) and any params
+  # added by NixOS modules. No mkForce — list concatenation is correct here.
+  boot.kernelParams = [
     "console=tty0"
     "console=ttyS0,115200n8"
-    "zfsforce=1"
   ];
 
   # Serial Login:

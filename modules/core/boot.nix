@@ -11,13 +11,6 @@
     # with the latest LTS/Stable releases.
     kernelPackages = pkgs.linuxPackages;
 
-    # General Kernel Parameters
-    kernelParams = [
-      "quiet"
-      "splash"
-      "mem_sleep_default=deep" # Standard preference for deep sleep (S3) over s2idle
-    ];
-
     # Initrd Configuration
     # Using systemd-based initrd for a modern, unified boot process.
     initrd = {
