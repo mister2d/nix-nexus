@@ -15,6 +15,9 @@
 #     matrix_domain  → matrixDomain
 #     auth_domain    → masDomain
 #
+# certDomain must match LE_CERT_PATH in deploy-avina.sh (the root or
+# wildcard domain under which the TLS cert is stored in Vault KV).
+#
 # ──────────────────────────────────────────────────────────────────────────
 {
   # The Matrix homeserver domain. Must match `matrix_domain` in Vault config tier.
@@ -34,4 +37,9 @@
 
   # Vault address reachable from avina at runtime.
   vaultAddr = "https://vault.service.consul:8200";
+
+  # Root or wildcard domain under which the TLS cert is stored in Vault KV.
+  # Must match LE_CERT_PATH in deploy-avina.sh. Typically the apex domain,
+  # not a subdomain (e.g. example.com, not matrix.example.com).
+  certDomain = "example.com";
 }
