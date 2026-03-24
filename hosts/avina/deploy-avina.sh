@@ -108,19 +108,27 @@ if [[ "$reseed" == "y" ]]; then
     read -rp "  Cloudflare tunnel_secret: " CF_SEC
 
     vault kv put "kv-v2/$KV_BASE/synapse" \
-        matrix_domain="$MATRIX_DOMAIN" auth_domain="$AUTH_DOMAIN" \
-        macaroon_secret_key="$MACAROON" form_secret="$FORM" \
-        registration_shared_secret="$REG" turn_shared_secret="$TURN" \
+        matrix_domain="$MATRIX_DOMAIN" \
+        auth_domain="$AUTH_DOMAIN" \
+        macaroon_secret_key="$MACAROON" \
+        form_secret="$FORM" \
+        registration_shared_secret="$REG" \
+        turn_shared_secret="$TURN" \
         mas_shared_secret="$MAS_SHARED"
 
     vault kv put "kv-v2/$KV_BASE/mas" \
-        matrix_domain="$MATRIX_DOMAIN" auth_domain="$AUTH_DOMAIN" \
-        encryption_key="$MAS_ENC" oidc_issuer="$MAS_ISS" \
-        oidc_client_id="$MAS_OIDC_ID" oidc_client_secret="$MAS_OIDC_SECRET" \
+        matrix_domain="$MATRIX_DOMAIN" \
+        auth_domain="$AUTH_DOMAIN" \
+        encryption_key="$MAS_ENC" \
+        oidc_issuer="$MAS_ISS" \
+        oidc_client_id="$MAS_OIDC_ID" \
+        oidc_client_secret="$MAS_OIDC_SECRET" \
         mas_shared_secret="$MAS_SHARED"
 
     vault kv put "kv-v2/$KV_BASE/cloudflared" \
-        account_id="$CF_ACC" tunnel_id="$CF_TUN" tunnel_secret="$CF_SEC"
+        account_id="$CF_ACC" \
+        tunnel_id="$CF_TUN" \
+        tunnel_secret="$CF_SEC"
 fi
 
 # --- 3. Master Key Provisioning ---
