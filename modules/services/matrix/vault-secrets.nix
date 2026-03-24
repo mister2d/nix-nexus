@@ -35,7 +35,7 @@ let
   '';
 
   # Synapse Core Secrets:
-  # Uses explicit variable assignment to ensure keys are pulled from the correct secret payload.
+  # Uses the most explicit Go template syntax to ensure keys are pulled from the correct secret payload.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with $s := secret "${matrixKvPath}/synapse" }}
     server_name: "{{ $s.Data.data.matrix_domain }}"
@@ -54,18 +54,18 @@ let
   '';
 
   # Synapse Email:
-  # Pulls from both SMTP and Synapse secrets without context shadowing.
+  # Explicitly scopes both secrets to avoid any interpolation ambiguity.
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with $smtp := secret "${smtpKvPath}" }}
-    {{ with $synapse := secret "${matrixKvPath}/synapse" }}
+    {{ with $s := secret "${matrixKvPath}/synapse" }}
     email:
       enable_notifs: true
       smtp_host: "smtp.mailgun.org"
       smtp_port: 587
-      smtp_user: "postmaster@mg.{{ $synapse.Data.data.matrix_domain }}"
+      smtp_user: "postmaster@mg.{{ $s.Data.data.matrix_domain }}"
       smtp_pass: "{{ $smtp.Data.data.smtp_password }}"
       require_transport_security: true
-      notif_from: "Matrix <noreply@{{ $synapse.Data.data.matrix_domain }}>"
+      notif_from: "Matrix <noreply@{{ $s.Data.data.matrix_domain }}>"
     {{ end }}
     {{ end }}
   '';
