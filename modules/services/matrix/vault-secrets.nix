@@ -10,8 +10,7 @@ let
   persistentSecretDir = "/var/lib/secrets";
 
   # KV-v2 paths:
-  # Paths are derived from the host's domain to ensure that secrets are
-  # retrieved from the correct Vault KV tree without hardcoding.
+  # Base paths for secrets. Domains are fetched from WITHIN these paths.
   kvPath = "kv-v2/data/letsencrypt/certificates/live/${matrixDomain}";
   matrixKvPath = "kv-v2/data/infrastructure/matrix/avina";
   smtpKvPath = "kv-v2/data/infrastructure/smtp";
@@ -37,8 +36,8 @@ let
   '';
 
   # Synapse Core Secrets:
-  # All OIDC/MAS settings (enabled, issuer, client_id, secret, server_name)
-  # are pulled from Vault to ensure single-source-of-truth integrity.
+  # NO FALLBACKS. Vault is the sole source of truth for the server_name
+  # and the authentication issuer.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with secret "${matrixKvPath}/synapse" }}
     server_name: "{{ .Data.data.matrix_domain }}"
@@ -47,7 +46,7 @@ let
     form_secret: "{{ .Data.data.form_secret }}"
     registration_shared_secret: "{{ .Data.data.registration_shared_secret }}"
     turn_shared_secret: "{{ .Data.data.turn_shared_secret }}"
-
+    
     matrix_authentication_service:
       enabled: true
       issuer: "https://{{ .Data.data.auth_domain }}"
@@ -63,10 +62,10 @@ let
       enable_notifs: true
       smtp_host: "smtp.mailgun.org"
       smtp_port: 587
-      smtp_user: "postmaster@mg.{{ $synapse.Data.data.matrix_domain }}"
+      smtp_user: "postmaster@mg.{{ .Data.data.matrix_domain }}"
       smtp_pass: "{{ .Data.data.smtp_password }}"
       require_transport_security: true
-      notif_from: "Matrix <noreply@{{ $synapse.Data.data.matrix_domain }}>"
+      notif_from: "Matrix <noreply@{{ .Data.data.matrix_domain }}>"
     {{ end }}
     {{ end }}
   '';

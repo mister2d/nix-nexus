@@ -20,23 +20,31 @@
       max_wal_size = "4GB";
     };
 
-    # Force 'C' collation for Synapse.
-    # This script is idempotent but will recreate the DB if it doesn't meet Synapse's requirements.
+    # Enforce 'C' locale for the entire cluster if initialized fresh.
+    initdbArgs = [
+      "--locale=C"
+      "--encoding=UTF8"
+    ];
+
+    # Force 'C' collation for Synapse and ensure roles exist.
     initialScript = pkgs.writeText "synapse-db-init.sql" ''
-      -- Ensure the user exists
+      -- Ensure roles exist before they are used
       DO $$
       BEGIN
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'matrix-synapse') THEN
           CREATE USER "matrix-synapse" WITH PASSWORD 'synapse' SUPERUSER;
         END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'matrix-authentication-service') THEN
+          CREATE USER "matrix-authentication-service";
+        END IF;
       END
       $$;
 
-      -- We must use 'C' collation for Synapse to avoid startup failures.
-      -- If the DB exists with wrong collation, we drop it (safe for initial deploy).
+      -- Use template0 to allow 'C' collation when cluster default is different (e.g. en_US.UTF-8).
+      -- We drop the existing DB to ensure a clean state for the initial deployment.
       SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'matrix-synapse' AND pid <> pg_backend_pid();
       DROP DATABASE IF EXISTS "matrix-synapse";
-      CREATE DATABASE "matrix-synapse" WITH OWNER "matrix-synapse" LC_COLLATE = 'C' LC_CTYPE = 'C';
+      CREATE DATABASE "matrix-synapse" WITH OWNER "matrix-synapse" TEMPLATE = template0 LC_COLLATE = 'C' LC_CTYPE = 'C';
     '';
 
     ensureDatabases = [
