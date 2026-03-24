@@ -5,11 +5,11 @@
 }:
 let
   # ── OPERATOR: set all values before deploying ────────────────────────────
-  matrixDomain = "matrix.example.com";
-  elementDomain = "element.example.com";
-  masDomain = "auth.example.com";
-  callDomain = "call.example.com";
-  coturnRealm = "turn.example.com";
+  matrixDomain = "novuscotia.com";
+  elementDomain = "element.novuscotia.com";
+  masDomain = "auth.novuscotia.com";
+  callDomain = "call.novuscotia.com";
+  coturnRealm = "turn.novuscotia.com";
   vaultAddr = "https://vault.service.consul:8200";
 
   # Federated Posture:
@@ -50,7 +50,6 @@ in
 
     # Public Network Exposure Model:
     # Direct ingress on 443 (HAProxy) and 22 (SSH).
-    # This configuration overrides core networking policies to ensure a minimal attack surface.
     firewall = lib.mkForce {
       enable = true;
       trustedInterfaces = [ ];
@@ -95,7 +94,6 @@ in
     tailscale.enable = lib.mkForce false;
 
     # Secure Remote Access:
-    # Certificate-based authentication via repository-managed SSH CA.
     openssh = {
       enable = true;
       settings = {
