@@ -12,6 +12,8 @@
     ../../modules/user/neovim-home.nix # Common Nixvim configuration
   ];
 
+  time.timeZone = "America/New_York";
+
   networking = {
     hostName = "avina-bootstrap";
     hostId = "a6b7c8d9";

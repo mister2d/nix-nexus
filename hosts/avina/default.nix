@@ -30,6 +30,8 @@ in
     ../../modules/services/matrix # Matrix 2.0 communications suite
   ];
 
+  time.timeZone = "America/New_York";
+
   _module.args = {
     inherit
       matrixDomain
