@@ -10,7 +10,6 @@ let
   persistentSecretDir = "/var/lib/secrets";
 
   # KV-v2 paths:
-  # Base paths for secrets. Domains are fetched from WITHIN these paths.
   kvPath = "kv-v2/data/letsencrypt/certificates/live/${matrixDomain}";
   matrixKvPath = "kv-v2/data/infrastructure/matrix/avina";
   smtpKvPath = "kv-v2/data/infrastructure/smtp";
@@ -36,44 +35,46 @@ let
   '';
 
   # Synapse Core Secrets:
-  # NO FALLBACKS. Vault is the sole source of truth for the server_name
-  # and the authentication issuer.
+  # Uses explicit variable assignment to ensure keys are pulled from the correct secret payload.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
-    {{ with secret "${matrixKvPath}/synapse" }}
-    server_name: "{{ .Data.data.matrix_domain }}"
-    public_baseurl: "https://{{ .Data.data.matrix_domain }}"
-    macaroon_secret_key: "{{ .Data.data.macaroon_secret_key }}"
-    form_secret: "{{ .Data.data.form_secret }}"
-    registration_shared_secret: "{{ .Data.data.registration_shared_secret }}"
-    turn_shared_secret: "{{ .Data.data.turn_shared_secret }}"
-    
+    {{ with $s := secret "${matrixKvPath}/synapse" }}
+    server_name: "{{ $s.Data.data.matrix_domain }}"
+    public_baseurl: "https://{{ $s.Data.data.matrix_domain }}"
+    macaroon_secret_key: "{{ $s.Data.data.macaroon_secret_key }}"
+    form_secret: "{{ $s.Data.data.form_secret }}"
+    registration_shared_secret: "{{ $s.Data.data.registration_shared_secret }}"
+    turn_shared_secret: "{{ $s.Data.data.turn_shared_secret }}"
+
     matrix_authentication_service:
       enabled: true
-      issuer: "https://{{ .Data.data.auth_domain }}"
+      issuer: "https://{{ $s.Data.data.auth_domain }}"
       client_id: "synapse"
-      secret: "{{ .Data.data.mas_shared_secret }}"
+      secret: "{{ $s.Data.data.mas_shared_secret }}"
     {{ end }}
   '';
 
+  # Synapse Email:
+  # Pulls from both SMTP and Synapse secrets without context shadowing.
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
-    {{ with secret "${smtpKvPath}" }}
+    {{ with $smtp := secret "${smtpKvPath}" }}
     {{ with $synapse := secret "${matrixKvPath}/synapse" }}
     email:
       enable_notifs: true
       smtp_host: "smtp.mailgun.org"
       smtp_port: 587
-      smtp_user: "postmaster@mg.{{ .Data.data.matrix_domain }}"
-      smtp_pass: "{{ .Data.data.smtp_password }}"
+      smtp_user: "postmaster@mg.{{ $synapse.Data.data.matrix_domain }}"
+      smtp_pass: "{{ $smtp.Data.data.smtp_password }}"
       require_transport_security: true
-      notif_from: "Matrix <noreply@{{ .Data.data.matrix_domain }}>"
+      notif_from: "Matrix <noreply@{{ $synapse.Data.data.matrix_domain }}>"
     {{ end }}
     {{ end }}
   '';
 
+  # MAS Configuration:
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
-    {{ with secret "${matrixKvPath}/mas" }}
+    {{ with $m := secret "${matrixKvPath}/mas" }}
     http:
-      public_base: "https://{{ .Data.data.auth_domain }}"
+      public_base: "https://{{ $m.Data.data.auth_domain }}"
       listeners:
         - name: web
           resources:
@@ -89,18 +90,18 @@ let
       database: "matrix-authentication-service"
       username: "matrix-authentication-service"
     secrets:
-      encryption: "{{ .Data.data.encryption_key }}"
+      encryption: "{{ $m.Data.data.encryption_key }}"
     upstream_oauth2:
       providers:
         - id: "01H75Z9682SZK6WEZKD98Z2YBP"
-          issuer: "{{ .Data.data.oidc_issuer }}"
-          client_id: "{{ .Data.data.oidc_client_id }}"
-          client_secret: "{{ .Data.data.oidc_client_secret }}"
+          issuer: "{{ $m.Data.data.oidc_issuer }}"
+          client_id: "{{ $m.Data.data.oidc_client_id }}"
+          client_secret: "{{ $m.Data.data.oidc_client_secret }}"
           token_endpoint_auth_method: "client_secret_basic"
     matrix:
       kind: synapse
-      homeserver: "{{ .Data.data.matrix_domain }}"
-      secret: "{{ .Data.data.mas_shared_secret }}"
+      homeserver: "{{ $m.Data.data.matrix_domain }}"
+      secret: "{{ $m.Data.data.mas_shared_secret }}"
       endpoint: "http://127.0.0.1:8008"
     {{ end }}
   '';
