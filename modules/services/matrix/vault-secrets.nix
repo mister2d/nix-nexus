@@ -38,12 +38,13 @@ let
   '';
 
   # Synapse Core Secrets:
-  # Pulls domains from 'config' and secrets from 'synapse'.
+  # Pulls domains AND instance_name from 'config' and secrets from 'synapse'.
   synapseSecretsTmpl = pkgs.writeText "synapse-secrets.ctmpl" ''
     {{ with $c := secret "${configPath}" }}
     {{ with $s := secret "${synapsePath}" }}
     server_name: "{{ $c.Data.data.matrix_domain }}"
     public_baseurl: "https://{{ $c.Data.data.matrix_domain }}"
+    instance_name: "{{ $c.Data.data.instance_name }}"
     macaroon_secret_key: "{{ $s.Data.data.macaroon_secret_key }}"
     form_secret: "{{ $s.Data.data.form_secret }}"
     registration_shared_secret: "{{ $s.Data.data.registration_shared_secret }}"
