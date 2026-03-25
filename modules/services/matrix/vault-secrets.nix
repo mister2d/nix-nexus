@@ -101,6 +101,7 @@ let
             - name: graphql
             - name: assets
           binds: [{ host: "127.0.0.1", port: 8181 }]
+          proxy_protocol: true
     database:
       host: "/run/postgresql"
       database: "matrix-authentication-service"
