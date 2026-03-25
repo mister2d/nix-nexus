@@ -85,9 +85,15 @@ let
   '';
 
   # MAS Configuration:
+  # All secrets pulled from two KV paths: config (domains/names) and mas (keys/secrets).
+  # SMTP credentials are pulled from the shared smtp path for the email transport.
+  #
+  # claims_imports templates use Tera syntax ({{ }}) which conflicts with Consul template
+  # delimiters; literal braces are emitted via {{ "{{" }} and {{ "}}" }} escapes.
   masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
     {{ with $c := secret "${configPath}" }}
     {{ with $m := secret "${masPath}" }}
+    {{ with $smtp := secret "${smtpPath}" }}
     http:
       public_base: "https://{{ $c.Data.data.auth_domain }}"
       listeners:
@@ -117,18 +123,63 @@ let
           key_file: ${secretDir}/mas-signing-rsa.key
         - kid: "mas-ec-01"
           key_file: ${secretDir}/mas-signing-ec.key
+    passwords:
+      enabled: false
+    email:
+      from: '"Matrix" <noreply@{{ $c.Data.data.matrix_domain }}>'
+      transport: smtp
+      hostname: smtp.mailgun.org
+      port: 587
+      mode: starttls
+      username: "postmaster@mg.{{ $c.Data.data.matrix_domain }}"
+      password: "{{ $smtp.Data.data.smtp_password }}"
+    branding:
+      service_name: "{{ $c.Data.data.instance_name }}"
+      tos_uri: "https://{{ $c.Data.data.matrix_domain }}/tos"
+    rate_limiting:
+      account_recovery:
+        per_ip:
+          burst: 3
+          per_second: 0.0008
+        per_address:
+          burst: 3
+          per_second: 0.0002
+      login:
+        per_ip:
+          burst: 3
+          per_second: 0.05
+        per_account:
+          burst: 1800
+          per_second: 0.5
+      registration:
+        burst: 3
+        per_second: 0.0008
     upstream_oauth2:
       providers:
         - id: "01H75Z9682SZK6WEZKD98Z2YBP"
+          human_name: "SSO"
           issuer: "{{ $m.Data.data.oidc_issuer }}"
           client_id: "{{ $m.Data.data.oidc_client_id }}"
           client_secret: "{{ $m.Data.data.oidc_client_secret }}"
           token_endpoint_auth_method: "client_secret_basic"
+          scope: "openid profile email"
+          claims_imports:
+            localpart:
+              action: force
+              template: "{{ "{{" }} user.preferred_username {{ "}}" }}"
+            displayname:
+              action: suggest
+              template: "{{ "{{" }} user.name {{ "}}" }}"
+            email:
+              action: suggest
+              template: "{{ "{{" }} user.email {{ "}}" }}"
+          on_backchannel_logout: logout_browser_only
     matrix:
       kind: synapse
       homeserver: "{{ $c.Data.data.matrix_domain }}"
       secret: "{{ $m.Data.data.mas_shared_secret }}"
       endpoint: "http://127.0.0.1:8008"
+    {{ end }}
     {{ end }}
     {{ end }}
   '';

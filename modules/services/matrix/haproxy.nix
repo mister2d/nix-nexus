@@ -13,6 +13,69 @@ let
     "172.16.0.0/12"
     "192.168.0.0/16"
   ];
+
+  # Terms of Service:
+  # Served at https://<matrixDomain>/tos and referenced by MAS branding.tos_uri.
+  # This is a private, invite-only homeserver — no public registration.
+  tosContent = pkgs.writeTextDir "tos" ''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Terms of Service</title>
+      <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
+        h1 { border-bottom: 1px solid #ccc; padding-bottom: 8px; }
+        h2 { margin-top: 2em; }
+      </style>
+    </head>
+    <body>
+      <h1>Terms of Service</h1>
+      <p><em>Last updated: 2026-03-25</em></p>
+
+      <h2>1. Service Description</h2>
+      <p>This Matrix homeserver is a private, invite-only communication service. Access is
+      restricted to authorised individuals. There is no public registration; all accounts
+      are provisioned by the administrator.</p>
+
+      <h2>2. Acceptable Use</h2>
+      <p>You agree to use this service only for lawful, personal communication. The following
+      are prohibited:</p>
+      <ul>
+        <li>Sharing, distributing, or storing illegal content of any kind.</li>
+        <li>Harassing, threatening, or abusing other users.</li>
+        <li>Attempting to gain unauthorised access to server infrastructure or other accounts.</li>
+        <li>Using automated tools to send bulk messages or spam.</li>
+        <li>Any activity that violates applicable law.</li>
+      </ul>
+
+      <h2>3. Privacy</h2>
+      <p>Messages and files sent through this service are stored on the server. The
+      administrator may access server logs and metadata for operational and security
+      purposes. Do not transmit information you require to remain confidential using
+      unencrypted Matrix rooms.</p>
+
+      <h2>4. Account Termination</h2>
+      <p>The administrator reserves the right to suspend or permanently remove access for
+      any user who violates these terms, or for any other operational reason, without
+      prior notice.</p>
+
+      <h2>5. Availability</h2>
+      <p>This service is provided on a best-effort basis with no uptime guarantees. The
+      administrator accepts no liability for data loss, service interruptions, or any
+      damages arising from use of the service.</p>
+
+      <h2>6. Changes</h2>
+      <p>These terms may be updated at any time. Continued use of the service after
+      changes are posted constitutes acceptance of the revised terms.</p>
+
+      <h2>7. Contact</h2>
+      <p>Questions regarding these terms should be directed to the server administrator.</p>
+    </body>
+    </html>
+  '';
+
   wellKnownConfig = pkgs.writeTextDir "matrix/client" (
     builtins.toJSON {
       "m.homeserver" = {
@@ -37,6 +100,23 @@ let
   );
 in
 {
+  # Terms of Service static server:
+  # Serves /tos on port 8085; referenced by MAS branding.tos_uri.
+  systemd.services.avina-tos = {
+    description = "Matrix Terms of Service static server";
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      ExecStart = "${pkgs.darkhttpd}/bin/darkhttpd ${tosContent} --port 8085 --addr 127.0.0.1";
+      Restart = "on-failure";
+      NoNewPrivileges = true;
+      PrivateTmp = true;
+      ProtectSystem = "strict";
+      ProtectHome = true;
+      CapabilityBoundingSet = "";
+    };
+  };
+
   # Matrix well-known static server:
   # Serves the .well-known/matrix/client discovery file required for client
   # autodiscovery and media signaling (MSC4143).
@@ -118,12 +198,14 @@ in
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
         acl is_wellknown        path_beg /.well-known
+        acl is_tos              path_eq  /tos
         acl is_call             hdr(host) -i ${callDomain}
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
         use_backend wellknown_backend if is_wellknown
+        use_backend tos_backend       if is_tos
         use_backend synapse_backend   if is_matrix or is_synapse
         use_backend element_call_backend if is_call
         default_backend element_backend
@@ -158,6 +240,9 @@ in
         # the file lives at /matrix/client, not /.well-known/matrix/client.
         http-request replace-path ^/\.well-known(.*) \1
         server wellknown 127.0.0.1:8083
+
+      backend tos_backend
+        server tos 127.0.0.1:8085
 
       backend element_call_backend
         server element_call 127.0.0.1:8084
