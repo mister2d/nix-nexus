@@ -294,6 +294,42 @@ Coturn's `denied-peer-ip` list covers all RFC-1918 private ranges, loopback
 prevents a malicious client from using the TURN relay as a proxy to reach internal
 services on avina's localhost or the Proxmox host network.
 
+### QR Code Sign-In (MSC4108)
+
+QR code login is **always active** in MAS — there is no configuration toggle. Any
+Matrix client that implements MSC4108 (Element X, Element Web ≥ 1.11.60) will
+automatically discover and offer the QR login flow. No Nix changes are required to
+enable it.
+
+---
+
+## TODO: Future Implementation
+
+### Telemetry / Metrics
+
+MAS exposes Prometheus metrics at its internal listener. Wire up a Prometheus scrape job
+targeting `127.0.0.1:8182/metrics` and add a Grafana dashboard for token issuance rate,
+login latency, and rate-limit hits. HAProxy already exposes `*:8404/metrics` via
+`prometheus-exporter`.
+
+### Google Upstream OIDC
+
+To allow known associates with Google accounts to access the homeserver, add a second
+upstream OIDC provider to `masConfigTmpl` alongside the Keycloak provider. Google's
+`brand_name: google` is natively supported by MAS for branded login buttons. Requires
+creating an OAuth 2.0 client in Google Cloud Console and seeding `client_id` /
+`client_secret` into Vault at `masPath` (e.g. `oidc_google_client_id`,
+`oidc_google_client_secret`). Restrict `hd` (hosted domain) if limiting to specific
+Google Workspace domains.
+
+### Custom Theming / Branding
+
+MAS 1.x theming is controlled by the `branding` config section (already configured:
+`service_name`, `tos_uri`) and via CSS overrides served at a custom `templates_path`.
+Future work: add a `policy_uri` and `imprint` once those pages are authored; investigate
+the MAS `custom_templates` mechanism for deeper UI customisation (logo, colour palette).
+Upstream issue tracking MAS theming: element-hq/matrix-authentication-service#2209.
+
 ---
 
 ## Post-Deploy Checks
