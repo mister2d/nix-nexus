@@ -18,6 +18,12 @@ let
       "m.homeserver" = {
         base_url = "https://${matrixDomain}";
       };
+      # MSC2965: advertise the OIDC provider so Element Web can discover MAS
+      # without solely relying on the auth_metadata homeserver endpoint.
+      "org.matrix.msc2965.authentication" = {
+        issuer = "https://${masDomain}/";
+        account = "https://${masDomain}/account";
+      };
       "org.matrix.msc3575.proxy" = {
         url = "https://${matrixDomain}";
       };
@@ -103,9 +109,6 @@ in
         acl is_mas_compat_auth  path_reg ^/_matrix/client/[^/]+/(login|logout|refresh)
         # MAS compat SSO callback: /complete-compat-sso/<token> lands on matrixDomain.
         acl is_mas_compat       path_beg /complete-compat-sso
-        # MSC2965 auth metadata: owned by MAS, not Synapse; must match before is_matrix.
-        acl is_mas_auth_meta    path_beg /_matrix/client/unstable/org.matrix.msc2965
-        acl is_mas_auth_meta    path_beg /_matrix/client/v1/auth_metadata
         # MAS domain: all traffic on the auth subdomain routes to MAS.
         acl is_mas_domain       hdr(host) -i ${masDomain}
         acl is_mas_auth         path_beg /auth
@@ -117,7 +120,7 @@ in
         acl is_wellknown        path_beg /.well-known
         acl is_call             hdr(host) -i ${callDomain}
 
-        use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth_meta or is_mas_auth or is_mas_oidc
+        use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
         use_backend wellknown_backend if is_wellknown
