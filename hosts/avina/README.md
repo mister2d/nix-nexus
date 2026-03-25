@@ -109,18 +109,190 @@ Do **not** place an admin token here. The AppRole policy (`avina`) must have
 |---|---|---|
 | AppRole role-id | `/var/lib/secrets/vault-role-id` | vault-agent bootstrap (persistent) |
 | AppRole secret-id | `/var/lib/secrets/vault-secret-id` | vault-agent bootstrap (persistent) |
-| TLS cert (HAProxy) | `/run/certs/haproxy.pem` | HAProxy — fullchain + key |
+| TLS cert (HAProxy) | `/run/certs/haproxy.pem` | HAProxy — fullchain + key combined |
 | TLS cert (Coturn) | `/run/certs/coturn-fullchain.pem` | Coturn |
 | TLS key (Coturn) | `/run/certs/coturn.key` | Coturn |
 | Synapse secrets | `/run/secrets/synapse-secrets.yaml` | Synapse `extraConfigFiles` |
 | Synapse email | `/run/secrets/synapse-email.yaml` | Synapse `extraConfigFiles` |
 | MAS config | `/run/secrets/mas-config.yaml` | matrix-authentication-service |
+| MAS EC signing key | `/run/secrets/mas-signing-ec.key` | matrix-authentication-service |
+| MAS RSA signing key | `/run/secrets/mas-signing-rsa.key` | matrix-authentication-service |
 | Coturn secret | `/run/secrets/coturn-secret` | Coturn `use-auth-secret` |
 | Coturn env | `/run/secrets/coturn-secret-env` | LiveKit TURN credentials |
 
 All `/run/` paths are RAM-only and never persist across reboots. vault-agent
 re-renders them on every boot and re-renders in-place whenever the upstream
 KV version increments (automatic cert rotation).
+
+---
+
+## MAS Signing Keys
+
+MAS requires signing keys to issue JWTs at the token endpoint (`POST /oauth2/token`).
+Two keys are configured — one ECDSA, one RSA — for the following reasons:
+
+**ECDSA P-384 (primary):** The preferred signing key. ES384 provides equivalent or
+stronger security than RSA at a fraction of the key size, with better resistance to
+timing side-channels. Clients that advertise ES384 support will receive tokens signed
+with this key.
+
+**RSA-4096 (compliance):** The OpenID Connect Core specification (RFC 7517) mandates
+that servers implement RS256, making at least one RSA key a hard interoperability
+requirement. RSA-4096 is used rather than the more common RSA-2048 to maximise the
+strength of the compliance key while accepting its higher computational cost.
+
+### Key Format Requirement
+
+MAS 1.13.0's underlying Rust crypto parsers require **legacy PEM formats**. Despite
+PKCS#8 being listed as supported in the documentation, PKCS#8-wrapped keys fail with
+`Unsupported format` at startup. Use the following generation commands exactly:
+
+```bash
+# ECDSA P-384 — SEC1 format (BEGIN EC PRIVATE KEY)
+openssl ecparam \
+  -name secp384r1 \
+  -genkey \
+  -noout \
+  -out /dev/shm/ec_private_key.pem
+
+# RSA-4096 — PKCS#1 format (BEGIN RSA PRIVATE KEY)
+openssl genrsa \
+  -out /dev/shm/rsa_private_key.pem 4096
+
+# Seed Vault (use =@ to preserve exact bytes including newlines)
+vault kv patch kv-v2/infrastructure/matrix/avina/mas \
+  signing_key_ec_pem=@/dev/shm/ec_private_key.pem \
+  signing_key_rsa_pem=@/dev/shm/rsa_private_key.pem
+
+# Wipe from memory-backed storage
+rm /dev/shm/ec_private_key.pem /dev/shm/rsa_private_key.pem
+```
+
+> **Warning:** Do not regenerate signing keys after production use. Rotation
+> invalidates all active sessions and issued tokens — every logged-in user is
+> forcibly logged out. Treat these keys with the same care as the encryption
+> secret.
+
+Both keys are stored in Vault KV-v2 at
+`kv-v2/infrastructure/matrix/avina/mas` and rendered to `/run/secrets/` by
+vault-agent on every boot. The rendered files are mode `0640`, group
+`matrix-secrets`. MAS reads them via `key_file:` entries in its config.
+
+---
+
+## Security Posture
+
+### Ingress
+
+avina sits entirely on the **internal LAN** (`avina.home.lan`). It is not directly
+reachable from the internet. HTTP/S ingress is brokered by a **Cloudflare Tunnel
+connector** (`cloudflared`) running on a separate node near the network edge — not on
+avina itself. That connector maintains a persistent outbound tunnel to Cloudflare's
+edge and forwards incoming requests inward to `avina.home.lan:443`.
+
+```
+Internet client
+  │ HTTPS (Cloudflare edge certificate)
+  ▼
+Cloudflare Edge  ←──── outbound tunnel maintained by external cloudflared connector
+  │ re-encrypted HTTPS → avina.home.lan:443
+  ▼
+HAProxy :443 on avina (Let's Encrypt wildcard cert; internal LAN only)
+```
+
+#### TLS Architecture — Double Encryption
+
+Two independent TLS sessions are in play:
+
+| Leg | Certificate | Notes |
+|---|---|---|
+| Browser → Cloudflare | Cloudflare-managed certificate | Valid, browser-trusted; Cloudflare handles renewal |
+| Cloudflare connector → avina:443 | Let's Encrypt wildcard (`*.novuscotia.com`) | Valid cert; hostname verification disabled (see below) |
+
+The Let's Encrypt certificate on avina is issued for the public domain
+(`*.novuscotia.com`) but cloudflared connects to the host via its LAN name
+(`avina.home.lan`). Because the presented certificate's Subject Alternative Names
+do not include `avina.home.lan`, cloudflared is configured with `noTLSVerify: true`
+to suppress hostname mismatch errors.
+
+**Security assessment of `noTLSVerify: true` (rating: B+):** Traffic between the
+cloudflared connector and avina is still encrypted in transit — the session is
+TLS-protected against passive eavesdropping. The weakened guarantee is that an
+active attacker with access to the internal LAN segment could present a fraudulent
+certificate and cloudflared would not detect the substitution. In this deployment
+the risk is accepted because (a) both nodes are on a trusted private LAN, (b) the
+originating cloudflared host is operator-controlled, and (c) the path is
+LAN-local and not internet-routable. The risk could be eliminated by configuring
+split-horizon internal DNS to resolve `avina.novuscotia.com` to the LAN IP,
+allowing cloudflared to verify the cert against the correct hostname.
+
+#### Certificate Lifecycle
+
+The Let's Encrypt wildcard cert is renewed by an external `certbot` process
+independent of avina. On renewal, certbot writes the new certificate into
+**Vault KV-v2**. vault-agent on avina watches that KV path; on version increment
+it re-renders the HAProxy combined PEM (`/run/certs/haproxy.pem`) and the
+Coturn files, then signals the respective services to reload — zero-downtime
+rotation with no manual intervention on avina.
+
+#### Port Exposure
+
+avina's firewall permits the following on all interfaces (including the LAN):
+
+| Port | Protocol | Service | Internet-facing? |
+|---|---|---|---|
+| 22 | TCP | OpenSSH | LAN only; password auth disabled; SSH CA enforced |
+| 443 | TCP | HAProxy (HTTPS) | LAN only; reachable by cloudflared connector |
+| 3478 | TCP+UDP | Coturn STUN/TURN | Yes — NAT-forwarded at edge router |
+| 5349 | TCP+UDP | Coturn TURNS/TLS | Yes — NAT-forwarded at edge router |
+| 49000–49999 | UDP | Coturn relay range | Yes — NAT-forwarded at edge router |
+
+Coturn's UDP ports are forwarded from the edge router because WebRTC ICE requires
+direct UDP reachability for STUN/TURN. All other services remain entirely
+LAN-internal; no other ports are forwarded through the router.
+
+**LiveKit media is not directly exposed.** LiveKit's UDP ports (7881, 50100–50200)
+are not opened and not NAT-forwarded. All WebRTC media is TURN-relayed through
+Coturn, which constrains the internet-facing footprint to the minimum required for
+real-time communications while ensuring clients behind strict NATs can still
+establish calls.
+
+### Authentication
+
+Synapse password authentication is fully disabled. All login flows pass through MAS
+(Matrix Authentication Service), which implements the MSC3861 native OIDC delegation
+protocol. MAS authenticates upstream to a self-hosted Keycloak instance. Clients
+(Element Web, Element X) never speak directly to Keycloak — MAS brokers the identity
+and issues its own access and refresh tokens to clients.
+
+This architecture means:
+- A single Keycloak account governs access to the Matrix homeserver.
+- Session revocation in Keycloak propagates to Matrix via MAS token invalidation.
+- No Matrix-native password database exists to be compromised.
+
+### Secrets Model
+
+No secrets are baked into the NixOS configuration or the Nix store. All runtime
+secrets — TLS certificates, database credentials, OIDC client secrets, signing keys —
+are pulled from **Vault KV-v2** by `vault-agent` on each boot and rendered to
+**RAM-only paths** (`/run/secrets/`, `/run/certs/`). These paths are backed by tmpfs
+and are wiped on every reboot.
+
+Access to `/run/secrets/` is gated by the `matrix-secrets` group (directory mode
+`0750`). Each service that needs secrets is given `matrix-secrets` as a supplementary
+group via the vault-secrets module. Individual secret files are mode `0640`.
+
+vault-agent authenticates to Vault using AppRole. The `secret_id` on disk
+(`/var/lib/secrets/vault-secret-id`) has `secret_id_ttl=0` so it survives reboots
+without manual intervention. The live Vault token has a 96-hour TTL and is
+automatically renewed by vault-agent before expiry.
+
+### Coturn SSRF Prevention
+
+Coturn's `denied-peer-ip` list covers all RFC-1918 private ranges, loopback
+(`127.0.0.0/8`), link-local (`169.254.0.0/16`), and CGNAT (`100.64.0.0/10`). This
+prevents a malicious client from using the TURN relay as a proxy to reach internal
+services on avina's localhost or the Proxmox host network.
 
 ---
 
