@@ -1,6 +1,7 @@
 { ... }:
 {
   imports = [
+    ./versions.nix
     ./synapse.nix
     ./database.nix
     ./mas.nix

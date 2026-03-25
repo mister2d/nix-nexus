@@ -6,6 +6,39 @@ flake and applied via `nixos-rebuild switch`.
 
 ---
 
+## Stack Versions
+
+Versions are pinned in `modules/services/matrix/versions.nix` and asserted at
+build time — `nixos-rebuild` fails with a descriptive error if any resolved
+package drifts from the declared version.
+
+Matrix-facing packages are sourced from the `pkgs-stable` overlay
+(`nixos-25.11 @ 812b3986fd15`). Infrastructure packages come from the primary
+nixpkgs input (`nixos-25.11 @ addf7cf5f383`). Both track the same NixOS stable
+channel at different commits.
+
+| Component | Version | Role | nixpkgs source |
+|---|---|---|---|
+| NixOS | 25.11 | Host OS | `addf7cf5f383` |
+| Synapse | 1.149.1 | Matrix homeserver (MSC3861 delegated auth) | pkgs-stable `812b3986fd15` |
+| MAS | 1.13.0 | OIDC bridge — MSC3861 native OIDC provider | pkgs-stable `812b3986fd15` |
+| Element Web | 1.12.10 | Matrix web client | pkgs-stable `812b3986fd15` |
+| Element Call | 0.11.1 | WebRTC calling — MSC4143 RTC foci | pkgs-stable `812b3986fd15` |
+| LiveKit | 1.9.4 | WebRTC SFU (media server) | pkgs-stable `812b3986fd15` |
+| lk-jwt-service | 0.4.0 | LiveKit JWT token auth service | pkgs-stable `812b3986fd15` |
+| Coturn | 4.9.0 | STUN/TURN server — RFC 5766/8656 | pkgs-stable `812b3986fd15` |
+| PostgreSQL | 16.13 | Database backend (Synapse + MAS) | pkgs-stable `812b3986fd15` |
+| HAProxy | 3.2.9 | TLS termination + reverse proxy | `addf7cf5f383` |
+| Vault | 1.21.1 | Secrets backend (vault-agent on avina) | `addf7cf5f383` |
+| darkhttpd | 1.17 | Static file server (well-known, ToS) | `addf7cf5f383` |
+| cloudflared | — | Zero-trust ingress tunnel (**external host**) | not on avina |
+
+> **cloudflared** runs on a separate host at the network edge, not on avina.
+> Its version is not asserted here. The tunnel forwards HTTPS inbound to
+> `avina.home.lan:443`.
+
+---
+
 ## Prerequisites
 
 **On your workstation:**
