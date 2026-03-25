@@ -141,7 +141,7 @@ in
         server synapse 127.0.0.1:8008
 
       backend mas_backend
-        server mas 127.0.0.1:8181 send-proxy-v2
+        server mas 127.0.0.1:8181 send-proxy
 
       backend lk_jwt_backend
         server lk_jwt 127.0.0.1:8081
