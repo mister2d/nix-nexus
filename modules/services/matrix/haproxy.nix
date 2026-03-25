@@ -198,7 +198,7 @@ in
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
         acl is_wellknown        path_beg /.well-known
-        acl is_tos              path_eq  /tos
+        acl is_tos              path     /tos
         acl is_call             hdr(host) -i ${callDomain}
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
