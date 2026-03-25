@@ -113,8 +113,10 @@ let
     secrets:
       encryption: "{{ $m.Data.data.encryption_key }}"
       keys:
-        - key_file: ${secretDir}/mas-signing-ec.key
-        - key_file: ${secretDir}/mas-signing-rsa.key
+        - kid: "mas-rsa-01"
+          key_file: ${secretDir}/mas-signing-rsa.key
+        - kid: "mas-ec-01"
+          key_file: ${secretDir}/mas-signing-ec.key
     upstream_oauth2:
       providers:
         - id: "01H75Z9682SZK6WEZKD98Z2YBP"
