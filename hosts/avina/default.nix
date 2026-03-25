@@ -105,7 +105,6 @@ in
   };
 
   # Administrative user for server access.
-  # ddukes is also present via profiles/server → modules/core/users.nix.
   # groot is the fleet-wide operator identity used across all hosts.
   users.users.groot = {
     isNormalUser = true;
