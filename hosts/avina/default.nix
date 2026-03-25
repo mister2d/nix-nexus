@@ -1,5 +1,7 @@
 {
   lib,
+  pkgs,
+  modulesPath,
   ...
 }:
 let
@@ -28,14 +30,25 @@ let
 in
 {
   imports = [
-    ../../profiles/server # Base: security, sysctl, users, DNS — no ZFS, no boot, no NM
+    # Official NixOS Proxmox LXC module — sets boot.isContainer = true,
+    # exposes proxmoxLXC options, and correctly handles networking.useHostResolvConf
+    # (which is why services.resolved works here but fails when isContainer is set manually).
+    (modulesPath + "/virtualisation/proxmox-lxc.nix")
+
+    ../../profiles/server # Base: security, sysctl, users — no ZFS, no boot, no NM
     ../../modules/services/matrix # Matrix 2.0 communications suite
   ];
 
   # Container Policy:
-  # avina runs as a Proxmox LXC container. No bootloader, no kernel config,
-  # no filesystem management — the hypervisor handles all of that.
-  boot.isContainer = true;
+  # Unprivileged (privileged = false): root inside the container maps to an
+  # unprivileged uid on the Proxmox host. Safer for a public-facing server —
+  # a container escape cannot yield host root.
+  # manageNetwork = false: Proxmox manages the veth interface and IP assignment.
+  # NixOS still owns the firewall inside the container's network namespace.
+  proxmoxLXC = {
+    privileged = false;
+    manageNetwork = false;
+  };
 
   _module.args = {
     inherit
@@ -56,7 +69,8 @@ in
   boot.kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 443;
 
   networking = {
-    hostName = "avina";
+    # Hostname is managed by Proxmox via the LXC container name when
+    # proxmoxLXC.manageNetwork = false. Name the container "avina" in Proxmox.
 
     # Firewall Policy:
     # Proxmox is configured wide-open at the hypervisor level; NixOS owns the
@@ -90,7 +104,34 @@ in
     };
   };
 
+  # Administrative user for server access.
+  # ddukes is also present via profiles/server → modules/core/users.nix.
+  # groot is the fleet-wide operator identity used across all hosts.
+  users.users.groot = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" ];
+    shell = pkgs.bash;
+    openssh.authorizedKeys.keys = [
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGQp6H/n2JPSt1VxCAupTC1OTh7R3eu7wO0ZtCNbAkd7"
+    ];
+  };
+
   services = {
+    # DNS Caching:
+    # proxmox-lxc.nix handles networking.useHostResolvConf correctly so
+    # resolved does not conflict with the container's host resolv.conf setup.
+    resolved = {
+      enable = true;
+      extraConfig = ''
+        Cache=true
+        CacheFromLocalhost=true
+      '';
+    };
+
+    # Disable fstrim — TRIM/discard is managed at the Proxmox storage layer,
+    # not from inside the container.
+    fstrim.enable = false;
+
     # Secure Remote Access:
     # Certificate-based auth via repository-managed SSH CA. Password auth
     # disabled. Root login permitted as prohibit-password (cert/key only).
