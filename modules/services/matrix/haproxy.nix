@@ -2,6 +2,7 @@
   pkgs,
   lib,
   matrixDomain,
+  masDomain,
   callDomain,
   ...
 }:
@@ -98,21 +99,25 @@ in
 
         # Component Routing Logic:
         # Dispatches traffic to the appropriate Matrix 2.0 component based on path/host.
-        acl is_mas_login   path_beg /_matrix/client/v3/login
-        acl is_mas_login   path_beg /_matrix/client/r0/login
-        acl is_mas_logout  path_beg /_matrix/client/v3/logout
-        acl is_mas_logout  path_beg /_matrix/client/r0/logout
-        acl is_mas_refresh path_beg /_matrix/client/v3/refresh
-        acl is_mas_auth    path_beg /auth
-        acl is_mas_oidc    path_beg /_mas
-        acl is_lk_jwt      path_beg /livekit/jwt
-        acl is_lk_sfu      path_beg /livekit/sfu
-        acl is_matrix      path_beg /_matrix
-        acl is_synapse     path_beg /_synapse
-        acl is_wellknown   path_beg /.well-known
-        acl is_call        hdr(host) -i ${callDomain}
+        # MAS compat layer: matches any API version per official MAS reverse-proxy docs.
+        acl is_mas_compat_auth  path_reg ^/_matrix/client/[^/]+/(login|logout|refresh)
+        # MAS compat SSO callback: /complete-compat-sso/<token> lands on matrixDomain.
+        acl is_mas_compat       path_beg /complete-compat-sso
+        # MSC2965 auth metadata: owned by MAS, not Synapse; must match before is_matrix.
+        acl is_mas_auth_meta    path_beg /_matrix/client/unstable/org.matrix.msc2965
+        acl is_mas_auth_meta    path_beg /_matrix/client/v1/auth_metadata
+        # MAS domain: all traffic on the auth subdomain routes to MAS.
+        acl is_mas_domain       hdr(host) -i ${masDomain}
+        acl is_mas_auth         path_beg /auth
+        acl is_mas_oidc         path_beg /_mas
+        acl is_lk_jwt           path_beg /livekit/jwt
+        acl is_lk_sfu           path_beg /livekit/sfu
+        acl is_matrix           path_beg /_matrix
+        acl is_synapse          path_beg /_synapse
+        acl is_wellknown        path_beg /.well-known
+        acl is_call             hdr(host) -i ${callDomain}
 
-        use_backend mas_backend       if is_mas_login or is_mas_logout or is_mas_refresh or is_mas_auth or is_mas_oidc
+        use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth_meta or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
         use_backend wellknown_backend if is_wellknown
@@ -136,7 +141,7 @@ in
         server synapse 127.0.0.1:8008
 
       backend mas_backend
-        server mas 127.0.0.1:8181
+        server mas 127.0.0.1:8181 send-proxy-v2
 
       backend lk_jwt_backend
         server lk_jwt 127.0.0.1:8081
