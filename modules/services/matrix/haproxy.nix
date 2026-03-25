@@ -120,10 +120,6 @@ in
         acl is_wellknown        path_beg /.well-known
         acl is_call             hdr(host) -i ${callDomain}
 
-        # Strip /.well-known prefix before forwarding to darkhttpd: the static
-        # file lives at /matrix/client in the store, not /.well-known/matrix/client.
-        http-request replace-path ^/\.well-known(.*) \1 if is_wellknown
-
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
@@ -158,6 +154,9 @@ in
         server lk_sfu 127.0.0.1:7880
 
       backend wellknown_backend
+        # Strip /.well-known prefix: darkhttpd serves from the Nix store where
+        # the file lives at /matrix/client, not /.well-known/matrix/client.
+        http-request replace-path ^/\.well-known(.*) \1
         server wellknown 127.0.0.1:8083
 
       backend element_call_backend
