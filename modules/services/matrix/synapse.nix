@@ -75,6 +75,13 @@
       password_config.enabled = false;
       enable_registration = false;
       allow_guest_access = false;
+
+      # QR Code Login (MSC4108):
+      # Enables the rendezvous endpoint on Synapse required for "login via QR code"
+      # in Element X / Element Web. Requires MAS (matrix_authentication_service) to
+      # be enabled — validated at Synapse startup. msc4108_delegation_endpoint is
+      # mutually exclusive with msc4108_enabled and is not set here.
+      experimental_features.msc4108_enabled = true;
     };
   };
 }
