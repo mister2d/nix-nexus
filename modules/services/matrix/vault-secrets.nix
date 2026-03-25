@@ -171,8 +171,9 @@ let
               action: suggest
               template: "{{ "{{" }} user.name {{ "}}" }}"
             email:
-              action: suggest
+              action: force
               template: "{{ "{{" }} user.email {{ "}}" }}"
+              set_email_verification: import
           on_backchannel_logout: logout_browser_only
     matrix:
       kind: synapse
