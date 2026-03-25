@@ -17,7 +17,7 @@ let
   # Terms of Service:
   # Served at https://<matrixDomain>/tos and referenced by MAS branding.tos_uri.
   # This is a private, invite-only homeserver — no public registration.
-  tosContent = pkgs.writeTextDir "tos.html" ''
+  tosContent = pkgs.writeTextDir "tos/index.html" ''
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -198,7 +198,7 @@ in
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
         acl is_wellknown        path_beg /.well-known
-        acl is_tos              path     /tos
+        acl is_tos              path_beg /tos
         acl is_call             hdr(host) -i ${callDomain}
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
@@ -242,8 +242,6 @@ in
         server wellknown 127.0.0.1:8083
 
       backend tos_backend
-        # File is tos.html in the store; rewrite the path so darkhttpd finds it.
-        http-request replace-path ^/tos$ /tos.html
         server tos 127.0.0.1:8085
 
       backend element_call_backend
