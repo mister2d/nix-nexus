@@ -62,8 +62,7 @@ let
 
     matrix_authentication_service:
       enabled: true
-      issuer: "https://{{ $c.Data.data.auth_domain }}"
-      client_id: "synapse"
+      endpoint: "http://127.0.0.1:8181"
       secret: "{{ $s.Data.data.mas_shared_secret }}"
     {{ end }}
     {{ end }}
