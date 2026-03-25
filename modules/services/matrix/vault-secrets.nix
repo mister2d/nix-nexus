@@ -76,7 +76,7 @@ let
       enable_notifs: true
       smtp_host: "smtp.mailgun.org"
       smtp_port: 587
-      smtp_user: "postmaster@mg.{{ $c.Data.data.matrix_domain }}"
+      smtp_user: "{{ $smtp.Data.data.smtp_username }}"
       smtp_pass: "{{ $smtp.Data.data.smtp_password }}"
       require_transport_security: true
       notif_from: "Matrix <noreply@{{ $c.Data.data.matrix_domain }}>"
@@ -131,7 +131,7 @@ let
       hostname: smtp.mailgun.org
       port: 587
       mode: starttls
-      username: "postmaster@mg.{{ $c.Data.data.matrix_domain }}"
+      username: "{{ $smtp.Data.data.smtp_username }}"
       password: "{{ $smtp.Data.data.smtp_password }}"
     branding:
       service_name: "{{ $c.Data.data.instance_name }}"
