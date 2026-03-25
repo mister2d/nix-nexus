@@ -163,6 +163,7 @@ let
           client_secret: "{{ $m.Data.data.oidc_client_secret }}"
           token_endpoint_auth_method: "client_secret_basic"
           scope: "openid profile email"
+          fetch_userinfo: true
           claims_imports:
             localpart:
               action: force
