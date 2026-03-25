@@ -112,6 +112,9 @@ let
       username: "matrix-authentication-service"
     secrets:
       encryption: "{{ $m.Data.data.encryption_key }}"
+      keys:
+        - key_file: ${secretDir}/mas-signing-ec.key
+        - key_file: ${secretDir}/mas-signing-rsa.key
     upstream_oauth2:
       providers:
         - id: "01H75Z9682SZK6WEZKD98Z2YBP"
@@ -136,6 +139,24 @@ let
     {{ with secret "${synapsePath}" }}
     LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}
     {{ end }}
+  '';
+
+  # MAS Signing Keys:
+  # Two keys rendered as separate files to avoid multi-line PEM indentation
+  # issues in YAML. MAS references them via key_file.
+  #
+  # Security posture: ECDSA P-384 (primary, hardened) + RSA-2048 (mandatory
+  # for OIDC Core spec RS256 compliance). Modern clients preferentially use
+  # ES384; RSA-2048 exists solely for spec compliance.
+  #
+  # Both must be generated once and never rotated — changing a signing key
+  # invalidates all active sessions and issued tokens.
+  masSigningKeyEcTmpl = pkgs.writeText "mas-signing-key-ec.ctmpl" ''
+    {{ with secret "${masPath}" }}{{ .Data.data.signing_key_ec_pem }}{{ end }}
+  '';
+
+  masSigningKeyRsaTmpl = pkgs.writeText "mas-signing-key-rsa.ctmpl" ''
+    {{ with secret "${masPath}" }}{{ .Data.data.signing_key_rsa_pem }}{{ end }}
   '';
 
   # ── Vault Agent Configuration ──────────────────────────────────────────
@@ -200,12 +221,26 @@ let
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-synapse.service || true'" 
     }
-    template { 
-      source = "${masConfigTmpl}" 
-      destination = "${secretDir}/mas-config.yaml" 
-      perms = 0640 
+    template {
+      source = "${masSigningKeyEcTmpl}"
+      destination = "${secretDir}/mas-signing-ec.key"
+      perms = 0640
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
+    }
+    template {
+      source = "${masSigningKeyRsaTmpl}"
+      destination = "${secretDir}/mas-signing-rsa.key"
+      perms = 0640
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
+    }
+    template {
+      source = "${masConfigTmpl}"
+      destination = "${secretDir}/mas-config.yaml"
+      perms = 0640
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
     }
     template { 
       source = "${coturnSecretTmpl}" 
