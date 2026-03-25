@@ -62,7 +62,7 @@ let
 
     matrix_authentication_service:
       enabled: true
-      endpoint: "http://127.0.0.1:8181"
+      endpoint: "http://127.0.0.1:8182"
       secret: "{{ $s.Data.data.mas_shared_secret }}"
     {{ end }}
     {{ end }}
@@ -101,6 +101,11 @@ let
             - name: assets
           binds: [{ host: "127.0.0.1", port: 8181 }]
           proxy_protocol: true
+        - name: internal
+          resources:
+            - name: discovery
+            - name: oauth
+          binds: [{ host: "127.0.0.1", port: 8182 }]
     database:
       host: "/run/postgresql"
       database: "matrix-authentication-service"
