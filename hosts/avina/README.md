@@ -294,13 +294,6 @@ Coturn's `denied-peer-ip` list covers all RFC-1918 private ranges, loopback
 prevents a malicious client from using the TURN relay as a proxy to reach internal
 services on avina's localhost or the Proxmox host network.
 
-### QR Code Sign-In (MSC4108)
-
-QR code login is **always active** in MAS — there is no configuration toggle. Any
-Matrix client that implements MSC4108 (Element X, Element Web ≥ 1.11.60) will
-automatically discover and offer the QR login flow. No Nix changes are required to
-enable it.
-
 ---
 
 ## TODO: Future Implementation
