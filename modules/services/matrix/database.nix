@@ -74,8 +74,9 @@
         ensureDBOwnership = true;
       }
       {
+        # DB name (mautrix_whatsapp) differs from user name (mautrix-whatsapp) — ownership
+        # is set in initialScript; ensureDBOwnership cannot be used here (names must match).
         name = "mautrix-whatsapp";
-        ensureDBOwnership = true;
       }
     ];
   };
