@@ -17,7 +17,9 @@
 
     settings = {
       homeserver = {
-        address = "http://127.0.0.1:8008";
+        # Internal HAProxy frontend on 8090: routes /_matrix/client/*/login to MAS
+        # compat layer (Synapse+MAS disables this endpoint) and all else to Synapse.
+        address = "http://127.0.0.1:8090";
         domain = matrixDomain;
       };
 
