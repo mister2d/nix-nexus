@@ -204,11 +204,17 @@ let
 
   # WhatsApp Bridge Secrets:
   # encryption_pickle_key: generated once, never rotated — invalidates all bridge sessions.
-  # login_shared_secret: Synapse registration_shared_secret for double-puppeting.
+  #
+  # Double-puppeting note: login_shared_secret is NOT used here. MAS (MSC3861) removes
+  # m.login.application_service, making the shared-secret approach incompatible.
+  # To enable double-puppeting after the bridge is running:
+  #   1. Read as_token from /var/lib/mautrix-whatsapp/whatsapp-registration.yaml
+  #   2. Store in Vault as: as_token:THE_TOKEN
+  #   3. Set MAUTRIX_WHATSAPP_BRIDGE_LOGIN_SHARED_SECRET=as_token:THE_TOKEN here
+  #      (the NixOS module injects this into double_puppet.secrets."<domain>")
   whatsappEnvTmpl = pkgs.writeText "whatsapp-env.ctmpl" ''
     {{ with secret "${whatsappPath}" }}
     MAUTRIX_WHATSAPP_ENCRYPTION_PICKLE_KEY={{ .Data.data.encryption_pickle_key }}
-    MAUTRIX_WHATSAPP_BRIDGE_LOGIN_SHARED_SECRET={{ .Data.data.login_shared_secret }}
     {{ end }}
   '';
 
