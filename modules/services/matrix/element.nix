@@ -1,12 +1,27 @@
 {
   pkgs,
   matrixDomain,
+  callDomain,
   ...
 }:
 let
   # Client Configuration:
   # Generates the element-web config.json to ensure users are automatically
   # routed to the fleet homeserver with secure defaults.
+  #
+  # element_call.url overrides the default (https://call.element.io) so
+  # Element Web uses the self-hosted Element Call instance. Without this,
+  # Element Web either routes to the public call.element.io or falls back
+  # to Jitsi for group calls.
+  #
+  # element_call.use_exclusively disables the legacy Jitsi VoIP stack and
+  # makes Element Call (MatrixRTC / MSC3401) the sole calling backend.
+  #
+  # Note: standalone call.${callDomain} login (username/password) is a
+  # limitation of Element Call 0.11.1 — it does not support native OIDC
+  # in standalone mode. For authenticated users this is irrelevant: Element
+  # Web embeds Element Call as a widget and passes the access token via the
+  # Widget API (MSC2764), so no separate OIDC flow is required for calls.
   elementConfig = pkgs.writeText "element-config.json" (
     builtins.toJSON {
       default_server_config = {
@@ -18,6 +33,10 @@ let
       disable_custom_urls = true;
       disable_guests = true;
       brand = "Element";
+      element_call = {
+        url = "https://${callDomain}";
+        use_exclusively = true;
+      };
     }
   );
 
