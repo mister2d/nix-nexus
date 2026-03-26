@@ -890,5 +890,6 @@ in Keycloak, not Synapse.
 
 ---
 
-*This document reflects the state of the avina stack as of 2026-03-26.*
+*This document reflects the state of the avina stack as of 2026-03-26.*  
+
 *Update when adding components, changing protocols, or making security decisions.*
