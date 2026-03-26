@@ -37,6 +37,9 @@
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'matrix-authentication-service') THEN
           CREATE USER "matrix-authentication-service";
         END IF;
+        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'mautrix-whatsapp') THEN
+          CREATE USER "mautrix-whatsapp";
+        END IF;
       END
       $$;
 
@@ -49,11 +52,17 @@
       SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'matrix-authentication-service' AND pid <> pg_backend_pid();
       DROP DATABASE IF EXISTS "matrix-authentication-service";
       CREATE DATABASE "matrix-authentication-service" WITH OWNER "matrix-authentication-service";
+
+      -- Create WhatsApp bridge DB
+      SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'mautrix_whatsapp' AND pid <> pg_backend_pid();
+      DROP DATABASE IF EXISTS "mautrix_whatsapp";
+      CREATE DATABASE "mautrix_whatsapp" WITH OWNER "mautrix-whatsapp";
     '';
 
     ensureDatabases = [
       "matrix-synapse"
       "matrix-authentication-service"
+      "mautrix_whatsapp"
     ];
     ensureUsers = [
       {
@@ -62,6 +71,10 @@
       }
       {
         name = "matrix-authentication-service";
+        ensureDBOwnership = true;
+      }
+      {
+        name = "mautrix-whatsapp";
         ensureDBOwnership = true;
       }
     ];
