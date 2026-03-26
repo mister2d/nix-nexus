@@ -243,8 +243,14 @@ in
         server mas 127.0.0.1:8181 send-proxy
 
       backend lk_jwt_backend
+        # Strip /livekit/jwt prefix — lk-jwt-service serves at its own root.
+        # Without this, /livekit/jwt/sfu/get reaches the service as-is and 404s.
+        http-request replace-path ^/livekit/jwt(.*) \1
         # CORS required: Element Call fetches JWTs cross-origin from the browser.
+        # Also handle OPTIONS preflight so the browser allows the actual JWT request.
         http-response set-header Access-Control-Allow-Origin "*"
+        http-response set-header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        http-response set-header Access-Control-Allow-Headers "Authorization, Content-Type"
         server lk_jwt 127.0.0.1:8081
 
       backend lk_sfu_backend
