@@ -237,6 +237,8 @@ in
         server mas 127.0.0.1:8181 send-proxy
 
       backend lk_jwt_backend
+        # CORS required: Element Call fetches JWTs cross-origin from the browser.
+        http-response set-header Access-Control-Allow-Origin "*"
         server lk_jwt 127.0.0.1:8081
 
       backend lk_sfu_backend
@@ -247,6 +249,10 @@ in
         # Strip /.well-known prefix: darkhttpd serves from the Nix store where
         # the file lives at /matrix/client, not /.well-known/matrix/client.
         http-request replace-path ^/\.well-known(.*) \1
+        # CORS required: Element Call (call.<domain>) fetches this cross-origin to
+        # discover org.matrix.msc4143.rtc_foci. Without this header the browser
+        # silently blocks the response and the client sees MISSING_MATRIX_RTC_TRANSPORT.
+        http-response set-header Access-Control-Allow-Origin "*"
         server wellknown 127.0.0.1:8083
 
       backend tos_backend
