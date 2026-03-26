@@ -62,8 +62,6 @@ in
       unitConfig.ConditionPathExists = "!${keyFile}";
     };
 
-    livekit.serviceConfig.EnvironmentFile = "/run/secrets/coturn-secret-env";
-
     lk-jwt-service.serviceConfig.Environment = [
       "LIVEKIT_URL=wss://${matrixDomain}/livekit/sfu"
       "LIVEKIT_FULL_ACCESS_HOMESERVERS=${matrixDomain}"
