@@ -215,6 +215,7 @@ let
   whatsappEnvTmpl = pkgs.writeText "whatsapp-env.ctmpl" ''
     {{ with secret "${whatsappPath}" }}
     MAUTRIX_WHATSAPP_ENCRYPTION_PICKLE_KEY={{ .Data.data.encryption_pickle_key }}
+    MAUTRIX_WHATSAPP_BRIDGE_LOGIN_SHARED_SECRET=as_token:{{ .Data.data.as_token }}
     {{ end }}
   '';
 
