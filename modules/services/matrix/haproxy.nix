@@ -209,6 +209,14 @@ in
         acl is_tos              path_beg /tos
         acl is_call             hdr(host) -i ${callDomain}
 
+        # MSC4143 RTC transport discovery — served statically before backend routing.
+        # Synapse requires auth on this endpoint but clients call it unauthenticated
+        # as a capability check. The response is static and non-sensitive.
+        http-request return status 200 content-type "application/json" \
+          hdr "Access-Control-Allow-Origin" "*" \
+          string '{"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit/jwt"}]}' \
+          if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
