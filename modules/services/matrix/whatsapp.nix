@@ -1,4 +1,9 @@
-{ matrixDomain, ... }:
+{
+  lib,
+  pkgs,
+  matrixDomain,
+  ...
+}:
 {
   # mautrix-whatsapp carries a libolm dependency in nixpkgs. libolm is deprecated
   # and has known side-channel CVEs (CVE-2024-45191/45192/45193), but upstream does
@@ -76,4 +81,29 @@
     };
   };
 
+  # Double-Puppet Namespace Fix:
+  # Synapse enforces AS namespace checks when a bridge uses `as_token` masquerade.
+  # The mautrix-whatsapp NixOS module does not expose a way to add extra namespaces
+  # to the generated registration file, so we patch it declaratively here.
+  #
+  # This preStart runs BEFORE the module's ExecStartPre (which skips re-generating
+  # the registration if the file already exists), so the namespace is present each
+  # time the service starts.
+  #
+  # One-time migration note: after the first `nixos-rebuild switch` with this change,
+  # run `systemctl restart matrix-synapse` once so Synapse reloads the updated
+  # registration. Subsequent rebuilds are fully automatic.
+  systemd.services.mautrix-whatsapp.preStart =
+    let
+      reg = "/var/lib/mautrix-whatsapp/whatsapp-registration.yaml";
+    in
+    ''
+      if [ -f "${reg}" ] && ! ${lib.getExe pkgs.yq-go} \
+          eval '.namespaces.users[] | select(.exclusive == false)' "${reg}" \
+          | ${pkgs.gnugrep}/bin/grep -q .; then
+        ${lib.getExe pkgs.yq-go} eval -i \
+          '.namespaces.users += [{"regex": "^@.*:${matrixDomain}$", "exclusive": false}]' \
+          "${reg}"
+      fi
+    '';
 }
