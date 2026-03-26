@@ -44,7 +44,7 @@ identity.
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│                         Cloudflare Edge                                  │
+│                         Cloudflare Edge                                 │
 │    Browser ──HTTPS──► Cloudflare ──tunnel──► avina:443 (HAProxy)        │
 └──────────────────────────────┬──────────────────────────────────────────┘
                                │ TLS terminates at HAProxy
@@ -70,7 +70,7 @@ identity.
 ```
 Client A ──TURN──► Coturn :3478/:5349 ──relay──► LiveKit :7880
                                                       │
-Client B ──TURN──► Coturn :3478/:5349 ──relay──►     │
+Client B ──TURN──► Coturn :3478/:5349 ──relay──►      │
                                                 (SFU mixes/routes)
 ```
 
@@ -583,7 +583,7 @@ denied-peer-ip=127.0.0.0-127.255.255.255     # Loopback
 denied-peer-ip=169.254.0.0-169.254.255.255   # Link-local
 denied-peer-ip=100.64.0.0-100.127.255.255    # CGNAT (RFC 6598)
 denied-peer-ip=0.0.0.0-0.255.255.255         # This-network
-denied-peer-ip=::1                            # IPv6 loopback
+denied-peer-ip=::1                           # IPv6 loopback
 denied-peer-ip=fc00::-fdff:...               # IPv6 unique local
 ```
 
