@@ -181,6 +181,17 @@ let
       homeserver: "{{ $c.Data.data.matrix_domain }}"
       secret: "{{ $m.Data.data.mas_shared_secret }}"
       endpoint: "http://127.0.0.1:8008"
+    policy:
+      data:
+        client_registration:
+          # Element Call is a public SPA client (oidc-client-ts) that performs
+          # dynamic client registration without a client_uri field. MAS's built-in
+          # OPA policy rejects registrations missing client_uri by default.
+          # Setting this to true allows Element Call to register dynamically so
+          # the native OIDC (MSC3861) flow can complete; without it, Element Call
+          # falls back to the Matrix compat login endpoint which rejects all logins
+          # because passwords are disabled.
+          allow_missing_client_uri: true
     {{ end }}
     {{ end }}
     {{ end }}

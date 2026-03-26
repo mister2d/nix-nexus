@@ -81,8 +81,15 @@ let
       "m.homeserver" = {
         base_url = "https://${matrixDomain}";
       };
-      # MSC2965: advertise the OIDC provider so Element Web can discover MAS
-      # without solely relying on the auth_metadata homeserver endpoint.
+      # MSC3861 / MSC2965: advertise MAS as the OIDC provider.
+      # m.authentication is the stable key (MSC3861); org.matrix.msc2965.authentication
+      # is the legacy draft key retained for older clients. Both are needed: Element Web
+      # uses the draft key in some versions; Element Call uses the stable key for
+      # native OIDC discovery (MSC3861).
+      "m.authentication" = {
+        issuer = "https://${masDomain}/";
+        account = "https://${masDomain}/account";
+      };
       "org.matrix.msc2965.authentication" = {
         issuer = "https://${masDomain}/";
         account = "https://${masDomain}/account";
