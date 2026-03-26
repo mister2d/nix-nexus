@@ -77,35 +77,48 @@ let
     </html>
   '';
 
-  wellKnownConfig = pkgs.writeTextDir "matrix/client" (
-    builtins.toJSON {
-      "m.homeserver" = {
-        base_url = "https://${matrixDomain}";
-      };
-      # MSC3861 / MSC2965: advertise MAS as the OIDC provider.
-      # m.authentication is the stable key (MSC3861); org.matrix.msc2965.authentication
-      # is the legacy draft key retained for older clients. Both are needed: Element Web
-      # uses the draft key in some versions; Element Call uses the stable key for
-      # native OIDC discovery (MSC3861).
-      "m.authentication" = {
-        issuer = "https://${masDomain}/";
-        account = "https://${masDomain}/account";
-      };
-      "org.matrix.msc2965.authentication" = {
-        issuer = "https://${masDomain}/";
-        account = "https://${masDomain}/account";
-      };
-      "org.matrix.msc3575.proxy" = {
-        url = "https://${matrixDomain}";
-      };
-      "org.matrix.msc4143.rtc_foci" = [
-        {
-          type = "livekit";
-          livekit_service_url = "https://${matrixDomain}/livekit/jwt";
+  wellKnownConfig = pkgs.symlinkJoin {
+    name = "matrix-well-known";
+    paths = [
+      (pkgs.writeTextDir "matrix/client" (
+        builtins.toJSON {
+          "m.homeserver" = {
+            base_url = "https://${matrixDomain}";
+          };
+          # MSC3861 / MSC2965: advertise MAS as the OIDC provider.
+          # m.authentication is the stable key (MSC3861); org.matrix.msc2965.authentication
+          # is the legacy draft key retained for older clients. Both are needed: Element Web
+          # uses the draft key in some versions; Element Call uses the stable key for
+          # native OIDC discovery (MSC3861).
+          "m.authentication" = {
+            issuer = "https://${masDomain}/";
+            account = "https://${masDomain}/account";
+          };
+          "org.matrix.msc2965.authentication" = {
+            issuer = "https://${masDomain}/";
+            account = "https://${masDomain}/account";
+          };
+          "org.matrix.msc3575.proxy" = {
+            url = "https://${matrixDomain}";
+          };
+          "org.matrix.msc4143.rtc_foci" = [
+            {
+              type = "livekit";
+              livekit_service_url = "https://${matrixDomain}/livekit/jwt";
+            }
+          ];
         }
-      ];
-    }
-  );
+      ))
+      # Federation server discovery: tells remote servers to connect on port 443
+      # instead of the default 8448. Without this, lk-jwt-service (and any other
+      # federation client) falls back to :8448 which is not exposed on avina.
+      (pkgs.writeTextDir "matrix/server" (
+        builtins.toJSON {
+          "m.server" = "${matrixDomain}:443";
+        }
+      ))
+    ];
+  };
 in
 {
   # Terms of Service static server:
