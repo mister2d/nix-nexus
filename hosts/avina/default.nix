@@ -87,7 +87,7 @@ in
       ];
       allowedUDPPorts = [
         3478 # Coturn STUN/TURN
-        5349 # Coturn TURNS/DTLS
+        5349 # Coturn TURNS/TLS
       ];
       allowedUDPPortRanges = [
         {
