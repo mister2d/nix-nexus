@@ -1,7 +1,6 @@
 {
   pkgs,
   matrixDomain,
-  coturnRealm,
   ...
 }:
 let
@@ -17,12 +16,17 @@ in
       # Prevent unauthenticated SFU room creation.
       room.auto_create = false;
 
-      # Media Relay Policy:
-      # Force all WebRTC traffic through the fleet TURN relay to ensure
-      # connectivity across restrictive networks and maintain a minimal footprint.
-      turn = {
-        enabled = true;
-        domain = coturnRealm;
+      rtc = {
+        # Discover public IP via STUN for ICE candidates.
+        # Without this, LiveKit advertises the container's internal veth IP
+        # and WebRTC media cannot reach it from external clients.
+        use_external_ip = true;
+        # UDP port range for WebRTC media. Must stay within the range
+        # opened in hosts/avina/default.nix allowedUDPPortRanges (50100-50200).
+        # Clients behind strict NAT reach these via Coturn TURN relay
+        # (Coturn can relay to the public IP on these ports).
+        port_range_start = 50100;
+        port_range_end = 50200;
       };
     };
   };

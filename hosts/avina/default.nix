@@ -94,6 +94,10 @@ in
           from = 49000;
           to = 49999;
         } # Coturn dynamic relay range
+        {
+          from = 50100;
+          to = 50200;
+        } # LiveKit WebRTC media (SFU RTP/RTCP)
       ];
       allowedTCPPortRanges = [
         {
