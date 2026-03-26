@@ -261,6 +261,23 @@ in
 
       backend element_backend
         server element 127.0.0.1:8082
+
+      # Internal bridge frontend — no TLS, loopback only.
+      # Synapse with MAS enabled removes /_matrix/client/*/login entirely; bridges
+      # need that endpoint for their startup capability check. Routing through here
+      # sends auth paths to MAS's compat layer (which provides login flows) and all
+      # other Matrix CS API calls to Synapse. Used by mautrix-whatsapp and any future
+      # appservice bridges.
+      frontend matrix_bridge
+        bind 127.0.0.1:8090
+
+        acl is_mas_compat_auth path_reg ^/_matrix/client/[^/]+/(login|logout|refresh)
+        acl is_mas_compat      path_beg /complete-compat-sso
+        acl is_mas_auth        path_beg /auth
+        acl is_mas_oidc        path_beg /_mas
+
+        use_backend mas_backend if is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
+        default_backend synapse_backend
     '';
   };
 }
