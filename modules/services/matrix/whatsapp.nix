@@ -74,6 +74,6 @@
   # The NixOS mautrix-whatsapp module writes the registration YAML to this path
   # (via matrix-synapse-register-mautrix-whatsapp.service before Synapse starts).
   services.matrix-synapse.settings.app_service_config_files = [
-    "/var/lib/mautrix-whatsapp/registration.yaml"
+    "/var/lib/mautrix-whatsapp/whatsapp-registration.yaml"
   ];
 }
