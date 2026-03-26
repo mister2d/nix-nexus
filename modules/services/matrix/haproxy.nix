@@ -267,6 +267,9 @@ in
         server lk_jwt 127.0.0.1:8081
 
       backend lk_sfu_backend
+        # Strip /livekit/sfu prefix — LiveKit serves its API at root.
+        # Without this, /livekit/sfu/twirp/... reaches LiveKit as-is and 404s.
+        http-request replace-path ^/livekit/sfu(.*) \1
         option http-server-close
         server lk_sfu 127.0.0.1:7880
 
