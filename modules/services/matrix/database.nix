@@ -1,5 +1,25 @@
 { pkgs, ... }:
 {
+  # mautrix-whatsapp DB ownership fix:
+  # ensureDBOwnership cannot be used (DB name mautrix_whatsapp ≠ user mautrix-whatsapp).
+  # This oneshot grants the schema on every boot — idempotent, safe to re-run.
+  # Also handles existing clusters where initialScript has already run without this grant.
+  systemd.services.postgresql-mautrix-whatsapp-perms = {
+    description = "Grant mautrix-whatsapp schema ownership";
+    after = [ "postgresql.service" ];
+    bindsTo = [ "postgresql.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "oneshot";
+      RemainAfterExit = true;
+      User = "postgres";
+      ExecStart = pkgs.writeShellScript "mautrix-whatsapp-db-perms" ''
+        ${pkgs.postgresql_16}/bin/psql -d mautrix_whatsapp -c \
+          'ALTER SCHEMA public OWNER TO "mautrix-whatsapp";'
+      '';
+    };
+  };
+
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
