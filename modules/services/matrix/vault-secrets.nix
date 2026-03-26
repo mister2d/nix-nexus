@@ -19,6 +19,7 @@ let
   configPath = "${matrixKvBase}/config";
   synapsePath = "${matrixKvBase}/synapse";
   masPath = "${matrixKvBase}/mas";
+  whatsappPath = "${matrixKvBase}/whatsapp";
 
   # certDomain is the domain under which the TLS certificate is stored in
   # Vault KV. This is typically the root or wildcard domain (e.g.
@@ -201,6 +202,16 @@ let
     {{ with secret "${synapsePath}" }}{{ .Data.data.turn_shared_secret }}{{ end }}
   '';
 
+  # WhatsApp Bridge Secrets:
+  # encryption_pickle_key: generated once, never rotated — invalidates all bridge sessions.
+  # login_shared_secret: Synapse registration_shared_secret for double-puppeting.
+  whatsappEnvTmpl = pkgs.writeText "whatsapp-env.ctmpl" ''
+    {{ with secret "${whatsappPath}" }}
+    MAUTRIX_WHATSAPP_ENCRYPTION_PICKLE_KEY={{ .Data.data.encryption_pickle_key }}
+    MAUTRIX_WHATSAPP_BRIDGE_LOGIN_SHARED_SECRET={{ .Data.data.login_shared_secret }}
+    {{ end }}
+  '';
+
   coturnSecretEnvTmpl = pkgs.writeText "coturn-env.ctmpl" ''
     {{ with secret "${synapsePath}" }}
     LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}
@@ -315,12 +326,19 @@ let
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'" 
     }
-    template { 
-      source = "${coturnSecretEnvTmpl}" 
-      destination = "${secretDir}/coturn-secret-env" 
-      perms = 0640 
+    template {
+      source = "${coturnSecretEnvTmpl}"
+      destination = "${secretDir}/coturn-secret-env"
+      perms = 0640
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'" 
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
+    }
+    template {
+      source      = "${whatsappEnvTmpl}"
+      destination = "${secretDir}/whatsapp-env"
+      perms       = 0640
+      group       = "matrix-secrets"
+      command     = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block mautrix-whatsapp.service || true'"
     }
   '';
 in
@@ -408,6 +426,10 @@ in
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
       livekit = {
+        after = [ "vault-agent-init.service" ];
+        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
+      };
+      mautrix-whatsapp = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
