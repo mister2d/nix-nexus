@@ -81,7 +81,25 @@
       # in Element X / Element Web. Requires MAS (matrix_authentication_service) to
       # be enabled — validated at Synapse startup. msc4108_delegation_endpoint is
       # mutually exclusive with msc4108_enabled and is not set here.
-      experimental_features.msc4108_enabled = true;
+      experimental_features = {
+        # MSC4108: QR code login — requires MAS to be enabled.
+        msc4108_enabled = true;
+        # MSC4143: MatrixRTC transport discovery endpoint.
+        # Registers /_matrix/client/unstable/org.matrix.msc4143/rtc/transports,
+        # which clients (Element X, Element Call) query to discover LiveKit focus.
+        # Returns the contents of matrix_rtc.transports below.
+        msc4143_enabled = true;
+      };
+
+      # MatrixRTC transport configuration (MSC4143).
+      # Served at /_matrix/client/unstable/org.matrix.msc4143/rtc/transports.
+      # Must match the livekit_service_url in the well-known rtc_foci entry.
+      matrix_rtc.transports = [
+        {
+          type = "livekit";
+          livekit_service_url = "https://${matrixDomain}/livekit/jwt";
+        }
+      ];
     };
   };
 }
