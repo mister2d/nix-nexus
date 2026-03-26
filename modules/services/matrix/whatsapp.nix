@@ -1,5 +1,11 @@
 { matrixDomain, ... }:
 {
+  # mautrix-whatsapp carries a libolm dependency in nixpkgs. libolm is deprecated
+  # and has known side-channel CVEs (CVE-2024-45191/45192/45193), but upstream does
+  # not consider them practically exploitable over the network. Permitted explicitly
+  # here; revisit when nixpkgs migrates the package to vodozemac.
+  nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
+
   services.mautrix-whatsapp = {
     enable = true;
 
