@@ -4,6 +4,7 @@
   matrixDomain,
   masDomain,
   callDomain,
+  elementDomain,
   ...
 }:
 let
@@ -252,6 +253,10 @@ in
         server tos 127.0.0.1:8085
 
       backend element_call_backend
+        # Standalone redirect: direct browser visits (no widgetId param) are sent
+        # to Element Web. Widget iframes from Element Web always include widgetId
+        # in the query string and pass through unmodified.
+        http-request redirect code 302 location https://${elementDomain} unless { query -m sub widgetId }
         server element_call 127.0.0.1:8084
 
       backend element_backend
