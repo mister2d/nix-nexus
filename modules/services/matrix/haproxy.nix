@@ -212,10 +212,8 @@ in
         # MSC4143 RTC transport discovery — served statically before backend routing.
         # Synapse requires auth on this endpoint but clients call it unauthenticated
         # as a capability check. The response is static and non-sensitive.
-        http-request return status 200 content-type "application/json" \
-          hdr "Access-Control-Allow-Origin" "*" \
-          string '{"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit/jwt"}]}' \
-          if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+        # Note: http-request return does not support backslash line continuation.
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" string '{"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit/jwt"}]}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt
@@ -284,6 +282,9 @@ in
       # appservice bridges.
       frontend matrix_bridge
         bind 127.0.0.1:8090
+        # Synapse checks X-Forwarded-Proto to determine if the original connection
+        # was HTTPS. Without this, it logs a warning on every request from bridges.
+        http-request set-header X-Forwarded-Proto https
 
         acl is_mas_compat_auth path_reg ^/_matrix/client/[^/]+/(login|logout|refresh)
         acl is_mas_compat      path_beg /complete-compat-sso
