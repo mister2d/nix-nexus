@@ -59,6 +59,10 @@
         # pickle_key must never change after first use — invalidates all bridge sessions.
         # Value injected from /run/secrets/whatsapp-env at runtime.
         pickle_key = "$MAUTRIX_WHATSAPP_ENCRYPTION_PICKLE_KEY";
+        # Required for E2EE on next-gen auth (MSC3861/MAS) homeservers.
+        # Uses device masquerading (MSC4190/MSC3202) instead of m.login.application_service,
+        # which MAS removes. Changing this regenerates the appservice registration file.
+        msc4190 = true;
       };
 
       # HTTP provisioning API disabled — bridge is managed via Matrix bot commands only.
