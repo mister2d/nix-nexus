@@ -430,7 +430,10 @@ in
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
       mautrix-whatsapp = {
-        after = [ "vault-agent-init.service" ];
+        after = [
+          "vault-agent-init.service"
+          "postgresql-mautrix-whatsapp-perms.service"
+        ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
     };
