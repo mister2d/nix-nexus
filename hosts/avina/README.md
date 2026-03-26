@@ -63,7 +63,7 @@ Key Proxmox settings for avina:
 - **Network**: Proxmox manages the interface (DHCP or static at hypervisor level).
   NixOS firewall runs inside the container; configure the Proxmox firewall as wide-open.
 - **Storage**: Standard Proxmox volume — no ZFS configuration needed inside the container.
-- **Ports**: Expose 22, 443, 3478, 5349, 8404 and UDP 49000–49999 at the Proxmox level.
+- **Ports**: Expose 22, 443, 3478, 5349, 8404, UDP 49000–49999, and UDP 50100–50200 at the Proxmox level.
 
 ---
 
@@ -151,7 +151,7 @@ Do **not** place an admin token here. The AppRole policy (`avina`) must have
 | MAS EC signing key | `/run/secrets/mas-signing-ec.key` | matrix-authentication-service |
 | MAS RSA signing key | `/run/secrets/mas-signing-rsa.key` | matrix-authentication-service |
 | Coturn secret | `/run/secrets/coturn-secret` | Coturn `use-auth-secret` |
-| Coturn env | `/run/secrets/coturn-secret-env` | LiveKit TURN credentials |
+| Coturn env | `/run/secrets/coturn-secret-env` | Coturn HMAC secret (env format; also rendered for legacy use) |
 
 All `/run/` paths are RAM-only and never persist across reboots. vault-agent
 re-renders them on every boot and re-renders in-place whenever the upstream
@@ -279,16 +279,12 @@ avina's firewall permits the following on all interfaces (including the LAN):
 | 3478 | TCP+UDP | Coturn STUN/TURN | Yes — NAT-forwarded at edge router |
 | 5349 | TCP+UDP | Coturn TURNS/TLS | Yes — NAT-forwarded at edge router |
 | 49000–49999 | UDP | Coturn relay range | Yes — NAT-forwarded at edge router |
+| 50100–50200 | UDP | LiveKit WebRTC media | Yes — NAT-forwarded at edge router |
 
-Coturn's UDP ports are forwarded from the edge router because WebRTC ICE requires
-direct UDP reachability for STUN/TURN. All other services remain entirely
-LAN-internal; no other ports are forwarded through the router.
-
-**LiveKit media is not directly exposed.** LiveKit's UDP ports (7881, 50100–50200)
-are not opened and not NAT-forwarded. All WebRTC media is TURN-relayed through
-Coturn, which constrains the internet-facing footprint to the minimum required for
-real-time communications while ensuring clients behind strict NATs can still
-establish calls.
+WebRTC ICE requires direct UDP reachability. Clients on standard networks connect
+directly to LiveKit on UDP 50100–50200 (the preferred ICE path). Clients behind
+strict NAT use Coturn TURN relay as a fallback; Coturn can relay to LiveKit's public
+IP on those ports. All other services remain LAN-internal.
 
 ### Authentication
 
@@ -367,8 +363,11 @@ curl "https://federationtester.matrix.org/api/report?server_name=MATRIX_DOMAIN"
 # Client API
 curl https://MATRIX_DOMAIN/_matrix/client/versions
 
-# Well-known
+# Well-known (client discovery — must include rtc_foci, m.authentication)
 curl https://MATRIX_DOMAIN/.well-known/matrix/client | python3 -m json.tool
+
+# Well-known (federation discovery — must return {"m.server":"<domain>:443"})
+curl https://MATRIX_DOMAIN/.well-known/matrix/server
 
 # MAS OIDC
 curl https://MAS_DOMAIN/.well-known/openid-configuration
