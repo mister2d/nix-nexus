@@ -1,4 +1,4 @@
-_:
+{ pkgs, ... }:
 
 {
   # ThinkPad Z16 Specific Kanshi Display Profiles (Home Manager)
@@ -21,7 +21,7 @@ _:
           ];
           exec = [
             "echo 'Mobile' > /tmp/kanshi-profile"
-            "pkill -RTMIN+8 waybar"
+            "${pkgs.procps}/bin/pkill -RTMIN+8 waybar"
           ];
         };
       }
@@ -45,7 +45,7 @@ _:
           ];
           exec = [
             "echo 'Docked' > /tmp/kanshi-profile"
-            "pkill -RTMIN+8 waybar"
+            "${pkgs.procps}/bin/pkill -RTMIN+8 waybar"
           ];
         };
       }

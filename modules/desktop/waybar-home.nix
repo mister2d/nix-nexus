@@ -119,6 +119,9 @@ in
           "format-source" = "{volume}% ";
           "format-source-muted" = "";
           "scroll-step" = 2;
+          "reverse-scrolling" = true;
+          "on-scroll-up" = "${pkgs.pamixer}/bin/pamixer --default-source -i 2";
+          "on-scroll-down" = "${pkgs.pamixer}/bin/pamixer --default-source -d 2";
           on-click = "${pkgs.pamixer}/bin/pamixer --default-source -t";
           "on-click-right" = "${scripts.audio-selector}/bin/audio-selector source";
           "on-click-middle" = "${pkgs.pavucontrol}/bin/pavucontrol";
@@ -157,6 +160,7 @@ in
         };
 
         tray = {
+          format = "{icon}";
           "icon-size" = 21;
           spacing = 10;
         };

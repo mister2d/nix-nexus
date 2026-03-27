@@ -25,10 +25,15 @@
       scrolloff = 8;
       termguicolors = true;
 
-      # Mouse & Selection Fix
-      # By setting mouse to empty, we allow the terminal emulator to handle
-      # selection (I-bar cursor) and copy/paste without Neovim capturing it.
-      mouse = "";
+      # Mouse & Selection
+      # By setting mouse to "a", we enable full mouse support in all modes.
+      # We then map <RightMouse> to paste from the system clipboard.
+      mouse = "a";
+    };
+
+    clipboard = {
+      register = "unnamedplus";
+      providers.wl-copy.enable = true;
     };
 
     # --- Keymaps (The Nix Way) ---
@@ -38,6 +43,24 @@
     };
 
     keymaps = [
+      # Right-click to paste from system clipboard
+      {
+        mode = [
+          "n"
+          "v"
+        ];
+        key = "<RightMouse>";
+        action = ''"+p'';
+      }
+      {
+        mode = [
+          "i"
+          "c"
+        ];
+        key = "<RightMouse>";
+        action = "<C-r>+";
+      }
+
       # Legacy navigation
       {
         mode = "n";

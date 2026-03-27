@@ -49,6 +49,8 @@ in
       # Click then Shift-Click to select range
       "mouse_map shift+left press" = "ungrabbed,grabbed mouse_selection extend";
       "mouse_map shift+left click" = "ungrabbed,grabbed mouse_selection extend";
+      # Right-click to paste from clipboard
+      "mouse_map right press" = "ungrabbed,grabbed paste_from_clipboard";
 
       # OLED Optimization
       background_opacity = "1.0";
@@ -148,6 +150,9 @@ in
       # Smart pane switching with awareness of Vim splits.
       set -g pane-border-style fg='#333333'
       set -g pane-active-border-style fg='#00AAAA'
+
+      # Right-click to paste from tmux buffer (or clipboard if synced)
+      bind-key -n MouseDown3Pane paste-buffer
     '';
   };
 }

@@ -9,39 +9,42 @@ _:
     pulse.enable = true;
     jack.enable = true;
 
-    # WirePlumber configuration: Hardware support
+    # WirePlumber configuration: Hardware support and routing
     wireplumber = {
       enable = true;
-      extraConfig."10-libcamera" = {
-        "wireplumber.profiles" = {
-          "main" = {
-            "libcamera" = "optional";
+      extraConfig = {
+        "10-libcamera" = {
+          "wireplumber.profiles" = {
+            "main" = {
+              "libcamera" = "optional";
+            };
           };
         };
-      };
-
-      # Persistent USB input monitoring: Disable session suspension to ensure immediate availability
-      # Priority rules ensure the USB microphone is favored over internal sources when connected.
-      extraConfig."51-source-routing" = {
-        "monitor.alsa.rules" = [
-          {
-            matches = [ [ { "node.name" = "alsa_input.usb-HP__Inc_HyperX_SoloCast-00.HiFi__Mic__source"; } ] ];
-            actions.update-props = {
-              "priority.session" = 2500;
-              "priority.driver" = 2500;
-              "session.suspend-timeout-seconds" = 0;
-              "node.pause-on-idle" = false;
-            };
-          }
-          {
-            # Internal microphones: Fallback priority for mobile/undocked use
-            matches = [ [ { "node.name" = "~alsa_input.pci-*"; } ] ];
-            actions.update-props = {
-              "priority.session" = 1000;
-              "priority.driver" = 1000;
-            };
-          }
-        ];
+        "51-source-routing" = {
+          "monitor.alsa.rules" = [
+            {
+              matches = [ [ { "node.name" = "alsa_input.usb-HP__Inc_HyperX_SoloCast-00.HiFi__Mic__source"; } ] ];
+              actions = {
+                update-props = {
+                  "priority.session" = 2500;
+                  "priority.driver" = 2500;
+                  # Moderate timeout (5s) prevents "cold starts" in apps without staying on forever
+                  "session.suspend-timeout-seconds" = 5;
+                };
+              };
+            }
+            {
+              # Internal microphones: Fallback priority
+              matches = [ [ { "node.name" = "~alsa_input.pci-*"; } ] ];
+              actions = {
+                update-props = {
+                  "priority.session" = 1000;
+                  "priority.driver" = 1000;
+                };
+              };
+            }
+          ];
+        };
       };
     };
 
