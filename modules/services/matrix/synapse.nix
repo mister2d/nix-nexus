@@ -89,6 +89,29 @@
         # which clients (Element X, Element Call) query to discover LiveKit focus.
         # Returns the contents of matrix_rtc.transports below.
         msc4143_enabled = true;
+        # MSC3266: Room Summary API. Required by Element Call for knocking over
+        # federation (standalone mode join-via-knock flow).
+        msc3266_enabled = true;
+        # MSC4222: sync v2 state_after. Required by Element Call to correctly
+        # track room membership and participant state during a call.
+        msc4222_enabled = true;
+      };
+
+      # MSC4140: Delayed Events — participation heartbeats for MatrixRTC.
+      # Without this, call participants appear stuck in rooms after leaving.
+      # Element Call self-hosting documentation lists this as required.
+      max_event_delay_duration = "24h";
+
+      # Rate limits: accommodate E2EE key sharing (bursty on join) and the
+      # MatrixRTC heartbeat (0.2 events/s steady-state). Values from the
+      # Element Call self-hosting documentation.
+      rc_message = {
+        per_second = 0.5;
+        burst_count = 30;
+      };
+      rc_delayed_event_mgmt = {
+        per_second = 1;
+        burst_count = 20;
       };
 
       # MatrixRTC transport configuration (MSC4143).

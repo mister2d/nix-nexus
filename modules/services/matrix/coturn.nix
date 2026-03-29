@@ -1,5 +1,6 @@
 {
   coturnRealm,
+  pkgs,
   ...
 }:
 {
@@ -35,4 +36,18 @@
       denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
     '';
   };
+
+  # External IP injection:
+  # avina is an LXC container behind NAT. Without external-ip, coturn advertises
+  # the container's LAN IP in TURN allocation responses — unreachable from the internet.
+  # The NixOS coturn module's own preStart copies the Nix-store config to
+  # /run/coturn/turnserver.cfg; this appends after that copy completes.
+  # The external IP is rendered at runtime from Vault (kv-v2/infrastructure/router).
+  systemd.services.coturn.preStart = ''
+    if [ -f /run/secrets/coturn-external-ip ]; then
+      printf '\nexternal-ip=%s\n' \
+        "$(${pkgs.coreutils}/bin/cat /run/secrets/coturn-external-ip)" \
+        >> /run/coturn/turnserver.cfg
+    fi
+  '';
 }

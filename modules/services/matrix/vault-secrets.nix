@@ -21,6 +21,11 @@ let
   masPath = "${matrixKvBase}/mas";
   whatsappPath = "${matrixKvBase}/whatsapp";
 
+  # Router external WAN IP — used by coturn to advertise the correct relay address
+  # and by LiveKit TURN TLS cert (same cert domain). Read-only; policy fragment in
+  # vault/policies/avina-matrix-router-read.hcl must be attached to the AppRole.
+  routerPath = "kv-v2/data/infrastructure/router";
+
   # certDomain is the domain under which the TLS certificate is stored in
   # Vault KV. This is typically the root or wildcard domain (e.g.
   # novuscotia.com) and is independent of matrixDomain (matrix.novuscotia.com).
@@ -46,6 +51,11 @@ let
     {{ with secret "${kvPath}" }}
     {{ .Data.data.privkey }}
     {{ end }}
+  '';
+
+  # WAN IP for coturn external-ip and LiveKit TURN domain resolution.
+  coturnExternalIpTmpl = pkgs.writeText "coturn-external-ip.ctmpl" ''
+    {{ with secret "${routerPath}" }}{{ .Data.data.external_ip }}{{ end }}
   '';
 
   # Synapse Identities and Keys:
@@ -276,19 +286,21 @@ let
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload-or-restart --no-block haproxy.service || true'" 
     }
-    template { 
-      source = "${coturnCertTmpl}" 
-      destination = "${certDir}/coturn-fullchain.pem" 
-      perms = 0644 
+    template {
+      source = "${coturnCertTmpl}"
+      destination = "${certDir}/coturn-fullchain.pem"
+      perms = 0644
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'" 
+      # livekit TURN also uses this cert — restart both on renewal
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service livekit.service || true'"
     }
-    template { 
-      source = "${coturnKeyTmpl}" 
-      destination = "${certDir}/coturn.key" 
-      perms = 0640 
+    template {
+      source = "${coturnKeyTmpl}"
+      destination = "${certDir}/coturn.key"
+      perms = 0640
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'" 
+      # livekit TURN also uses this key — restart both on renewal
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service livekit.service || true'"
     }
 
     template { 
@@ -339,6 +351,13 @@ let
       perms = 0640
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
+    }
+    template {
+      source      = "${coturnExternalIpTmpl}"
+      destination = "${secretDir}/coturn-external-ip"
+      perms       = 0640
+      group       = "matrix-secrets"
+      command     = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'"
     }
     template {
       source      = "${whatsappEnvTmpl}"
