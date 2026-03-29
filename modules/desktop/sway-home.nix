@@ -228,12 +228,14 @@ in
           # Use single quotes around complex exec commands to ensure Sway
           # correctly identifies the 'mode "default"' command as a separate action.
           # We also pkill swaynag to dismiss the menu.
-          "a" = "exec 'pkill -9 wlsunset; wlsunset -l 39.7 -L -105.0; pkill swaynag', mode \"default\"";
-          "r" = "exec 'pkill -9 wlsunset; pkill swaynag', mode \"default\"";
-          "2" = "exec 'pkill -9 wlsunset; wlsunset -t 2500; pkill swaynag', mode \"default\"";
-          "3" = "exec 'pkill -9 wlsunset; wlsunset -t 3000; pkill swaynag', mode \"default\"";
-          "4" = "exec 'pkill -9 wlsunset; wlsunset -t 4000; pkill swaynag', mode \"default\"";
-          "5" = "exec 'pkill -9 wlsunset; wlsunset -t 5000; pkill swaynag', mode \"default\"";
+          # We use 'exec wlsunset' to replace the subshell with the daemon process,
+          # ensuring it doesn't block the pkill command or leave zombie shells.
+          "a" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -l 39.7 -L -105.0', mode \"default\"";
+          "r" = "exec 'pkill swaynag; pkill wlsunset', mode \"default\"";
+          "2" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 2500', mode \"default\"";
+          "3" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 3000', mode \"default\"";
+          "4" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 4000', mode \"default\"";
+          "5" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 5000', mode \"default\"";
           "Return" = "exec 'pkill swaynag', mode \"default\"";
           "Escape" = "exec 'pkill swaynag', mode \"default\"";
         };
