@@ -21,11 +21,6 @@ let
   masPath = "${matrixKvBase}/mas";
   whatsappPath = "${matrixKvBase}/whatsapp";
 
-  # Router external WAN IP — used by coturn to advertise the correct relay address
-  # and by LiveKit TURN TLS cert (same cert domain). Read-only; policy fragment in
-  # vault/policies/avina-matrix-router-read.hcl must be attached to the AppRole.
-  routerPath = "kv-v2/data/infrastructure/router";
-
   # certDomain is the domain under which the TLS certificate is stored in
   # Vault KV. This is typically the root or wildcard domain (e.g.
   # novuscotia.com) and is independent of matrixDomain (matrix.novuscotia.com).
@@ -51,11 +46,6 @@ let
     {{ with secret "${kvPath}" }}
     {{ .Data.data.privkey }}
     {{ end }}
-  '';
-
-  # WAN IP for coturn external-ip and LiveKit TURN domain resolution.
-  coturnExternalIpTmpl = pkgs.writeText "coturn-external-ip.ctmpl" ''
-    {{ with secret "${routerPath}" }}{{ .Data.data.external_ip }}{{ end }}
   '';
 
   # Synapse Identities and Keys:
@@ -208,10 +198,6 @@ let
     {{ end }}
   '';
 
-  coturnSecretTmpl = pkgs.writeText "coturn-secret.ctmpl" ''
-    {{ with secret "${synapsePath}" }}{{ .Data.data.turn_shared_secret }}{{ end }}
-  '';
-
   # WhatsApp Bridge Secrets:
   # encryption_pickle_key: generated once, never rotated — invalidates all bridge sessions.
   #
@@ -291,16 +277,14 @@ let
       destination = "${certDir}/coturn-fullchain.pem"
       perms = 0644
       group = "matrix-secrets"
-      # livekit TURN also uses this cert — restart both on renewal
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service livekit.service || true'"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
     }
     template {
       source = "${coturnKeyTmpl}"
       destination = "${certDir}/coturn.key"
       perms = 0640
       group = "matrix-secrets"
-      # livekit TURN also uses this key — restart both on renewal
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service livekit.service || true'"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
     }
 
     template { 
@@ -338,26 +322,12 @@ let
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
     }
-    template { 
-      source = "${coturnSecretTmpl}" 
-      destination = "${secretDir}/coturn-secret" 
-      perms = 0640 
-      group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'" 
-    }
     template {
       source = "${coturnSecretEnvTmpl}"
       destination = "${secretDir}/coturn-secret-env"
       perms = 0640
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
-    }
-    template {
-      source      = "${coturnExternalIpTmpl}"
-      destination = "${secretDir}/coturn-external-ip"
-      perms       = 0640
-      group       = "matrix-secrets"
-      command     = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block coturn.service || true'"
     }
     template {
       source      = "${whatsappEnvTmpl}"
@@ -435,10 +405,6 @@ in
       # Service Dependencies:
       # All services that consume runtime secrets are sequenced after the
       # vault-agent-init one-shot to prevent race conditions during boot.
-      coturn = {
-        after = [ "vault-agent-init.service" ];
-        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      };
       haproxy = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
