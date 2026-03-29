@@ -29,16 +29,17 @@ in
 
       # Built-in TURN server:
       # Provides ICE relay for clients behind symmetric NAT or ISPs that block UDP.
-      # Uses separate ports from Coturn (which serves legacy Matrix VoIP TURN):
-      #   Coturn: UDP/TCP 3478, TURNS 5349
-      #   LiveKit: TURN/UDP 3479, TURNS/TLS 5350
-      # LiveKit handles TLS directly using the same cert/key as coturn (same domain).
-      # Credentials are HMAC-generated per-session; credential_lifetime controls TTL.
+      # Coturn is not used — LiveKit TURN is the sole TURN/STUN relay for this stack.
+      # Reuses the ports previously reserved for Coturn (already open at the edge):
+      #   TURN/UDP:  3478   (plain relay / STUN)
+      #   TURNS/TLS: 5349   (TLS relay — same port as legacy coturn)
+      # LiveKit handles TLS directly using the domain cert rendered by vault-agent.
+      # Credentials are HMAC-generated per-session; use_external_ip discovers WAN IP via STUN.
       turn = {
         enabled = true;
         domain = matrixDomain;
-        tls_port = 5350;
-        udp_port = 3479;
+        tls_port = 5349;
+        udp_port = 3478;
         cert_file = "/run/certs/coturn-fullchain.pem";
         key_file = "/run/certs/coturn.key";
       };

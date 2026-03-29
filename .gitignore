@@ -14,9 +14,6 @@ result-*
 .env
 .direnv/
 debug/
-PDB.md
-AGENTS.md
-CLAUDE.md
 
 # Host deployment values (real domains/addresses — never commit)
 hosts/avina/site-config.nix
