@@ -23,28 +23,29 @@ experimental-features = nix-command flakes
 
 ## 3. Adopting the Host into Nix-Nexus
 
-### Define the Target
-Add a `homeConfigurations` entry to your `flake.nix` for the new host:
+### Define the Target in the Fleet Registry
+Standalone homes are managed in the same **`modules/hosts.nix`** file as NixOS hosts. Simply add your user and host to the `den.homes` attribute for the appropriate architecture:
+
 ```nix
-homeConfigurations."user@hostname" = home-manager.lib.homeManagerConfiguration {
-  pkgs = nixpkgs.legacyPackages."x86_64-linux";
-  modules = [ ./hosts/<hostname>/home.nix ];
-  extraSpecialArgs = { inherit inputs; };
-};
+{ den, ... }: {
+  den.homes.x86_64-linux."user@hostname" = {
+    includes = [ den.aspects.user-ddukes-aspect ];
+  };
+}
 ```
 
-### Create the Host Profile
-Create a `home.nix` for the host (e.g., `hosts/dualie/home.nix`) that imports your preferred `nix-nexus` modules:
+### Create a Specific Home Aspect (Optional)
+If the host requires unique user settings, create a new aspect file in `modules/home-<hostname>.nix`:
+
 ```nix
-{ pkgs, ... }: {
-  imports = [
-    ../../modules/user/bash.nix
-    ../../modules/user/neovim-home.nix
-    ../../modules/user/dev-home.nix
-  ];
-  home.username = "groot";
-  home.homeDirectory = "/home/groot";
-  home.stateVersion = "25.11";
+{ den, ... }: {
+  den.aspects.home-dualie-aspect = {
+    homeManager = { ... }: {
+       home.username = "groot";
+       home.homeDirectory = "/home/groot";
+       home.stateVersion = "25.11";
+    };
+  };
 }
 ```
 
@@ -52,6 +53,7 @@ Create a `home.nix` for the host (e.g., `hosts/dualie/home.nix`) that imports yo
 Existing hosts usually have their own `.bashrc` or `.profile`. To prevent Home Manager from aborting due to "clobbering" errors, use the **backup flag** during your first activation:
 
 ```bash
+# Activation command for the Den pipeline
 nix run home-manager/release-25.11 -- switch --flake .#user@hostname -b bak
 ```
 
@@ -63,7 +65,7 @@ nix run home-manager/release-25.11 -- switch --flake .#user@hostname -b bak
 ## 5. High-Performance AI & GPU Bridging
 Nix-built binaries (like PyTorch or llama.cpp) expect libraries in the Nix store, but your GPU drivers live in the host OS (e.g., `/usr/lib/x86_64-linux-gnu`).
 
-Use the **`llm-init`** tool provided in the `dev-home` profile to bridge this gap:
+Use the **`llm-init`** tool provided in the `user-ddukes-aspect` to bridge this gap:
 ```bash
 mkdir my-ai-project && cd my-ai-project
 llm-init
@@ -72,12 +74,4 @@ direnv allow
 The generated environment dynamically maps your host's native NVIDIA drivers into your isolated Nix shell, enabling full GPU acceleration for LLM workloads on non-NixOS hosts.
 
 ## 6. Adapting to Older Hardware
-If you are deploying to older servers (e.g., Ivy Bridge Xeons) that lack modern instruction sets like **AVX2**, you can selectively disable heavy workstation tools while keeping your core shell environment:
-
-```nix
-programs.dev-home = {
-  enable = true;
-  enableMcpServers = false; # Disables packages requiring AVX2
-  enableLlmAgents = false;  # Disables packages requiring modern instructions
-};
-```
+If you are deploying to older servers (e.g., Ivy Bridge Xeons) that lack modern instruction sets like **AVX2**, you can selectively disable heavy workstation tools by overriding the user aspect within your host declaration in `modules/hosts.nix`.

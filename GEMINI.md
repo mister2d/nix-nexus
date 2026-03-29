@@ -1,44 +1,47 @@
 # Project Context
 
 ## Architecture Overview
-This repository manages a scalable, dendritic NixOS flake configuration. The declarative architecture spans multiple hardware profiles and node types, including:  
+This repository manages a scalable, **dendritic NixOS configuration framework** powered
+by the **Den framework (v0.13.0)**. The aspect-oriented architecture spans multiple 
+hardware profiles and node types, including:  
 
-* **Core Compute Servers:** High-resource x86_64-linux environments (e.g., dual Xeon E5-2687Wv2 profiles).
+* **Core Compute Servers:** High-resource x86_64-linux environments (e.g., Dual Xeon).
 * **Edge/SBC Nodes:** aarch64-linux single-board computers (e.g., 16GB rk3588 clusters).
 * **Workstations:** Mobile development machines (e.g., ThinkPad Z16 Gen 1 with AMD discrete graphics).
 
+The system uses a **Unified Aspect model** where each feature (Desktop, Matrix, Networking) 
+is defined in a single file across both system (NixOS) and user (Home Manager) domains.
+
 ## AI Agent Directives: Tool Usage Strategy
-You are equipped with four Model Context Protocol (MCP) servers: `context7`, `nixos-tools`, `time`, `git`, and `fetch`. Before generating or modifying any `.nix` code, strictly follow this sequence:
+You are equipped with MCP servers: `nixos-tools`, `time`, `git`, and `fetch`. Before 
+generating or modifying any `.nix` code, strictly follow this sequence:
 
-1. **Strategic Planning:** - Break down complex tasks (e.g., refactoring a module, resolving dependencies, hardware integration) step-by-step before writing code.
-2. **Context & Repository Analysis (`git` & `fetch`):** - Use the `git` tool to review the current repository state, recent commits, or your own working tree diffs to ensure code changes align with existing patterns.  
-   * Use the `fetch` tool to read the contents of any specific web URLs the user provides in their prompt.  
-3. **Knowledge Retrieval (`time`, `context7` & `nixos-tools`):** - Check the `time` tool to anchor your understanding of current software releases.  
-   * Use the `nix` tool with `source="wiki"` or `source="nix-dev"` to retrieve official NixOS documentation.  
-   * Use `context7` to fetch the most recent community patterns for external frameworks not covered by NixOS docs.  
-4. **Validation & Verification (`nixos-tools`):** - The NixOS server exposes a unified `nix` tool. You must use it to verify parameters:  
-   * **Package Discovery:** Use `nix(action="search", query="<name>", source="nixos", type="packages")` to verify existence on the present NixOS channel.  
-   * **Option Verification:** Use `nix(action="search", query="<key>", source="home-manager")` or `source="nixos"` to validate configuration keys and data types.  
-   * **Package History:** Use the `nix_versions` tool to fetch exact commit hashes for reproducible builds if needed.  
-   * **Flake Inputs:** Use `nix(action="flake-inputs", type="list")` to explore local dependencies.
-5. **Documentation and comments in code generation:** Generated documentation and code comments shall always reflect the cohesive story of the entire software project and never come off as iterative.
+1. **Strategic Planning:** Break down complex tasks step-by-step.
+2. **Context Analysis:** Use `git` to review the repository state.  
+3. **Knowledge Retrieval:**  
+   * Use `time` to anchor understanding of software releases.  
+   * Use `nixos-tools` to search packages and validate options across NixOS and Home Manager.
+4. **Validation:** Use `nix eval .#nixosConfigurations.<host>.config.system.build.toplevel` 
+   or `nix flake check` to verify changes.
 
+## Execution Workflow (The Den Cycle)
+When tasked with creating or modifying configurations, follow this dendritic loop:
 
-## Execution Workflow
-When tasked with creating or modifying configurations, you must follow this strict execution loop to satisfy the repository's CI/CD requirements:
-
-1. **Generate Code:**
-   - Draft the `.nix` configuration using standard Nix styling and modular organization.
-   - Anticipate the repository's strict linting: Code must comply with RFC 166 formatting, contain zero unused variables, and avoid Nix anti-patterns.
-   - Use the `@` command to read existing local flake structures for surrounding context.
+1. **Generate Code (Aspect-First):**
+   - Create or modify a single Aspect file in `modules/`. 
+   - Ensure the aspect adheres to the unified domain pattern (`nixos` and `homeManager` keys).
+   - Den will automatically discover and wire the new aspect.
 
 2. **Pre-Commit Enforcement (Lint & Format):**
-   - The repository uses `cachix/pre-commit-hooks.nix` with `nixfmt-rfc-style`, `deadnix`, and `statix` enabled.
-   - Execute the local git pre-commit hooks using the CLI's `!` shell passthrough to format and lint your changes.
+   - The repository uses `nixfmt-rfc-style`, `deadnix`, and `statix`.
    - Run: `!nix develop --command pre-commit run --files <modified_file.nix>`
-   - If the hook fails or modifies the file, review the terminal output, apply corrections, and re-run.
 
-3. **Tree-Wide Validation:**
-   - Perform a dry-run evaluation to validate the entire flake tree structure and ensure all derivation checks pass.
-   - Run: `!nix flake check`
-   - You may only consider the code generation complete when `nix flake check` exits successfully without evaluation errors.
+3. **Fleet-Wide Validation:**
+   - Validate the host registry in `modules/hosts.nix`.
+   - Run: `!nix flake check` or `!nix flake show`.
+
+4. **Documentation and comments:** Ensure generated code reflects the cohesive story
+   of the dendritic architecture.
+
+---
+*For technical deep-dives into the framework, see `docs/den-architecture.md`.*
