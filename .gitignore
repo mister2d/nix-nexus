@@ -11,11 +11,11 @@ result-*
 # User-specific
 .mcp.json
 .claude/
+.gemini/
 .env
 .direnv/
 debug/
 PDB.md
-AGENTS.md
 CLAUDE.md
 
 # Host deployment values (real domains/addresses — never commit)
