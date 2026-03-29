@@ -72,7 +72,11 @@ in
             ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
             ${pkgs.systemd}/bin/systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP
 
-            # 3. Recovery: Restart services that depend on graphical-session
+            # 3. Recovery: Clear stale variables from other sessions (like Sway)
+            # This prevents Home Manager activation from hanging on stale sockets.
+            ${pkgs.systemd}/bin/systemctl --user unset-environment SWAYSOCK
+
+            # 4. Recovery: Restart services that depend on graphical-session
             ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service xdg-desktop-portal.service
           ''
         ];
