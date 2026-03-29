@@ -82,12 +82,14 @@ in
       allowedTCPPorts = [
         22 # SSH
         443 # HAProxy (HTTP/S + Matrix federation)
-        5349 # Coturn TURNS/TLS
+        5349 # Coturn TURNS/TLS (legacy Matrix VoIP)
+        5350 # LiveKit built-in TURNS/TLS (MatrixRTC Element Call)
         8404 # HAProxy stats (operator access)
       ];
       allowedUDPPorts = [
-        3478 # Coturn STUN/TURN
-        5349 # Coturn TURNS/TLS
+        3478 # Coturn STUN/TURN (legacy Matrix VoIP)
+        3479 # LiveKit TURN/UDP (MatrixRTC Element Call)
+        5349 # Coturn TURNS/TLS (legacy Matrix VoIP)
       ];
       allowedUDPPortRanges = [
         {
