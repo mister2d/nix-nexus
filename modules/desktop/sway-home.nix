@@ -202,9 +202,9 @@ in
           "exec ${pkgs.grim}/bin/grim -g \"$(${pkgs.slurp}/bin/slurp)\" - | ${pkgs.wl-clipboard}/bin/wl-copy";
         "${mod}+Print" = "exec ${pkgs.grim}/bin/grim - | ${pkgs.wl-clipboard}/bin/wl-copy";
 
-        # Redshift (wlsunset) Mode
+        # Night Light (wlsunset) Mode
         "${mod}+Shift+u" =
-          "mode \"redshift\"; exec 'swaynag -t warning -m \"Redshift Mode: (a)uto, (r)eset, (2)500K, (3)000K, (4)4000K, (5)5000K\"'";
+          "mode \"night-light\"; exec 'swaynag -t warning -m \"Night Light Mode: (a)uto, (r)eset, (2)500K, (3)000K, (4)4000K, (5)5000K\"'";
 
         # Resize
         "${mod}+r" = "mode \"resize\"";
@@ -224,7 +224,7 @@ in
           "Escape" = "mode \"default\"";
           "${mod}+r" = "mode \"default\"";
         };
-        redshift = {
+        "night-light" = {
           # Use single quotes around complex exec commands to ensure Sway
           # correctly identifies the 'mode "default"' command as a separate action.
           # We also pkill swaynag to dismiss the menu.
