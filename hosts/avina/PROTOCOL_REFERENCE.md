@@ -80,7 +80,7 @@ Internal Client ──UDP/TCP Direct──► avina :3478/5349/7881/50100-50200 
                                     (Self-Probe via Split-Horizon DNS) ────────┘
 ```
 
-**The Gold Standard:**
+**Hybrid Ingress Implementation:**
 1. **Signaling:** External clients use the Cloudflare Tunnel (HTTPS). Internal clients use **Split-Horizon DNS** to reach `avina:443` directly over the LAN, preserving local IP logs and bypassing the WAN.
 2. **Media:** Both internal and external clients bypass the Tunnel entirely. External clients connect via **Destination NAT** (MikroTik) to the SFU's media ports. Internal clients use the same domains, which resolve to `avina`'s local IP, ensuring zero-latency local media switching.
 3. **Fallback:** If UDP is blocked, **TCP 7881** provides a direct RTP-over-TCP path (not TURN) for maximum compatibility.
@@ -823,8 +823,8 @@ itself). Clients that support MSC3575 use the native Synapse endpoint directly.
 ### Hybrid Ingress Model
 
 avina employs a "Split-Ingress" strategy to balance public security with local
-performance. This is known as the **Gold Standard** for self-hosted Matrix
-deployments.
+performance. This provides a robust and high-performance ingress model for
+self-hosted Matrix deployments.
 
 #### 1. External Ingress (Cloudflare Tunnel)
 
