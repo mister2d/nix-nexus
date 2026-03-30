@@ -47,45 +47,43 @@ features; they are interconnected layers that share state, secrets, and protocol
 identity.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Cloudflare Edge                                 │
-│    Browser ──HTTPS──► Cloudflare ──tunnel──► avina:443 (HAProxy)        │
-└──────────────────────────────┬──────────────────────────────────────────┘
-                               │ TLS terminates at HAProxy
-                               │ Routes by Host header + path prefix
-          ┌────────────────────┼────────────────────────┐
-          │                    │                        │
-   element.domain         matrix.domain            mas.domain
-   Element Web            Synapse + MAS compat      MAS (OIDC)
-   darkhttpd :8082         :8008                    :8181 (proxy proto)
-          │                    │                        │
-   call.domain           livekit/jwt               livekit/sfu
-   Element Call           lk-jwt-service            LiveKit SFU
-   darkhttpd :8084        :8081                    :7880 (WebSocket)
-                               │
-                        /.well-known/
-                        darkhttpd :8083
-                        /tos
-                        darkhttpd :8085
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         Hybrid Ingress Model                             │
+├────────────────────────────────┬─────────────────────────────────────────┤
+│        External (WAN)          │           Internal (LAN)                │
+│   (via Cloudflare Tunnel)      │       (via Split-Horizon DNS)           │
+│                                │                                         │
+│ Browser ──HTTPS──► Cloudflare  │  Browser ──HTTPS──► avina:443 (Direct)  │
+│             │                  │                                         │
+│             └───────tunnel─────┼──────────────┐                          │
+└────────────────────────────────┴──────────────┼──────────────────────────┘
+                                                │
+                                 ┌──────────────┴──────────────┐
+                                 │       avina:443 (HAProxy)   │
+                                 └──────────────┬──────────────┘
+                                                │ TLS terminates at HAProxy
+                                                │ Routes by Host header + path prefix
+          ┌────────────────────┬────────────────┼────────────────────┬────────────────────┐
+          │                    │                │                    │                    │
+   element.domain         matrix.domain     mas.domain          call.domain          livekit/jwt
+   Element Web            Synapse + MAS     MAS (OIDC)          Element Call         lk-jwt-service
+   darkhttpd :8082         :8008            :8181 (proxy)       darkhttpd :8084      :8081
 ```
 
-**Media path** (entirely separate from the HTTPS ingress):
+**Media path** (Direct WAN/LAN — entirely separate from signaling):
 
 ```
-Client A ──UDP direct──► LiveKit :50100-50200
-         (or, for clients behind strict NAT:)
-Client A ──TURN──► LiveKit :3478/:5349 (built-in TURN) ──relay──► LiveKit SFU
-         (or, for clients where all UDP is blocked:)
-Client A ──TCP direct──► LiveKit :7881 (RTP-over-TCP, not TURN)
-                                │
-Client B (same paths)           │
-                         (SFU mixes/routes)
+External Client ──UDP/TCP Direct──► WAN IP :3478/5349/7881/50100-50200 ──DNAT──┐
+                                                                               │
+Internal Client ──UDP/TCP Direct──► avina :3478/5349/7881/50100-50200 ─────────┼──► LiveKit SFU
+                                                                               │
+                                    (Self-Probe via Split-Horizon DNS) ────────┘
 ```
 
-No WebRTC media travels through HAProxy or Cloudflare. LiveKit binds UDP on
-ports 50100–50200 (firewall-open); ICE selects the direct path when available.
-LiveKit's built-in TURN server relays media for clients behind strict NAT.
-Port 7881 serves as a direct TCP fallback for clients where all UDP is blocked.
+**The Gold Standard:**
+1. **Signaling:** External clients use the Cloudflare Tunnel (HTTPS). Internal clients use **Split-Horizon DNS** to reach `avina:443` directly over the LAN, preserving local IP logs and bypassing the WAN.
+2. **Media:** Both internal and external clients bypass the Tunnel entirely. External clients connect via **Destination NAT** (MikroTik) to the SFU's media ports. Internal clients use the same domains, which resolve to `avina`'s local IP, ensuring zero-latency local media switching.
+3. **Fallback:** If UDP is blocked, **TCP 7881** provides a direct RTP-over-TCP path (not TURN) for maximum compatibility.
 
 ---
 
@@ -683,7 +681,7 @@ LiveKit TURN is configured in `livekit.nix`:
 ```nix
 turn = {
   enabled = true;
-  domain = matrixDomain;
+  domain = turnDomain;
   tls_port = 5349;
   udp_port = 3478;
   cert_file = "/run/certs/turn-fullchain.pem";
@@ -693,6 +691,11 @@ turn = {
 
 LiveKit's `use_external_ip = true` discovers the WAN IP via STUN and uses it for
 both SFU ICE candidates and as the TURN relay address (`RelayAddress`).
+
+**The Turn Domain.** `turnDomain` must resolve via **Split-Horizon DNS** to the
+internal LAN IP (`10.0.1.7`) for internal clients and via an **A record** to the
+public WAN IP for external clients. This ensures media traffic always takes the
+most direct path, bypassing the Cloudflare Tunnel.
 
 **Ports and protocols.**
 
@@ -817,26 +820,49 @@ itself). Clients that support MSC3575 use the native Synapse endpoint directly.
 
 ## 6. Ingress & TLS Architecture
 
-### Cloudflare Tunnel
+### Hybrid Ingress Model
 
-avina is not internet-reachable by default. It sits on an internal LAN. A
-Cloudflare Tunnel connector running on a **separate node near the network edge**
-maintains a persistent outbound connection to Cloudflare's edge. Inbound HTTPS
-requests arrive at Cloudflare, traverse the tunnel, and land at `avina:443`.
+avina employs a "Split-Ingress" strategy to balance public security with local
+performance. This is known as the **Gold Standard** for self-hosted Matrix
+deployments.
+
+#### 1. External Ingress (Cloudflare Tunnel)
+
+avina is not internet-reachable by default for signaling (HTTPS). It sits on an
+internal LAN. A Cloudflare Tunnel connector running on a **separate node near
+the network edge** maintains a persistent outbound connection to Cloudflare's
+edge. Inbound HTTPS requests arrive at Cloudflare, traverse the tunnel, and land
+at `avina:443`.
 
 This means:
-- Ports 80 and 443 are not open on avina's internet-facing firewall.
-- DDoS mitigation, WAF, and bot protection are handled at Cloudflare before traffic
-  reaches avina.
+- Ports 80 and 443 are not open on the WAN firewall for signaling.
+- DDoS mitigation, WAF, and bot protection are handled at Cloudflare before
+  traffic reaches avina.
 - The tunnel is authenticated with a Cloudflare-issued credential stored in Vault.
+
+#### 2. Internal Ingress (Split-Horizon DNS)
+
+When a client (browser or mobile app) is on the same local network as avina, it
+uses **Split-Horizon DNS** (configured on the MikroTik/DNS server) to resolve
+the stack's domains (matrix, mas, element, call, turn) to `avina`'s internal
+LAN IP (`10.0.1.7`).
+
+This means:
+- **Direct LAN Speed:** Signaling traffic does not need to leave the house and
+  return via the tunnel.
+- **Privacy:** Internal communication metadata remains within the local network.
+- **Logging:** HAProxy and Synapse see the **real internal client IP**, not the
+  tunnel's internal IP, which is critical for local security auditing.
 
 ### Two-Layer TLS
 
+Regardless of the ingress path (Tunnel or LAN), the user experience is seamless
+and secure:
+
 ```
-Browser ──TLS#1──► Cloudflare edge (Cloudflare-managed cert)
-                        │
-                        │ tunnel (Cloudflare's own encrypted channel)
-                        │
+External: Browser ──TLS#1──► Cloudflare ──tunnel──► HAProxy ──TLS#2──► Backend
+Internal: Browser ──TLS#1─────────────────────────► HAProxy ──TLS#2──► Backend
+```                        │
 Cloudflare connector ──TLS#2──► avina:443 (Let's Encrypt wildcard)
                                     │
                                     ▼
