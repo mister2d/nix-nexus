@@ -1,12 +1,13 @@
 # Nix-Nexus: Structured Configuration Framework
 
-Nix-Nexus is a modular, dendritic NixOS configuration framework designed for high-performance workstations, servers, and portable user environments. It follows a layered architecture to separate hardware quirks, system policies, and functional software suites.
+Nix-Nexus is a modular, dendritic NixOS configuration framework designed for high-performance workstations, servers, and portable user environments. It follows a pure, aspect-oriented architecture to separate hardware quirks, system policies, and functional software suites across a diverse fleet of x86_64 and aarch64 nodes.
 
 ## 📋 Table of Contents
 - [Architecture Overview](#-architecture-overview)
+- [Fleet Composition](#-fleet-composition)
 - [Directory Structure](#-directory-structure)
-- [Getting Started (NixOS)](#-getting-started-nixos)
-- [Non-NixOS Environments (Standalone)](#-non-nixos-environments-standalone)
+- [Matrix 2.0 & Collaboration](#-matrix-20--collaboration)
+- [Getting Started](#-getting-started)
 - [Development Workflow](#-development-workflow)
 - [Technical Documentation](#-technical-documentation)
 
@@ -16,50 +17,59 @@ Nix-Nexus is a modular, dendritic NixOS configuration framework designed for hig
 The configuration follows a three-tier hierarchy to ensure concerns are properly separated:
 
 1.  **Core (Global)**: Foundational settings (Timezones, ZFS, Security) that apply to every machine in the fleet.
-2.  **Profiles (Suites)**: Hardware-agnostic functional bundles (Desktop environments, Dev toolchains).
-3.  **Hosts**: Machine-specific entry points where physical hardware is defined and profiles are selected.
+2.  **Profiles (Suites)**: Hardware-agnostic functional bundles (Desktop environments, Server hardening, Dev toolchains).
+3.  **Aspects (Modules)**: Reusable, granular building blocks (Matrix, Ceph, Virtualization) imported by hosts as needed.
+
+## 🚢 Fleet Composition
+Nix-Nexus manages a diverse set of nodes across multiple architectures:
+
+*   **avina**: Public-facing Matrix 2.0 server (Proxmox LXC / x86_64).
+*   **petunia**: Primary home server and storage node (NixOS / x86_64).
+*   **sweet16**: Mobile workstation — ThinkPad Z16 Gen 1 (NixOS / x86_64).
+*   **dualie**: Standalone development environment (Debian Trixie / x86_64).
+*   **forge / rk3588**: Edge compute and SBC nodes (NixOS / aarch64).
 
 ## 📁 Directory Structure
 ```text
 .
 ├── flake.nix               # Project entry point and dependency management
-├── docs/                   # Deep-dive technical guides
-├── hosts/                  # Machine-specific configurations
-│   ├── z16/                # ThinkPad Z16 Gen 1 (Workstation)
-│   └── dualie/             # Debian Trixie (Standalone Development)
-├── profiles/               # Functional suites (Core, Desktop, Development)
-├── modules/                # Reusable building blocks (Boot, Networking, Users)
-└── docs/
-    ├── hardware.md         # Hardware-specific quirks (OLED, GPU, P-State)
-    ├── packages.md         # Pinned toolchains (Nomad, Vault, Terraform)
-    ├── storage.md          # CephFS and ZFS mount management
-    └── non-nixos.md        # Standalone Home Manager on Debian/Work laptops
+├── hosts/                  # Machine-specific entry points
+│   ├── avina/              # Matrix 2.0 Stack (LXC)
+│   ├── petunia/            # Home Server & Storage
+│   └── sweet16/            # Workstation (ThinkPad Z16)
+├── profiles/               # Functional suites (Server, Workstation, Desktop)
+├── modules/                # Aspect-oriented modules
+│   ├── core/               # System foundations (Security, Networking)
+│   ├── hardware/           # Hardware-specific aspects (GPU, Ryzen)
+│   ├── services/           # Matrix 2.0, Ceph, Vault
+│   └── user/               # Home Manager aspects (Shell, Terminal, Neovim)
+└── docs/                   # Deep-dive technical guides
 ```
 
 ---
 
-## 🚀 Getting Started (NixOS)
-### Applying Configuration
+## 💬 Matrix 2.0 & Collaboration
+The **avina** host runs a state-of-the-art, OIDC-native Matrix 2.0 stack. This is the project's primary communications hub, featuring:
+
+*   **OIDC Auth**: Fully delegated to Keycloak via MAS (Matrix Authentication Service).
+*   **Native Calls**: MatrixRTC group calls powered by a self-hosted LiveKit SFU.
+*   **Hybrid Ingress**: Dual-path signaling (Cloudflare Tunnel + Split-Horizon DNS) for maximum security and local performance.
+*   **Direct Media**: Low-latency WebRTC paths that bypass proxies via direct WAN/LAN NAT.
+
+---
+
+## 🚀 Getting Started
+### NixOS Hosts
 To apply the configuration to a NixOS machine:
 ```bash
-sudo nixos-rebuild switch --flake .#sweet16
+nixos-rebuild switch --flake .#sweet16
 ```
 
-### Testing & Rollbacks
-- **Eval without boot entry:** `sudo nixos-rebuild test --flake .#sweet16`
-- **Instant recovery:** `sudo nixos-rebuild switch --rollback`
-
----
-
-## 💻 Non-NixOS Environments (Standalone)
-Nix-Nexus can manage your user environment on existing distributions (Debian, Ubuntu) or locked-down corporate laptops without replacing the host OS.
-
-1. **Bootstrap Nix:** Install the Nix daemon in multi-user mode.
-2. **Apply Profile:** 
-   ```bash
-   nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
-   ```
-3. **Learn More:** See the [Non-NixOS Guide](./docs/non-nixos.md) for safe migration and GPU bridging.
+### Standalone Home Manager (Non-NixOS)
+Manage user environments on existing distributions (Debian, macOS) or corporate laptops:
+```bash
+nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
+```
 
 ---
 
@@ -79,11 +89,12 @@ direnv allow
 ---
 
 ## 📚 Technical Documentation
+- [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Detailed specifications for the Matrix 2.0 stack and hybrid ingress.
 - [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and Hybrid GPU management.
 - [**Package Inventory**](./docs/packages.md): Versions and use cases for pinned DevOps and Infrastructure tools.
 - [**Storage Management**](./docs/storage.md): Centralized CephFS mounting and ZFS dataset strategies.
 - [**Terminal & Multiplexing**](./docs/terminal.md): High-performance Kitty/Tmux configuration and Bash aliases.
-- [**Standalone Migration**](./docs/non-nixos.md): Moving your dotfiles to Nix securely on non-NixOS hosts.
+- [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix securely on non-NixOS hosts.
 - [**Devenv 2.0 Workflows**](./docs/devenv.md): Modern declarative development environments replacing Docker Compose.
 
 ---
