@@ -201,6 +201,7 @@ in
         http-request set-src hdr(CF-Connecting-IP) if { hdr(CF-Connecting-IP) -m found }
 
         http-request set-header X-Forwarded-For %[hdr(CF-Connecting-IP)] if { hdr(CF-Connecting-IP) -m found }
+        http-request set-header X-Forwarded-Proto https
         http-request set-header X-Cloudflare-Ray %[hdr(CF-Ray)] if { hdr(CF-Ray) -m found }
         http-request set-header X-Cloudflare-Country %[hdr(CF-IPCountry)] if { hdr(CF-IPCountry) -m found }
 
