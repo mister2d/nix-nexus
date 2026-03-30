@@ -1,6 +1,7 @@
 {
   pkgs,
   matrixDomain,
+  turnDomain,
   ...
 }:
 let
@@ -42,7 +43,7 @@ in
       # Credentials are HMAC-generated per-session; use_external_ip discovers WAN IP via STUN.
       turn = {
         enabled = true;
-        domain = matrixDomain;
+        domain = turnDomain;
         tls_port = 5349;
         udp_port = 3478;
         cert_file = "/run/certs/turn-fullchain.pem";

@@ -32,8 +32,8 @@
   # Element Call SFU frontend domain.
   callDomain = "call.example.com";
 
-  # Coturn TURN server realm (usually a subdomain of your root domain).
-  coturnRealm = "turn.example.com";
+  # LiveKit TURN server domain (must be an A record pointing directly to the WAN IP).
+  turnDomain = "turn.example.com";
 
   # Vault address reachable from avina at runtime.
   vaultAddr = "https://vault.service.consul:8200";
