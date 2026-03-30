@@ -263,7 +263,6 @@
                       matrix-authentication-service
                       livekit
                       lk-jwt-service
-                      coturn
                       element-web
                       element-call
                       postgresql_16

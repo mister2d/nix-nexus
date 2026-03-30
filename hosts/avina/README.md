@@ -1,7 +1,7 @@
 # avina — Matrix 2.0 LXC Container
 
 avina is a Proxmox **LXC container** running NixOS. The full Matrix 2.0 stack
-(Synapse, MAS, HAProxy, Coturn, LiveKit, cloudflared) is declared in this
+(Synapse, MAS, HAProxy, LiveKit, cloudflared) is declared in this
 flake and applied via `nixos-rebuild switch`.
 
 ---
@@ -26,7 +26,6 @@ channel at different commits.
 | Element Call | 0.11.1 | WebRTC calling — MSC4143 RTC foci | pkgs-stable `812b3986fd15` |
 | LiveKit | 1.9.4 | WebRTC SFU (media server) | pkgs-stable `812b3986fd15` |
 | lk-jwt-service | 0.4.0 | LiveKit JWT token auth service | pkgs-stable `812b3986fd15` |
-| Coturn | 4.9.0 | STUN/TURN server — RFC 5766/8656 | pkgs-stable `812b3986fd15` |
 | PostgreSQL | 16.13 | Database backend (Synapse + MAS) | pkgs-stable `812b3986fd15` |
 | HAProxy | 3.2.9 | TLS termination + reverse proxy | `addf7cf5f383` |
 | Vault | 1.21.1 | Secrets backend (vault-agent on avina) | `addf7cf5f383` |
@@ -63,7 +62,7 @@ Key Proxmox settings for avina:
 - **Network**: Proxmox manages the interface (DHCP or static at hypervisor level).
   NixOS firewall runs inside the container; configure the Proxmox firewall as wide-open.
 - **Storage**: Standard Proxmox volume — no ZFS configuration needed inside the container.
-- **Ports**: Expose 22, 443, 3478, 5349, 8404, UDP 49000–49999, and UDP 50100–50200 at the Proxmox level.
+- **Ports**: Expose 22, 443, 3478 (TCP+UDP), 5349 (TCP+UDP), 8404, and UDP 50100–50200 at the Proxmox level.
 
 ---
 
@@ -143,15 +142,14 @@ Do **not** place an admin token here. The AppRole policy (`avina`) must have
 | AppRole role-id | `/var/lib/secrets/vault-role-id` | vault-agent bootstrap (persistent) |
 | AppRole secret-id | `/var/lib/secrets/vault-secret-id` | vault-agent bootstrap (persistent) |
 | TLS cert (HAProxy) | `/run/certs/haproxy.pem` | HAProxy — fullchain + key combined |
-| TLS cert (Coturn) | `/run/certs/coturn-fullchain.pem` | Coturn |
-| TLS key (Coturn) | `/run/certs/coturn.key` | Coturn |
+| TLS cert (LiveKit TURN) | `/run/certs/coturn-fullchain.pem` | LiveKit built-in TURN TLS |
+| TLS key (LiveKit TURN) | `/run/certs/coturn.key` | LiveKit built-in TURN TLS |
 | Synapse secrets | `/run/secrets/synapse-secrets.yaml` | Synapse `extraConfigFiles` |
 | Synapse email | `/run/secrets/synapse-email.yaml` | Synapse `extraConfigFiles` |
 | MAS config | `/run/secrets/mas-config.yaml` | matrix-authentication-service |
 | MAS EC signing key | `/run/secrets/mas-signing-ec.key` | matrix-authentication-service |
 | MAS RSA signing key | `/run/secrets/mas-signing-rsa.key` | matrix-authentication-service |
-| Coturn secret | `/run/secrets/coturn-secret` | Coturn `use-auth-secret` |
-| Coturn env | `/run/secrets/coturn-secret-env` | Coturn HMAC secret (env format; also rendered for legacy use) |
+| TURN HMAC env | `/run/secrets/coturn-secret-env` | LiveKit — `LIVEKIT_TURN_SHARED_SECRET` |
 
 All `/run/` paths are RAM-only and never persist across reboots. vault-agent
 re-renders them on every boot and re-renders in-place whenever the upstream

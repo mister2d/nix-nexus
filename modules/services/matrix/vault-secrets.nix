@@ -36,13 +36,13 @@ let
     {{ end }}
   '';
 
-  coturnCertTmpl = pkgs.writeText "coturn-cert.ctmpl" ''
+  turnCertTmpl = pkgs.writeText "turn-cert.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.fullchain }}
     {{ end }}
   '';
 
-  coturnKeyTmpl = pkgs.writeText "coturn-key.ctmpl" ''
+  turnKeyTmpl = pkgs.writeText "turn-key.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.privkey }}
     {{ end }}
@@ -215,12 +215,6 @@ let
     {{ end }}
   '';
 
-  coturnSecretEnvTmpl = pkgs.writeText "coturn-env.ctmpl" ''
-    {{ with secret "${synapsePath}" }}
-    LIVEKIT_TURN_SHARED_SECRET={{ .Data.data.turn_shared_secret }}
-    {{ end }}
-  '';
-
   # MAS Signing Keys:
   # Two keys rendered as separate files to avoid multi-line PEM indentation
   # issues in YAML. MAS references them via key_file.
@@ -273,15 +267,15 @@ let
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl reload-or-restart --no-block haproxy.service || true'" 
     }
     template {
-      source = "${coturnCertTmpl}"
-      destination = "${certDir}/coturn-fullchain.pem"
+      source = "${turnCertTmpl}"
+      destination = "${certDir}/turn-fullchain.pem"
       perms = 0644
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
     }
     template {
-      source = "${coturnKeyTmpl}"
-      destination = "${certDir}/coturn.key"
+      source = "${turnKeyTmpl}"
+      destination = "${certDir}/turn.key"
       perms = 0640
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
@@ -321,13 +315,6 @@ let
       perms = 0640
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
-    }
-    template {
-      source = "${coturnSecretEnvTmpl}"
-      destination = "${secretDir}/coturn-secret-env"
-      perms = 0640
-      group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
     }
     template {
       source      = "${whatsappEnvTmpl}"
