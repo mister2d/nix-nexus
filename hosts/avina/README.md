@@ -30,11 +30,14 @@ channel at different commits.
 | HAProxy | 3.2.9 | TLS termination + reverse proxy | `addf7cf5f383` |
 | Vault | 1.21.1 | Secrets backend (vault-agent on avina) | `addf7cf5f383` |
 | darkhttpd | 1.17 | Static file server (well-known, ToS) | `addf7cf5f383` |
-| cloudflared | — | Zero-trust ingress tunnel (**external host**) | not on avina |
+| cloudflared | — | External signaling ingress (tunnel) | not on avina |
+| Split-Horizon DNS| — | Internal signaling ingress (local routing) | configured on edge |
 
-> **cloudflared** runs on a separate host at the network edge, not on avina.
-> Its version is not asserted here. The tunnel forwards HTTPS inbound to
-> `avina.home.lan:443`.
+> **Hybrid Ingress:** signaling uses a dual-path model. External clients use
+> **cloudflared** (tunneling to `matrix.domain:443`). Internal clients use
+> **Split-Horizon DNS** (pointing directly to `avina:443`). This ensures local
+> performance while maintaining public invisibility. Media (LiveKit) always
+> uses direct WAN/LAN paths.
 
 ---
 
