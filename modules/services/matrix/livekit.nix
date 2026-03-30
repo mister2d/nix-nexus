@@ -40,8 +40,8 @@ in
         domain = matrixDomain;
         tls_port = 5349;
         udp_port = 3478;
-        cert_file = "/run/certs/coturn-fullchain.pem";
-        key_file = "/run/certs/coturn.key";
+        cert_file = "/run/certs/turn-fullchain.pem";
+        key_file = "/run/certs/turn.key";
       };
     };
   };

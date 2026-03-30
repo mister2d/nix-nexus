@@ -14,7 +14,6 @@ let
     elementDomain
     masDomain
     callDomain
-    coturnRealm
     vaultAddr
     certDomain
     ;
@@ -56,7 +55,6 @@ in
       elementDomain
       masDomain
       callDomain
-      coturnRealm
       federatedDomains
       vaultAddr
       certDomain
@@ -82,6 +80,7 @@ in
       allowedTCPPorts = [
         22 # SSH
         443 # HAProxy (HTTP/S + Matrix federation)
+        3478 # LiveKit TURN/TCP (plain relay)
         5349 # LiveKit TURNS/TLS (MatrixRTC Element Call)
         8404 # HAProxy stats (operator access)
       ];
@@ -94,12 +93,6 @@ in
           from = 50100;
           to = 50200;
         } # LiveKit WebRTC media (SFU RTP/RTCP)
-      ];
-      allowedTCPPortRanges = [
-        {
-          from = 3478;
-          to = 3478;
-        } # LiveKit TURN/TCP (plain relay)
       ];
     };
   };

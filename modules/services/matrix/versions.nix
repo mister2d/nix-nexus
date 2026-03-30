@@ -19,8 +19,6 @@ let
     livekit = "1.9.4";
     # LiveKit JWT authentication service (stable)
     lkJwt = "0.4.0";
-    # STUN/TURN server — RFC 5766/8656 (stable)
-    coturn = "4.9.0";
     # Matrix web client (stable)
     elementWeb = "1.12.10";
     # WebRTC calling — MSC4143 (stable)
@@ -46,7 +44,6 @@ in
     (check "matrix-authentication-service" pkgs.matrix-authentication-service expected.mas)
     (check "livekit" pkgs.livekit expected.livekit)
     (check "lk-jwt-service" pkgs.lk-jwt-service expected.lkJwt)
-    (check "coturn" pkgs.coturn expected.coturn)
     (check "element-web" pkgs.element-web expected.elementWeb)
     (check "element-call" pkgs.element-call expected.elementCall)
     (check "postgresql_16" pkgs.postgresql_16 expected.postgresql)

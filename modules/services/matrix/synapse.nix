@@ -1,6 +1,5 @@
 {
   matrixDomain,
-  coturnRealm,
   federatedDomains ? [ ],
   ...
 }:
@@ -43,14 +42,6 @@
       caches = {
         global_factor = 0.5;
       };
-
-      # NAT Traversal (TURN)
-      turn_uris = [
-        "turn:${coturnRealm}:3478?transport=udp"
-        "turn:${coturnRealm}:3478?transport=tcp"
-        "turns:${coturnRealm}:5349?transport=tcp"
-      ];
-      turn_user_lifetime = 86400000;
 
       # Listeners
       listeners = [
