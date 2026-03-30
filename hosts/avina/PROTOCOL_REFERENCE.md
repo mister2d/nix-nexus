@@ -21,6 +21,9 @@
    - [MSC4143 — RTC Foci and SFU Discovery](#msc4143--rtc-foci-and-sfu-discovery)
    - [MSC2764 — Matrix Widget API](#msc2764--matrix-widget-api)
    - [MSC4190 / MSC3202 — Appservice Device Masquerading (E2EE Bridges)](#msc4190--msc3202--appservice-device-masquerading-e2ee-bridges)
+   - [MSC3266 — Room Summary API](#msc3266--room-summary-api)
+   - [MSC4222 — state_after for Sync v2](#msc4222--state_after-for-sync-v2)
+   - [MSC4140 — Delayed Events (MatrixRTC Heartbeats)](#msc4140--delayed-events-matrixrtc-heartbeats)
 4. [Network Transport — The Connectivity Layer](#4-network-transport--the-connectivity-layer)
    - [WebRTC Fundamentals](#webrtc-fundamentals)
    - [ICE — RFC 8445](#ice--rfc-8445)
@@ -71,15 +74,18 @@ identity.
 ```
 Client A ──UDP direct──► LiveKit :50100-50200
          (or, for clients behind strict NAT:)
-Client A ──TURN──► Coturn :3478/:5349 ──relay──► LiveKit public IP:50100-50200
-                                                         │
-Client B (same paths)                                    │
-                                                  (SFU mixes/routes)
+Client A ──TURN──► LiveKit :3478/:5349 (built-in TURN) ──relay──► LiveKit SFU
+         (or, for clients where all UDP is blocked:)
+Client A ──TCP direct──► LiveKit :7881 (RTP-over-TCP, not TURN)
+                                │
+Client B (same paths)           │
+                         (SFU mixes/routes)
 ```
 
 No WebRTC media travels through HAProxy or Cloudflare. LiveKit binds UDP on
 ports 50100–50200 (firewall-open); ICE selects the direct path when available.
-Coturn relays for clients behind strict NAT.
+LiveKit's built-in TURN server relays media for clients behind strict NAT.
+Port 7881 serves as a direct TCP fallback for clients where all UDP is blocked.
 
 ---
 
@@ -366,8 +372,8 @@ directly on Matrix room membership.
    media.
 4. The `lk-jwt-service` issues short-lived LiveKit JWTs to authenticated Matrix
    users, proving their identity to the SFU.
-5. Media flows via WebRTC from client → Coturn (TURN) → LiveKit, encrypted with
-   DTLS-SRTP.
+5. Media flows via WebRTC from client → LiveKit (direct UDP, TURN relay, or TCP
+   fallback), encrypted with DTLS-SRTP.
 
 **How this deployment implements it.** Element Web is configured with:
 
@@ -523,6 +529,75 @@ rather than pointing directly at Synapse.
 
 ---
 
+### MSC3266 — Room Summary API
+
+**What it is.** MSC3266 defines a `/_matrix/client/v1/rooms/{roomId}/summary`
+endpoint that returns a room's name, avatar, join rules, and member count without
+requiring the client to join the room first.
+
+**Why it matters for MatrixRTC.** Element Call uses MSC3266 for the federation
+**knocking flow** in standalone mode: when a user on an external homeserver is
+invited to join a call room, Element Call fetches the room summary across federation
+to display call metadata before the user accepts. Without MSC3266, the standalone
+join-via-knock flow cannot resolve room information.
+
+**How this deployment implements it.**
+
+```nix
+experimental_features.msc3266_enabled = true;
+```
+
+---
+
+### MSC4222 — state_after for Sync v2
+
+**What it is.** MSC4222 adds a `state_after` field to the Matrix sync v2 response
+(`/sync`). Standard sync v2 sends `state` containing a snapshot of room state
+*before* the timeline events in the response. MSC4222 adds the state *after* all
+timeline events, giving clients an accurate view of current room membership.
+
+**Why it matters for MatrixRTC.** Element Call relies on precise room state to
+track which participants are actively in a call. Without `state_after`, clients can
+observe stale membership state when a participant joins or leaves during a sync
+window, leading to incorrect participant lists during calls.
+
+**How this deployment implements it.**
+
+```nix
+experimental_features.msc4222_enabled = true;
+```
+
+---
+
+### MSC4140 — Delayed Events (MatrixRTC Heartbeats)
+
+**What it is.** MSC4140 defines a mechanism for sending Matrix events with a
+server-side delay. Clients send a "delayed event" with a TTL; if the client does
+not refresh the delay (heartbeat), the server delivers the event after the TTL
+expires.
+
+**Why it matters for MatrixRTC.** Call participants periodically send delayed
+`org.matrix.msc3401.call.member` state events. If a client disconnects unexpectedly
+(crash, network loss), the delayed event fires automatically after the TTL, removing
+the participant from the room. Without MSC4140, participants appear stuck in calls
+indefinitely after an abnormal disconnect.
+
+**How this deployment implements it.**
+
+```nix
+max_event_delay_duration = "24h";  # Maximum TTL Synapse will accept for delayed events
+```
+
+Rate limits are also tuned to accommodate the MatrixRTC heartbeat (0.2 events/s
+steady-state):
+
+```nix
+rc_message         = { per_second = 0.5; burst_count = 30; };
+rc_delayed_event_mgmt = { per_second = 1; burst_count = 20; };
+```
+
+---
+
 ## 4. Network Transport — The Connectivity Layer
 
 ### WebRTC Fundamentals
@@ -540,9 +615,10 @@ single protocol — it is a stack of interoperating protocols:
 | SRTP | Media | Encrypts the actual audio/video streams |
 | SDP | Signaling | Describes what media each side can send/receive |
 
-In this deployment, **connection establishment** (ICE/STUN/TURN) uses Coturn for
-TURN relay and LiveKit for direct media. The **media relay** is handled by LiveKit's
-SFU. Clients never connect directly to each other; all media paths go through LiveKit.
+In this deployment, **connection establishment** (ICE/STUN/TURN) uses LiveKit's
+built-in TURN server for relay and LiveKit for direct media. The **media relay** is
+handled by LiveKit's SFU. Clients never connect directly to each other; all media
+paths go through LiveKit.
 
 ---
 
@@ -567,10 +643,10 @@ media on UDP ports `50100–50200` (opened in the firewall). ICE candidates incl
 - **TCP candidate**: port `7881` for clients that cannot do UDP at all
 
 Most clients will select the direct UDP path. Clients behind strict symmetric NAT
-cannot connect directly; they use Coturn TURN relay as a fallback
-(`/api/turn_server_info` from Synapse provides time-limited HMAC credentials).
-Coturn's SSRF deny list blocks relay to loopback and RFC-1918, but the public IP
-on ports 50100–50200 is reachable from Coturn's relay allocator.
+cannot connect directly; they use LiveKit's built-in TURN relay as a fallback.
+LiveKit generates per-session HMAC credentials internally and embeds them in the
+LiveKit JWT response from `lk-jwt-service`. Clients where all UDP is blocked connect
+via RTP-over-TCP to LiveKit port 7881.
 
 ---
 
@@ -581,9 +657,9 @@ request/response protocol. A client behind a NAT router sends a UDP packet to a
 STUN server; the STUN server replies with the client's public IP and port number
 as seen from the internet. The client can then advertise this as an ICE candidate.
 
-**Role in this deployment.** Coturn implements the STUN protocol on port `3478`
-(UDP and TCP). Clients use this to discover their public-facing address. STUN
-itself does not relay any media — it is only for address discovery.
+**Role in this deployment.** LiveKit's built-in TURN server implements STUN on
+port `3478` (UDP and TCP). Clients use this to discover their public-facing
+address. STUN itself does not relay any media — it is only for address discovery.
 
 ---
 
@@ -595,44 +671,46 @@ itself does not relay any media — it is only for address discovery.
 TURN server steps in as a relay: both sides send their media to the TURN server,
 which forwards it between them.
 
-**Authentication.** TURN uses a time-limited credential mechanism: clients request
-credentials from Synapse (`/api/turn_server_info`), which issues short-lived HMAC
-tokens derived from the `turn_shared_secret` it shares with Coturn. This shared
-secret is stored in Vault and rendered to `/run/secrets/coturn-secret` at boot.
+**Implementation in this deployment.** LiveKit's built-in TURN server (based on
+pion/turn) handles relay in place of an external coturn process. LiveKit generates
+per-session HMAC credentials internally and embeds them in the LiveKit JWT issued
+by `lk-jwt-service`. Clients do not need to call Synapse for TURN credentials —
+the LiveKit JWT response includes ICE server info with TURN endpoints and
+time-limited credentials.
 
-**Ports and protocols.** Coturn on avina serves:
+LiveKit TURN is configured in `livekit.nix`:
+
+```nix
+turn = {
+  enabled = true;
+  domain = matrixDomain;
+  tls_port = 5349;
+  udp_port = 3478;
+  cert_file = "/run/certs/turn-fullchain.pem";
+  key_file  = "/run/certs/turn.key";
+};
+```
+
+LiveKit's `use_external_ip = true` discovers the WAN IP via STUN and uses it for
+both SFU ICE candidates and as the TURN relay address (`RelayAddress`).
+
+**Ports and protocols.**
 
 | Port | Protocol | Purpose |
 |---|---|---|
 | 3478 | UDP | STUN/TURN (standard) |
 | 3478 | TCP | STUN/TURN (TCP fallback for UDP-blocked clients) |
-| 5349 | TCP | TURNS — TURN over TLS (additional firewall traversal) |
-| 49000–49999 | UDP | Media relay range (one port allocated per active relay allocation) |
+| 5349 | TCP/TLS | TURNS — TURN over TLS (additional firewall traversal) |
+| 50100–50200 | UDP | WebRTC media direct to SFU (ICE direct path) |
+| 7881 | TCP | RTP-over-TCP direct to SFU (not TURN — for clients where all UDP is blocked) |
 
-`no-tcp-relay: true` is set in Coturn's config, which means Coturn will not relay
-TCP media (only UDP). TCP media relay would allow clients to tunnel media through
-TCP port 3478 or 5349, which could be misused for firewall traversal beyond TURN's
-intended purpose.
-
-**SSRF prevention.** A critical security property of Coturn in this deployment is
-the `denied-peer-ip` configuration. Without it, a malicious client could use the
-TURN server as a proxy to reach internal services:
-
-```
-denied-peer-ip=10.0.0.0-10.255.255.255       # RFC 1918 private range
-denied-peer-ip=172.16.0.0-172.31.255.255     # RFC 1918 private range
-denied-peer-ip=192.168.0.0-192.168.255.255   # RFC 1918 private range
-denied-peer-ip=127.0.0.0-127.255.255.255     # Loopback
-denied-peer-ip=169.254.0.0-169.254.255.255   # Link-local
-denied-peer-ip=100.64.0.0-100.127.255.255    # CGNAT (RFC 6598)
-denied-peer-ip=0.0.0.0-0.255.255.255         # This-network
-denied-peer-ip=::1                           # IPv6 loopback
-denied-peer-ip=fc00::-fdff:...               # IPv6 unique local
-```
-
-This prevents TURN from being used as an internal-network proxy (Server-Side
-Request Forgery). A client that tries to relay traffic to `192.168.x.x` or
-`127.0.0.1` gets a `403 Forbidden` from Coturn.
+**SSRF gap (accepted risk).** LiveKit's pion/turn implementation does not expose a
+configurable `denied-peer-ip` list equivalent to coturn's. A malicious client with
+valid TURN credentials could theoretically use the relay to probe RFC-1918 or
+loopback addresses. This risk is **accepted** and **mitigated** — TURN credentials
+are gated behind LiveKit JWT issuance, which requires a valid Matrix access token
+validated by `lk-jwt-service`. An unauthenticated client cannot obtain credentials.
+The attack surface is limited to authenticated Matrix users on this homeserver.
 
 ---
 
@@ -769,9 +847,10 @@ Cloudflare connector ──TLS#2──► avina:443 (Let's Encrypt wildcard)
 TLS#2 uses a Let's Encrypt wildcard certificate for `*.example.com`, issued and
 renewed by an external certbot process. On renewal, certbot writes the new
 certificate into Vault KV-v2. vault-agent on avina detects the version increment,
-re-renders `/run/certs/haproxy.pem` and the Coturn cert files, and signals HAProxy
-(`systemctl reload-or-restart`) and Coturn (`systemctl restart`) — zero-downtime
-rotation with no manual intervention on avina.
+re-renders `/run/certs/haproxy.pem` and the LiveKit TURN cert files
+(`turn-fullchain.pem`, `turn.key`), and signals HAProxy (`systemctl reload-or-restart`)
+and LiveKit (`systemctl restart`) — zero-downtime rotation with no manual intervention
+on avina.
 
 **`noTLSVerify: true` on the cloudflared connector:** Because the LE cert covers
 `*.novuscotia.com` but cloudflared connects to avina via its LAN hostname
@@ -860,7 +939,7 @@ vault-agent runs as two systemd services:
 
 **`vault-agent-init`** (Type=oneshot): Runs at boot before any dependent service
 starts. Authenticates to Vault via AppRole, renders all templates, then exits.
-Synapse, MAS, Coturn, HAProxy, LiveKit, and lk-jwt-service all have
+Synapse, MAS, HAProxy, LiveKit, and lk-jwt-service all have
 `after = ["vault-agent-init.service"]` to ensure secrets are present before they
 start.
 
@@ -879,13 +958,12 @@ receives `matrix-secrets` as a supplementary group:
 matrix-synapse = { serviceConfig.SupplementaryGroups = [ "matrix-secrets" ]; };
 matrix-authentication-service = { ... };
 haproxy = { ... };
-coturn  = { ... };
 livekit = { ... };
 ```
 
 TLS certificates land under `/run/certs/` (mode `0755`). HAProxy's combined PEM
-is `0640 root matrix-secrets`. Coturn's cert is `0644` (public cert) and key is
-`0640`.
+is `0640 root matrix-secrets`. LiveKit's TURN cert (`turn-fullchain.pem`) is `0644`
+(public cert) and key (`turn.key`) is `0640`.
 
 ---
 
@@ -900,7 +978,6 @@ is `0640 root matrix-secrets`. Coturn's cert is `0644` (public cert) and key is
 | JWT signing private keys | In Vault; rendered to RAM; never on disk after reboot |
 | TLS private key | In Vault KV-v2; rendered to `/run/certs/`; never in Nix store |
 | OIDC client secrets (Keycloak) | In Vault; never in Nix store or config files |
-| TURN shared secret | In Vault; only exposed to Synapse and Coturn at runtime |
 | MAS encryption secret | In Vault; encrypts MAS's database rows; must never rotate |
 | Database | No direct external access; PostgreSQL unix socket only; password in Vault |
 
@@ -910,13 +987,12 @@ is `0640 root matrix-secrets`. Coturn's cert is `0644` (public cert) and key is
 |---|---|---|
 | HTTPS (via cloudflared) | Internet (all) | Cloudflare edge, TLS, HAProxy ACLs |
 | SSH :22 | LAN only | Certificate-based auth; password disabled; SSH CA |
-| TURN :3478, :5349 | Internet (TURN-forwarded) | Time-limited HMAC credentials; SSRF deny list |
+| TURN :3478, :5349 | Internet (TURN-forwarded) | Time-limited HMAC credentials; gated behind Matrix auth (see SSRF gap note below) |
 | HAProxy stats :8404 | LAN only | TLS; RFC-1918 + loopback ACL for admin |
 
 ### What is explicitly not exposed
 
 - LiveKit HTTP API :7880 — loopback only; accessed through HAProxy at `/livekit/sfu`
-- LiveKit TCP :7881 — WebRTC-over-TCP fallback; not in the firewall; direct UDP preferred
 - PostgreSQL — unix socket only
 - MAS internal listener :8182 — loopback only; Synapse-to-MAS channel
 - Synapse :8008 — loopback only; behind HAProxy
@@ -926,7 +1002,8 @@ is `0640 root matrix-secrets`. Coturn's cert is `0644` (public cert) and key is
 ### What is explicitly exposed for media
 
 - LiveKit WebRTC UDP :50100–50200 — opened in firewall; ICE direct path to SFU
-- Coturn STUN/TURN :3478, :5349 — TURN relay fallback for clients behind strict NAT
+- LiveKit RTP/TCP :7881 — opened in firewall; direct TCP fallback for UDP-blocked clients
+- LiveKit TURN/STUN :3478 (UDP+TCP), :5349 (TLS) — relay fallback for clients behind strict NAT
 
 ### Authentication chain integrity
 
@@ -951,13 +1028,12 @@ in Keycloak, not Synapse.
 |---|---|---|
 | MAS JWT signing keys | **Never** after prod | All sessions invalidated |
 | MAS encryption secret | **Never** after prod | Database rows unreadable |
-| TURN shared secret | Safe to rotate | Existing calls unaffected; new credentials issued |
 | TLS cert | Auto-rotated by certbot | Zero-downtime via vault-agent reload |
 | Vault AppRole secret_id | Survives reboots; rotate when changing access policy | vault-agent re-authenticates on next startup |
 | OIDC client secrets (Keycloak) | Rotate as needed | Update Vault; vault-agent propagates on next render |
 
 ---
 
-*This document reflects the state of the avina stack as of 2026-03-26.*  
+*This document reflects the state of the avina stack as of 2026-03-30.*
 
 *Update when adding components, changing protocols, or making security decisions.*

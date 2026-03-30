@@ -5,8 +5,10 @@
 }:
 let
   # Client Configuration:
-  # Element Call requires explicit registration of the LiveKit JWT service
-  # to handle MatrixRTC media signaling.
+  # Minimal config — homeserver autodiscovery only. LiveKit JWT URL is NOT set
+  # here: config.json livekit.livekit_service_url is officially debug/dev only
+  # per element-call upstream docs, and the correct production path is
+  # well-known org.matrix.msc4143.rtc_foci (already served by haproxy.nix).
   elementCallConfig = pkgs.writeText "element-call-config.json" (
     builtins.toJSON {
       default_server_config = {
@@ -15,8 +17,6 @@ let
           server_name = matrixDomain;
         };
       };
-      livekit_service_url = "https://${matrixDomain}/livekit/jwt";
-      brand = "Element Call";
     }
   );
 

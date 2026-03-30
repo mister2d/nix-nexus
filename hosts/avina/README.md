@@ -142,14 +142,13 @@ Do **not** place an admin token here. The AppRole policy (`avina`) must have
 | AppRole role-id | `/var/lib/secrets/vault-role-id` | vault-agent bootstrap (persistent) |
 | AppRole secret-id | `/var/lib/secrets/vault-secret-id` | vault-agent bootstrap (persistent) |
 | TLS cert (HAProxy) | `/run/certs/haproxy.pem` | HAProxy — fullchain + key combined |
-| TLS cert (LiveKit TURN) | `/run/certs/coturn-fullchain.pem` | LiveKit built-in TURN TLS |
-| TLS key (LiveKit TURN) | `/run/certs/coturn.key` | LiveKit built-in TURN TLS |
+| TLS cert (LiveKit TURN) | `/run/certs/turn-fullchain.pem` | LiveKit built-in TURN TLS |
+| TLS key (LiveKit TURN) | `/run/certs/turn.key` | LiveKit built-in TURN TLS |
 | Synapse secrets | `/run/secrets/synapse-secrets.yaml` | Synapse `extraConfigFiles` |
 | Synapse email | `/run/secrets/synapse-email.yaml` | Synapse `extraConfigFiles` |
 | MAS config | `/run/secrets/mas-config.yaml` | matrix-authentication-service |
 | MAS EC signing key | `/run/secrets/mas-signing-ec.key` | matrix-authentication-service |
 | MAS RSA signing key | `/run/secrets/mas-signing-rsa.key` | matrix-authentication-service |
-| TURN HMAC env | `/run/secrets/coturn-secret-env` | LiveKit — `LIVEKIT_TURN_SHARED_SECRET` |
 
 All `/run/` paths are RAM-only and never persist across reboots. vault-agent
 re-renders them on every boot and re-renders in-place whenever the upstream
@@ -263,8 +262,9 @@ The Let's Encrypt wildcard cert is renewed by an external `certbot` process
 independent of avina. On renewal, certbot writes the new certificate into
 **Vault KV-v2**. vault-agent on avina watches that KV path; on version increment
 it re-renders the HAProxy combined PEM (`/run/certs/haproxy.pem`) and the
-Coturn files, then signals the respective services to reload — zero-downtime
-rotation with no manual intervention on avina.
+LiveKit TURN cert files (`turn-fullchain.pem`, `turn.key`), then signals the
+respective services to reload — zero-downtime rotation with no manual intervention
+on avina.
 
 #### Port Exposure
 
@@ -274,15 +274,16 @@ avina's firewall permits the following on all interfaces (including the LAN):
 |---|---|---|---|
 | 22 | TCP | OpenSSH | LAN only; password auth disabled; SSH CA enforced |
 | 443 | TCP | HAProxy (HTTPS) | LAN only; reachable by cloudflared connector |
-| 3478 | TCP+UDP | Coturn STUN/TURN | Yes — NAT-forwarded at edge router |
-| 5349 | TCP+UDP | Coturn TURNS/TLS | Yes — NAT-forwarded at edge router |
-| 49000–49999 | UDP | Coturn relay range | Yes — NAT-forwarded at edge router |
+| 3478 | TCP+UDP | LiveKit STUN/TURN | Yes — NAT-forwarded at edge router |
+| 5349 | TCP/TLS | LiveKit TURNS/TLS | Yes — NAT-forwarded at edge router |
+| 7881 | TCP | LiveKit RTC/TCP fallback | Yes — NAT-forwarded at edge router |
 | 50100–50200 | UDP | LiveKit WebRTC media | Yes — NAT-forwarded at edge router |
 
 WebRTC ICE requires direct UDP reachability. Clients on standard networks connect
 directly to LiveKit on UDP 50100–50200 (the preferred ICE path). Clients behind
-strict NAT use Coturn TURN relay as a fallback; Coturn can relay to LiveKit's public
-IP on those ports. All other services remain LAN-internal.
+strict NAT use LiveKit's built-in TURN relay (ports 3478/5349) as a fallback.
+Clients on networks where all UDP is blocked use TCP port 7881 (RTP-over-TCP direct
+to the SFU, not a TURN relay). All other services remain LAN-internal.
 
 ### Authentication
 
@@ -314,12 +315,12 @@ vault-agent authenticates to Vault using AppRole. The `secret_id` on disk
 without manual intervention. The live Vault token has a 96-hour TTL and is
 automatically renewed by vault-agent before expiry.
 
-### Coturn SSRF Prevention
+### LiveKit TURN SSRF Note
 
-Coturn's `denied-peer-ip` list covers all RFC-1918 private ranges, loopback
-(`127.0.0.0/8`), link-local (`169.254.0.0/16`), and CGNAT (`100.64.0.0/10`). This
-prevents a malicious client from using the TURN relay as a proxy to reach internal
-services on avina's localhost or the Proxmox host network.
+LiveKit's built-in TURN server (pion/turn) does not expose a configurable
+`denied-peer-ip` list. This is an accepted risk: TURN credentials are embedded in
+the LiveKit JWT and are only issued to clients with a valid Matrix access token.
+Unauthenticated clients cannot obtain credentials and cannot use the relay.
 
 ---
 
