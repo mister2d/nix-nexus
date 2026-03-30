@@ -14,6 +14,7 @@ let
     elementDomain
     masDomain
     callDomain
+    turnDomain
     vaultAddr
     certDomain
     ;
@@ -55,6 +56,7 @@ in
       elementDomain
       masDomain
       callDomain
+      turnDomain
       federatedDomains
       vaultAddr
       certDomain
