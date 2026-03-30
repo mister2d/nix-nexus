@@ -25,6 +25,11 @@ in
         # opened in hosts/avina/default.nix allowedUDPPortRanges (50100-50200).
         port_range_start = 50100;
         port_range_end = 50200;
+        # TCP fallback for RTC media (not TURN — direct RTP-over-TCP to SFU).
+        # Serves clients on networks where all UDP is blocked. Must be opened
+        # in the firewall and NAT-forwarded at the edge router independently
+        # of the Cloudflare tunnel (media never transits Cloudflare).
+        tcp_port = 7881;
       };
 
       # Built-in TURN server:

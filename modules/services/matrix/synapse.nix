@@ -22,6 +22,38 @@
       # Federation (Structural)
       federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;
       suppress_key_server_warning = true;
+      # Enforce minimum TLS 1.2 on outbound federation connections.
+      federation_client_minimum_tls_version = "1.2";
+
+      # SSRF Prevention:
+      # Explicitly blacklist RFC-1918, loopback, link-local, and reserved ranges
+      # so Synapse cannot be used to probe internal services via URL fetch endpoints
+      # (media proxy, URL previews, etc.). Synapse has built-in defaults but listing
+      # them explicitly makes the security posture verifiable.
+      ip_range_blacklist = [
+        "127.0.0.0/8"
+        "10.0.0.0/8"
+        "172.16.0.0/12"
+        "192.168.0.0/16"
+        "100.64.0.0/10"
+        "192.0.0.0/24"
+        "169.254.0.0/16"
+        "192.88.99.0/24"
+        "198.18.0.0/15"
+        "198.51.100.0/24"
+        "203.0.113.0/24"
+        "224.0.0.0/4"
+        "::1/128"
+        "fe80::/10"
+        "fc00::/7"
+        "2001:db8::/32"
+        "ff00::/8"
+        "fec0::/10"
+      ];
+
+      # Privacy hardening: prevent unauthenticated enumeration of display names
+      # and avatar URLs. Without this any unauthenticated client can scrape profiles.
+      require_auth_for_profile_requests = true;
 
       # Database (Structural)
       database = {
@@ -86,6 +118,10 @@
         # MSC4222: sync v2 state_after. Required by Element Call to correctly
         # track room membership and participant state during a call.
         msc4222_enabled = true;
+        # MSC4028: push encrypted event content. Allows push notifications to
+        # include event content for encrypted rooms without decrypting server-side.
+        # Improves notification privacy — no content leaks to push gateway.
+        msc4028_push_encrypted_events = true;
       };
 
       # MSC4140: Delayed Events — participation heartbeats for MatrixRTC.

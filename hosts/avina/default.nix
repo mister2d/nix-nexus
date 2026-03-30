@@ -82,6 +82,7 @@ in
         443 # HAProxy (HTTP/S + Matrix federation)
         3478 # LiveKit TURN/TCP (plain relay)
         5349 # LiveKit TURNS/TLS (MatrixRTC Element Call)
+        7881 # LiveKit RTC/TCP (direct RTP-over-TCP fallback for UDP-blocked clients)
         8404 # HAProxy stats (operator access)
       ];
       allowedUDPPorts = [
