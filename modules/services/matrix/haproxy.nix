@@ -291,9 +291,21 @@ in
         # to Element Web. Widget iframes from Element Web always include widgetId
         # in the query string and pass through unmodified.
         http-request redirect code 302 location https://${elementDomain} unless { query -m sub widgetId }
+        # Security headers: omit frame-ancestors — Element Call is embedded as a
+        # cross-origin iframe from ${elementDomain} and must not restrict framing.
+        http-response set-header X-Content-Type-Options "nosniff"
+        http-response set-header X-XSS-Protection "1; mode=block"
+        http-response set-header X-Robots-Tag "noindex, nofollow, noarchive, noimageindex"
         server element_call 127.0.0.1:8084
 
       backend element_backend
+        # Security headers for Element Web. frame-ancestors 'self' prevents
+        # clickjacking — Element Web is never embedded in third-party iframes.
+        http-response set-header X-Frame-Options "SAMEORIGIN"
+        http-response set-header X-Content-Type-Options "nosniff"
+        http-response set-header Content-Security-Policy "frame-ancestors 'self'"
+        http-response set-header X-XSS-Protection "1; mode=block"
+        http-response set-header X-Robots-Tag "noindex, nofollow, noarchive, noimageindex"
         server element 127.0.0.1:8082
 
       # Internal bridge frontend — no TLS, loopback only.
