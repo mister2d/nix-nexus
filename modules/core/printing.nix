@@ -11,6 +11,7 @@
     printing = {
       enable = true;
       browsing = true;
+      logLevel = "debug";
 
       # Enforcement of a stateless configuration prevents manual drift and ensures
       # the printer environment is reset to the declarative baseline on every boot.
