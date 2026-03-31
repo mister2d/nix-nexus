@@ -262,13 +262,18 @@ in
         server mas 127.0.0.1:8181 send-proxy
 
       backend lk_jwt_backend
-        # Strip /livekit prefix — lk-jwt-service serves at its own root.
-        # /livekit/sfu/get is routed here via is_lk_jwt_endpoint before is_lk_sfu.
+        # CORS preflight: lk-jwt-service returns non-2xx for OPTIONS, which causes
+        # browsers to block the actual JWT POST. Intercept here and return 204.
+        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type" if { method OPTIONS }
+        # Path stripping:
+        #   Element Call (JS): /livekit/sfu/get  → strip /livekit      → /sfu/get
+        #   Element X (Rust):  /livekit/jwt/sfu/get → strip /livekit/jwt → /sfu/get
+        # lk-jwt-service serves at /sfu/get; the /jwt/ variant is the Rust SDK convention.
+        http-request replace-path ^/livekit/jwt(.*) \1
         http-request replace-path ^/livekit(.*) \1
-        # CORS required: Element Call fetches JWTs cross-origin from the browser.
-        # Also handle OPTIONS preflight so the browser allows the actual JWT request.
+        # CORS headers on actual responses.
         http-response set-header Access-Control-Allow-Origin "*"
-        http-response set-header Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        http-response set-header Access-Control-Allow-Methods "POST, OPTIONS"
         http-response set-header Access-Control-Allow-Headers "Authorization, Content-Type"
         server lk_jwt 127.0.0.1:8081
 
