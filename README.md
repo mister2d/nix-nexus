@@ -91,7 +91,7 @@ direnv allow
 ## 📚 Technical Documentation
 - [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Detailed specifications for the Matrix 2.0 stack and hybrid ingress.
 - [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and Hybrid GPU management.
-- [**Package Inventory**](./docs/packages.md): Versions and use cases for pinned DevOps and Infrastructure tools.
+- [**Package Inventory**](./docs/packages.md): Versions and maintenance guide for pinned DevOps tools and hardware drivers (NVIDIA/CUDA).
 - [**Storage Management**](./docs/storage.md): Centralized CephFS mounting and ZFS dataset strategies.
 - [**Terminal & Multiplexing**](./docs/terminal.md): High-performance Kitty/Tmux configuration and Bash aliases.
 - [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix securely on non-NixOS hosts.
