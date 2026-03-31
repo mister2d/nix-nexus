@@ -33,6 +33,14 @@ let
       disable_custom_urls = true;
       disable_guests = true;
       brand = "Element";
+
+      # Explicitly enable the MatrixRTC video room features
+      features = {
+        feature_video_rooms = true;
+        feature_group_calls = true;
+        feature_element_call_video_rooms = true;
+      };
+
       element_call = {
         url = "https://${callDomain}";
         use_exclusively = true;
