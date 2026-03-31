@@ -45,6 +45,17 @@ let
         url = "https://${callDomain}";
         use_exclusively = true;
       };
+
+      # MatrixRTC focus discovery — fallback for some Element versions that
+      # don't query the unstable discovery endpoint correctly.
+      matrix_rtc = {
+        transports = [
+          {
+            type = "livekit";
+            livekit_service_url = "https://${matrixDomain}/livekit";
+          }
+        ];
+      };
     }
   );
 
