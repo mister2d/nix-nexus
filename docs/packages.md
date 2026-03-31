@@ -58,26 +58,34 @@ These tools are pinned to specific versions to ensure absolute reproducibility a
 
 ---
 
-## Package Maintenance & Hardware Pinning
+## Package Maintenance & Version Bumping
 
-To ensure system stability and reproducibility across workstations and server nodes, `nix-nexus` employs four distinct pinning strategies. Updating software and hardware drivers requires following the "Nix proper way" for each type.
+To ensure system stability and reproducibility across workstations and server nodes, `nix-nexus` employs several distinct pinning strategies. Updating software and hardware drivers requires following the "Nix proper way" for each type.
 
-### 1. Hard Pinning (Dedicated Flake Inputs)
-**Used for:** Google Chrome, Nomad, Terraform, Talosctl, and other mission-critical DevOps tools.
-These are pinned to specific `nixpkgs` commit hashes in `flake.nix` to guarantee the exact binary version regardless of global system updates.
+### Channels vs. Flakes (The 2026 standard)
+In this project, you **never** need to run `nix-channel --update`. All dependencies are locked in `flake.lock`. Running a channel update will not affect the project, as the flake environment is isolated and reproducible.
 
-**The Update Process:**
-1.  **Identify Version:** Use [NixHub.io](https://www.nixhub.io) to find the `nixpkgs` commit hash containing your desired version.
-2.  **Update Flake:** Locate the corresponding input in `flake.nix` (e.g., `pkgs-nomad`) and update the URL hash.
+### 1. Updating Specific Packages
+The command you run depends on where the package is defined in `flake.nix`.
+
+#### Scenario A: The package has its own Flake Input
+If a package comes from a specific repository (e.g., `opencode`, `gemini-cli`), you can update it in isolation without touching the rest of the system.
+*   **Target:** `inputs.llm-agents`
+*   **Command:** `nix flake update llm-agents`
+
+#### Scenario B: The package is part of the standard system (nixpkgs)
+If a package (e.g., `tmux`, `git`, `bash`) is sourced from the primary NixOS repository, it is updated by bumping the entire `nixpkgs` input. You cannot update these in isolation.
+*   **Target:** `inputs.nixpkgs`
+*   **Command:** `nix flake update nixpkgs`
+
+#### Scenario C: Updating a Hard-Pinned Version
+If a package is "Hard Pinned" (e.g., `nomad`, `terraform`), updating it requires manually changing the commit hash in `flake.nix` because it points to a specific point in time that won't move on its own.
+1.  Find the new hash on [NixHub.io](https://www.nixhub.io).
+2.  Update `flake.nix`:
     ```nix
     pkgs-nomad.url = "github:nixos/nixpkgs/<NEW_COMMIT_HASH>";
     ```
-3.  **Refresh Lockfile:** Run `nix flake update <input-name>` to synchronize `flake.lock`.
-4.  **Validate:** Run `nix flake check` and verify the package version:
-    ```bash
-    nix eval --raw .#nixosConfigurations.<host>.pkgs.nomad.version
-    ```
-5.  **Document:** Update the version string in the tables above to match the new state.
+3.  Run: `nix flake update pkgs-nomad`
 
 ### 2. Soft Pinning (Version Assertions)
 **Used for:** The Matrix 2.0 stack (Synapse, MAS, LiveKit, Vault) in `modules/services/matrix/versions.nix`.
@@ -109,6 +117,7 @@ nix-env -f '<nixpkgs>' -qaP -A linuxPackages.nvidiaPackages
 **Pinning a Branch:**
 In your hardware module (e.g., `modules/hardware/petunia/nvidia.nix`):
 ```nix
+# This uses the version pre-defined in Nixpkgs
 hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
 ```
 
