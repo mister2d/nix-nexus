@@ -133,15 +133,32 @@ in {
 
 #### C. Manual Overrides (mkDriver)
 Use this **only** if the version you need is completely missing from Nixpkgs.
-1.  **Find Version:** Visit [NVIDIA's Driver Site](https://www.nvidia.com/Download/index.aspx).
-2.  **Define Override:**
-    ```nix
-    hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-      version = "555.58.02";
-      sha256_64bit = lib.fakeSha256; # Triggers a build error with the correct hash
-      # ... other hashes
-    };
-    ```
+
+**The "Lazy Hash" Method (Recommended):**
+You do not need to hunt for hashes on the internet. Nix can discover them for you:
+
+1.  **Set Fake Hashes:** Populate all required hash fields with `lib.fakeSha256`.
+2.  **Satisfy Architectures:** Even if you don't use `aarch64`, the `mkDriver` function usually requires the attribute to exist. You can use a fake hash for it as well.
+3.  **Build:** Run `nixos-rebuild build`.
+4.  **Copy-Paste:** The build will fail with a "hash mismatch" error. It will show the `specified` (fake) hash and the `got` (actual) hash. Copy the `got` hash into your configuration.
+
+**Example Configuration:**
+```nix
+hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
+  version = "555.58.02";
+  
+  # Nix will tell you the correct hashes after the first failed build attempt
+  sha256_64bit = "sha256-ActualHashFromBuildError...";
+  sha256_aarch64 = "sha256-ActualHashOrFakeIfNeverBuilt..."; 
+  openSha256 = "sha256-ActualHashFromBuildError...";
+  settingsSha256 = "sha256-ActualHashFromBuildError...";
+  persistencedSha256 = "sha256-ActualHashFromBuildError...";
+};
+```
+
+**Common Questions:**
+*   **"Do I have to set them all?"** Yes. The `mkDriver` function expects a complete set of attributes to evaluate.
+*   **"I don't have aarch64!"** That's fine. Providing a hash for `aarch64` satisfies the Nix evaluator's requirement for the argument; it doesn't mean Nix will try to download or build the ARM version unless you are actually on an ARM machine. You can safely use the `lib.fakeSha256` or the actual ARM hash from the error log.
 
 **Discovery & Verification:**
 *   **Current Version:** `nix eval --raw .#nixosConfigurations.<host>.config.hardware.nvidia.package.version`
