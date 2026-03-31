@@ -104,7 +104,8 @@ let
           "org.matrix.msc4143.rtc_foci" = [
             {
               type = "livekit";
-              livekit_service_url = "https://${matrixDomain}/livekit/jwt";
+              url = "https://${matrixDomain}";
+              livekit_service_url = "https://${matrixDomain}";
             }
           ];
         }
@@ -215,7 +216,7 @@ in
         acl is_mas_domain       hdr(host) -i ${masDomain}
         acl is_mas_auth         path_beg /auth
         acl is_mas_oidc         path_beg /_mas
-        acl is_lk_jwt           path_beg /livekit/jwt
+        acl is_lk_jwt           path_beg /livekit
         acl is_lk_sfu           path_beg /livekit/sfu
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
@@ -227,11 +228,11 @@ in
         # Synapse requires auth on this endpoint but clients call it unauthenticated
         # as a capability check. The response is static and non-sensitive.
         # Note: http-request return does not support backslash line continuation.
-        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" string '{"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit/jwt"}]}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit"}]}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
-        use_backend lk_jwt_backend    if is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
+        use_backend lk_jwt_backend    if is_lk_jwt
         use_backend wellknown_backend if is_wellknown
         use_backend tos_backend       if is_tos
         use_backend synapse_backend   if is_matrix or is_synapse
@@ -257,9 +258,9 @@ in
         server mas 127.0.0.1:8181 send-proxy
 
       backend lk_jwt_backend
-        # Strip /livekit/jwt prefix — lk-jwt-service serves at its own root.
-        # Without this, /livekit/jwt/sfu/get reaches the service as-is and 404s.
-        http-request replace-path ^/livekit/jwt(.*) \1
+        # Strip /livekit prefix — lk-jwt-service serves at its own root.
+        # Without this, /livekit/sfu/get reaches the service as-is and 404s.
+        http-request replace-path ^/livekit(.*) \1
         # CORS required: Element Call fetches JWTs cross-origin from the browser.
         # Also handle OPTIONS preflight so the browser allows the actual JWT request.
         http-response set-header Access-Control-Allow-Origin "*"

@@ -147,7 +147,7 @@
       matrix_rtc.transports = [
         {
           type = "livekit";
-          livekit_service_url = "https://${matrixDomain}/livekit/jwt";
+          livekit_service_url = "https://${matrixDomain}/livekit";
         }
       ];
     };

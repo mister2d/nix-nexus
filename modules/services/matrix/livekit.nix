@@ -13,9 +13,17 @@ in
     inherit keyFile;
     settings = {
       port = 7880;
-      # Authentication Policy:
-      # Prevent unauthenticated SFU room creation.
-      room.auto_create = false;
+
+      room = {
+        # Authentication Policy:
+        # Prevent unauthenticated SFU room creation.
+        auto_create = false;
+        empty_timeout = 300;
+        enabled_codecs = [
+          { mime = "video/h264"; }
+          { mime = "audio/opus"; }
+        ];
+      };
 
       rtc = {
         # Discover public IP via STUN for ICE candidates.
