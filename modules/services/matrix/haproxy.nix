@@ -218,6 +218,7 @@ in
         acl is_mas_oidc         path_beg /_mas
         acl is_lk_jwt           path_beg /livekit
         acl is_lk_sfu           path_beg /livekit/sfu
+        acl is_lk_jwt_endpoint  path /livekit/sfu/get
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
         acl is_wellknown        path_beg /.well-known
@@ -233,6 +234,7 @@ in
         http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit","livekit_alias":"${matrixDomain}"}]}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
+        use_backend lk_jwt_backend    if is_lk_jwt_endpoint
         use_backend lk_sfu_backend    if is_lk_sfu
         use_backend lk_jwt_backend    if is_lk_jwt
         use_backend wellknown_backend if is_wellknown
@@ -261,7 +263,7 @@ in
 
       backend lk_jwt_backend
         # Strip /livekit prefix — lk-jwt-service serves at its own root.
-        # Without this, /livekit/sfu/get reaches the service as-is and 404s.
+        # /livekit/sfu/get is routed here via is_lk_jwt_endpoint before is_lk_sfu.
         http-request replace-path ^/livekit(.*) \1
         # CORS required: Element Call fetches JWTs cross-origin from the browser.
         # Also handle OPTIONS preflight so the browser allows the actual JWT request.
