@@ -148,6 +148,7 @@
         {
           type = "livekit";
           livekit_service_url = "https://${matrixDomain}/livekit";
+          livekit_alias = matrixDomain;
         }
       ];
     };

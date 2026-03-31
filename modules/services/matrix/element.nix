@@ -29,6 +29,15 @@ let
           base_url = "https://${matrixDomain}";
           server_name = matrixDomain;
         };
+        # MatrixRTC focus discovery — fallback for some Element versions that
+        # don't query the unstable discovery endpoint correctly.
+        "org.matrix.msc4143.rtc_foci" = [
+          {
+            type = "livekit";
+            livekit_service_url = "https://${matrixDomain}/livekit";
+            livekit_alias = matrixDomain;
+          }
+        ];
       };
       disable_custom_urls = true;
       disable_guests = true;
@@ -44,17 +53,6 @@ let
       element_call = {
         url = "https://${callDomain}";
         use_exclusively = true;
-      };
-
-      # MatrixRTC focus discovery — fallback for some Element versions that
-      # don't query the unstable discovery endpoint correctly.
-      matrix_rtc = {
-        transports = [
-          {
-            type = "livekit";
-            livekit_service_url = "https://${matrixDomain}/livekit";
-          }
-        ];
       };
     }
   );
