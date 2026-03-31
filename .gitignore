@@ -16,7 +16,7 @@ result-*
 debug/
 
 # Host deployment values (real domains/addresses — never commit)
-hosts/avina/site-config.nix
+# hosts/avina/site-config.nix
 
 # System specific
 hardware-configuration.nix.bak

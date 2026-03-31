@@ -46,6 +46,10 @@
       # Standard application ports
       allowedTCPPorts = [
         22 # SSH
+        80 # http
+        8000 # http
+        8080 # http
+        443 # https
         24800 # Input-Leap
         8008 # Google Cast
         8009 # Google Cast
