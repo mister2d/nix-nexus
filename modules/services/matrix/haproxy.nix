@@ -230,12 +230,7 @@ in
         # Note: http-request return does not support backslash line continuation.
         # CORS required: Element Call (callDomain) fetches this cross-origin.
         # Handle OPTIONS preflight and GET response with full CORS headers.
-        http-request return status 200 content-type "application/json" \
-          hdr "Access-Control-Allow-Origin" "*" \
-          hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" \
-          hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin" \
-          string '{"transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit"}]}' \
-          if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit"}]}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend lk_sfu_backend    if is_lk_sfu
