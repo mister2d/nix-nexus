@@ -90,32 +90,62 @@ These packages follow the primary `nixpkgs` input but are protected by assertion
 4.  **Validate:** Re-run the evaluation; it should now pass.
 
 ### 3. Hardware-Level Pinning (NVIDIA & CUDA)
-**Used for:** Servers like `petunia` and workstations with specific driver/CUDA requirements.
-To pin a specific NVIDIA driver version not present in your current `nixpkgs` channel, use the `mkDriver` function.
+**Used for:** Servers like `petunia` and workstations requiring specific driver/CUDA compatibility.
 
-**The Update Process:**
-1.  **Define specific package:** In your hardware module (e.g., `modules/hardware/petunia/nvidia.nix`), override the package using `mkDriver`:
+NixOS organizes hardware drivers into "package sets." Rather than searching the global index, you should query these sets directly to find human-readable branch aliases (Stable, Beta, Legacy) or specific toolkit versions.
+
+#### A. NVIDIA Driver Discovery
+To see available driver branches for your current kernel:
+```bash
+nix-env -f '<nixpkgs>' -qaP -A linuxPackages.nvidiaPackages
+```
+*   **`.stable`**: The current production driver (Default).
+*   **`.beta`**: Latest features/Vulkan extensions.
+*   **`.legacy_470 / .legacy_535`**: Required for older hardware.
+*   **`.dc`**: Data Center/Tesla optimized drivers.
+
+**Pinning a Branch:**
+In your hardware module (e.g., `modules/hardware/petunia/nvidia.nix`):
+```nix
+hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
+```
+
+#### B. CUDA Toolkit Discovery
+CUDA is managed via the `cudaPackages` scope. To see available toolkit versions:
+```bash
+nix eval --json nixpkgs#cudaPackages --apply "builtins.attrNames" | jq -r '.[] | select(test("^cudaPackages_[0-9]"))'
+```
+This will return specific versioned sets like `cudaPackages_11`, `cudaPackages_12_2`, etc.
+
+**Pinning a CUDA Version:**
+When defining a dev shell or service that requires a specific CUDA version:
+```nix
+# Example: Use CUDA 12.2 specifically
+let
+  pkgs-cuda = pkgs.cudaPackages_12_2;
+in {
+  environment.systemPackages = [
+    pkgs-cuda.cudatoolkit
+    pkgs-cuda.cudnn
+  ];
+}
+```
+
+#### C. Manual Overrides (mkDriver)
+Use this **only** if the version you need is completely missing from Nixpkgs.
+1.  **Find Version:** Visit [NVIDIA's Driver Site](https://www.nvidia.com/Download/index.aspx).
+2.  **Define Override:**
     ```nix
     hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
       version = "555.58.02";
-      sha256_64bit = "sha256-xctt4TPRlOJ6r5S54h5W6PT6/3Zy2R4ASNFPu8TSHKM=";
-      sha256_aarch64 = "sha256-xctt4TPRlOJ6r5S54h5W6PT6/3Zy2R4ASNFPu8TSHKM=";
-      openSha256 = "sha256-ZpuVZybW6CFN/gz9rx+UJvQ715FZnAOYfHn5jt5Z2C8=";
-      settingsSha256 = "sha256-ZpuVZybW6CFN/gz9rx+UJvQ715FZnAOYfHn5jt5Z2C8=";
-      persistencedSha256 = "sha256-ZpuVZybW6CFN/gz9rx+UJvQ715FZnAOYfHn5jt5Z2C8=";
+      sha256_64bit = lib.fakeSha256; # Triggers a build error with the correct hash
+      # ... other hashes
     };
     ```
-2.  **CUDA/Container Runtime:** To ensure CUDA tools match your driver, always reference `config.hardware.nvidia.package` when building container environments or custom systemd services like NVIDIA MPS (Multi-Process Service).
 
 **Discovery & Verification:**
-*   **Finding Versions:** Check the [NVIDIA Driver Downloads](https://www.nvidia.com/Download/index.aspx) page for the latest Linux 64-bit version numbers.
-*   **Querying CUDA:** Use `nix search nixpkgs cudaPackages` to see which CUDA toolkit versions are available in your current channel (e.g., `cudaPackages_12_2`).
-*   **Retrieving Hashes:** 
-    1.  Set the hashes in `mkDriver` to `lib.fakeSha256`.
-    2.  Run `nixos-rebuild build`. The build will fail and report the "actual" hash found at the NVIDIA download URL.
-    3.  Alternatively, use `nix-prefetch-url` with the direct download URL:
-        `nix-prefetch-url https://us.download.nvidia.com/XFree86/Linux-x86_64/<VERSION>/NVIDIA-Linux-x86_64-<VERSION>.run`
-*   **Matching Drivers:** Ensure the `version` string in `mkDriver` exactly matches the NVIDIA release (e.g., `555.58.02`).
+*   **Current Version:** `nix eval --raw .#nixosConfigurations.<host>.config.hardware.nvidia.package.version`
+*   **Verify CUDA:** `nix eval --raw .#nixosConfigurations.<host>.pkgs.cudaPackages.cuda_nvcc.version`
 
 ### 4. Rolling Updates (Standard Packages)
 **Used for:** System utilities, terminal tools, and productivity apps.
