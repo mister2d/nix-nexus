@@ -92,10 +92,12 @@ These packages follow the primary `nixpkgs` input but are protected by assertion
 ### 3. Hardware-Level Pinning (NVIDIA & CUDA)
 **Used for:** Servers like `petunia` and workstations requiring specific driver/CUDA compatibility.
 
-NixOS organizes hardware drivers into "package sets." Rather than searching the global index, you should query these sets directly to find human-readable branch aliases (Stable, Beta, Legacy) or specific toolkit versions.
+#### The Golden Rule of Pinning:
+*   **If it's in the `nix-env` list:** You **DO NOT** need hashes. Simply point your config to the attribute (e.g., `.beta` or `.legacy_535`).
+*   **If it's NOT in the list:** You **DO** need hashes and must use the `mkDriver` override.
 
-#### A. NVIDIA Driver Discovery
-To see available driver branches for your current kernel:
+#### A. NVIDIA Driver Discovery (No Hashes Required)
+To see available driver branches already packaged in your current Nixpkgs channel:
 ```bash
 nix-env -f '<nixpkgs>' -qaP -A linuxPackages.nvidiaPackages
 ```
@@ -132,15 +134,18 @@ in {
 ```
 
 #### C. Manual Overrides (mkDriver)
-Use this **only** if the version you need is completely missing from Nixpkgs.
+Use this **only** if the specific version you need is missing from the `nix-env` list above.
 
-**The "Lazy Hash" Method (Recommended):**
+**The "Lazy Hash" Workflow:**
 You do not need to hunt for hashes on the internet. Nix can discover them for you:
 
-1.  **Set Fake Hashes:** Populate all required hash fields with `lib.fakeSha256`.
-2.  **Satisfy Architectures:** Even if you don't use `aarch64`, the `mkDriver` function usually requires the attribute to exist. You can use a fake hash for it as well.
+1.  **Set Fake Hashes:** Populate all hash fields in `mkDriver` with `lib.fakeSha256`.
+2.  **Satisfy Architectures:** Use `lib.fakeSha256` for `sha256_aarch64` even if you're on x86_64. Nix won't download the ARM version unless you're building on ARM, so the fake hash will never "fail."
 3.  **Build:** Run `nixos-rebuild build`.
-4.  **Copy-Paste:** The build will fail with a "hash mismatch" error. It will show the `specified` (fake) hash and the `got` (actual) hash. Copy the `got` hash into your configuration.
+4.  **Extract the "Got" Hash:** The build will fail with a "hash mismatch" error.
+    *   **`specified`**: The fake hash you put in.
+    *   **`got`**: The **real** hash Nix found at the URL.
+5.  **Iterate:** Copy the `got` hash into your config and rebuild. Repeat this for each component (driver, settings, open-source module) as they fail one by one.
 
 **Example Configuration:**
 ```nix
