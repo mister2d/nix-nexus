@@ -75,6 +75,7 @@ in
   # Provides JWT-based authentication for clients connecting to the SFU.
   services.lk-jwt-service = {
     enable = true;
+    # Keep NixOS option 'port' to satisfy module validation.
     port = 8081;
     inherit keyFile;
     # Point directly to the local SFU instead of through HAProxy.
@@ -86,6 +87,8 @@ in
     lk-jwt-service.serviceConfig.Environment = [
       "LIVEKIT_URL=ws://127.0.0.1:7880"
       "LIVEKIT_FULL_ACCESS_HOMESERVERS=${matrixDomain}"
+      # Modern bind syntax to resolve service-internal deprecation warning.
+      "LIVEKIT_JWT_BIND=:8081"
       # Internal Discovery: Point directly to the local well-known server.
       # This ensures lk-jwt-service can resolve homeserver details even if
       # HAProxy or external DNS are experiencing issues.
