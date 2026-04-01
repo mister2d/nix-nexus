@@ -64,6 +64,25 @@ let
           };
         };
         "org.matrix.msc3861.matrix_rtc" = {
+          foci = [
+            {
+              type = "livekit";
+              livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+              livekit_alias = matrixDomain;
+            }
+          ];
+          "urn:matrix:org.matrix.msc3861:livekit" = {
+            preferred_url = "https://${rtcDomain}/livekit/sfu";
+          };
+        };
+        "matrix_rtc" = {
+          foci = [
+            {
+              type = "livekit";
+              livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+              livekit_alias = matrixDomain;
+            }
+          ];
           "urn:matrix:org.matrix.msc3861:livekit" = {
             preferred_url = "https://${rtcDomain}/livekit/sfu";
           };
