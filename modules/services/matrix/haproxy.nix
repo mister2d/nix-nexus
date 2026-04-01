@@ -298,10 +298,12 @@ in
         server lk_jwt 127.0.0.1:8081
 
       backend lk_sfu_backend
-        # Strip /livekit/sfu prefix — LiveKit serves its API at root.
-        # Without this, /livekit/sfu/twirp/... reaches LiveKit as-is and 404s.
+        # Strip /livekit/sfu prefix — LiveKit server API is root-based.
         http-request replace-path ^/livekit/sfu(.*) \1
-        option http-server-close
+        # WebSocket Optimization:
+        # matrix-rtc uses long-lived WebSockets for media signaling.
+        # Default timeouts are too aggressive; set tunnel timeout to 1h.
+        timeout tunnel 3600s
         server lk_sfu 127.0.0.1:7880
 
       backend wellknown_backend
