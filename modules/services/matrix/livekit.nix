@@ -42,9 +42,10 @@ in
           # Explicitly include both LAN and WAN IPs as candidates.
           # This ensures direct routing for internal clients and reachable
           # paths for external clients bypassing STUN/Hairpin NAT issues.
+          # Note: LiveKit expects CIDR notation here.
           includes = [
-            "10.0.1.7"
-            "151.196.33.88"
+            "10.0.1.7/32"
+            "151.196.33.88/32"
           ];
         };
         use_external_ip = false;
