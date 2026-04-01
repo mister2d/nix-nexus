@@ -40,16 +40,16 @@ in
         # RTC IP Configuration:
         # LiveKit 1.9.4 uses the 'ips' block to control advertised candidates.
         ips = {
-          # Explicitly include both LAN and WAN IPs as candidates.
-          # This ensures direct routing for internal clients and reachable
-          # paths for external clients bypassing STUN/Hairpin NAT issues.
+          # Explicitly include the LAN IP for direct internal routing.
           # Note: LiveKit expects CIDR notation here.
           includes = [
             "10.0.1.7/32"
-            "151.196.33.88/32"
           ];
         };
-        use_external_ip = false;
+        # Dynamically discover the WAN IP via STUN.
+        # This is more robust than hardcoding in NAT environments where the
+        # public IP might be dynamic or subject to Hairpin NAT behavior.
+        use_external_ip = true;
       };
 
       # Built-in TURN server:
