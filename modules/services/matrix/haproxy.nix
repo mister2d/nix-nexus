@@ -318,7 +318,7 @@ in
         # matrix-rtc uses long-lived WebSockets for media signaling.
         # Default timeouts are too aggressive; set tunnel timeout to 1h.
         timeout tunnel 3600s
-        server lk_sfu 10.0.1.7:7880 check alpn http/1.1
+        server lk_sfu 127.0.0.1:7880 check alpn http/1.1
 
       backend wellknown_backend
         # Strip /.well-known prefix: darkhttpd serves from the Nix store where

@@ -13,6 +13,7 @@ in
     inherit keyFile;
     settings = {
       port = 7880;
+      bind_address = "0.0.0.0";
 
       room = {
         # Authentication Policy:
