@@ -1,5 +1,6 @@
 {
   matrixDomain,
+  turnDomain,
   federatedDomains ? [ ],
   ...
 }:
@@ -18,6 +19,20 @@
 
     settings = {
       # server_name, public_baseurl, and instance_name are PULLED FROM VAULT.
+
+      # TURN Relay:
+      # Integrated with LiveKit's built-in TURN server. Clients receive these
+      # URIs from Synapse and use them as a fallback when direct WebRTC UDP
+      # is blocked. turn_shared_secret is PULLED FROM VAULT.
+      turn_uris = [
+        "stun:${turnDomain}:3478"
+        "turn:${turnDomain}:3478?transport=udp"
+        "turn:${turnDomain}:3478?transport=tcp"
+        "turns:${turnDomain}:5349?transport=tcp"
+      ];
+      # HMAC-SHA1 shared secret for generating time-limited credentials.
+      # turn_shared_secret: (rendered from Vault to /run/secrets/synapse-secrets.yaml)
+      turn_user_lifetime = 86400000; # 1 day
 
       # Federation (Structural)
       federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;

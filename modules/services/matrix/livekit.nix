@@ -1,11 +1,11 @@
 {
-  pkgs,
   matrixDomain,
   turnDomain,
   ...
 }:
 let
-  keyFile = "/run/livekit.key";
+  # Key rendered by Vault Agent from turn_shared_secret.
+  keyFile = "/run/secrets/livekit.key";
 in
 {
   services.livekit = {
@@ -60,8 +60,6 @@ in
     };
   };
 
-  # MatrixRTC Token Service:
-  # Provides JWT-based authentication for clients connecting to the SFU.
   services.lk-jwt-service = {
     enable = true;
     port = 8081;
@@ -70,27 +68,6 @@ in
   };
 
   systemd.services = {
-    # Key Management:
-    # Automated, idempotent generation of SFU access keys.
-    livekit-key = {
-      before = [
-        "lk-jwt-service.service"
-        "livekit.service"
-      ];
-      wantedBy = [ "multi-user.target" ];
-      path = with pkgs; [
-        livekit
-        coreutils
-        gawk
-      ];
-      script = ''
-        echo "lk-jwt-service: $(livekit-server generate-keys | tail -1 | awk '{print $3}')" \
-          > "${keyFile}"
-      '';
-      serviceConfig.Type = "oneshot";
-      unitConfig.ConditionPathExists = "!${keyFile}";
-    };
-
     lk-jwt-service.serviceConfig.Environment = [
       "LIVEKIT_URL=wss://${matrixDomain}/livekit/sfu"
       "LIVEKIT_FULL_ACCESS_HOMESERVERS=${matrixDomain}"

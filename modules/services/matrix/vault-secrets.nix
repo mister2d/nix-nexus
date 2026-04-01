@@ -69,6 +69,15 @@ let
     {{ end }}
   '';
 
+  # LiveKit Key File:
+  # Reuses the same turn_shared_secret from Synapse as the API secret.
+  # This ensures Synapse-generated TURN credentials work against LiveKit.
+  livekitKeyTmpl = pkgs.writeText "livekit-key.ctmpl" ''
+    {{ with $s := secret "${synapsePath}" }}
+    lk-jwt-service: {{ $s.Data.data.turn_shared_secret }}
+    {{ end }}
+  '';
+
   # Synapse Email Configuration:
   synapseEmailTmpl = pkgs.writeText "synapse-email.ctmpl" ''
     {{ with $smtp := secret "${smtpPath}" }}
@@ -279,6 +288,14 @@ let
       perms = 0640
       group = "matrix-secrets"
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
+    }
+
+    template {
+      source = "${livekitKeyTmpl}"
+      destination = "${secretDir}/livekit.key"
+      perms = 0640
+      group = "matrix-secrets"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service lk-jwt-service.service || true'"
     }
 
     template { 
