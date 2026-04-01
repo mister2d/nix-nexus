@@ -24,6 +24,21 @@ let
             livekit_service_url = "https://${rtcDomain}/livekit/jwt";
             livekit_alias = matrixDomain;
           }
+          {
+            type = "rtc_transports";
+            livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+            livekit_alias = matrixDomain;
+          }
+          {
+            type = "foci";
+            livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+            livekit_alias = matrixDomain;
+          }
+          {
+            type = "transports";
+            livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+            livekit_alias = matrixDomain;
+          }
         ];
         "org.matrix.msc4143.rtc_web_v1" = {
           livekit = {

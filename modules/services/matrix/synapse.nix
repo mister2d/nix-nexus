@@ -165,6 +165,16 @@
           livekit_service_url = "https://${rtcDomain}/livekit/jwt";
           livekit_alias = matrixDomain;
         }
+        {
+          type = "rtc_transports";
+          livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+          livekit_alias = matrixDomain;
+        }
+        {
+          type = "foci";
+          livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+          livekit_alias = matrixDomain;
+        }
       ];
     };
   };
