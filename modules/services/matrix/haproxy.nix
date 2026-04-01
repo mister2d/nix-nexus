@@ -118,13 +118,19 @@ let
           "org.matrix.msc4140.rtc_focus" = {
             type = "org.matrix.msc4140.transport.livekit";
             livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+            livekit_alias = matrixDomain;
           };
           "org.matrix.msc4140.rtc_v1" = {
             livekit = {
               preferred_url = "https://${rtcDomain}/livekit/sfu";
             };
           };
-          # Legacy / Specific draft implementations
+          # Unified / Spec Keys
+          "matrix_rtc" = {
+            "urn:matrix:org.matrix.msc3861:livekit" = {
+              preferred_url = "https://${rtcDomain}/livekit/sfu";
+            };
+          };
           "org.matrix.msc3861.matrix_rtc" = {
             "urn:matrix:org.matrix.msc3861:livekit" = {
               preferred_url = "https://${rtcDomain}/livekit/sfu";
@@ -239,7 +245,7 @@ in
         acl is_mas_auth         path_beg /auth
         acl is_mas_oidc         path_beg /_mas
         acl is_lk_jwt           path_beg /livekit/jwt
-        acl is_lk_sfu           path_beg /livekit/sfu
+        acl is_lk_sfu           path_beg /livekit/sfu or path_beg /twirp/
         acl is_lk_jwt_endpoint  path /livekit/jwt/sfu/get or path_beg /livekit/sfu/get
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
