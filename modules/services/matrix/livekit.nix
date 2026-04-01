@@ -32,25 +32,24 @@ in
         # opened in hosts/avina/default.nix allowedUDPPortRanges (50100-50200).
         port_range_start = 50100;
         port_range_end = 50200;
-        # TCP fallback for RTC media (not TURN — direct RTP-over-TCP to SFU).
-        # Serves clients on networks where all UDP is blocked. Must be opened
-        # in the firewall and NAT-forwarded at the edge router independently
-        # of the Cloudflare tunnel (media never transits Cloudflare).
+        # TCP fallback for RTC media.
         tcp_port = 7881;
 
         # RTC IP Configuration:
-        # LiveKit 1.9.4 uses the 'ips' block to control advertised candidates.
+        # Advertise the LAN IP directly. use_external_ip = true is intentionally
+        # absent: it would cause LiveKit to discover the WAN IP via STUN and use
+        # it for both ICE host candidates and TURN relay allocation. The WAN IP
+        # does not exist as a local interface on avina, so TURN relay allocation
+        # fails silently (no relay candidates are produced), and host candidates
+        # at the WAN IP are unreachable internally without hairpin NAT.
+        # Split horizon DNS resolves matrix-rtc.novuscotia.com to 10.0.1.7 for
+        # internal clients, so advertising 10.0.1.7 directly gives all LAN and
+        # Tailscale-subnet clients a valid host candidate and working TURN relay.
         ips = {
-          # Explicitly include the LAN IP for direct internal routing.
-          # Note: LiveKit expects CIDR notation here.
           includes = [
             "10.0.1.7/32"
           ];
         };
-        # Dynamically discover the WAN IP via STUN.
-        # This is more robust than hardcoding in NAT environments where the
-        # public IP might be dynamic or subject to Hairpin NAT behavior.
-        use_external_ip = true;
       };
 
       # Built-in TURN server:
