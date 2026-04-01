@@ -115,5 +115,7 @@ _:
 
     OMNI_ENDPOINT = "https://omni.novuscotia.com/";
     OMNICONFIG = "$HOME/.config/omni/config";
+
+    RTK_TELEMETRY_DISABLED = "1";
   };
 }
