@@ -35,11 +35,18 @@ in
         # in the firewall and NAT-forwarded at the edge router independently
         # of the Cloudflare tunnel (media never transits Cloudflare).
         tcp_port = 7881;
-        node_ip = "10.0.1.7";
-        # Explicitly advertise the WAN IP for external clients.
-        # This bypasses Hairpin NAT/STUN issues in some unprivileged LXC environments.
-        # Note: Must be updated if the WAN IP changes.
-        external_ips = [ "151.196.33.88" ];
+
+        # RTC IP Configuration:
+        # LiveKit 1.9.4 uses the 'ips' block to control advertised candidates.
+        ips = {
+          # Explicitly include both LAN and WAN IPs as candidates.
+          # This ensures direct routing for internal clients and reachable
+          # paths for external clients bypassing STUN/Hairpin NAT issues.
+          includes = [
+            "10.0.1.7"
+            "151.196.33.88"
+          ];
+        };
         use_external_ip = false;
       };
 
