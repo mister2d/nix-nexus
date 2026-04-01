@@ -253,16 +253,17 @@ in
         acl is_tos              path_beg /tos
         acl is_rtc_domain       hdr(host) -i ${rtcDomain}
 
-        # MSC4143 RTC transport discovery — served statically before backend routing.
+        # MSC4143 / MSC4140 / MatrixRTC transport discovery — served statically before backend routing.
         # Synapse requires auth on this endpoint but clients call it unauthenticated
         # as a capability check. The response is static and non-sensitive.
-        # Note: http-request return does not support backslash line continuation.
-        # CORS required: Element Call (callDomain) fetches this cross-origin.
-        # Handle OPTIONS preflight and GET response with full CORS headers.
-        # Returning multiple variants (transports, foci_preferred, matrix_rtc) ensures
-        # compatibility with JS SDK, Rust SDK, and various draft versions.
-        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin" if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports } { method OPTIONS }
-        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"foci":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}}}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+        # CORS required: Element Call (rtcDomain) and Element X (mobile) fetch this cross-origin.
+        # Returning multiple variants (transports, foci, matrix_rtc) ensures
+        # compatibility with JS SDK (msc4143), Rust SDK (msc4140), and Spec (matrix_rtc).
+        acl is_rtc_discovery path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports
+        acl is_rtc_discovery path /_matrix/client/unstable/org.matrix.msc4140/rtc/transports
+        acl is_rtc_discovery path /_matrix/client/v1/matrix_rtc/transports
+        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin" if is_rtc_discovery { method OPTIONS }
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"foci":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}}}' if is_rtc_discovery
 
         # CORS preflight for well-known discovery.
         http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS" hdr "Access-Control-Allow-Headers" "Content-Type, Origin, Authorization, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin, X-Requested-With" if { path /.well-known/matrix/client } { method OPTIONS }
