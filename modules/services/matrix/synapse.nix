@@ -1,6 +1,6 @@
 {
   matrixDomain,
-  turnDomain,
+  rtcDomain,
   federatedDomains ? [ ],
   ...
 }:
@@ -25,10 +25,10 @@
       # URIs from Synapse and use them as a fallback when direct WebRTC UDP
       # is blocked. turn_shared_secret is PULLED FROM VAULT.
       turn_uris = [
-        "stun:${turnDomain}:3478"
-        "turn:${turnDomain}:3478?transport=udp"
-        "turn:${turnDomain}:3478?transport=tcp"
-        "turns:${turnDomain}:5349?transport=tcp"
+        "stun:${rtcDomain}:3478"
+        "turn:${rtcDomain}:3478?transport=udp"
+        "turn:${rtcDomain}:3478?transport=tcp"
+        "turns:${rtcDomain}:5349?transport=tcp"
       ];
       # HMAC-SHA1 shared secret for generating time-limited credentials.
       # turn_shared_secret: (rendered from Vault to /run/secrets/synapse-secrets.yaml)
@@ -162,7 +162,7 @@
       matrix_rtc.transports = [
         {
           type = "livekit";
-          livekit_service_url = "https://${matrixDomain}/livekit";
+          livekit_service_url = "https://${rtcDomain}/livekit/jwt";
           livekit_alias = matrixDomain;
         }
       ];

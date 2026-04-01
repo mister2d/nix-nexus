@@ -1,7 +1,7 @@
 {
   pkgs,
   matrixDomain,
-  callDomain,
+  rtcDomain,
   ...
 }:
 let
@@ -34,23 +34,23 @@ let
         "org.matrix.msc4143.rtc_foci" = [
           {
             type = "livekit";
-            livekit_service_url = "https://${matrixDomain}/livekit";
+            livekit_service_url = "https://${rtcDomain}/livekit/jwt";
             livekit_alias = matrixDomain;
           }
         ];
         "org.matrix.msc4143.rtc_web_v1" = {
           livekit = {
-            preferred_url = "https://${matrixDomain}/livekit";
+            preferred_url = "https://${rtcDomain}/livekit/sfu";
           };
         };
         "org.matrix.msc4140.rtc_v1" = {
           livekit = {
-            preferred_url = "https://${matrixDomain}/livekit";
+            preferred_url = "https://${rtcDomain}/livekit/sfu";
           };
         };
         "org.matrix.msc3861.matrix_rtc" = {
           "urn:matrix:org.matrix.msc3861:livekit" = {
-            preferred_url = "https://${matrixDomain}/livekit";
+            preferred_url = "https://${rtcDomain}/livekit/sfu";
           };
         };
       };
@@ -66,7 +66,7 @@ let
       };
 
       element_call = {
-        url = "https://${callDomain}";
+        url = "https://${rtcDomain}";
         use_exclusively = true;
       };
     }

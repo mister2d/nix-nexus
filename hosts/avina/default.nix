@@ -13,8 +13,7 @@ let
     matrixDomain
     elementDomain
     masDomain
-    callDomain
-    turnDomain
+    rtcDomain
     vaultAddr
     certDomain
     ;
@@ -55,8 +54,7 @@ in
       matrixDomain
       elementDomain
       masDomain
-      callDomain
-      turnDomain
+      rtcDomain
       federatedDomains
       vaultAddr
       certDomain

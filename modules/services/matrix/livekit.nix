@@ -1,6 +1,6 @@
 {
   matrixDomain,
-  turnDomain,
+  rtcDomain,
   ...
 }:
 let
@@ -51,7 +51,7 @@ in
       # Credentials are HMAC-generated per-session; use_external_ip discovers WAN IP via STUN.
       turn = {
         enabled = true;
-        domain = turnDomain;
+        domain = rtcDomain;
         tls_port = 5349;
         udp_port = 3478;
         cert_file = "/run/certs/turn-fullchain.pem";
@@ -60,16 +60,18 @@ in
     };
   };
 
+  # MatrixRTC Token Service:
+  # Provides JWT-based authentication for clients connecting to the SFU.
   services.lk-jwt-service = {
     enable = true;
     port = 8081;
     inherit keyFile;
-    livekitUrl = "wss://${matrixDomain}/livekit/sfu";
+    livekitUrl = "wss://${rtcDomain}/livekit/sfu";
   };
 
   systemd.services = {
     lk-jwt-service.serviceConfig.Environment = [
-      "LIVEKIT_URL=wss://${matrixDomain}/livekit/sfu"
+      "LIVEKIT_URL=wss://${rtcDomain}/livekit/sfu"
       "LIVEKIT_FULL_ACCESS_HOMESERVERS=${matrixDomain}"
     ];
   };

@@ -3,7 +3,7 @@
   lib,
   matrixDomain,
   masDomain,
-  callDomain,
+  rtcDomain,
   elementDomain,
   ...
 }:
@@ -104,26 +104,26 @@ let
           "org.matrix.msc4143.rtc_foci" = [
             {
               type = "livekit";
-              livekit_service_url = "https://${matrixDomain}/livekit";
+              livekit_service_url = "https://${rtcDomain}/livekit/jwt";
               livekit_alias = matrixDomain;
             }
           ];
           # Element Desktop / Newer Element Web (some versions)
           "org.matrix.msc4143.rtc_web_v1" = {
             livekit = {
-              preferred_url = "https://${matrixDomain}/livekit";
+              preferred_url = "https://${rtcDomain}/livekit/sfu";
             };
           };
           # Element X / MatrixRTC v1
           "org.matrix.msc4140.rtc_v1" = {
             livekit = {
-              preferred_url = "https://${matrixDomain}/livekit";
+              preferred_url = "https://${rtcDomain}/livekit/sfu";
             };
           };
           # Legacy / Specific draft implementations
           "org.matrix.msc3861.matrix_rtc" = {
             "urn:matrix:org.matrix.msc3861:livekit" = {
-              preferred_url = "https://${matrixDomain}/livekit";
+              preferred_url = "https://${rtcDomain}/livekit/sfu";
             };
           };
         }
@@ -234,14 +234,14 @@ in
         acl is_mas_domain       hdr(host) -i ${masDomain}
         acl is_mas_auth         path_beg /auth
         acl is_mas_oidc         path_beg /_mas
-        acl is_lk_jwt           path_beg /livekit
+        acl is_lk_jwt           path_beg /livekit/jwt
         acl is_lk_sfu           path_beg /livekit/sfu
-        acl is_lk_jwt_endpoint  path /livekit/sfu/get or path_beg /livekit/jwt/sfu/get
+        acl is_lk_jwt_endpoint  path /livekit/jwt/sfu/get or path_beg /livekit/sfu/get
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
         acl is_wellknown        path_beg /.well-known
         acl is_tos              path_beg /tos
-        acl is_call             hdr(host) -i ${callDomain}
+        acl is_rtc_domain       hdr(host) -i ${rtcDomain}
 
         # MSC4143 RTC transport discovery — served statically before backend routing.
         # Synapse requires auth on this endpoint but clients call it unauthenticated
@@ -251,16 +251,20 @@ in
         # Handle OPTIONS preflight and GET response with full CORS headers.
         # Returning multiple variants (transports, foci_preferred, matrix_rtc) ensures
         # compatibility with JS SDK, Rust SDK, and various draft versions.
-        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit","livekit_alias":"${matrixDomain}"}],"foci_preferred":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${matrixDomain}/livekit"}}}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports } { method OPTIONS }
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"foci_preferred":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}}}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+
+        # CORS preflight for well-known discovery.
+        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS" hdr "Access-Control-Allow-Headers" "Content-Type, Origin, Authorization, X-Requested-With" if { path /.well-known/matrix/client } { method OPTIONS }
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
-        use_backend lk_jwt_backend    if is_lk_jwt_endpoint
+        use_backend element_call_backend if is_rtc_domain { path / } or is_rtc_domain { path_beg /assets } or is_rtc_domain { path /config.json } or is_rtc_domain { path /manifest.json }
+        use_backend lk_jwt_backend    if is_lk_jwt_endpoint or is_lk_jwt
         use_backend lk_sfu_backend    if is_lk_sfu
-        use_backend lk_jwt_backend    if is_lk_jwt
         use_backend wellknown_backend if is_wellknown
         use_backend tos_backend       if is_tos
         use_backend synapse_backend   if is_matrix or is_synapse
-        use_backend element_call_backend if is_call
+        use_backend element_call_backend if is_rtc_domain
         default_backend element_backend
 
       # System Health & Metrics:
@@ -284,17 +288,17 @@ in
       backend lk_jwt_backend
         # CORS preflight: lk-jwt-service returns non-2xx for OPTIONS, which causes
         # browsers to block the actual JWT POST. Intercept here and return 204.
-        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type" if { method OPTIONS }
+        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, X-Requested-With" if { method OPTIONS }
         # Path stripping:
-        #   Element Call (JS): /livekit/sfu/get  → strip /livekit      → /sfu/get
-        #   Element X (Rust):  /livekit/jwt/sfu/get → strip /livekit/jwt → /sfu/get
-        # lk-jwt-service serves at /sfu/get; the /jwt/ variant is the Rust SDK convention.
+        # Standard: /livekit/jwt/sfu/get -> /sfu/get
+        # Rust SDK: /livekit/jwt/jwt/sfu/get -> /sfu/get
+        # JS SDK fallback: /livekit/sfu/get -> /sfu/get
         http-request replace-path ^/livekit/jwt(.*) \1
         http-request replace-path ^/livekit(.*) \1
         # CORS headers on actual responses.
         http-response set-header Access-Control-Allow-Origin "*"
         http-response set-header Access-Control-Allow-Methods "POST, OPTIONS"
-        http-response set-header Access-Control-Allow-Headers "Authorization, Content-Type"
+        http-response set-header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
         server lk_jwt 127.0.0.1:8081
 
       backend lk_sfu_backend
@@ -324,11 +328,12 @@ in
         # to Element Web. Widget iframes from Element Web always include widgetId
         # in the query string and pass through unmodified.
         http-request redirect code 302 location https://${elementDomain} unless { query -m sub widgetId }
-        # Security headers: omit frame-ancestors — Element Call is embedded as a
-        # cross-origin iframe from ${elementDomain} and must not restrict framing.
+        # Security headers: allow framing from elementDomain — Element Call is 
+        # embedded as a widget iframe.
         http-response set-header X-Content-Type-Options "nosniff"
         http-response set-header X-XSS-Protection "1; mode=block"
         http-response set-header X-Robots-Tag "noindex, nofollow, noarchive, noimageindex"
+        http-response set-header Content-Security-Policy "frame-ancestors https://${elementDomain}"
         server element_call 127.0.0.1:8084
 
       backend element_backend
