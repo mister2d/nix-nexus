@@ -79,9 +79,11 @@ in
     # Keep NixOS option 'port' to satisfy module validation.
     port = 8081;
     inherit keyFile;
-    # Point directly to the local SFU instead of through HAProxy.
-    # ws:// protocol satisfies module validation for internal plaintext connection.
-    livekitUrl = "ws://127.0.0.1:7880";
+    # Public SFU URL returned to clients in JWT responses.
+    # MUST be the public WebSocket endpoint — clients use this URL to connect
+    # to the SFU. Using the internal 127.0.0.1 address would cause clients to
+    # attempt connecting to their own localhost and silently fail.
+    livekitUrl = "wss://${rtcDomain}/livekit/sfu";
   };
 
   systemd.services.lk-jwt-service = {
@@ -90,7 +92,11 @@ in
     environment = {
       LIVEKIT_JWT_PORT = lib.mkForce null;
       LIVEKIT_JWT_BIND = ":8081";
-      LIVEKIT_URL = "ws://127.0.0.1:7880";
+      # Public SFU URL — returned in /sfu/get responses so clients connect
+      # through HAProxy (/livekit/sfu → 127.0.0.1:7880) rather than to
+      # localhost. The LiveKit Go SDK converts wss:// to https:// for Twirp
+      # API calls, which route correctly via lk_sfu_backend.
+      LIVEKIT_URL = "wss://${rtcDomain}/livekit/sfu";
       LIVEKIT_FULL_ACCESS_HOMESERVERS = matrixDomain;
       # Internal Discovery: Point directly to the local well-known server.
       # This ensures lk-jwt-service can resolve homeserver details even if

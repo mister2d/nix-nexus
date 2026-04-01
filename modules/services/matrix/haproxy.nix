@@ -334,6 +334,11 @@ in
         http-response set-header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
         http-response set-header Access-Control-Allow-Headers "Content-Type, Origin, Authorization, X-Requested-With"
         http-response set-header Access-Control-Expose-Headers "Content-Type, Authorization, Origin"
+        # Content-Type override: darkhttpd serves files without extensions (e.g.
+        # /matrix/client) as application/octet-stream. matrix-js-sdk silently
+        # rejects non-JSON responses, leaving getClientWellKnown() empty and
+        # causing Element Web to report MISSING_MATRIX_RTC_FOCUS.
+        http-response set-header Content-Type "application/json"
         server wellknown 127.0.0.1:8083
 
       backend tos_backend
