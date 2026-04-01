@@ -280,14 +280,14 @@ let
       destination = "${certDir}/turn-fullchain.pem"
       perms = 0644
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit-server.service || true'"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
     }
     template {
       source = "${turnKeyTmpl}"
       destination = "${certDir}/turn.key"
       perms = 0640
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit-server.service || true'"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true'"
     }
 
     template {
@@ -295,7 +295,7 @@ let
       destination = "${secretDir}/livekit.key"
       perms = 0640
       group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit-server.service lk-jwt-service.service || true'"
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block livekit.service lk-jwt-service.service || true'"
     }
 
     template { 
@@ -421,7 +421,7 @@ in
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
-      livekit-server = {
+      livekit = {
         after = [ "vault-agent-init.service" ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };

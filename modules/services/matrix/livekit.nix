@@ -13,7 +13,6 @@ in
     inherit keyFile;
     settings = {
       port = 7880;
-      bind_address = "0.0.0.0";
 
       room = {
         # Authentication Policy:
@@ -40,7 +39,7 @@ in
         # Explicitly advertise the WAN IP for external clients.
         # This bypasses Hairpin NAT/STUN issues in some unprivileged LXC environments.
         # Note: Must be updated if the WAN IP changes.
-        external_ip = "151.196.33.88";
+        external_ips = [ "151.196.33.88" ];
         use_external_ip = false;
       };
 
