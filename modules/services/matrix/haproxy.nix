@@ -270,8 +270,9 @@ in
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend element_call_backend if is_rtc_domain { path / } or is_rtc_domain { path_beg /assets } or is_rtc_domain { path /config.json } or is_rtc_domain { path /manifest.json }
-        use_backend lk_jwt_backend    if is_lk_jwt_endpoint or is_lk_jwt
+        use_backend lk_jwt_backend    if is_lk_jwt_endpoint
         use_backend lk_sfu_backend    if is_lk_sfu
+        use_backend lk_jwt_backend    if is_lk_jwt
         use_backend wellknown_backend if is_wellknown
         use_backend tos_backend       if is_tos
         use_backend synapse_backend   if is_matrix or is_synapse
