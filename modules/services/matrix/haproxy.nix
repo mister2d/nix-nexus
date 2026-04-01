@@ -108,6 +108,24 @@ let
               livekit_alias = matrixDomain;
             }
           ];
+          # Element Desktop / Newer Element Web (some versions)
+          "org.matrix.msc4143.rtc_web_v1" = {
+            livekit = {
+              preferred_url = "https://${matrixDomain}/livekit";
+            };
+          };
+          # Element X / MatrixRTC v1
+          "org.matrix.msc4140.rtc_v1" = {
+            livekit = {
+              preferred_url = "https://${matrixDomain}/livekit";
+            };
+          };
+          # Legacy / Specific draft implementations
+          "org.matrix.msc3861.matrix_rtc" = {
+            "urn:matrix:org.matrix.msc3861:livekit" = {
+              preferred_url = "https://${matrixDomain}/livekit";
+            };
+          };
         }
       ))
       # Federation server discovery: tells remote servers to connect on port 443
@@ -218,7 +236,7 @@ in
         acl is_mas_oidc         path_beg /_mas
         acl is_lk_jwt           path_beg /livekit
         acl is_lk_sfu           path_beg /livekit/sfu
-        acl is_lk_jwt_endpoint  path /livekit/sfu/get
+        acl is_lk_jwt_endpoint  path /livekit/sfu/get or path_beg /livekit/jwt/sfu/get
         acl is_matrix           path_beg /_matrix
         acl is_synapse          path_beg /_synapse
         acl is_wellknown        path_beg /.well-known
@@ -231,7 +249,9 @@ in
         # Note: http-request return does not support backslash line continuation.
         # CORS required: Element Call (callDomain) fetches this cross-origin.
         # Handle OPTIONS preflight and GET response with full CORS headers.
-        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit","livekit_alias":"${matrixDomain}"}]}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+        # Returning multiple variants (transports, foci_preferred, matrix_rtc) ensures
+        # compatibility with JS SDK, Rust SDK, and various draft versions.
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit","livekit_alias":"${matrixDomain}"}],"foci_preferred":[{"type":"livekit","livekit_service_url":"https://${matrixDomain}/livekit","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${matrixDomain}/livekit"}}}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
 
         use_backend mas_backend       if is_mas_domain or is_mas_compat_auth or is_mas_compat or is_mas_auth or is_mas_oidc
         use_backend lk_jwt_backend    if is_lk_jwt_endpoint

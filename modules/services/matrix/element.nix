@@ -38,6 +38,21 @@ let
             livekit_alias = matrixDomain;
           }
         ];
+        "org.matrix.msc4143.rtc_web_v1" = {
+          livekit = {
+            preferred_url = "https://${matrixDomain}/livekit";
+          };
+        };
+        "org.matrix.msc4140.rtc_v1" = {
+          livekit = {
+            preferred_url = "https://${matrixDomain}/livekit";
+          };
+        };
+        "org.matrix.msc3861.matrix_rtc" = {
+          "urn:matrix:org.matrix.msc3861:livekit" = {
+            preferred_url = "https://${matrixDomain}/livekit";
+          };
+        };
       };
       disable_custom_urls = true;
       disable_guests = true;
