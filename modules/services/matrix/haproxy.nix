@@ -114,7 +114,11 @@ let
               preferred_url = "https://${rtcDomain}/livekit/sfu";
             };
           };
-          # Element X / MatrixRTC v1
+          # Element X / MSC4140
+          "org.matrix.msc4140.rtc_focus" = {
+            type = "org.matrix.msc4140.transport.livekit";
+            livekit_service_url = "https://${rtcDomain}/livekit/jwt";
+          };
           "org.matrix.msc4140.rtc_v1" = {
             livekit = {
               preferred_url = "https://${rtcDomain}/livekit/sfu";
@@ -252,7 +256,7 @@ in
         # Returning multiple variants (transports, foci_preferred, matrix_rtc) ensures
         # compatibility with JS SDK, Rust SDK, and various draft versions.
         http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports } { method OPTIONS }
-        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"foci_preferred":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}}}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"foci":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}}}' if { path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports }
 
         # CORS preflight for well-known discovery.
         http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS" hdr "Access-Control-Allow-Headers" "Content-Type, Origin, Authorization, X-Requested-With" if { path /.well-known/matrix/client } { method OPTIONS }
@@ -318,6 +322,8 @@ in
         # discover org.matrix.msc4143.rtc_foci. Without this header the browser
         # silently blocks the response and the client sees MISSING_MATRIX_RTC_TRANSPORT.
         http-response set-header Access-Control-Allow-Origin "*"
+        http-response set-header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        http-response set-header Access-Control-Allow-Headers "Content-Type, Origin, Authorization, X-Requested-With"
         server wellknown 127.0.0.1:8083
 
       backend tos_backend
