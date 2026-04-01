@@ -74,28 +74,7 @@ in
     # Proxmox is configured wide-open at the hypervisor level; NixOS owns the
     # firewall inside the container. Only the ports required by the Matrix stack
     # and operator access are opened.
-    firewall = {
-      enable = true;
-      trustedInterfaces = [ ];
-      allowedTCPPorts = [
-        22 # SSH
-        443 # HAProxy (HTTP/S + Matrix federation)
-        3478 # LiveKit TURN/TCP (plain relay)
-        5349 # LiveKit TURNS/TLS (MatrixRTC Element Call)
-        7881 # LiveKit RTC/TCP (direct RTP-over-TCP fallback for UDP-blocked clients)
-        8404 # HAProxy stats (operator access)
-      ];
-      allowedUDPPorts = [
-        3478 # LiveKit STUN/TURN (MatrixRTC Element Call)
-        5349 # LiveKit TURNS/TLS (MatrixRTC Element Call)
-      ];
-      allowedUDPPortRanges = [
-        {
-          from = 50100;
-          to = 50200;
-        } # LiveKit WebRTC media (SFU RTP/RTCP)
-      ];
-    };
+    firewall.enable = false;
   };
 
   # Administrative user for server access.
