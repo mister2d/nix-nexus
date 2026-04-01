@@ -1,4 +1,5 @@
 {
+  lib,
   matrixDomain,
   rtcDomain,
   ...
@@ -83,16 +84,18 @@ in
     livekitUrl = "ws://127.0.0.1:7880";
   };
 
-  systemd.services = {
-    lk-jwt-service.serviceConfig.Environment = [
-      "LIVEKIT_URL=ws://127.0.0.1:7880"
-      "LIVEKIT_FULL_ACCESS_HOMESERVERS=${matrixDomain}"
-      # Modern bind syntax to resolve service-internal deprecation warning.
-      "LIVEKIT_JWT_BIND=:8081"
+  systemd.services.lk-jwt-service = {
+    # Force use of modern bind syntax by unsetting the module-provided PORT
+    # and explicitly providing BIND. This avoids the 'MUST NOT be set together' error.
+    environment = {
+      LIVEKIT_JWT_PORT = lib.mkForce null;
+      LIVEKIT_JWT_BIND = ":8081";
+      LIVEKIT_URL = "ws://127.0.0.1:7880";
+      LIVEKIT_FULL_ACCESS_HOMESERVERS = matrixDomain;
       # Internal Discovery: Point directly to the local well-known server.
       # This ensures lk-jwt-service can resolve homeserver details even if
       # HAProxy or external DNS are experiencing issues.
-      "LIVEKIT_WELL_KNOWN_URL=http://127.0.0.1:8083"
-    ];
+      LIVEKIT_WELL_KNOWN_URL = "http://127.0.0.1:8083";
+    };
   };
 }
