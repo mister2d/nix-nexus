@@ -116,7 +116,7 @@ let
           };
           # Element X / MSC4140
           "org.matrix.msc4140.rtc_focus" = {
-            type = "org.matrix.msc4140.transport.livekit";
+            type = "livekit";
             livekit_service_url = "https://${rtcDomain}/livekit/jwt";
             livekit_alias = matrixDomain;
           };
@@ -262,8 +262,8 @@ in
         acl is_rtc_discovery path /_matrix/client/unstable/org.matrix.msc4143/rtc/transports
         acl is_rtc_discovery path /_matrix/client/unstable/org.matrix.msc4140/rtc/transports
         acl is_rtc_discovery path /_matrix/client/v1/matrix_rtc/transports
-        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin" if is_rtc_discovery { method OPTIONS }
-        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"foci":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}}}' if is_rtc_discovery
+        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin, X-Requested-With" if is_rtc_discovery { method OPTIONS }
+        http-request return status 200 content-type "application/json" hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, Origin, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin, X-Requested-With" string '{"transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"rtc_transports":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"foci":[{"type":"livekit","livekit_service_url":"https://${rtcDomain}/livekit/jwt","livekit_alias":"${matrixDomain}"}],"matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}},"org.matrix.msc3861.matrix_rtc":{"urn:matrix:org.matrix.msc3861:livekit":{"preferred_url":"https://${rtcDomain}/livekit/sfu"}}}' if is_rtc_discovery
 
         # CORS preflight for well-known discovery.
         http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, PUT, DELETE, OPTIONS" hdr "Access-Control-Allow-Headers" "Content-Type, Origin, Authorization, X-Requested-With" hdr "Access-Control-Expose-Headers" "Content-Type, Authorization, Origin, X-Requested-With" if { path /.well-known/matrix/client } { method OPTIONS }
@@ -310,6 +310,7 @@ in
         http-response set-header Access-Control-Allow-Origin "*"
         http-response set-header Access-Control-Allow-Methods "POST, OPTIONS"
         http-response set-header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
+        http-response set-header Access-Control-Expose-Headers "Content-Type, Authorization, Origin, X-Requested-With"
         server lk_jwt 127.0.0.1:8081
 
       backend lk_sfu_backend
