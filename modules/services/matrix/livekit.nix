@@ -26,10 +26,6 @@ in
       };
 
       rtc = {
-        # Discover public IP via STUN for ICE candidates.
-        # Without this, LiveKit advertises the container's internal veth IP
-        # and WebRTC media cannot reach it from external clients.
-        use_external_ip = true;
         # UDP port range for WebRTC media. Must stay within the range
         # opened in hosts/avina/default.nix allowedUDPPortRanges (50100-50200).
         port_range_start = 50100;
@@ -39,6 +35,8 @@ in
         # in the firewall and NAT-forwarded at the edge router independently
         # of the Cloudflare tunnel (media never transits Cloudflare).
         tcp_port = 7881;
+        node_ip = "10.0.1.7";
+        use_external_ip = false;
       };
 
       # Built-in TURN server:
