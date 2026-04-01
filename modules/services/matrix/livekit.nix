@@ -68,12 +68,14 @@ in
     enable = true;
     port = 8081;
     inherit keyFile;
-    livekitUrl = "wss://${rtcDomain}/livekit/sfu";
+    # Point directly to the local SFU instead of through HAProxy.
+    # ws:// protocol satisfies module validation for internal plaintext connection.
+    livekitUrl = "ws://127.0.0.1:7880";
   };
 
   systemd.services = {
     lk-jwt-service.serviceConfig.Environment = [
-      "LIVEKIT_URL=wss://${rtcDomain}/livekit/sfu"
+      "LIVEKIT_URL=ws://127.0.0.1:7880"
       "LIVEKIT_FULL_ACCESS_HOMESERVERS=${matrixDomain}"
     ];
   };
