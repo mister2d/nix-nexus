@@ -65,9 +65,20 @@ identity.
                                                 │ Routes by Host header + path prefix
           ┌────────────────────┬────────────────┼────────────────────┬────────────────────┐
           │                    │                │                    │                    │
-   element.domain         matrix.domain     mas.domain          call.domain          livekit/jwt
+   element.domain         matrix.domain     mas.domain           rtc.domain          livekit/jwt
    Element Web            Synapse + MAS     MAS (OIDC)          Element Call         lk-jwt-service
    darkhttpd :8082         :8008            :8181 (proxy)       darkhttpd :8084      :8081
+```
+
+**Signaling path** (brokered by Cloudflare Tunnel):
+
+```
+External Client ──HTTPS──► Cloudflare Edge ──Tunnel──► avina :443 (HAProxy)
+                                                        │
+                                                        ├── matrix.novuscotia.com  ──► Synapse
+                                                        ├── element.novuscotia.com ──► Element Web
+                                                        ├── mas.novuscotia.com     ──► MAS
+                                                        └── matrix-rtc.novuscotia.com ──► Element Call
 ```
 
 **Media path** (Direct WAN/LAN — entirely separate from signaling):
@@ -83,7 +94,8 @@ Internal Client ──UDP/TCP Direct──► avina :3478/5349/7881/50100-50200 
 **Hybrid Ingress Implementation:**
 1. **Signaling:** External clients use the Cloudflare Tunnel (HTTPS). Internal clients use **Split-Horizon DNS** to reach `avina:443` directly over the LAN, preserving local IP logs and bypassing the WAN.
 2. **Media:** Both internal and external clients bypass the Tunnel entirely. External clients connect via **Destination NAT** (Edge Router) to the SFU's media ports. Internal clients use the same domains, which resolve to `avina`'s local IP, ensuring zero-latency local media switching.
-3. **Fallback:** If UDP is blocked, **TCP 7881** provides a direct RTP-over-TCP path (not TURN) for maximum compatibility.
+3. **RTC Ingress:** `rtcDomain` (e.g., `matrix-rtc.novuscotia.com`) is a dual-purpose ingress. It serves the **Element Call** web interface (MatrixRTC frontend) and proxies **LiveKit signaling** (WebSocket). External media always takes the direct NAT path to bypass the Tunnel.
+4. **Fallback:** If UDP is blocked, **TCP 7881** provides a direct RTP-over-TCP path (not TURN) for maximum compatibility.
 
 ---
 

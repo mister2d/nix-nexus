@@ -90,6 +90,7 @@ Cloudflare Edge ──► cloudflared tunnel ──► HAProxy 127.0.0.1:8080
   ├── /livekit/jwt/ → lk-jwt-service :8081
   ├── /livekit/sfu/ → LiveKit :7880 (WebSocket signaling)
   ├── /.well-known/ → static JSON responses (MatrixRTC foci)
+  ├── rtcDomain/ → Element Call static :8084
   └── default → Element Web static :8082
 
 WebRTC media (Direct or Relayed)
