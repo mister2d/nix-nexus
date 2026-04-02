@@ -22,21 +22,20 @@
 ## 1. Introduction
 
 **Purpose:** Deploy a fully public, self-hosted **Matrix 2.0** communications platform on
-a dedicated bare-metal NixOS host. The system uses native OIDC via **Matrix Authentication
+a **Proxmox LXC container** running NixOS. The system uses native OIDC via **Matrix Authentication
 Service (MAS)** upstream to a self-hosted Keycloak instance, **MatrixRTC via LiveKit SFU**
-for audio/video, and a hybrid ingress model: Cloudflare Tunnel for all HTTP/S traffic and
-**only Coturn ports** directly exposed at the bare-network layer.
+for audio/video, and a hybrid ingress model: Cloudflare Tunnel for all signaling traffic and
+direct media paths via LiveKit's built-in TURN/STUN relay.
 
 **Scope:**
-- Disk: ZFS (Disko); reuses `den.aspects.base-aspect` ZFS configuration
+- Host: Proxmox LXC (unprivileged)
 - Synapse (element-hq fork) with MSC3861 MAS delegation
 - MAS (Matrix Authentication Service) — native OIDC provider, upstream to Keycloak
-- LiveKit SFU + `lk-jwt-service` — MatrixRTC audio/video; media relayed via Coturn
-- Coturn — TURN/STUN relay; the **only** services with direct bare-network port exposure
-- Element Web (static, served by HAProxy)
+- LiveKit SFU + `lk-jwt-service` — MatrixRTC audio/video; media via internal TURN relay
+- Element Web (static, served by darkhttpd)
 - HAProxy — sole local reverse proxy (no Nginx)
-- `cloudflared` — all HTTP/S inbound traffic
-- `vault-agent` — pulls TLS certs from Vault PKI; triggers service reloads
+- `cloudflared` — external signaling ingress (tunnel)
+- `vault-agent` — pulls TLS certs from Vault KV-v2; triggers service reloads
 - Federation: enabled, controlled via `federation_domain_whitelist`
 
 **Applicable nix-nexus source files:**
@@ -51,49 +50,41 @@ for audio/video, and a hybrid ingress model: Cloudflare Tunnel for all HTTP/S tr
 
 ### 2.1 Network Exposure Model
 
-**Only Coturn service ports are directly exposed from bare network.** All other traffic —
-including SSH — flows through the Cloudflare Tunnel. There are no open inbound TCP/UDP
-ports except those required by Coturn.
+avina uses a "Hybrid Ingress" model. Signaling (HTTPS) is private and brokered via Cloudflare,
+while Media (WebRTC) is directly exposed for performance.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      avina (bare metal)                      │
+│                      avina (LXC Container)                   │
 │                                                              │
-│  Cloudflare Tunnel (cloudflared)                             │
+│  Signaling Ingress (Cloudflare Tunnel)                       │
 │  ─ outbound connection to Cloudflare edge                    │
-│  ─ carries: HTTPS client traffic                             │
+│  ─ carries: HTTPS traffic (Matrix, MAS, Element)             │
 │  ─ terminates at: HAProxy 127.0.0.1:8080                     │
 │                                                              │
 │  DIRECTLY EXPOSED (bare network):                            │
 │    :22  TCP          OpenSSH (cert/key-based; no passwords)  │
-│    :3478 UDP+TCP     Coturn STUN/TURN                        │
-│    :5349 UDP+TCP     Coturn TURNS/TLS                        │
-│    :49000-49999 UDP  Coturn relay range                      │
+│    :3478 UDP+TCP     LiveKit STUN/TURN                       │
+│    :5349 UDP+TCP     LiveKit TURNS/TLS                       │
+│    :7881 TCP         LiveKit RTP-over-TCP fallback           │
+│    :50100-50200 UDP  LiveKit WebRTC media range              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 **SSH access**: Port 22 is open to `0.0.0.0/0`. Password authentication is disabled.
-Certificate-based authentication is enforced via a trusted SSH CA whose public key is
-stored in the nix-nexus repository at `certs/ssh_user_ca.pub`. Root login is permitted
-under the `prohibit-password` policy (certificates and public keys allowed; passwords
-rejected). The operator manages SSH restriction policy outside of this spec.
+Certificate-based authentication is enforced via a trusted SSH CA.
 
-**LiveKit media and direct ports**: Because only Coturn is directly exposed (beyond SSH), LiveKit SFU
-media **must be relayed through Coturn's TURN server**. LiveKit is configured with Coturn
-credentials so WebRTC ICE candidates are TURN-relayed, not direct. LiveKit signaling
-(WebSocket) flows through cloudflared → HAProxy → LiveKit :7880. LiveKit's TCP port 7881
-and UDP 50100–50200 are **not** opened to the public internet.
+**LiveKit media**: LiveKit signaling (WebSocket) flows through cloudflared → HAProxy → LiveKit :7880.
+Media flows directly to ports 50100-50200 (UDP) or 7881 (TCP). Clients behind strict NAT
+use LiveKit's built-in TURN server on ports 3478/5349.
 
 ### 2.2 Ingress Flow
 
 ```
-Internet client
+Internet client (Signaling)
   │ HTTPS
   ▼
-Cloudflare Edge (TLS terminates here)
-  │ via outbound cloudflared tunnel
-  ▼
-HAProxy 127.0.0.1:8080 (plain HTTP)
+Cloudflare Edge ──► cloudflared tunnel ──► HAProxy 127.0.0.1:8080
   ├── /_matrix/ /_synapse/ → Synapse :8008
   ├── /auth/ /_mas/ + login/logout/refresh → MAS :8181
   ├── /livekit/jwt/ → lk-jwt-service :8081
@@ -101,15 +92,10 @@ HAProxy 127.0.0.1:8080 (plain HTTP)
   ├── /.well-known/ → static JSON responses (MatrixRTC foci)
   └── default → Element Web static :8082
 
-SSH (cert/key-based only, all interfaces, prohibit-password root)
-  │ direct; TCP :22 open to 0.0.0.0/0
+WebRTC media (Direct or Relayed)
+  │ UDP/TCP via bare network (Edge Router DNAT)
   ▼
-OpenSSH — TrustedUserCAKeys = certs/ssh_user_ca.pub
-
-WebRTC media (TURN-relayed through Coturn)
-  │ UDP via bare network
-  ▼
-Coturn :3478 / :5349 → relays to LiveKit SFU (localhost)
+LiveKit SFU :50100-50200 (UDP) / :7881 (TCP) / :3478 (TURN)
 ```
 
 ### 2.3 MAS / Native OIDC Architecture (MSC3861)
@@ -155,10 +141,10 @@ vault-agent daemon (custom systemd service on avina)
   │ renders three files to /run/certs/
   ├── /run/certs/haproxy.pem       (fullchain+privkey combined)
   │   → command: systemctl reload haproxy.service || true
-  ├── /run/certs/coturn-fullchain.pem  (fullchain only)
-  │   → command: systemctl reload coturn.service || true
-  └── /run/certs/coturn.key           (privkey only)
-      → command: systemctl reload coturn.service || true
+  ├── /run/certs/turn-fullchain.pem  (fullchain only)
+  │   → command: systemctl restart livekit.service || true
+  └── /run/certs/turn.key           (privkey only)
+      → command: systemctl restart livekit.service || true
 ```
 
 Cloudflare-proxied domains (MATRIX_DOMAIN, ELEMENT_DOMAIN, MAS_DOMAIN) do not need local
@@ -290,160 +276,11 @@ services.postgresql = {
 
 ### 3.3 Matrix Authentication Service (MAS) — Custom Module
 
-Query `mcp-nixos` first to confirm no module exists. If none found, implement:
-
-**`modules/services/matrix/mas.nix`**:
-```nix
-{ config, lib, pkgs, ... }:
-let
-  stateDir   = "/var/lib/matrix-authentication-service";
-  configFile = "/run/secrets/mas-config.yaml";
-in
-{
-  users.users.matrix-authentication-service = {
-    isSystemUser = true;
-    group        = "matrix-authentication-service";
-    home         = stateDir;
-    createHome   = true;
-    description  = "Matrix Authentication Service daemon user";
-  };
-  users.groups.matrix-authentication-service = {};
-
-  systemd.services.matrix-authentication-service = {
-    description   = "Matrix Authentication Service (MAS) — MSC3861 native OIDC provider";
-    documentation = [ "https://matrix-org.github.io/matrix-authentication-service/" ];
-    after         = [ "network.target" "postgresql.service" ];
-    requires      = [ "postgresql.service" ];
-    wantedBy      = [ "multi-user.target" ];
-    serviceConfig = {
-      User             = "matrix-authentication-service";
-      Group            = "matrix-authentication-service";
-      StateDirectory   = "matrix-authentication-service";
-      WorkingDirectory = stateDir;
-      # DB migrations must complete before server starts
-      ExecStartPre = "${pkgs.matrix-authentication-service}/bin/mas-cli "
-        + "database migrate --config ${configFile}";
-      ExecStart = "${pkgs.matrix-authentication-service}/bin/mas-cli "
-        + "server --config ${configFile}";
-      Restart             = "on-failure";
-      RestartSec          = "5s";
-      # Hardening — matches nix-nexus patterns from modules/core/security.nix
-      NoNewPrivileges     = true;
-      PrivateTmp          = true;
-      ProtectSystem       = "strict";
-      ProtectHome         = true;
-      ReadWritePaths      = [ stateDir ];
-      ReadOnlyPaths       = [ configFile ];
-      CapabilityBoundingSet = [];
-      AmbientCapabilities   = [];
-    };
-  };
-}
-```
-
-**`/run/secrets/mas-config.yaml`** (operator provisions; never in Nix store):
-```yaml
-http:
-  listeners:
-    - name: web
-      resources:
-        - name: discovery
-        - name: human
-        - name: oauth
-        - name: compat
-        - name: graphql
-        - name: assets
-      binds:
-        - host: "127.0.0.1"
-          port: 8181
-
-database:
-  host: "/run/postgresql"
-  port: 5432
-  database: "matrix-authentication-service"
-  username: "matrix-authentication-service"
-  password: ""   # peer auth via Unix socket
-
-secrets:
-  # Generate ONCE: openssl rand -hex 32
-  # WARNING: Regenerating this secret invalidates ALL active user sessions.
-  # Store permanently; treat as a master key.
-  encryption: "<64-char hex>"
-
-upstream_oauth2:
-  providers:
-    - id: keycloak
-      human_name: "Login with Keycloak"
-      issuer: "https://SSO_DOMAIN/realms/homelab"
-      client_id: "mas"
-      client_secret: "<Keycloak client secret>"
-      token_endpoint_auth_method: "client_secret_basic"
-      scope: "openid profile email"
-      claims_imports:
-        localpart:
-          action: require
-          template: "{{ user.preferred_username }}"
-        displayname:
-          action: suggest
-          template: "{{ user.name }}"
-        email:
-          action: suggest
-          template: "{{ user.email }}"
-
-matrix:
-  homeserver: "MATRIX_DOMAIN"
-  secret: "<matches msc3861.client_secret in synapse-secrets.yaml>"
-  endpoint: "http://127.0.0.1:8008"
-```
-
-**Keycloak pre-requisites** (operator completes before deploy):
-1. Create OIDC Confidential client `mas` in realm `homelab`
-2. Set redirect URI: `https://MAS_DOMAIN/upstream/callback/keycloak`
-3. Copy generated client secret into `mas-config.yaml`
-
-### 3.4 Coturn
-
-Coturn is the **only** service with direct bare-network port exposure.
-
-```nix
-services.coturn = {
-  enable       = true;
-  no-cli       = true;
-  no-tcp-relay = true;
-  min-port     = 49000;
-  max-port     = 49999;
-  use-auth-secret = true;
-  realm        = coturnRealm;
-  cert         = "/run/certs/coturn-fullchain.pem";  # rendered by vault-agent
-  pkey         = "/run/certs/coturn.key";            # rendered by vault-agent
-  # Check via mcp-nixos whether static-auth-secret is type str (store-visible).
-  # If so, use extraConfig file reference instead:
-  extraConfig = ''
-    static-auth-secret-file=/run/secrets/coturn-secret
-    no-multicast-peers
-    denied-peer-ip=0.0.0.0-0.255.255.255
-    denied-peer-ip=10.0.0.0-10.255.255.255
-    denied-peer-ip=100.64.0.0-100.127.255.255
-    denied-peer-ip=127.0.0.0-127.255.255.255
-    denied-peer-ip=169.254.0.0-169.254.255.255
-    denied-peer-ip=172.16.0.0-172.31.255.255
-    denied-peer-ip=192.168.0.0-192.168.255.255
-    denied-peer-ip=::1
-    denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
-  '';
-};
-```
-
-> **`static-auth-secret-file`**: Verify that the packaged coturn version supports reading
-> the secret from a file via this option. If not, use a `preStart` script to pass it
-> inline, sourcing from the runtime secret path — never hardcoded.
-
 ### 3.5 LiveKit SFU + lk-jwt-service (MatrixRTC)
 
-**Media routing through Coturn**: Because LiveKit's direct UDP ports are not exposed,
-all WebRTC media from clients must be TURN-relayed via Coturn. LiveKit itself uses Coturn
-as a TURN client to reach remote ICE candidates. Configure Coturn credentials in LiveKit's
-settings so it can relay media correctly.
+**Media routing**: LiveKit's direct UDP ports (50100-50200) and TCP port (7881)
+are exposed via DNAT at the edge router. For clients behind strict NAT, LiveKit's
+built-in TURN/STUN relay is used on ports 3478 and 5349.
 
 Confirm modules exist via `mcp-nixos`:
 - `services.livekit.enable`
@@ -472,8 +309,8 @@ systemd.services.livekit-key = {
 - `keyFile = "/run/livekit.key"`
 - `settings.room.auto_create = false` ← **mandatory**; prevents unauthenticated room creation
 - HTTP: `127.0.0.1:7880` (WebSocket signaling proxied via HAProxy)
-- **Do not expose** 7881 TCP or 50100–50200 UDP publicly; media flows via Coturn TURN
-- TURN configuration: point LiveKit at Coturn (`turn:COTURN_REALM:3478`) with shared secret
+- **Direct Exposure**: 7881 TCP and 50100–50200 UDP publicly via Edge Router DNAT.
+- **Internal TURN**: Built-in relay on 3478 (UDP+TCP) and 5349 (TLS).
 
 **lk-jwt-service** (`services.lk-jwt-service`):
 - `livekitUrl = "wss://MATRIX_DOMAIN/livekit/sfu"` (via HAProxy → cloudflared)
@@ -508,16 +345,16 @@ outside this spec is responsible for placing the Let's Encrypt certificate into 
 the path `kv-v2/letsencrypt/certificates/live/novuscotia.com` with fields `fullchain`
 (full cert chain PEM) and `privkey` (private key PEM).
 
-The same certificate is shared by **both HAProxy and Coturn**. Three files are rendered:
+The same certificate is shared by **both HAProxy and LiveKit**. Three files are rendered:
 - `/run/certs/haproxy.pem` — fullchain + privkey concatenated (HAProxy `ssl crt` format)
-- `/run/certs/coturn-fullchain.pem` — fullchain only (Coturn `cert` option)
-- `/run/certs/coturn.key` — privkey only (Coturn `pkey` option)
+- `/run/certs/turn-fullchain.pem` — fullchain only (LiveKit `cert` option)
+- `/run/certs/turn.key` — privkey only (LiveKit `key` option)
 
 `VAULT_ADDR` is set directly in the service (non-secret URL, already ambient in the
 nix-nexus environment per `modules/user/bash.nix`). `VAULT_TOKEN` is injected from a
 secret file so the token never appears in the process environment table.
 
-**`modules/services/matrix/vault-agent-certs.nix`**:
+**`modules/services/matrix/vault-secrets.nix`**:
 ```nix
 { lib, pkgs, ... }:
 let
@@ -531,14 +368,14 @@ let
     {{ end }}
   '';
 
-  # Coturn needs cert and key as separate files.
-  coturnCertTmpl = pkgs.writeText "coturn-cert.ctmpl" ''
+  # LiveKit TURN needs cert and key as separate files.
+  turnCertTmpl = pkgs.writeText "turn-cert.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.fullchain }}
     {{ end }}
   '';
 
-  coturnKeyTmpl = pkgs.writeText "coturn-key.ctmpl" ''
+  turnKeyTmpl = pkgs.writeText "turn-key.ctmpl" ''
     {{ with secret "${kvPath}" }}
     {{ .Data.data.privkey }}
     {{ end }}
@@ -557,21 +394,21 @@ let
       destination = "${certDir}/haproxy.pem"
       perms       = "0640"
       # Reload HAProxy after cert renders; || true is safe if HAProxy not yet started
-      command     = "${pkgs.systemd}/bin/systemctl reload haproxy.service || true"
+      command     = "${pkgs.systemd}/bin/systemctl reload-or-restart --no-block haproxy.service || true"
     }
 
     template {
-      source      = "${coturnCertTmpl}"
-      destination = "${certDir}/coturn-fullchain.pem"
+      source      = "${turnCertTmpl}"
+      destination = "${certDir}/turn-fullchain.pem"
       perms       = "0644"
-      command     = "${pkgs.systemd}/bin/systemctl reload coturn.service || true"
+      command     = "${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true"
     }
 
     template {
-      source      = "${coturnKeyTmpl}"
-      destination = "${certDir}/coturn.key"
+      source      = "${turnKeyTmpl}"
+      destination = "${certDir}/turn.key"
       perms       = "0640"
-      command     = "${pkgs.systemd}/bin/systemctl reload coturn.service || true"
+      command     = "${pkgs.systemd}/bin/systemctl restart --no-block livekit.service || true"
     }
   '';
 in
@@ -584,7 +421,7 @@ in
     wants    = [ "network-online.target" ];
     wantedBy = [ "multi-user.target" ];
     # Both cert consumers must start after this service has rendered certs
-    before   = [ "coturn.service" "haproxy.service" ];
+    before   = [ "livekit.service" "haproxy.service" ];
     serviceConfig = {
       # VAULT_ADDR: non-secret; set directly. Matches ambient env from modules/user/bash.nix.
       Environment     = [ "VAULT_ADDR=https://vault.service.consul:8200" ];
@@ -914,10 +751,9 @@ All: `root:root`, mode `0600`, provisioned by operator before first boot.
 | `/run/secrets/mas-config.yaml` | Full MAS config YAML (Section 3.3) | MAS |
 | `/run/secrets/cloudflared-creds.json` | Cloudflare tunnel credentials JSON | cloudflared |
 | `/run/secrets/vault-token.env` | `VAULT_TOKEN=<token>` | vault-agent |
-| `/run/secrets/coturn-secret` | Plaintext TURN shared secret | Coturn via extraConfig |
 | `/run/certs/haproxy.pem` | fullchain+privkey combined; rendered by vault-agent from `kv-v2/letsencrypt/...` | HAProxy stats TLS |
-| `/run/certs/coturn-fullchain.pem` | fullchain only; rendered by vault-agent | Coturn `cert` |
-| `/run/certs/coturn.key` | privkey only; rendered by vault-agent | Coturn `pkey` |
+| `/run/certs/turn-fullchain.pem` | fullchain only; rendered by vault-agent | LiveKit `cert` |
+| `/run/certs/turn.key` | privkey only; rendered by vault-agent | LiveKit `key` |
 | `/run/livekit.key` | Generated by livekit-key.service oneshot | LiveKit + lk-jwt-service |
 
 ---
@@ -952,14 +788,14 @@ curl https://MATRIX_DOMAIN/livekit/jwt/healthz
 # Element Web
 curl -I https://ELEMENT_DOMAIN
 
-# Coturn certs rendered by vault-agent
+# LiveKit certs rendered by vault-agent
 ls -la /run/certs/
 
 # Tailscale not running
 systemctl is-active tailscaled 2>/dev/null && echo "ERROR: tailscale running" || echo "OK"
 systemctl is-active tailscale-autoconnect 2>/dev/null && echo "ERROR: running" || echo "OK"
 
-# Firewall (from external): 22 + Coturn + stats open; LiveKit, 80, 443 closed
+# Firewall (from external): 22 + stats + LiveKit open; 80, 443 closed
 nmap -p 22,80,443,3478,5349,7881,8404 AVINA_IP
 
 # HAProxy stats page accessible with TLS
@@ -972,7 +808,7 @@ curl -k https://AVINA_IP:8404/metrics | head -20
 systemctl is-active qemu-guest-agent
 
 # No secrets in Nix store
-grep -rn "client_secret\|VAULT_TOKEN\|encryption\|coturn-secret" \
+grep -rn "client_secret\|VAULT_TOKEN\|encryption" \
   /nix/store 2>/dev/null | grep -v ".drv:"
 ```
 
@@ -985,19 +821,17 @@ grep -rn "client_secret\|VAULT_TOKEN\|encryption\|coturn-secret" \
 | No NixOS MAS module | Write custom systemd service; query `mcp-nixos` first; use Section 3.3 skeleton |
 | PostgreSQL locale for Synapse | `initialScript` with idempotent `CREATE DATABASE ... LC_COLLATE = 'C'` |
 | Tailscale in `modules/networking.nix` | `lib.mkForce false` on `services.tailscale.enable` and `tailscale-autoconnect` service; `lib.mkForce` on entire firewall block |
-| Coturn `static-auth-secret` option type | Confirm via `mcp-nixos`; use `extraConfig` file reference if type is `str` |
 | vault-agent KV-v2 re-render frequency | KV-v2 secrets re-render on version change; ensure the external cert-renewal process increments the KV version so vault-agent picks up the new cert |
-| vault-agent fires before coturn/haproxy start | `|| true` in commands; `before = ["coturn.service" "haproxy.service"]` in service ordering |
+| vault-agent fires before services start | `|| true` in commands; `before = ["livekit.service" "haproxy.service"]` in service ordering |
 | HAProxy `haproxy.pem` permissions | HAProxy user must read `/run/certs/haproxy.pem`; set mode `0640` and group `haproxy` in the vault-agent `perms` or via `systemd.tmpfiles` |
 | HAProxy stats on all interfaces | Port 8404 is open to the internet; TLS is required; admin ACL restricts RFC-1918 + loopback only |
-| LiveKit media not directly exposed | Configure LiveKit with Coturn TURN credentials; clients must use TURN for all media ICE |
+| LiveKit media direct exposure | PORTS 7881, 50100-50200, 3478, 5349 must be opened at the Edge Router via DNAT to avina |
 | `federation_domain_whitelist` must include own domain | Always include `MATRIX_DOMAIN` (Synapse issue #4857) |
 | MAS encryption secret | Generate once with `openssl rand -hex 32`; never rotate; losing it invalidates all sessions |
 | HAProxy raw string config errors | Validate with `haproxy -c -f` before committing; `option http-use-htx` required for `prometheus-exporter` service |
-| No LUKS on avina disko | VM; remove all LUKS Disko types and `boot.initrd.luks.devices` from hardware config; do not use `passwordFile` |
+| No LUKS on avina | LXC container; disk encryption handled by hypervisor |
 | VM guest agent module name | Query `mcp-nixos` for `services.qemuGuest.enable`; may vary by NixOS version |
 | `certs/ssh_user_ca.pub` missing at deploy time | Operator must commit SSH CA public key to `certs/` before build |
-| No `den.aspects.sway-aspect` import | Confirmed absent from `avina` host imports in `modules/hosts.nix` |
 | Vault policy for KV read | `VAULT_TOKEN` must have policy granting `read` on `kv-v2/data/letsencrypt/certificates/live/novuscotia.com` |
 
 ---
@@ -1011,10 +845,9 @@ grep -rn "client_secret\|VAULT_TOKEN\|encryption\|coturn-secret" \
 | MatrixRTC | Matrix real-time audio/video via WebRTC + LiveKit SFU |
 | LiveKit | Open-source WebRTC SFU; MatrixRTC media backbone |
 | lk-jwt-service | MatrixRTC Authorization Service; issues LiveKit JWTs for Matrix participants |
-| Coturn | TURN/STUN relay; directly exposed alongside SSH on avina |
 | vault-agent | HashiCorp daemon rendering templates from Vault/Consul; manages cert lifecycle |
 | Vault KV-v2 | Key-Value secrets engine v2; stores the Let's Encrypt cert at a versioned path |
-| cloudflared | Cloudflare Tunnel daemon; carries all inbound HTTP/S traffic |
+| cloudflared | Cloudflare Tunnel daemon; carries all inbound signaling (HTTP/S) traffic |
 | HAProxy | High-Availability Proxy; sole HTTP reverse proxy on avina; stats+metrics on :8404 |
 | nix-nexus.zfs | Custom NixOS option set in `modules/zfs.nix`; ARC + metadata tuning |
 | QEMU guest agent | In-guest daemon enabling hypervisor integration (shutdown, time sync, snapshots) |

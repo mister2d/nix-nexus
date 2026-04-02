@@ -82,7 +82,7 @@ Internal Client ──UDP/TCP Direct──► avina :3478/5349/7881/50100-50200 
 
 **Hybrid Ingress Implementation:**
 1. **Signaling:** External clients use the Cloudflare Tunnel (HTTPS). Internal clients use **Split-Horizon DNS** to reach `avina:443` directly over the LAN, preserving local IP logs and bypassing the WAN.
-2. **Media:** Both internal and external clients bypass the Tunnel entirely. External clients connect via **Destination NAT** (MikroTik) to the SFU's media ports. Internal clients use the same domains, which resolve to `avina`'s local IP, ensuring zero-latency local media switching.
+2. **Media:** Both internal and external clients bypass the Tunnel entirely. External clients connect via **Destination NAT** (Edge Router) to the SFU's media ports. Internal clients use the same domains, which resolve to `avina`'s local IP, ensuring zero-latency local media switching.
 3. **Fallback:** If UDP is blocked, **TCP 7881** provides a direct RTP-over-TCP path (not TURN) for maximum compatibility.
 
 ---
@@ -408,13 +408,28 @@ well-known response, making SFU discovery automatic.
     "type": "livekit",
     "livekit_service_url": "https://matrix.example.com/livekit/jwt"
   }
-]
+],
+"matrix_rtc": {
+  "foci": [
+    {
+      "type": "livekit",
+      "livekit_service_url": "https://matrix.example.com/livekit/jwt"
+    }
+  ],
+  "urn:matrix:org.matrix.msc3861:livekit": {
+    "preferred_url": "https://matrix-rtc.example.com/livekit/sfu"
+  }
+}
 ```
 
 This tells any client that discovers this homeserver: "for MatrixRTC calls, connect
-to this LiveKit instance, and get your JWT from this URL." The client:
+to this LiveKit instance, and get your JWT from this URL." The inclusion of the
+`foci` array inside the `matrix_rtc` key is a mandatory requirement for newer
+Element Web (JS SDK) versions to successfully initiate calls.
 
-1. Fetches the well-known and finds `rtc_foci`.
+The client:
+
+1. Fetches the well-known and finds `rtc_foci` or `matrix_rtc.foci`.
 2. Requests a LiveKit JWT from `livekit_service_url` (authenticated with its Matrix
    access token).
 3. `lk-jwt-service` validates the Matrix token and issues a LiveKit JWT scoped to
@@ -1012,9 +1027,9 @@ is `0640 root matrix-secrets`. LiveKit's TURN cert (`turn-fullchain.pem`) is `06
 | Entry point | Accessible from | Protection |
 |---|---|---|
 | HTTPS (via cloudflared) | Internet (all) | Cloudflare edge, TLS, HAProxy ACLs |
-| SSH :22 | LAN only | Certificate-based auth; password disabled; SSH CA |
+| SSH :22 | Internet (all) | Certificate-based auth; password disabled; SSH CA |
 | TURN :3478, :5349 | Internet (TURN-forwarded) | Time-limited HMAC credentials; gated behind Matrix auth (see SSRF gap note below) |
-| HAProxy stats :8404 | LAN only | TLS; RFC-1918 + loopback ACL for admin |
+| HAProxy stats :8404 | Internet (all) | TLS; RFC-1918 + loopback ACL for admin |
 
 ### What is explicitly not exposed
 

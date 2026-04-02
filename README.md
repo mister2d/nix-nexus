@@ -54,7 +54,7 @@ The **avina** host runs a state-of-the-art, OIDC-native Matrix 2.0 stack. This i
 *   **OIDC Auth**: Fully delegated to Keycloak via MAS (Matrix Authentication Service).
 *   **Native Calls**: MatrixRTC group calls powered by a self-hosted LiveKit SFU.
 *   **Hybrid Ingress**: Dual-path signaling (Cloudflare Tunnel + Split-Horizon DNS) for maximum security and local performance.
-*   **Direct Media**: Low-latency WebRTC paths that bypass proxies via direct WAN/LAN NAT.
+*   **Direct Media**: High-performance WebRTC media paths that bypass proxies via direct LAN/WAN candidates and internal relay.
 
 ---
 
