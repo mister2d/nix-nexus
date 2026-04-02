@@ -662,16 +662,27 @@ the one that works first.
    all media.
 
 **ICE candidate selection in this deployment.** LiveKit is configured with
-`use_external_ip: true` (STUN auto-discovers the public IP) and binds WebRTC
-media on UDP ports `50100–50200` (opened in the firewall). ICE candidates include:
-- **Host candidate**: LiveKit's public IP:port (direct UDP, preferred)
-- **TCP candidate**: port `7881` for clients that cannot do UDP at all
+`ips.includes = ["10.0.1.7/32"]` — the LAN IP of avina — and deliberately omits
+`use_external_ip = true`. This is the key design decision for this network topology:
+avina is an LXC container on the internal LAN; the WAN IP (`151.196.33.88`) belongs
+to the edge router, not to avina. Enabling `use_external_ip` would cause LiveKit to
+STUN-discover the WAN IP and use it for both ICE host candidates and TURN relay
+allocation — producing two simultaneous silent failures: (1) ICE host candidates at
+the WAN IP are unreachable internally because hairpin NAT is not implemented;
+(2) TURN relay allocation tries to bind sockets to the WAN IP, which is not a local
+interface on avina, producing zero relay candidates even though credentials are issued.
 
-Most clients will select the direct UDP path. Clients behind strict symmetric NAT
-cannot connect directly; they use LiveKit's built-in TURN relay as a fallback.
-LiveKit generates per-session HMAC credentials internally and embeds them in the
-LiveKit JWT response from `lk-jwt-service`. Clients where all UDP is blocked connect
-via RTP-over-TCP to LiveKit port 7881.
+By advertising `10.0.1.7` directly instead:
+- **LAN clients** receive a valid host candidate (`10.0.1.7`) and connect directly.
+- **WAN clients** receive TURN relay credentials; TURN binds relay sockets to
+  `10.0.1.7` (a real local interface), and the relay is reachable externally via
+  NAT forwarding at ports `3478`/`5349`.
+- **TCP fallback**: port `7881` for clients where all UDP is blocked.
+
+Split-horizon DNS makes this work transparently: `matrix-rtc.novuscotia.com`
+resolves to `10.0.1.7` for internal clients (direct host path) and to
+`151.196.33.88` externally (TURN relay via NAT-forwarded ports). Hairpin NAT is
+explicitly not implemented and will not be.
 
 ---
 
@@ -708,7 +719,7 @@ LiveKit TURN is configured in `livekit.nix`:
 ```nix
 turn = {
   enabled = true;
-  domain = turnDomain;
+  domain = rtcDomain;
   tls_port = 5349;
   udp_port = 3478;
   cert_file = "/run/certs/turn-fullchain.pem";
@@ -716,13 +727,17 @@ turn = {
 };
 ```
 
-LiveKit's `use_external_ip = true` discovers the WAN IP via STUN and uses it for
-both SFU ICE candidates and as the TURN relay address (`RelayAddress`).
+`use_external_ip` is intentionally absent (see ICE section above). LiveKit's TURN
+server binds relay sockets to the IP LiveKit has selected for itself — `10.0.1.7`
+in this deployment. Because `10.0.1.7` is a real local interface on avina (not a
+WAN IP residing at the edge router), relay allocation succeeds. External clients
+reach the TURN server via NAT forwarding at the edge router (ports `3478`/`5349`).
 
-**The Turn Domain.** `turnDomain` must resolve via **Split-Horizon DNS** to the
-internal LAN IP (`10.0.1.7`) for internal clients and via an **A record** to the
-public WAN IP for external clients. This ensures media traffic always takes the
-most direct path, bypassing the Cloudflare Tunnel.
+**The RTC Domain.** `rtcDomain` (`matrix-rtc.novuscotia.com`) is the dual-purpose
+ingress domain: it serves Element Call and proxies LiveKit signaling. For TURN, it
+resolves via **Split-Horizon DNS** to `10.0.1.7` for internal clients (direct LAN)
+and to `151.196.33.88` externally (NAT-forwarded at the edge). This ensures TURN
+relay is reachable from both paths without hairpin NAT.
 
 **Ports and protocols.**
 
@@ -767,6 +782,15 @@ the standard trade-off of SFU-based calling versus E2E-encrypted mesh calling.
 Two well-known files are served by darkhttpd at `:8083`, path-rewritten by HAProxy
 from `/.well-known/*` to the bare path. Both are static JSON derived from Nix
 expressions and cached in the store.
+
+**Content-Type caveat.** darkhttpd serves files without extensions (e.g.,
+`matrix/client`, `matrix/server`) as `application/octet-stream`. matrix-js-sdk
+silently rejects any well-known response whose `Content-Type` is not
+`application/json`, leaving `getClientWellKnown()` empty. HAProxy's
+`wellknown_backend` overrides the response header
+(`http-response set-header Content-Type "application/json"`) to correct this.
+Without the override, Element Web fails to discover `org.matrix.msc4143.rtc_foci`
+and reports `MISSING_MATRIX_RTC_FOCUS`.
 
 **`/.well-known/matrix/client`** — the client discovery entry point, consumed by
 Matrix clients to bootstrap the homeserver connection and discover OIDC, SFU, and
@@ -887,14 +911,13 @@ Regardless of the ingress path (Tunnel or LAN), the user experience is seamless
 and secure:
 
 ```
-External: Browser ──TLS#1──► Cloudflare ──tunnel──► HAProxy ──TLS#2──► Backend
-Internal: Browser ──TLS#1─────────────────────────► HAProxy ──TLS#2──► Backend
-```                        │
-Cloudflare connector ──TLS#2──► avina:443 (Let's Encrypt wildcard)
-                                    │
-                                    ▼
-                                HAProxy terminates TLS#2
-                                Routes internally over plain HTTP
+External: Browser ──TLS#1──► Cloudflare edge ──TLS#2 (tunnel)──► avina:443 (HAProxy)
+
+Internal: Browser ──TLS#1───────────────────────────────────────► avina:443 (HAProxy)
+
+HAProxy terminates TLS and routes to all backends over plain HTTP.
+Cloudflare connector uses TLS#2 to reach avina; hostname mismatch (*.novuscotia.com
+cert vs avina.home.lan connection target) is suppressed with noTLSVerify: true.
 ```
 
 TLS#2 uses a Let's Encrypt wildcard certificate for `*.example.com`, issued and
@@ -1087,6 +1110,6 @@ in Keycloak, not Synapse.
 
 ---
 
-*This document reflects the state of the avina stack as of 2026-03-30.*
+*This document reflects the state of the avina stack as of 2026-04-01.*
 
 *Update when adding components, changing protocols, or making security decisions.*

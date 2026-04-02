@@ -228,9 +228,9 @@ let
   # Two keys rendered as separate files to avoid multi-line PEM indentation
   # issues in YAML. MAS references them via key_file.
   #
-  # Security posture: ECDSA P-384 (primary, hardened) + RSA-2048 (mandatory
+  # Security posture: ECDSA P-384 (primary, hardened) + RSA-4096 (mandatory
   # for OIDC Core spec RS256 compliance). Modern clients preferentially use
-  # ES384; RSA-2048 exists solely for spec compliance.
+  # ES384; RSA-4096 exists solely for spec compliance.
   #
   # Both must be generated once and never rotated — changing a signing key
   # invalidates all active sessions and issued tokens.

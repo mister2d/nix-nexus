@@ -345,7 +345,7 @@ in
         http-request replace-path ^/\.well-known(.*) \1
         # CORS required: Element Call (call.<domain>) fetches this cross-origin to
         # discover org.matrix.msc4143.rtc_foci. Without this header the browser
-        # silently blocks the response and the client sees MISSING_MATRIX_RTC_TRANSPORT.
+        # silently blocks the response and the client sees MISSING_MATRIX_RTC_FOCUS.
         http-response set-header Access-Control-Allow-Origin "*"
         http-response set-header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
         http-response set-header Access-Control-Allow-Headers "Content-Type, Origin, Authorization, X-Requested-With"
