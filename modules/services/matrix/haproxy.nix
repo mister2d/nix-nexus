@@ -316,7 +316,7 @@ in
       backend lk_jwt_backend
         # CORS preflight: lk-jwt-service returns non-2xx for OPTIONS, which causes
         # browsers to block the actual JWT POST. Intercept here and return 204.
-        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, X-Requested-With" if { method OPTIONS }
+        http-request return status 204 hdr "Access-Control-Allow-Origin" "*" hdr "Access-Control-Allow-Methods" "GET, POST, OPTIONS" hdr "Access-Control-Allow-Headers" "Authorization, Content-Type, X-Requested-With" if { method OPTIONS }
         # Path stripping:
         # Standard: /livekit/jwt/sfu/get -> /sfu/get
         # Rust SDK: /livekit/jwt/jwt/sfu/get -> /sfu/get
@@ -325,7 +325,7 @@ in
         http-request replace-path ^/livekit(.*) \1
         # CORS headers on actual responses.
         http-response set-header Access-Control-Allow-Origin "*"
-        http-response set-header Access-Control-Allow-Methods "POST, OPTIONS"
+        http-response set-header Access-Control-Allow-Methods "GET, POST, OPTIONS"
         http-response set-header Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
         http-response set-header Access-Control-Expose-Headers "Content-Type, Authorization, Origin, X-Requested-With"
         server lk_jwt 127.0.0.1:8081
@@ -355,6 +355,13 @@ in
         # rejects non-JSON responses, leaving getClientWellKnown() empty and
         # causing Element Web to report MISSING_MATRIX_RTC_FOCUS.
         http-response set-header Content-Type "application/json"
+        # Cache-Control: discovery data must always be fresh. Without this, the
+        # browser (or Element Web's service worker) caches the well-known response
+        # and serves a stale version after server-side updates, causing
+        # clientWellKnown to be missing org.matrix.msc4143.rtc_foci on the next
+        # Element Web session, which reproduces MISSING_MATRIX_RTC_FOCUS on call
+        # initiation even after the server config is corrected.
+        http-response set-header Cache-Control "no-store, no-cache, must-revalidate"
         server wellknown 127.0.0.1:8083
 
       backend tos_backend
