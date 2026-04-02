@@ -59,7 +59,10 @@ in
       #   TURN/UDP:  3478   (plain relay / STUN)
       #   TURNS/TLS: 5349   (TLS relay — same port as legacy coturn)
       # LiveKit handles TLS directly using the domain cert rendered by vault-agent.
-      # Credentials are HMAC-generated per-session; use_external_ip discovers WAN IP via STUN.
+      # Credentials are HMAC-generated per-session.
+      # use_external_ip is intentionally absent (same reasoning as rtc above): the
+      # TURN relay advertises 10.0.1.7 as the relay address, which is reachable by
+      # all LAN and Tailscale-subnet clients via split-horizon DNS.
       turn = {
         enabled = true;
         domain = rtcDomain;

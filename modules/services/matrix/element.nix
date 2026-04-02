@@ -12,15 +12,26 @@ let
   # /widgets/element-call/config.json — not from the root config.json and not
   # from the external element-call instance at rtcDomain.
   #
-  # The element-web package ships a minimal config.json containing only
-  # matrix_rtc_session timing parameters with no focus configuration. Without
-  # overriding this file, Element Call cannot discover LiveKit and throws
-  # MISSING_MATRIX_RTC_FOCUS on call initiation. Joining an existing call
-  # (started by Element X) still works because the focus is read from the
-  # m.call.member room state event rather than from discovery.
+  # Element Call discovers its LiveKit focus via three paths, tried in order:
+  #   1. Widget API (MSC2764): Element Web passes focus to the widget iframe via
+  #      postMessage. This is the primary path. However, Element Web 1.12.10 has
+  #      a circular-dependency (TDZ) bug in WidgetStore that prevents Widget API
+  #      from initialising, making this path unreliable.
+  #   2. config.json: The widget reads focus from its own-origin config.json
+  #      (widgets/element-call/config.json). This file is the reliable path and
+  #      is what this override ensures is populated.
+  #   3. /.well-known/matrix/client: Cross-origin fetch from the homeserver.
+  #      Works once the browser's HTTP disk cache is fresh; CORS headers are
+  #      served by haproxy.nix's wellknown_backend.
   #
-  # This config merges the upstream timing parameters with the focus config so
-  # both are present for the bundled widget.
+  # Joining an existing call (started by Element X) always works regardless of
+  # focus discovery because the focus is read from the m.call.member room state
+  # event, not from well-known or config.json.
+  #
+  # The element-web package ships a minimal config.json with only the
+  # matrix_rtc_session timing parameters and no focus config. This override
+  # merges the upstream timing parameters with the focus config so both are
+  # present for the bundled widget.
   widgetCallConfig = pkgs.writeText "element-call-widget-config.json" (
     builtins.toJSON {
       # Preserve upstream session timing parameters.

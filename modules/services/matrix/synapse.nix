@@ -123,9 +123,13 @@
         # MSC4108: QR code login — requires MAS to be enabled.
         msc4108_enabled = true;
         # MSC4143: MatrixRTC transport discovery endpoint.
-        # Registers /_matrix/client/unstable/org.matrix.msc4143/rtc/transports,
-        # which clients (Element X, Element Call) query to discover LiveKit focus.
-        # Returns the contents of matrix_rtc.transports below.
+        # Registers /_matrix/client/unstable/org.matrix.msc4143/rtc/transports.
+        # In practice, haproxy.nix intercepts all requests to this path with a
+        # static http-request return rule (is_rtc_discovery ACL) before they
+        # reach Synapse — bypassing Synapse's auth requirement on this endpoint.
+        # The matrix_rtc.transports block below is therefore not actively served
+        # but mirrors the HAProxy static response for consistency and as a fallback
+        # if the HAProxy intercept is ever removed.
         msc4143_enabled = true;
         # MSC3266: Room Summary API. Required by Element Call for knocking over
         # federation (standalone mode join-via-knock flow).

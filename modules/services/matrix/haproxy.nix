@@ -355,12 +355,16 @@ in
         # rejects non-JSON responses, leaving getClientWellKnown() empty and
         # causing Element Web to report MISSING_MATRIX_RTC_FOCUS.
         http-response set-header Content-Type "application/json"
-        # Cache-Control: discovery data must always be fresh. Without this, the
-        # browser (or Element Web's service worker) caches the well-known response
-        # and serves a stale version after server-side updates, causing
-        # clientWellKnown to be missing org.matrix.msc4143.rtc_foci on the next
-        # Element Web session, which reproduces MISSING_MATRIX_RTC_FOCUS on call
-        # initiation even after the server config is corrected.
+        # Cache-Control: discovery data must always be fresh. Two distinct caches
+        # can serve stale well-known responses and both must be considered:
+        #   - Service worker cache: Element Web's sw.js caches cross-origin
+        #     responses including well-known. Cleared via DevTools → Application →
+        #     Storage → Clear site data (also clears SW registrations).
+        #   - HTTP disk cache: The browser's network-level cache, separate from
+        #     the service worker cache. NOT cleared by "Clear site data" — requires
+        #     DevTools → Network → "Disable cache", or chrome://settings/clearBrowserData
+        #     → Cached images and files. Entries cached before this header was added
+        #     persist until manually evicted despite the no-store directive here.
         http-response set-header Cache-Control "no-store, no-cache, must-revalidate"
         server wellknown 127.0.0.1:8083
 
