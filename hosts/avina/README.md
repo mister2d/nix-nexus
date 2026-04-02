@@ -276,7 +276,7 @@ avina's firewall permits the following on all interfaces (including the LAN):
 | Port | Protocol | Service | Internet-facing? |
 |---|---|---|---|
 | 22 | TCP | OpenSSH | LAN only; password auth disabled; SSH CA enforced |
-| 443 | TCP | HAProxy (HTTPS) | LAN only; reachable by cloudflared connector |
+| 443 | TCP | HAProxy (HTTPS) | Partial — `matrix-rtc.*` is NAT-forwarded direct; `matrix.*`/`element.*`/`mas.*` arrive via Cloudflare Tunnel only |
 | 3478 | TCP+UDP | LiveKit STUN/TURN | Yes — NAT-forwarded at edge router |
 | 5349 | TCP/TLS | LiveKit TURNS/TLS | Yes — NAT-forwarded at edge router |
 | 7881 | TCP | LiveKit RTC/TCP fallback | Yes — NAT-forwarded at edge router |

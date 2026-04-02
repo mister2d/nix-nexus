@@ -47,55 +47,65 @@ features; they are interconnected layers that share state, secrets, and protocol
 identity.
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                         Hybrid Ingress Model                             │
-├────────────────────────────────┬─────────────────────────────────────────┤
-│        External (WAN)          │           Internal (LAN)                │
-│   (via Cloudflare Tunnel)      │       (via Split-Horizon DNS)           │
-│                                │                                         │
-│ Browser ──HTTPS──► Cloudflare  │  Browser ──HTTPS──► avina:443 (Direct)  │
-│             │                  │                                         │
-│             └───────tunnel─────┼──────────────┐                          │
-└────────────────────────────────┴──────────────┼──────────────────────────┘
-                                                │
-                                 ┌──────────────┴──────────────┐
-                                 │       avina:443 (HAProxy)   │
-                                 └──────────────┬──────────────┘
-                                                │ TLS terminates at HAProxy
-                                                │ Routes by Host header + path prefix
-          ┌────────────────────┬────────────────┼────────────────────┬────────────────────┐
-          │                    │                │                    │                    │
-   element.domain         matrix.domain     mas.domain           rtc.domain          livekit/jwt
-   Element Web            Synapse + MAS     MAS (OIDC)          Element Call         lk-jwt-service
-   darkhttpd :8082         :8008            :8181 (proxy)       darkhttpd :8084      :8081
+┌───────────────────────────────────────────────────────────────────────────────────────────┐
+│                                    Three-Path Ingress Model                               │
+├───────────────────────────────┬───────────────────────────┬───────────────────────────────┤
+│  External — Auth / Web        │  External — RTC           │  Internal (LAN)               │
+│  matrix.* / element.* / mas.* │  matrix-rtc.*             │  All domains                  │
+│  via Cloudflare Tunnel        │  Direct NAT (edge router) │  via Split-Horizon DNS        │
+│                               │                           │                               │
+│  Browser → Cloudflare Edge    │  Browser → WAN :443       │  Browser → avina:443          │
+│      │       │ (outbound       │      │       │ (DNAT)    │          (direct LAN)         │
+│      │       │  tunnel)        │      │       │           │                               │
+└──────┼───────┼─────────────────┴──────┼───────┼───────────┴────────────────┼──────────────┘
+       └───────┘                        └───────┘                            │
+              │                                │                             │
+              └────────────────────────────────┴─────────────────────────────┘
+                                               │
+                                ┌──────────────┴──────────────┐
+                                │       avina:443 (HAProxy)   │
+                                └──────────────┬──────────────┘
+                                               │ TLS terminates at HAProxy
+                                               │ Routes by Host header + path prefix
+         ┌────────────────────┬────────────────┼────────────────────┬────────────────────┐
+         │                    │                │                    │                    │
+  element.domain         matrix.domain     mas.domain           rtc.domain          livekit/jwt
+  Element Web            Synapse + MAS     MAS (OIDC)          Element Call         lk-jwt-service
+  darkhttpd :8082         :8008            :8181 (proxy)       darkhttpd :8084      :8081
 ```
 
-**Signaling path** (brokered by Cloudflare Tunnel):
+**Signaling path — matrix.* / element.* / mas.*** (brokered by Cloudflare Tunnel):
 
 ```
 External Client ──HTTPS──► Cloudflare Edge ──Tunnel──► avina :443 (HAProxy)
                                                         │
                                                         ├── matrix.novuscotia.com  ──► Synapse
                                                         ├── element.novuscotia.com ──► Element Web
-                                                        ├── mas.novuscotia.com     ──► MAS
+                                                        └── mas.novuscotia.com     ──► MAS
+```
+
+**Signaling path — matrix-rtc.*** (Direct WAN — bypasses Cloudflare Tunnel entirely):
+
+```
+External Client ──HTTPS──► Edge Router :443 ──DNAT──► avina :443 (HAProxy)
+                                                        │
                                                         └── matrix-rtc.novuscotia.com ──► Element Call
+                                                                                          LiveKit WebSocket
 ```
 
-**Media path** (Direct WAN/LAN — entirely separate from signaling):
+**Media path** (Direct WAN/LAN — all domains, entirely separate from signaling):
 
 ```
-External Client ──UDP/TCP Direct──► WAN IP :3478/5349/7881/50100-50200 ──DNAT──┐
-                                                                               │
-Internal Client ──UDP/TCP Direct──► avina :3478/5349/7881/50100-50200 ─────────┼──► LiveKit SFU
-                                                                               │
-                                    (Self-Probe via Split-Horizon DNS) ────────┘
+External Client ──UDP/TCP──► WAN IP :3478/5349/7881/50100-50200 ──DNAT──┐
+                                                                         │
+Internal Client ──UDP/TCP──► avina  :3478/5349/7881/50100-50200 ─────────┼──► LiveKit SFU
 ```
 
-**Hybrid Ingress Implementation:**
-1. **Signaling:** External clients use the Cloudflare Tunnel (HTTPS). Internal clients use **Split-Horizon DNS** to reach `avina:443` directly over the LAN, preserving local IP logs and bypassing the WAN.
-2. **Media:** Both internal and external clients bypass the Tunnel entirely. External clients connect via **Destination NAT** (Edge Router) to the SFU's media ports. Internal clients use the same domains, which resolve to `avina`'s local IP, ensuring zero-latency local media switching.
-3. **RTC Ingress:** `rtcDomain` (e.g., `matrix-rtc.novuscotia.com`) is a dual-purpose ingress. It serves the **Element Call** web interface (MatrixRTC frontend) and proxies **LiveKit signaling** (WebSocket). External media always takes the direct NAT path to bypass the Tunnel.
-4. **Fallback:** If UDP is blocked, **TCP 7881** provides a direct RTP-over-TCP path (not TURN) for maximum compatibility.
+**Ingress path summary:**
+1. **Auth / Matrix / Web signaling:** External clients use the Cloudflare Tunnel (HTTPS) for `matrix.*`, `element.*`, and `mas.*`. Internal clients use **Split-Horizon DNS** to reach `avina:443` directly over the LAN.
+2. **RTC signaling:** `matrix-rtc.novuscotia.com` is **not** behind Cloudflare. Port 443 is NAT-forwarded directly at the edge router to `avina:443`. This path carries the Element Call web interface and the LiveKit WebSocket signal connection. It receives no Cloudflare WAF or DDoS protection.
+3. **Media:** All domains — external and internal — use direct UDP/TCP to LiveKit's media ports (NAT-forwarded at the edge router). The Cloudflare Tunnel is never involved in media.
+4. **Fallback:** If UDP is blocked, **TCP 7881** provides a direct RTP-over-TCP path to LiveKit (not TURN).
 
 ---
 
@@ -877,63 +887,78 @@ avina employs a "Split-Ingress" strategy to balance public security with local
 performance. This provides a robust and high-performance ingress model for
 self-hosted Matrix deployments.
 
-#### 1. External Ingress (Cloudflare Tunnel)
+#### 1. External Ingress — Cloudflare Tunnel (matrix.* / element.* / mas.*)
 
-avina is not internet-reachable by default for signaling (HTTPS). It sits on an
-internal LAN. A Cloudflare Tunnel connector running on a **separate node near
-the network edge** maintains a persistent outbound connection to Cloudflare's
-edge. Inbound HTTPS requests arrive at Cloudflare, traverse the tunnel, and land
-at `avina:443`.
+For the Matrix homeserver, Element Web, and MAS auth domains, avina is not
+directly internet-reachable. A Cloudflare Tunnel connector running on a
+**separate node near the network edge** maintains a persistent outbound connection
+to Cloudflare's edge. Inbound HTTPS requests arrive at Cloudflare, traverse the
+tunnel, and land at `avina:443`.
 
-This means:
-- Ports 80 and 443 are not open on the WAN firewall for signaling.
+This means (for these domains):
+- Port 443 is not open on the WAN firewall — inbound traffic enters only via the tunnel.
 - DDoS mitigation, WAF, and bot protection are handled at Cloudflare before
   traffic reaches avina.
 - The tunnel is authenticated with a Cloudflare-issued credential stored in Vault.
 
-#### 2. Internal Ingress (Split-Horizon DNS)
+#### 2. External Ingress — Direct NAT (matrix-rtc.*)
 
-When a client (browser or mobile app) is on the same local network as avina, it
-uses **Split-Horizon DNS** (configured on the MikroTik/DNS server) to resolve
-the stack's domains (matrix, mas, element, call, turn) to `avina`'s internal
-LAN IP (`10.0.1.7`).
+`matrix-rtc.novuscotia.com` (the RTC domain) is **not** behind the Cloudflare
+Tunnel. Port 443 is NAT-forwarded directly at the edge router to `avina:443`.
+This path handles the Element Call web interface (HTTPS) and LiveKit WebSocket
+signaling. All LiveKit media ports (3478/5349/7881/50100–50200) are also
+NAT-forwarded at the edge.
+
+This path carries **no Cloudflare WAF or DDoS protection** — traffic arrives
+directly from the internet. The trade-off is intentional: LiveKit's media and
+WebSocket connections require direct reachability that the Cloudflare Tunnel
+cannot provide for UDP media or the low-latency WebSocket upgrade.
+
+#### 3. Internal Ingress (Split-Horizon DNS)
+
+When a client is on the same local network as avina, **Split-Horizon DNS**
+(configured at the edge router) resolves all stack domains — including
+`matrix-rtc.novuscotia.com` — to `avina`'s internal LAN IP (`10.0.1.7`).
+Traffic goes directly to `avina:443` without leaving the LAN.
 
 This means:
-- **Direct LAN Speed:** Signaling traffic does not need to leave the house and
-  return via the tunnel.
+- **Direct LAN speed:** Signaling and media traffic stay on-LAN with no WAN hop.
 - **Privacy:** Internal communication metadata remains within the local network.
-- **Logging:** HAProxy and Synapse see the **real internal client IP**, not the
-  tunnel's internal IP, which is critical for local security auditing.
+- **Logging:** HAProxy sees the real internal client IP for all domains.
 
-### Two-Layer TLS
+### TLS Architecture
 
-Regardless of the ingress path (Tunnel or LAN), the user experience is seamless
-and secure:
+The number of TLS hops depends on which ingress path is used:
 
 ```
-External: Browser ──TLS#1──► Cloudflare edge ──TLS#2 (tunnel)──► avina:443 (HAProxy)
+matrix.* / element.* / mas.* (external):
+  Browser ──TLS#1──► Cloudflare edge ──TLS#2 (tunnel)──► avina:443 (HAProxy)
+  Two TLS sessions; Cloudflare terminates TLS#1, connector re-encrypts for TLS#2.
 
-Internal: Browser ──TLS#1───────────────────────────────────────► avina:443 (HAProxy)
+matrix-rtc.* (external):
+  Browser ──TLS#1────────────────────────────────────────► avina:443 (HAProxy)
+  Single TLS session; no Cloudflare intermediary.
 
-HAProxy terminates TLS and routes to all backends over plain HTTP.
-Cloudflare connector uses TLS#2 to reach avina; hostname mismatch (*.novuscotia.com
-cert vs avina.home.lan connection target) is suppressed with noTLSVerify: true.
+All domains (internal / LAN):
+  Browser ──TLS#1────────────────────────────────────────► avina:443 (HAProxy)
+  Single TLS session; HAProxy terminates directly.
+
+HAProxy terminates TLS and routes all traffic to backends over plain HTTP.
 ```
 
-TLS#2 uses a Let's Encrypt wildcard certificate for `*.example.com`, issued and
-renewed by an external certbot process. On renewal, certbot writes the new
-certificate into Vault KV-v2. vault-agent on avina detects the version increment,
-re-renders `/run/certs/haproxy.pem` and the LiveKit TURN cert files
-(`turn-fullchain.pem`, `turn.key`), and signals HAProxy (`systemctl reload-or-restart`)
-and LiveKit (`systemctl restart`) — zero-downtime rotation with no manual intervention
-on avina.
+The Let's Encrypt wildcard certificate (`*.novuscotia.com`) is used by HAProxy
+for all TLS termination — both the Cloudflare tunnel leg and the direct connections.
+It is issued and renewed by an external certbot process. On renewal, certbot writes
+the new certificate into Vault KV-v2. vault-agent detects the version increment,
+re-renders `/run/certs/haproxy.pem` and the LiveKit TURN cert files, and signals
+HAProxy (`systemctl reload-or-restart`) and LiveKit (`systemctl restart`) —
+zero-downtime rotation with no manual intervention on avina.
 
-**`noTLSVerify: true` on the cloudflared connector:** Because the LE cert covers
-`*.novuscotia.com` but cloudflared connects to avina via its LAN hostname
-(`avina.home.lan`), hostname verification would fail. `noTLSVerify: true`
-suppresses this check. The risk is accepted because both endpoints are on a
-controlled, trusted LAN segment; passive eavesdropping is still prevented by
-encryption.
+**`noTLSVerify: true` on the cloudflared connector:** The LE cert covers
+`*.novuscotia.com` but the connector reaches avina via its LAN hostname
+(`avina.home.lan`), causing a hostname mismatch. `noTLSVerify: true` suppresses
+the check. The risk is accepted because both endpoints are on a controlled, trusted
+LAN segment; the session is still encrypted against passive eavesdropping.
 
 ### HAProxy TLS Configuration
 
@@ -1061,9 +1086,10 @@ is `0640 root matrix-secrets`. LiveKit's TURN cert (`turn-fullchain.pem`) is `06
 
 | Entry point | Accessible from | Protection |
 |---|---|---|
-| HTTPS (via cloudflared) | Internet (all) | Cloudflare edge, TLS, HAProxy ACLs |
+| HTTPS :443 via Cloudflare Tunnel (matrix.*, element.*, mas.*) | Internet (all) | Cloudflare WAF + DDoS, TLS, HAProxy ACLs |
+| HTTPS :443 direct NAT (matrix-rtc.*) | Internet (all) | TLS only; no Cloudflare WAF — limited to RTC domain; only serves Element Call UI and LiveKit WebSocket |
 | SSH :22 | Internet (all) | Certificate-based auth; password disabled; SSH CA |
-| TURN :3478, :5349 | Internet (TURN-forwarded) | Time-limited HMAC credentials; gated behind Matrix auth (see SSRF gap note below) |
+| TURN :3478, :5349 | Internet (NAT-forwarded) | Time-limited HMAC credentials; gated behind Matrix auth (see SSRF gap note below) |
 | HAProxy stats :8404 | Internet (all) | TLS; RFC-1918 + loopback ACL for admin |
 
 ### What is explicitly not exposed
