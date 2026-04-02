@@ -215,7 +215,7 @@ in
     # while trying to reload a non-existent compositor.
     cleanupStaleSession = lib.hm.dag.entryBefore [ "onFilesChange" ] ''
       if [ "''${XDG_CURRENT_DESKTOP:-}" != "sway" ] && [ "''${XDG_CURRENT_DESKTOP:-}" != "Sway" ]; then
-        ${pkgs.systemd}/bin/systemctl --user unset-environment SWAYSOCK
+        ${pkgs.systemd}/bin/systemctl --user unset-environment SWAYSOCK || true
       fi
     '';
   };
