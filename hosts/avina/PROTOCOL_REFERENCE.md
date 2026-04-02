@@ -97,8 +97,8 @@ External Client ──HTTPS──► Edge Router :443 ──DNAT──► avina 
 
 ```
 External Client ──UDP/TCP──► WAN IP :3478/5349/7881/50100-50200 ──DNAT──┐
-                                                                         │
-Internal Client ──UDP/TCP──► avina  :3478/5349/7881/50100-50200 ─────────┼──► LiveKit SFU
+                                                                        │
+Internal Client ──UDP/TCP──► avina  :3478/5349/7881/50100-50200 ────────┼──► LiveKit SFU
 ```
 
 **Ingress path summary:**
