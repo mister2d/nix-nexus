@@ -245,9 +245,9 @@ in
       startup = [
         # Synchronize the Wayland environment to DBus and Systemd.
         # This MUST happen at startup so WAYLAND_DISPLAY is correctly captured.
-        # We then restart core services to ensure they pick up the fresh environment.
+        # We then restart core services and explicitly start Waybar.
         {
-          command = "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; systemctl --user restart xdg-desktop-portal.service easyeffects.service waybar.service";
+          command = "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; systemctl --user restart xdg-desktop-portal.service easyeffects.service; systemctl --user start waybar.service";
         }
         { command = "kanshi"; }
         {
