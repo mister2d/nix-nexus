@@ -24,7 +24,7 @@
       common.default = [ "gtk" ];
 
       # Sway uses the wlroots and GTK portals
-      sway.default = [
+      sway.default = lib.mkForce [
         "wlr"
         "gtk"
       ];
