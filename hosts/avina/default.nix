@@ -22,8 +22,7 @@ let
   # Least-privilege model. Add domains of external homeservers you wish to
   # federate with. Always includes matrixDomain automatically.
   federatedDomains = [
-    # "matrix.org"
-    # "trusted-partner.com"
+    "matrix.org"
   ];
   # ─────────────────────────────────────────────────────────────────────────
 in

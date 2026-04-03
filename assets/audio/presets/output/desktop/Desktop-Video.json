@@ -312,8 +312,6 @@
         "limiter#0": {
             "alr": false,
             "alr-attack": 5.0,
-            "alr-knee": 0.0,
-            "alr-knee-smooth": -5.0,
             "alr-release": 50.0,
             "attack": 5.0,
             "bypass": false,

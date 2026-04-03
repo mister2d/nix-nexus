@@ -9,7 +9,6 @@ let
 
   # Output pipeline presets
   enhancedPresetsPath = ./../../assets/audio/presets/output/enhanced;
-  dolbyPresetsPath = ./../../assets/audio/presets/output/dolby;
   desktopPresetsPath = ./../../assets/audio/presets/output/desktop;
 
   # Helper to bulk map assets from the repository to the EasyEffects XDG spec
@@ -46,6 +45,5 @@ in
     (mapFiles ".local/share/easyeffects/irs" irsPath)
     // (mapFiles ".local/share/easyeffects/input" inputPresetsPath)
     // (mapFiles ".local/share/easyeffects/output" enhancedPresetsPath)
-    // (mapFiles ".local/share/easyeffects/output" dolbyPresetsPath)
     // (mapFiles ".local/share/easyeffects/output" desktopPresetsPath);
 }

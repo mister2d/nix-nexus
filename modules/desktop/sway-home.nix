@@ -242,6 +242,14 @@ in
       };
 
       startup = [
+        # Recovery: Wait for the compositor and DBus session to stabilize,
+        # then restart services that depend on graphical-session.
+        # This resolves portal registration races and ensures environment propagation.
+        # Note: The 'QML Created graphical object' warning is a known harmless
+        # side-effect of launching EasyEffects in daemon mode without an active UI.
+        {
+          command = "${pkgs.bash}/bin/sleep 5; ${pkgs.systemd}/bin/systemctl --user stop xdg-desktop-portal.service easyeffects.service; ${pkgs.systemd}/bin/systemctl --user start xdg-desktop-portal.service easyeffects.service";
+        }
         { command = "kanshi"; }
         {
           command = "${
