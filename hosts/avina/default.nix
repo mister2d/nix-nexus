@@ -20,10 +20,8 @@ let
 
   # Federated Posture:
   # Least-privilege model. Add domains of external homeservers you wish to
-  # federate with. Always includes matrixDomain automatically.
-  federatedDomains = [
-    "matrix.org"
-  ];
+  # federate with. Set to "*" to allow all domains.
+  federatedDomains = "*";
   # ─────────────────────────────────────────────────────────────────────────
 in
 {

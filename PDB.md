@@ -228,11 +228,14 @@ turn_shared_secret: "<from /run/secrets/synapse-secrets.yaml>"
 turn_user_lifetime: "86400000ms"
 ```
 
-**Federation allowlist**:
+**Federation posture**:
+- Controlled by `federatedDomains` in `hosts/avina/default.nix`.
+- If set to `"*"`: The allowlist is removed, allowing federation with all domains.
+- If set to a list: Only whitelisted domains (including own) are permitted.
 ```yaml
-federation_domain_whitelist:
-  - "MATRIX_DOMAIN"   # own domain always included (Synapse issue #4857)
-  # operator appends trusted peers; nixos-rebuild switch to expand
+# federation_domain_whitelist: (omitted if federatedDomains is "*")
+#   - "MATRIX_DOMAIN"   # own domain always included
+#   - "matrix.org"      # optional trusted peers
 ```
 
 `extraConfigFiles = ["/run/secrets/synapse-secrets.yaml"]` contains:

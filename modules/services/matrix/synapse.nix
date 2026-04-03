@@ -1,4 +1,5 @@
 {
+  lib,
   matrixDomain,
   rtcDomain,
   federatedDomains ? [ ],
@@ -35,7 +36,9 @@
       turn_user_lifetime = 86400000; # 1 day
 
       # Federation (Structural)
-      federation_domain_whitelist = [ matrixDomain ] ++ federatedDomains;
+      federation_domain_whitelist = lib.mkIf (federatedDomains != "*") (
+        [ matrixDomain ] ++ federatedDomains
+      );
       suppress_key_server_warning = true;
       # Enforce minimum TLS 1.2 on outbound federation connections.
       federation_client_minimum_tls_version = "1.2";
