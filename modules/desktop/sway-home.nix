@@ -289,7 +289,7 @@ in
       {
         timeout = 900;
         command = "${pkgs.sway}/bin/swaymsg \"output * dpms off\"";
-        resumeCommand = "${pkgs.swaymsg}/bin/swaymsg \"output * dpms on\"";
+        resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * dpms on\"";
       }
     ];
     events = [
