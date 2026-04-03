@@ -17,7 +17,6 @@
     # Ensure standard portals are present for all sessions
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
-      pkgs.xdg-desktop-portal-gnome
     ];
 
     # Configuration is scoped per compositor to prevent conflicts

@@ -22,9 +22,10 @@ in
     checkConfig = false;
 
     extraSessionCommands = ''
-      # Export essential variables to DBus and Systemd BEFORE Sway starts.
-      # We include XDG_DATA_DIRS so the portal can locate .desktop files.
-      ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland XDG_DATA_DIRS
+      # Pre-initialize common variables (excluding WAYLAND_DISPLAY)
+      export XDG_CURRENT_DESKTOP=sway
+      export XDG_SESSION_DESKTOP=sway
+      export XDG_SESSION_TYPE=wayland
     '';
 
     config = {
@@ -242,10 +243,11 @@ in
       };
 
       startup = [
-        # Recovery: Restart services once to ensure they pick up the fresh environment.
-        # This is a one-shot fix for the initial session bootstrap.
+        # Synchronize the Wayland environment to DBus and Systemd.
+        # This MUST happen at startup so WAYLAND_DISPLAY is correctly captured.
+        # We then restart core services to ensure they pick up the fresh environment.
         {
-          command = "${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service waybar.service";
+          command = "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; systemctl --user restart xdg-desktop-portal.service easyeffects.service waybar.service";
         }
         { command = "kanshi"; }
         {
