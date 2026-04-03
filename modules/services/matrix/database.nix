@@ -1,25 +1,5 @@
 { pkgs, ... }:
 {
-  # mautrix-whatsapp DB ownership fix:
-  # ensureDBOwnership cannot be used (DB name mautrix_whatsapp ≠ user mautrix-whatsapp).
-  # This oneshot grants the schema on every boot — idempotent, safe to re-run.
-  # Also handles existing clusters where initialScript has already run without this grant.
-  systemd.services.postgresql-mautrix-whatsapp-perms = {
-    description = "Grant mautrix-whatsapp schema ownership";
-    after = [ "postgresql.service" ];
-    bindsTo = [ "postgresql.service" ];
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
-      User = "postgres";
-      ExecStart = pkgs.writeShellScript "mautrix-whatsapp-db-perms" ''
-        ${pkgs.postgresql_16}/bin/psql -d mautrix_whatsapp -c \
-          'ALTER SCHEMA public OWNER TO "mautrix-whatsapp";'
-      '';
-    };
-  };
-
   services.postgresql = {
     enable = true;
     package = pkgs.postgresql_16;
@@ -57,9 +37,6 @@
         IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'matrix-authentication-service') THEN
           CREATE USER "matrix-authentication-service";
         END IF;
-        IF NOT EXISTS (SELECT FROM pg_catalog.pg_user WHERE usename = 'mautrix-whatsapp') THEN
-          CREATE USER "mautrix-whatsapp";
-        END IF;
       END
       $$;
 
@@ -72,17 +49,11 @@
       SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'matrix-authentication-service' AND pid <> pg_backend_pid();
       DROP DATABASE IF EXISTS "matrix-authentication-service";
       CREATE DATABASE "matrix-authentication-service" WITH OWNER "matrix-authentication-service";
-
-      -- Create WhatsApp bridge DB
-      SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'mautrix_whatsapp' AND pid <> pg_backend_pid();
-      DROP DATABASE IF EXISTS "mautrix_whatsapp";
-      CREATE DATABASE "mautrix_whatsapp" WITH OWNER "mautrix-whatsapp";
     '';
 
     ensureDatabases = [
       "matrix-synapse"
       "matrix-authentication-service"
-      "mautrix_whatsapp"
     ];
     ensureUsers = [
       {
@@ -92,11 +63,6 @@
       {
         name = "matrix-authentication-service";
         ensureDBOwnership = true;
-      }
-      {
-        # DB name (mautrix_whatsapp) differs from user name (mautrix-whatsapp) — ownership
-        # is set in initialScript; ensureDBOwnership cannot be used here (names must match).
-        name = "mautrix-whatsapp";
       }
     ];
   };

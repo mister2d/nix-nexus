@@ -19,7 +19,6 @@ let
   configPath = "${matrixKvBase}/config";
   synapsePath = "${matrixKvBase}/synapse";
   masPath = "${matrixKvBase}/mas";
-  whatsappPath = "${matrixKvBase}/whatsapp";
 
   # certDomain is the domain under which the TLS certificate is stored in
   # Vault KV. This is typically the root or wildcard domain (e.g.
@@ -207,23 +206,6 @@ let
     {{ end }}
   '';
 
-  # WhatsApp Bridge Secrets:
-  # encryption_pickle_key: generated once, never rotated — invalidates all bridge sessions.
-  #
-  # Double-puppeting note: login_shared_secret is NOT used here. MAS (MSC3861) removes
-  # m.login.application_service, making the shared-secret approach incompatible.
-  # To enable double-puppeting after the bridge is running:
-  #   1. Read as_token from /var/lib/mautrix-whatsapp/whatsapp-registration.yaml
-  #   2. Store in Vault as: as_token:THE_TOKEN
-  #   3. Set MAUTRIX_WHATSAPP_BRIDGE_LOGIN_SHARED_SECRET=as_token:THE_TOKEN here
-  #      (the NixOS module injects this into double_puppet.secrets."<domain>")
-  whatsappEnvTmpl = pkgs.writeText "whatsapp-env.ctmpl" ''
-    {{ with secret "${whatsappPath}" }}
-    MAUTRIX_WHATSAPP_ENCRYPTION_PICKLE_KEY={{ .Data.data.encryption_pickle_key }}
-    MAUTRIX_WHATSAPP_BRIDGE_LOGIN_SHARED_SECRET=as_token:{{ .Data.data.as_token }}
-    {{ end }}
-  '';
-
   # MAS Signing Keys:
   # Two keys rendered as separate files to avoid multi-line PEM indentation
   # issues in YAML. MAS references them via key_file.
@@ -327,18 +309,11 @@ let
       command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
     }
     template {
-      source = "${masConfigTmpl}"
+      source      = "${masConfigTmpl}"
       destination = "${secretDir}/mas-config.yaml"
-      perms = 0640
-      group = "matrix-secrets"
-      command = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
-    }
-    template {
-      source      = "${whatsappEnvTmpl}"
-      destination = "${secretDir}/whatsapp-env"
       perms       = 0640
       group       = "matrix-secrets"
-      command     = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block mautrix-whatsapp.service || true'"
+      command     = "${pkgs.bash}/bin/bash -c '${pkgs.systemd}/bin/systemctl restart --no-block matrix-authentication-service.service || true'"
     }
   '';
 in
@@ -423,13 +398,6 @@ in
       };
       livekit = {
         after = [ "vault-agent-init.service" ];
-        serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
-      };
-      mautrix-whatsapp = {
-        after = [
-          "vault-agent-init.service"
-          "postgresql-mautrix-whatsapp-perms.service"
-        ];
         serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
       };
     };

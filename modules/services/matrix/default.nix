@@ -10,6 +10,5 @@
     ./element-call.nix
     ./haproxy.nix
     ./vault-secrets.nix
-    ./whatsapp.nix
   ];
 }
