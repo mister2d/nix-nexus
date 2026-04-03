@@ -21,8 +21,11 @@
 
     # Configuration is scoped per compositor to prevent conflicts
     config = {
-      common.default = [
-        "gnome"
+      common.default = [ "gtk" ];
+
+      # Sway uses the wlroots and GTK portals
+      sway.default = [
+        "wlr"
         "gtk"
       ];
 

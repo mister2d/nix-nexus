@@ -23,8 +23,8 @@ in
 
     extraSessionCommands = ''
       # Export essential variables to DBus and Systemd BEFORE Sway starts.
-      # This fixes the portal timeouts that cause Waybar/EasyEffects to hang.
-      ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland
+      # We include XDG_DATA_DIRS so the portal can locate .desktop files.
+      ${pkgs.dbus}/bin/dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway XDG_SESSION_TYPE=wayland XDG_DATA_DIRS
     '';
 
     config = {
@@ -242,13 +242,10 @@ in
       };
 
       startup = [
-        # Recovery: Wait for the compositor and DBus session to stabilize,
-        # then restart services that depend on graphical-session.
-        # This resolves portal registration races and ensures environment propagation.
-        # Note: The 'QML Created graphical object' warning is a known harmless
-        # side-effect of launching EasyEffects in daemon mode without an active UI.
+        # Recovery: Restart services once to ensure they pick up the fresh environment.
+        # This is a one-shot fix for the initial session bootstrap.
         {
-          command = "${pkgs.bash}/bin/sleep 5; ${pkgs.systemd}/bin/systemctl --user stop xdg-desktop-portal.service easyeffects.service; ${pkgs.systemd}/bin/systemctl --user start xdg-desktop-portal.service easyeffects.service";
+          command = "${pkgs.systemd}/bin/systemctl --user restart xdg-desktop-portal.service easyeffects.service waybar.service";
         }
         { command = "kanshi"; }
         {
@@ -292,7 +289,7 @@ in
       {
         timeout = 900;
         command = "${pkgs.sway}/bin/swaymsg \"output * dpms off\"";
-        resumeCommand = "${pkgs.sway}/bin/swaymsg \"output * dpms on\"";
+        resumeCommand = "${pkgs.swaymsg}/bin/swaymsg \"output * dpms on\"";
       }
     ];
     events = [
