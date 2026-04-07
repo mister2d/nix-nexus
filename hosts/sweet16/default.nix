@@ -26,7 +26,8 @@
     ../../profiles/development
 
     # Compositors & Desktop Environments
-    ../../modules/desktop/sway.nix
+    ../../modules/desktop/niri.nix
+    ../../modules/desktop/dank-material-shell.nix
   ];
 
   # Machine-specific overrides

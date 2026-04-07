@@ -20,12 +20,15 @@ in
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
+    plugins = [
+      "easyEffects"
+    ];
 
     # PARENT/CHILD MODEL: Use enableSpawn for native inheritance.
-    # HEEDING WARNINGS: Enable includes to provide required DMS UI fragments.
+    # HEEDING WARNINGS: Disable includes as they generate invalid KDL syntax in modern niri-flake.
     niri = {
-      includes.enable = true;
-      enableSpawn = true;
+      includes.enable = false;
+      enableSpawn = false;
       enableKeybinds = false;
     };
   };

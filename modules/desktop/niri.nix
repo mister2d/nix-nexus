@@ -26,6 +26,9 @@
     );
   };
 
+  # Required for GTK/GNOME portal settings and DMS configuration
+  programs.dconf.enable = true;
+
   # Systemd User Service Scoping
   systemd.user.services = {
     # DANK LINUX 1.4 DOCS FIX: Disable niri-flake's polkit agent.

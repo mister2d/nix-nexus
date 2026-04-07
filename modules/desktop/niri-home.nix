@@ -87,6 +87,15 @@
 
             # 4. Recovery: Restart services that depend on graphical-session
             ${pkgs.systemd}/bin/systemctl --user restart easyeffects.service xdg-desktop-portal.service
+
+            # 5. Start DMS
+            # - Use 'run' for DMS 1.4+
+            # - Unset QT_QPA_PLATFORMTHEME to prevent DMS from trying to use X11-based GTK themes.
+            # - Ensure WAYLAND_DISPLAY is passed explicitly.
+            export WAYLAND_DISPLAY="$WAYLAND_DISPLAY"
+            export QT_QPA_PLATFORM=wayland
+            export QT_QPA_PLATFORMTHEME=""
+            ${pkgs.bash}/bin/bash -c "dms run > /dev/null 2>&1 &"
           ''
         ];
       }

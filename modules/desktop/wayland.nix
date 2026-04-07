@@ -17,17 +17,26 @@
     # Ensure standard portals are present for all sessions
     extraPortals = [
       pkgs.xdg-desktop-portal-gtk
+      pkgs.xdg-desktop-portal-gnome
     ];
 
     # Configuration is scoped per compositor to prevent conflicts
-    config = {
-      common.default = [ "gtk" ];
+    config = lib.mkForce {
+      common.default = [
+        "gtk"
+        "gnome"
+      ];
 
       # Sway uses the wlroots and GTK portals
-      sway.default = lib.mkForce [
-        "wlr"
-        "gtk"
-      ];
+      sway = {
+        default = [
+          "wlr"
+          "gtk"
+          "gnome"
+        ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "wlr" ];
+        "org.freedesktop.impl.portal.Screenshot" = [ "wlr" ];
+      };
 
       # Niri uses the GNOME portal for many features
       niri.default = [

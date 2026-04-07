@@ -2,7 +2,6 @@
   inputs,
   pkgs,
   lib,
-  config,
   ...
 }:
 
@@ -19,8 +18,9 @@ in
   ];
 
   # Dank Material Shell (DMS) configuration
-  config = lib.mkIf config.programs.dank-material-shell.enable {
+  config = {
     programs.dank-material-shell = {
+      enable = true;
       dgop.package = unstable.dgop;
       enableSystemMonitoring = true;
       enableVPN = true;
