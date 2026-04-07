@@ -82,8 +82,6 @@
       home-manager,
       pre-commit-hooks,
       nixvim,
-      niri,
-      dms,
       ...
     }@inputs:
     let
@@ -228,9 +226,6 @@
                 users.ddukes = {
                   imports = [
                     nixvim.homeModules.nixvim
-                    niri.homeModules.niri
-                    dms.homeModules.default
-                    dms.homeModules.niri
                     ./hosts/petunia/home.nix
                   ];
                 };

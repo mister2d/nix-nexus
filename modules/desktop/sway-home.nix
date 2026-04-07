@@ -12,6 +12,71 @@ let
   urgent = "#AA00AA";
 in
 {
+  # Intelligent wlsunset wrapper for geolocation and fixed temperature presets
+  xdg.configFile."sway/scripts/light.sh" = {
+    executable = true;
+    text = ''
+      #!/usr/bin/env bash
+      # Intelligent wlsunset wrapper managed by Home Manager
+      set -euo pipefail
+
+      # Args: [auto|reset|2500|3000|4000|5000]
+      MODE="''${1:-auto}"
+      CACHE_DIR="''${XDG_CACHE_HOME:-$HOME/.cache}/wlsunset"
+      COORD_CACHE="$CACHE_DIR/coords.json"
+
+      mkdir -p "$CACHE_DIR"
+
+      # Kill existing instances (handled by script for atomic switch)
+      pkill wlsunset || true
+      # Small sleep to allow wlsunset to release the Wayland surface
+      sleep 0.2
+
+      if [ "$MODE" = "reset" ]; then
+          exit 0
+      fi
+
+      get_coords() {
+          # Cache coordinates for 24 hours to minimize API calls and handle offline use
+          if [ ! -f "$COORD_CACHE" ] || [ "$(find "$COORD_CACHE" -mmin +1440)" ]; then
+              if CONTENT=$(${pkgs.curl}/bin/curl -s --connect-timeout 5 http://ip-api.com/json/); then
+                  if echo "$CONTENT" | ${pkgs.jq}/bin/jq -e '.status == "success"' >/dev/null; then
+                      echo "$CONTENT" > "$COORD_CACHE"
+                  fi
+              fi
+          fi
+
+          if [ -f "$COORD_CACHE" ]; then
+              LAT=$(${pkgs.jq}/bin/jq -r .lat "$COORD_CACHE")
+              LON=$(${pkgs.jq}/bin/jq -r .lon "$COORD_CACHE")
+          else
+              # Fallback to Denver, CO if API and cache fail
+              LAT="39.7"
+              LON="-105.0"
+          fi
+      }
+
+      case "$MODE" in
+          auto)
+              get_coords
+              exec ${pkgs.wlsunset}/bin/wlsunset -l "$LAT" -L "$LON"
+              ;;
+          2500|3000|4000|5000)
+              get_coords
+              # Use a 1-degree difference to ensure wlsunset doesn't treat them as identical/invalid
+              # and provide location to ensure it initializes the protocol correctly.
+              TEMP_LOW="$MODE"
+              TEMP_HIGH=$((MODE + 1))
+              exec ${pkgs.wlsunset}/bin/wlsunset -l "$LAT" -L "$LON" -t "$TEMP_LOW" -T "$TEMP_HIGH"
+              ;;
+          *)
+              echo "Unknown mode: $MODE"
+              exit 1
+              ;;
+      esac
+    '';
+  };
+
   wayland.windowManager.sway = {
     enable = true;
     systemd.enable = true;
@@ -26,6 +91,11 @@ in
       export XDG_CURRENT_DESKTOP=sway
       export XDG_SESSION_DESKTOP=sway
       export XDG_SESSION_TYPE=wayland
+
+      # Synchronize the Wayland environment to DBus and Systemd once per login.
+      # This captures WAYLAND_DISPLAY from the session wrapper.
+      systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS
+      dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS
     '';
 
     config = {
@@ -228,35 +298,43 @@ in
         "night-light" = {
           # Use single quotes around complex exec commands to ensure Sway
           # correctly identifies the 'mode "default"' command as a separate action.
-          # We also pkill swaynag to dismiss the menu.
-          # We use 'exec wlsunset' to replace the subshell with the daemon process,
-          # ensuring it doesn't block the pkill command or leave zombie shells.
-          "a" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -l 39.7 -L -105.0', mode \"default\"";
-          "r" = "exec 'pkill swaynag; pkill wlsunset', mode \"default\"";
-          "2" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 2500', mode \"default\"";
-          "3" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 3000', mode \"default\"";
-          "4" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 4000', mode \"default\"";
-          "5" = "exec 'pkill swaynag; pkill wlsunset; exec wlsunset -t 5000', mode \"default\"";
-          "Return" = "exec 'pkill swaynag', mode \"default\"";
-          "Escape" = "exec 'pkill swaynag', mode \"default\"";
+          # We pkill swaynag to dismiss the menu.
+          # light.sh handles wlsunset lifecycle and geolocation.
+          "a" = "exec 'pkill swaynag || true; ~/.config/sway/scripts/light.sh auto', mode \"default\"";
+          "r" = "exec 'pkill swaynag || true; ~/.config/sway/scripts/light.sh reset', mode \"default\"";
+          "2" = "exec 'pkill swaynag || true; ~/.config/sway/scripts/light.sh 2500', mode \"default\"";
+          "3" = "exec 'pkill swaynag || true; ~/.config/sway/scripts/light.sh 3000', mode \"default\"";
+          "4" = "exec 'pkill swaynag || true; ~/.config/sway/scripts/light.sh 4000', mode \"default\"";
+          "5" = "exec 'pkill swaynag || true; ~/.config/sway/scripts/light.sh 5000', mode \"default\"";
+          "Return" = "exec 'pkill swaynag || true', mode \"default\"";
+          "Escape" = "exec 'pkill swaynag || true', mode \"default\"";
         };
       };
 
       startup = [
-        # Synchronize the Wayland environment to DBus and Systemd.
-        # This MUST happen at startup so WAYLAND_DISPLAY is correctly captured.
-        # We then restart core services and explicitly start Waybar.
+        # Restart core services and Waybar (explicitly set always=false to prevent reload spam)
         {
-          command = "systemctl --user import-environment WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_DATA_DIRS; systemctl --user restart xdg-desktop-portal.service easyeffects.service; systemctl --user start waybar.service";
+          command = "systemctl --user restart xdg-desktop-portal.service easyeffects.service > /dev/null 2>&1; systemctl --user start waybar.service > /dev/null 2>&1";
+          always = false;
         }
-        { command = "kanshi"; }
+        {
+          command = "kanshi > /dev/null 2>&1";
+          always = false;
+        }
         {
           command = "${
             (import ../programs/custom-scripts.nix { inherit pkgs; }).battery-alert
-          }/bin/battery-alert";
+          }/bin/battery-alert > /dev/null 2>&1";
+          always = false;
         }
-        { command = "nm-applet --indicator"; }
-        { command = "wl-paste -t text --watch clipman store --no-persist"; }
+        {
+          command = "nm-applet --indicator > /dev/null 2>&1";
+          always = false;
+        }
+        {
+          command = "wl-paste -t text --watch clipman store --no-persist > /dev/null 2>&1";
+          always = false;
+        }
       ];
 
       window.commands = [

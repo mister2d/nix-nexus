@@ -23,6 +23,9 @@
     # Functional Profiles (Suites)
     ../../profiles/desktop
     ../../profiles/development
+
+    # Compositor
+    ../../modules/desktop/sway.nix
   ];
 
   # Machine-specific overrides

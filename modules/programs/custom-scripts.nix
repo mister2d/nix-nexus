@@ -75,29 +75,29 @@ rec {
             except Exception:
                 return []
 
-            cores = []
+            cpu_stats = []
             for line in lines:
                 if line.startswith("cpu") and line.split()[0] != "cpu":
                     parts = [int(x) for x in line.split()[1:]]
                     idle = parts[3] + parts[4]
                     total = sum(parts)
-                    cores.append({"idle": idle, "total": total})
-            return cores
+                    cpu_stats.append({"idle": idle, "total": total})
+            return cpu_stats
 
 
         def get_gpu_usage():
             import glob
-            gpus = []
+            gpu_stats = []
             # Dynamically discover all GPU busy percentage files
             paths = glob.glob("/sys/class/drm/card*/device/gpu_busy_percent")
             for path in paths:
                 try:
                     with open(path, "r") as f:
                         val = int(f.read().strip())
-                        gpus.append(val)
+                        gpu_stats.append(val)
                 except Exception:
                     pass
-            return gpus
+            return gpu_stats
 
 
         def format_graph(percent):
@@ -176,11 +176,10 @@ rec {
             except Exception:
                 return []
             devices = []
-            for line in output.strip().split('
-        '):
+            for line in output.strip().split('\n'):
                 if not line:
                     continue
-                parts = line.split('	')
+                parts = line.split('\t')
                 dev_id = parts[0]
                 dev_name = parts[1]
                 devices.append({'id': dev_id, 'name': dev_name, 'desc': dev_name})
@@ -189,8 +188,7 @@ rec {
                 full_out = subprocess.check_output(cmd_full, shell=True).decode()
                 current_id = None
                 desc_map = {}
-                for line in full_out.split('
-        '):
+                for line in full_out.split('\n'):
                     line = line.strip()
                     if line.startswith(f"{dev_type[:-1]} #"):
                         current_id = line.split('#')[1]
@@ -213,8 +211,7 @@ rec {
             devices = get_devices(type_name)
             if not devices:
                 sys.exit(1)
-            menu_input = "
-        ".join([f"{d['id']}: {d['desc']}" for d in devices])
+            menu_input = "\n".join([f"{d['id']}: {d['desc']}" for d in devices])
             try:
                 p = subprocess.Popen(
                     MENU_CMD, shell=True, stdin=subprocess.PIPE,
@@ -231,10 +228,9 @@ rec {
                 try:
                     ls_cmd = f"{PA_CTL} list short {stream_type}"
                     streams = subprocess.check_output(ls_cmd, shell=True).decode()
-                    for line in streams.strip().split('
-        '):
+                    for line in streams.strip().split('\n'):
                         if line:
-                            stream_id = line.split('	')[0]
+                            stream_id = line.split('\t')[0]
                             mv_cmd = f"{PA_CTL} move-{mode}-input {stream_id} {selected_id}"
                             if mode == "source":
                                 mv_cmd = (
@@ -259,73 +255,74 @@ rec {
         exit 1
     fi
 
-        echo "Creating Nix Flake for CUDA/LLM development..."
-        cat <<'EOF' > flake.nix
+    echo "Creating Nix Flake for CUDA/LLM development..."
+    cat <<'EOF' > flake.nix
     {
       description = "Portable LLM/CUDA Inference Environment";
 
-        inputs = {
-          nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-        };
-      
-        outputs = { self, nixpkgs }: let
-          system = "x86_64-linux";
-          pkgs = import nixpkgs { 
-            inherit system; 
-            config.allowUnfree = true; 
-          };
-        in {
-          devShells.''${system}.default = pkgs.mkShell {
-            name = "llm-cuda-shell";
-            
-            # Isolated development toolchain
-            buildInputs = with pkgs; [
-              python312
-              python312Packages.pip
-              python312Packages.virtualenv
-              uv
-              stdenv.cc.cc.lib
-              zlib
-              # Modern CUDA 13.x compatibility via redistributables
-              cudaPackages.cuda_nvcc
-              cudaPackages.cuda_cudart
-            ];
-      
-            # Bridge the "ABI Gap" between Nix and Host (e.g., Debian)
-            shellHook = '''
-              # 1. Setup Virtual Environment
-              if [ ! -d ".venv" ]; then
-                echo "Creating virtual environment with uv..."
-                uv venv .venv
-              fi
-              source .venv/bin/activate
-      
-                      # 2. Bridge the ABI Gap
-                      # We only add specific libraries from the host to avoid glibc poisoning.
-                      CUDA_BRIDGE_DIR="/tmp/nix-cuda-bridge-$USER"
-                      mkdir -p "$CUDA_BRIDGE_DIR"
-                      for lib in libcuda.so.1 libnvidia-ml.so.1 libnvidia-ptxjitcompiler.so.1 libcuda.so; do
-                        if [ -f "/usr/lib/x86_64-linux-gnu/$lib" ]; then
-                          ln -sf "/usr/lib/x86_64-linux-gnu/$lib" "$CUDA_BRIDGE_DIR/$lib"
-                        fi
-                      done
+      inputs = {
+        nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+      };
 
-                      export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ncurses5 ]}:$CUDA_BRIDGE_DIR:$LD_LIBRARY_PATH"
-                      
-                      # 3. Compiler flags for compiling llama.cpp and others from source
-                      export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
-                      export EXTRA_CCFLAGS="-I/usr/local/cuda/include"
-                      export EXTRA_LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
-                            echo "🚀 CUDA LLM Environment Initialized."
-              echo "Host Driver: 590.48.01 | CUDA: 13.1 (Bridge Active)"
-              echo "Tip: Use 'uv pip install <package>' for 10x faster installs."
-            ''';
-      
+      outputs = { self, nixpkgs }: let
+        system = "x86_64-linux";
+        pkgs = import nixpkgs {
+          inherit system;
+          config.allowUnfree = true;
+        };
+      in {
+        devShells.''${system}.default = pkgs.mkShell {
+          name = "llm-cuda-shell";
+
+          # Isolated development toolchain
+          buildInputs = with pkgs; [
+            python312
+            python312Packages.pip
+            python312Packages.virtualenv
+            uv
+            stdenv.cc.cc.lib
+            zlib
+            # Modern CUDA 13.x compatibility via redistributables
+            cudaPackages.cuda_nvcc
+            cudaPackages.cuda_cudart
+          ];
+
+          # Bridge the "ABI Gap" between Nix and Host (e.g., Debian)
+          shellHook = '''
+            # 1. Setup Virtual Environment
+            if [ ! -d ".venv" ]; then
+              echo "Creating virtual environment with uv..."
+              uv venv .venv
+            fi
+            source .venv/bin/activate
+
+            # 2. Bridge the ABI Gap
+            # We only add specific libraries from the host to avoid glibc poisoning.
+            CUDA_BRIDGE_DIR="/tmp/nix-cuda-bridge-$USER"
+            mkdir -p "$CUDA_BRIDGE_DIR"
+            for lib in libcuda.so.1 libnvidia-ml.so.1 libnvidia-ptxjitcompiler.so.1 libcuda.so; do
+              if [ -f "/usr/lib/x86_64-linux-gnu/$lib" ]; then
+                ln -sf "/usr/lib/x86_64-linux-gnu/$lib" "$CUDA_BRIDGE_DIR/$lib"
+              fi
+            done
+
+            export LD_LIBRARY_PATH="''${pkgs.lib.makeLibraryPath [ pkgs.stdenv.cc.cc.lib pkgs.zlib pkgs.ncurses5 ]}:$CUDA_BRIDGE_DIR:$LD_LIBRARY_PATH"
+
+            # 3. Compiler flags for compiling llama.cpp and others from source
+            export CUDA_PATH=''${pkgs.cudaPackages.cuda_nvcc}
+            export EXTRA_CCFLAGS="-I/usr/local/cuda/include"
+            export EXTRA_LDFLAGS="-L/usr/lib/x86_64-linux-gnu"
+
+            echo "🚀 CUDA LLM Environment Initialized."
+            echo "Host Driver: 590.48.01 | CUDA: 13.1 (Bridge Active)"
+            echo "Tip: Use 'uv pip install <package>' for 10x faster installs."
+          ''';
         };
       };
     }
     EOF
-            echo "Creating .envrc for direnv..."
+
+    echo "Creating .envrc for direnv..."
     echo "use flake" > .envrc
 
     if command -v direnv >/dev/null 2>&1; then

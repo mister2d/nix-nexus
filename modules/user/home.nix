@@ -49,9 +49,6 @@ let
 in
 {
   imports = [
-    ../desktop/sway-home.nix
-    ../desktop/waybar-home.nix
-    ../desktop/notifications.nix
     ./bash.nix
     ./neovim-home.nix
     ./terminal-home.nix
@@ -208,17 +205,7 @@ in
 
   # Activation Scripts
   # These scripts run during Home Manager activation to handle session state.
-  home.activation = {
-    # 1. Clear Stale Session Variables
-    # When switching between Sway and Niri without a full reboot, stale variables
-    # (like SWAYSOCK) in the systemd user manager can cause Home Manager to hang
-    # while trying to reload a non-existent compositor.
-    cleanupStaleSession = lib.hm.dag.entryBefore [ "onFilesChange" ] ''
-      if [ "''${XDG_CURRENT_DESKTOP:-}" != "sway" ] && [ "''${XDG_CURRENT_DESKTOP:-}" != "Sway" ]; then
-        ${pkgs.systemd}/bin/systemctl --user unset-environment SWAYSOCK || true
-      fi
-    '';
-  };
+  home.activation = { };
 
   # XDG Configuration
   xdg.dataFile = { };

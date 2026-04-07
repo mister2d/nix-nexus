@@ -5,14 +5,13 @@
   ...
 }:
 
-let
-  unstable = import inputs.nixpkgs-unstable {
-    inherit (pkgs.stdenv.hostPlatform) system;
-    config.allowUnfree = true;
-  };
-in
 {
+  imports = [
+    inputs.niri.homeModules.niri
+  ];
+
   # Niri Configuration (Validated at build-time by niri-flake)
+  programs.niri.enable = true;
   programs.niri.settings = {
     input = {
       keyboard.xkb.layout = "us";
@@ -24,7 +23,17 @@ in
       focus-follows-mouse.enable = true;
     };
 
-    xwayland-satellite.enable = false;
+    xwayland-satellite.enable = true;
+
+    outputs = {
+      "eDP-1" = {
+        mode = {
+          width = 3840;
+          height = 2400;
+        };
+        scale = 1.15;
+      };
+    };
 
     layout = {
       gaps = 8.0;
@@ -52,8 +61,8 @@ in
       }
     ];
 
-    # Startup sequence for Niri (Appended to DMS module commands)
-    spawn-at-startup = lib.mkAfter [
+    # Startup sequence for Niri
+    spawn-at-startup = lib.mkBefore [
       # PORTABLE DETERMINISTIC SYNC:
       {
         command = [
@@ -81,7 +90,6 @@ in
           ''
         ];
       }
-      { command = [ "${pkgs.kanshi}/bin/kanshi" ]; }
     ];
 
     environment = {
@@ -129,12 +137,6 @@ in
         "BEMOJI_PICKER_CMD=\"${pkgs.wofi}/bin/wofi -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#008080' --hf '#000000' --tb '#008080' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c"
       ];
       "Mod+Shift+D".action.spawn = [ "${pkgs.wdisplays}/bin/wdisplays" ];
-      "Mod+Escape".action.spawn = [
-        "${pkgs.swaylock}/bin/swaylock"
-        "-f"
-        "-c"
-        "000000"
-      ];
       "Print".action.screenshot = { };
       "Control+Print".action.screenshot-screen = { };
       "Alt+Print".action.screenshot-window = { };
@@ -197,25 +199,4 @@ in
       }
     ];
   };
-
-  # DMS 1.4 Stable Configuration
-  programs.dank-material-shell = {
-    enable = true;
-    # Systemd disabled globally in niri.nix.
-    dgop.package = unstable.dgop;
-
-    # PARENT/CHILD MODEL: Use enableSpawn for native inheritance.
-    # HEEDING WARNINGS: Disable includes and presets to protect config authority.
-    niri = {
-      includes.enable = false;
-      enableSpawn = true;
-      enableKeybinds = false;
-    };
-  };
-
-  # Required dependencies for DMS background operations
-  home.packages = with pkgs; [
-    matugen
-    cliphist
-  ];
 }

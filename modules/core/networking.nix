@@ -1,47 +1,46 @@
-{ config, pkgs, ... }:
+{
+  config,
+  pkgs,
+  lib,
+  ...
+}:
 
 {
-  # Network Management
+  # Unified Network Management
+  # This module implements a "Modern Networking" pattern that handles both
+  # workstations (NetworkManager) and servers (networkd) while avoiding
+  # duplicate DHCP client conflicts and asymmetric routing issues.
   networking = {
+    # Disable the legacy DHCP client globally. Modern NixOS modules (NetworkManager
+    # and systemd-networkd) manage their own DHCP internally. This eliminates
+    # duplicate routes (e.g., metric 600 vs 3002) and routing table "wars".
+    useDHCP = false;
+    dhcpcd.enable = false;
+
+    # Workstation Posture (Default)
+    # NetworkManager is the fleet default for Wi-Fi roaming and ease of use.
     networkmanager = {
-      enable = true;
-      # Use systemd-resolved as the DNS backend for NetworkManager
+      enable = lib.mkDefault true;
       dns = "systemd-resolved";
 
-      # WiFi Persistence Posture
-      # SSIDs are defined here to be declaratively managed and restricted to the user.
-      # Passwords are NOT stored in the Nix configuration for Git safety.
-      # NetworkManager will prompt for the password on first connection and store it
-      # securely in the system-wide keyfile or user keyring.
+      # SSIDs are defined declaratively; passwords are managed in the system keyring.
       ensureProfiles.profiles = {
-        # Example Secure SSID (Replace 'MyWiFi' with your actual SSID)
         # "MyWiFi" = {
-        #   connection = {
-        #     id = "MyWiFi";
-        #     type = "wifi";
-        #     # Restrict this connection to the ddukes user
-        #     permissions = "user:ddukes";
-        #   };
-        #   wifi = {
-        #     mode = "infrastructure";
-        #     ssid = "MyWiFi";
-        #   };
-        #   wifi-security = {
-        #     auth-alg = "open";
-        #     key-mgmt = "wpa-psk";
-        #     # Setting psk-flags to 1 tells NM to ask for the password (not in Nix store)
-        #     psk-flags = 1;
-        #   };
-        #   ipv4.method = "auto";
-        #   ipv6.method = "auto";
+        #   connection = { id = "MyWiFi"; type = "wifi"; permissions = "user:ddukes"; };
+        #   wifi = { mode = "infrastructure"; ssid = "MyWiFi"; };
+        #   wifi-security = { auth-alg = "open"; key-mgmt = "wpa-psk"; psk-flags = 1; };
         # };
       };
     };
 
-    # Firewall Configuration
+    # Firewall & Security
     firewall = {
       enable = true;
-      trustedInterfaces = [ "tailscale0" ];
+
+      # Disable Reverse Path Filtering (lib.mkForce required to override Tailscale default)
+      # This prevents the kernel from dropping packets in multi-homed or VPN
+      # environments where responses might exit via a different interface.
+      checkReversePath = lib.mkForce false;
 
       # Standard application ports
       allowedTCPPorts = [
@@ -65,28 +64,32 @@
         21027 # Syncthing (Local Discovery)
       ];
 
-      # Range for Google Cast Streaming
       allowedUDPPortRanges = [
         {
           from = 32768;
           to = 61000;
-        }
+        } # Google Cast Streaming
       ];
+
+      trustedInterfaces = [ "tailscale0" ];
     };
   };
 
-  # Tailscale (Mesh VPN)
+  # Mesh VPN (Tailscale)
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "client";
   };
 
-  # Use systemd-resolved for DNS management
+  # Name Resolution
   services.resolved.enable = true;
 
-  # Autoconnect and Accept Routes
+  # Tailscale Autoconnect & Routing Strategy
+  # We dynamically adjust the Tailscale posture based on the machine type:
+  # - Workstations (NetworkManager): Do NOT --accept-routes to avoid LAN hijacking.
+  # - Servers (networkd): DO --accept-routes to facilitate fleet-wide access.
   systemd.services.tailscale-autoconnect = {
-    description = "Automatic Tailscale up with route acceptance";
+    description = "Automatic Tailscale up with context-aware routing";
     after = [
       "network-pre.target"
       "tailscaled.service"
@@ -100,7 +103,13 @@
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "oneshot";
-      ExecStart = "${pkgs.tailscale}/bin/tailscale up --accept-routes --accept-dns";
+      ExecStart =
+        let
+          # Disable subnet route acceptance on workstations to prevent Table 52
+          # from overriding local LAN routes (e.g., 10.0.1.0/24).
+          routing = if config.networking.networkmanager.enable then "" else "--accept-routes";
+        in
+        "${pkgs.tailscale}/bin/tailscale up --reset --accept-dns ${routing}";
       RemainAfterExit = true;
     };
   };

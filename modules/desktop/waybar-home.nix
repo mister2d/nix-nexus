@@ -1,6 +1,7 @@
 {
   pkgs,
   lib,
+  config,
   ...
 }:
 
@@ -8,9 +9,10 @@ let
   scripts = import ../programs/custom-scripts.nix { inherit pkgs; };
 in
 {
-  programs.waybar = {
+  programs.waybar = lib.mkIf config.wayland.windowManager.sway.enable {
     enable = true;
     systemd.enable = true;
+    systemd.target = "sway-session.target"; # Only start automatically in Sway
 
     settings = {
       mainBar = {
@@ -263,8 +265,14 @@ in
 
   # Ensure the waybar service has the correct PATH for its custom scripts
   # and is robust against audio service restarts/disconnections.
-  systemd.user.services.waybar = {
+  systemd.user.services.waybar = lib.mkIf config.wayland.windowManager.sway.enable {
     Unit = {
+      # Extra safety: Only run if we are actually in a Sway session.
+      ConditionEnvironment = lib.mkForce "XDG_CURRENT_DESKTOP=sway";
+
+      # Bind to the graphical session for lifecycle management
+      PartOf = [ "graphical-session.target" ];
+
       # Bind to audio services to prevent FD leaks when PipeWire is stopped.
       # This ensures Waybar stops cleanly when the audio stack is taken down.
       After = [

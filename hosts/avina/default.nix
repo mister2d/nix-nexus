@@ -64,14 +64,24 @@ in
   boot.kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 443;
 
   networking = {
-    # Hostname is managed by Proxmox via the LXC container name when
-    # proxmoxLXC.manageNetwork = false. Name the container "avina" in Proxmox.
+    # Disable NetworkManager (fleet default) for server hosts.
+    # Use systemd-networkd for a lean, declarative server posture.
+    networkmanager.enable = false;
 
     # Firewall Policy:
     # Proxmox is configured wide-open at the hypervisor level; NixOS owns the
     # firewall inside the container. Only the ports required by the Matrix stack
     # and operator access are opened.
     firewall.enable = false;
+  };
+
+  # Network Interface Configuration (LXC)
+  systemd.network = {
+    enable = true;
+    networks."10-eth0" = {
+      matchConfig.Name = "eth0";
+      networkConfig.DHCP = "yes";
+    };
   };
 
   # Administrative user for server access.

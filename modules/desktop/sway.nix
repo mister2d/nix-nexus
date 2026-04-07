@@ -15,17 +15,6 @@
     ];
   };
 
-  # Display Manager (Greetd)
-  services.greetd = {
-    enable = true;
-    settings = {
-      default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --asterisks --cmd sway";
-        user = "greeter";
-      };
-    };
-  };
-
   # System-wide Touchpad/Keyboard fixes
   environment.etc."sway/config.d/touchpad.conf".text = ''
     input "type:touchpad" {

@@ -8,6 +8,11 @@
     ../../modules/user/home.nix
     ../../modules/hardware/thinkpad-z16/kanshi-home.nix
     ../../modules/hardware/thinkpad-z16/sway-hardware-home.nix
+
+    # Desktop Environments & Customization
+    ../../modules/desktop/sway-home.nix
+    ../../modules/desktop/waybar-home.nix
+    ../../modules/desktop/notifications.nix
   ];
 
   # Resource Monitor with AMD GPU support

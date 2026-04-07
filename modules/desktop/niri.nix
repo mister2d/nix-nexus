@@ -1,16 +1,9 @@
 {
-  inputs,
   pkgs,
   lib,
   ...
 }:
 
-let
-  unstable = import inputs.nixpkgs-unstable {
-    inherit (pkgs.stdenv.hostPlatform) system;
-    config.allowUnfree = true;
-  };
-in
 {
   nixpkgs.overlays = [
     (_final: prev: {
@@ -21,14 +14,8 @@ in
     })
   ];
 
-  imports = [
-    # DMS 1.4 Stable NixOS Module
-    inputs.dms.nixosModules.default
-    inputs.niri.nixosModules.niri
-  ];
-
   # Niri Configuration
-  # HEEDING THE WARNING: Using niri 25.11 from nixpkgs as required by DMS.
+  # HEEDING THE WARNING: Using niri 25.11 from nixpkgs.
   programs.niri = {
     enable = true;
     # Force the package override to ensure tests are skipped system-wide.
@@ -39,21 +26,6 @@ in
     );
   };
 
-  # Dank Material Shell (DMS) configuration
-  programs.dank-material-shell = {
-    enable = true;
-    dgop.package = unstable.dgop;
-    enableSystemMonitoring = true;
-    enableVPN = true;
-    enableDynamicTheming = true;
-    enableAudioWavelength = true;
-    enableCalendarEvents = true;
-    enableClipboardPaste = true;
-
-    # PARENT/CHILD MODEL: Disable systemd to allow niri.enableSpawn to manage launch.
-    systemd.enable = false;
-  };
-
   # Systemd User Service Scoping
   systemd.user.services = {
     # DANK LINUX 1.4 DOCS FIX: Disable niri-flake's polkit agent.
@@ -62,9 +34,10 @@ in
 
     # Generic service scoping for background daemons
     easyeffects = {
+      # Remove wantedBy to prevent early startup failure before environment sync.
+      # The niri-home.nix spawn-at-startup block will restart it once ready.
       after = [ "graphical-session.target" ];
       partOf = [ "graphical-session.target" ];
-      wantedBy = [ "graphical-session.target" ];
     };
   };
 
@@ -82,23 +55,10 @@ in
   services = {
     accounts-daemon.enable = true;
     upower.enable = true;
-
-    # Display Manager (Greetd) - Isolated to Niri
-    greetd = {
-      enable = true;
-      settings = {
-        default_session = {
-          command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --asterisks --cmd niri-session";
-          user = "greeter";
-        };
-      };
-    };
   };
 
-  # Additional system tools for Niri/DMS
+  # Additional system tools for Niri
   environment.systemPackages = with pkgs; [
-    unstable.dsearch
-    unstable.xwayland-satellite
     qt6.qtwayland
     kdePackages.qtwayland
   ];
