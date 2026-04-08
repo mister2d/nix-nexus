@@ -12,6 +12,13 @@
         inputs.nixos-hardware.nixosModules.common-gpu-amd
         inputs.nixos-hardware.nixosModules.common-pc-ssd
       ];
+      
+      # Visual Boot & Thermal/Power Quirks
+      boot.kernelParams = [
+        "quiet"
+        "splash"
+        "mem_sleep_default=deep" # Prefer S3 suspend on mobile workstations (AMD/OLED)
+      ];
 
       # Bluetooth & Sound (Ambiently required by a mobile workstation)
       hardware.bluetooth.enable = true;
