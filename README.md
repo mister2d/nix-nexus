@@ -1,101 +1,75 @@
-# Nix-Nexus: Structured Configuration Framework
+# Nix-Nexus: Dendritic NixOS Infrastructure Harness
 
-Nix-Nexus is a modular, dendritic NixOS configuration framework designed for high-performance workstations, servers, and portable user environments. It follows a pure, aspect-oriented architecture to separate hardware quirks, system policies, and functional software suites across a diverse fleet of x86_64 and aarch64 nodes.
+Nix-Nexus is a modular, dendritic NixOS configuration framework designed for high-performance workstations, servers, and portable user environments. It follows a pure, aspect-oriented architecture to separate hardware quirks, system policies, and functional software suites across a diverse fleet of nodes.
 
 ## 📋 Table of Contents
 - [Architecture Overview](#-architecture-overview)
 - [Fleet Composition](#-fleet-composition)
 - [Directory Structure](#-directory-structure)
-- [Matrix 2.0 & Collaboration](#-matrix-20--collaboration)
+- [Matrix 2.0 Identity](#-matrix-20-identity)
 - [Getting Started](#-getting-started)
 - [Development Workflow](#-development-workflow)
-- [Technical Documentation](#-technical-documentation)
 
 ---
 
 ## 🏛️ Architecture Overview
-The configuration follows a three-tier hierarchy to ensure concerns are properly separated:
+The configuration follows a **Dendritic Aspect-Oriented DAG** to ensure deterministic and scalable orchestration:
 
-1.  **Core (Global)**: Foundational settings (Timezones, ZFS, Security) that apply to every machine in the fleet.
-2.  **Profiles (Suites)**: Hardware-agnostic functional bundles (Desktop environments, Server hardening, Dev toolchains).
-3.  **Aspects (Modules)**: Reusable, granular building blocks (Matrix, Ceph, Virtualization) imported by hosts as needed.
+1.  **Aspects (`den.aspects`)**: Granular, reusable building blocks (Matrix, Sway, ZFS, Networking) defined in modular Nix files.
+2.  **Provides (`den.provides`)**: Abstract interfaces (Hostname, StateVersion) that allow aspects to resolve dependencies.
+3.  **Hosts (`den.hosts`)**: The fleet control plane, where host identities are mapped to a set of included aspects and site-specific overrides.
 
 ## 🚢 Fleet Composition
-Nix-Nexus manages a diverse set of nodes across multiple architectures:
+Nix-Nexus manages a diverse set of nodes via `modules/hosts.nix`:
 
-*   **avina**: Public-facing Matrix 2.0 server (Proxmox LXC / x86_64).
-*   **petunia**: Primary home server and storage node (NixOS / x86_64).
-*   **sweet16**: Mobile workstation — ThinkPad Z16 Gen 1 (NixOS / x86_64).
-*   **dualie**: Standalone development environment (Debian Trixie / x86_64).
-*   **forge / rk3588**: Edge compute and SBC nodes (NixOS / aarch64).
+*   **avina**: Sovereign Matrix 2.0 server (Proxmox LXC / x86_64).
+*   **petunia**: Primary home server and storage node (NixOS / x86_64 / Ryzen).
+*   **sweet16**: Mobile workstation — ThinkPad Z16 Gen 1 (NixOS / x86_64 / AMD OLED).
 
 ## 📁 Directory Structure
+Legacy directories like `./hosts/` and `./profiles/` have been deprecated in favor of a unified module-based hierarchy.
+
 ```text
 .
-├── flake.nix               # Project entry point and dependency management
-├── hosts/                  # Machine-specific entry points
-│   ├── avina/              # Matrix 2.0 Stack (LXC)
-│   ├── petunia/            # Home Server & Storage
-│   └── sweet16/            # Workstation (ThinkPad Z16)
-├── profiles/               # Functional suites (Server, Workstation, Desktop)
-├── modules/                # Aspect-oriented modules
-│   ├── core/               # System foundations (Security, Networking)
-│   ├── hardware/           # Hardware-specific aspects (GPU, Ryzen)
-│   ├── services/           # Matrix 2.0, Ceph, Vault
-│   └── user/               # Home Manager aspects (Shell, Terminal, Neovim)
+├── flake.nix               # Entry point; imports fleet via import-tree
+├── modules/                # ALL configuration logic lives here
+│   ├── hosts.nix           # Federated Fleet Registry (Control Plane)
+│   ├── base.nix            # Foundation (HM, StateVersion, Timezone)
+│   ├── matrix.nix          # Matrix 2.0 Gateway Aspect
+│   ├── _matrix/            # Internal Matrix service modules (Synapse, MAS, etc.)
+│   ├── _hw/                # Hardware-specific artifacts (Disko, configurations)
+│   ├── _programs/          # Custom scripts and shell utilities
+│   └── _user/              # Home Manager foundations (Shell, Neovim)
 └── docs/                   # Deep-dive technical guides
 ```
 
 ---
 
-## 💬 Matrix 2.0 & Collaboration
-The **avina** host runs a state-of-the-art, OIDC-native Matrix 2.0 stack. This is the project's primary communications hub, featuring:
+## 💬 Matrix 2.0 Identity
+The **avina** host runs a state-of-the-art, OIDC-native Matrix 2.0 stack. All configuration is managed via the `matrix` option set:
 
-*   **OIDC Auth**: Fully delegated to Keycloak via MAS (Matrix Authentication Service).
-*   **Native Calls**: MatrixRTC group calls powered by a self-hosted LiveKit SFU.
-*   **Hybrid Ingress**: Dual-path signaling (Cloudflare Tunnel + Split-Horizon DNS) for maximum security and local performance.
-*   **Direct Media**: WebRTC media bypasses the Cloudflare Tunnel entirely. LAN clients connect via direct host candidates; WAN clients use TURN relay via NAT-forwarded ports.
+*   **OIDC native**: Delegates auth to Keycloak via MAS.
+*   **MatrixRTC group calls**: Powered by a self-hosted LiveKit SFU.
+*   **Standardized options**: Configure your domain and federated peers in one place.
 
 ---
 
 ## 🚀 Getting Started
-### NixOS Hosts
-To apply the configuration to a NixOS machine:
+To apply the configuration to any host in the fleet:
 ```bash
-nixos-rebuild switch --flake .#sweet16
+nixos-rebuild switch --flake .#<hostname>
 ```
 
-### Standalone Home Manager (Non-NixOS)
-Manage user environments on existing distributions (Debian, macOS) or corporate laptops:
+To validate the entire fleet before deployment:
 ```bash
-nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
-```
-
----
-
-## 🛠️ Development Workflow
-### Standardized Environment
-- **Activate:** `nix develop` (installs git hooks automatically).
-- **Validate:** `nix flake check` (evaluates tree-wide integrity).
-
-### Isolated AI/LLM Projects
-While the global environment is managed by Nix-Nexus, project-level AI toolchains utilize the **`llm-init`** script to bridge host GPU drivers to isolated Nix shells.
-```bash
-# Inside a project directory
-llm-init
-direnv allow
+nix flake check
 ```
 
 ---
 
-## 📚 Technical Documentation
-- [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Detailed specifications for the Matrix 2.0 stack and hybrid ingress.
-- [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and Hybrid GPU management.
-- [**Package Inventory**](./docs/packages.md): Versions and maintenance guide for pinned DevOps tools and hardware drivers (NVIDIA/CUDA).
-- [**Storage Management**](./docs/storage.md): Centralized CephFS mounting and ZFS dataset strategies.
-- [**Terminal & Multiplexing**](./docs/terminal.md): High-performance Kitty/Tmux configuration and Bash aliases.
-- [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix securely on non-NixOS hosts.
-- [**Devenv 2.0 Workflows**](./docs/devenv.md): Modern declarative development environments replacing Docker Compose.
+## 🛡️ Security & Secrets
+Secrets are managed out-of-band or via the `vault-secrets` aspect. The infrastructure expects:
+- `/run/secrets/synapse-secrets.yaml`
+- `/run/secrets/vault-token.env` (for OIDC/MAS/TLS rendering)
 
----
 Enjoy your reproducible, structured environment.
