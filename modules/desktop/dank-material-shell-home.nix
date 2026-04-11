@@ -20,9 +20,12 @@ in
   programs.dank-material-shell = {
     enable = true;
     dgop.package = unstable.dgop;
-    plugins = [
-      "easyEffects"
-    ];
+    plugins = {
+      easyEffects = {
+        enable = true;
+        src = inputs.dms.outPath + "/plugins/easyEffects";
+      };
+    };
 
     # PARENT/CHILD MODEL: Use enableSpawn for native inheritance.
     # HEEDING WARNINGS: Disable includes as they generate invalid KDL syntax in modern niri-flake.
