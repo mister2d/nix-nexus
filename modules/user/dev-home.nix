@@ -67,6 +67,11 @@ let
       inherit (pkgs.stdenv.hostPlatform) system;
       config.allowUnfree = true;
     }).tflint;
+  mcp-nixos-unstable-pkg =
+    (import inputs.nixpkgs-unstable {
+      inherit (pkgs.stdenv.hostPlatform) system;
+      config.allowUnfree = true;
+    }).mcp-nixos;
 
   # Kubernetes tools
   kubelogin-oidc-pkg =
@@ -88,7 +93,7 @@ let
       [
         pkgs.context7-mcp
         pkgs.github-mcp-server
-        pkgs.mcp-nixos
+        mcp-nixos-unstable-pkg
         pkgs.mcp-server-fetch
         pkgs.mcp-server-git
         pkgs.mcp-server-sequential-thinking
