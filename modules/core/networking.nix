@@ -5,7 +5,24 @@
   ...
 }:
 
+let
+  cfg = config.nix-nexus.tailscale;
+in
 {
+  options.nix-nexus.tailscale = {
+    homeSSIDs = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      description = ''
+        List of SSIDs considered "home" networks. When non-empty, a
+        NetworkManager dispatcher script will disable --accept-routes on these
+        networks (to avoid Tailscale subnet routes hijacking local LAN paths)
+        and enable it on all others (so remote LAN resources are reachable
+        while travelling).
+      '';
+    };
+  };
+
   # Unified Network Management
   # This module implements a "Modern Networking" pattern that handles both
   # workstations (NetworkManager) and servers (networkd) while avoiding
@@ -86,7 +103,8 @@
 
   # Tailscale Autoconnect & Routing Strategy
   # We dynamically adjust the Tailscale posture based on the machine type:
-  # - Workstations (NetworkManager): Do NOT --accept-routes to avoid LAN hijacking.
+  # - Workstations without homeSSIDs (NetworkManager): Do NOT --accept-routes to avoid LAN hijacking.
+  # - Workstations with homeSSIDs configured: accept-routes managed dynamically by NM dispatcher.
   # - Servers (networkd): DO --accept-routes to facilitate fleet-wide access.
   systemd.services.tailscale-autoconnect = {
     description = "Automatic Tailscale up with context-aware routing";
@@ -105,12 +123,57 @@
       Type = "oneshot";
       ExecStart =
         let
-          # Disable subnet route acceptance on workstations to prevent Table 52
-          # from overriding local LAN routes (e.g., 10.0.1.0/24).
-          routing = if config.networking.networkmanager.enable then "" else "--accept-routes";
+          # Roaming workstations (homeSSIDs set): start with accept-routes enabled;
+          # the NM dispatcher will disable it when on a known home network.
+          # Static workstations (no homeSSIDs): disable to prevent Table 52 LAN hijack.
+          # Servers (non-NM): always accept routes.
+          routing =
+            if cfg.homeSSIDs != [ ] then
+              "--accept-routes"
+            else if config.networking.networkmanager.enable then
+              ""
+            else
+              "--accept-routes";
         in
         "${pkgs.tailscale}/bin/tailscale up --reset --accept-dns ${routing}";
       RemainAfterExit = true;
     };
   };
+
+  # NM dispatcher: flip accept-routes based on SSID when homeSSIDs is configured.
+  # On a known home SSID the LAN is directly reachable, so subnet routes must be
+  # suppressed to prevent Table 52 from overriding local paths.  On any other
+  # network (hotel, hotspot, office) we want them so remote LAN resources route
+  # through Tailscale.
+  networking.networkmanager.dispatcherScripts = lib.mkIf (cfg.homeSSIDs != [ ]) [
+    {
+      source = pkgs.writeShellScript "tailscale-accept-routes" ''
+        INTERFACE="$1"
+        ACTION="$2"
+
+        # Only act on wifi/ethernet up/down events
+        case "$ACTION" in
+          up|connectivity-change) ;;
+          *) exit 0 ;;
+        esac
+
+        # Resolve current SSID (empty on wired or when not associated)
+        SSID=$(${pkgs.networkmanager}/bin/nmcli -t -f active,ssid dev wifi 2>/dev/null \
+               | ${pkgs.gnugrep}/bin/grep '^yes' | cut -d: -f2)
+
+        # Check if SSID matches any configured home network
+        IS_HOME=0
+        ${lib.concatMapStringsSep "\n" (ssid: ''
+          [ "$SSID" = ${lib.escapeShellArg ssid} ] && IS_HOME=1
+        '') cfg.homeSSIDs}
+
+        if [ "$IS_HOME" = "1" ]; then
+          ${pkgs.tailscale}/bin/tailscale set --accept-routes=false
+        else
+          ${pkgs.tailscale}/bin/tailscale set --accept-routes=true
+        fi
+      '';
+      type = "basic";
+    }
+  ];
 }

@@ -33,6 +33,12 @@
   # Machine-specific overrides
   networking.hostName = "sweet16";
 
+  # Tailscale roaming: accept-routes is suppressed on home SSIDs (LAN is directly
+  # reachable) and enabled everywhere else (road/hotspot access to LAN resources).
+  nix-nexus.tailscale.homeSSIDs = [
+    "Trial"
+  ];
+
   # ZFS Performance Profile (Coding & General Purpose)
   nix-nexus.zfs = {
     # Assuming 32GB RAM.
