@@ -105,7 +105,6 @@
       # RCA RESOLUTION: Force backend and purge legacy X11 variables.
       # Child processes (DMS) will inherit these natively from Niri.
       GDK_BACKEND = "wayland";
-      DISPLAY = "";
 
       QT_QPA_PLATFORM = "wayland;xcb";
       QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";

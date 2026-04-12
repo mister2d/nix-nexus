@@ -59,10 +59,4 @@
     accounts-daemon.enable = true;
     upower.enable = true;
   };
-
-  # Additional system tools for Niri
-  environment.systemPackages = with pkgs; [
-    qt6.qtwayland
-    kdePackages.qtwayland
-  ];
 }

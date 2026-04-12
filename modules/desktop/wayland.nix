@@ -9,6 +9,13 @@
     NIXOS_OZONE_WL = "1"; # Hint electron apps to use wayland
   };
 
+  # Qt Wayland Support (System-wide)
+  environment.systemPackages = with pkgs; [
+    qt5.qtwayland
+    qt6.qtwayland
+    kdePackages.qtwayland
+  ];
+
   # XDG Desktop Portal Configuration
   # This is critical for shell features, screen sharing (Pipewire), and GTK integration.
   xdg.portal = {
