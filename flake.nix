@@ -288,6 +288,71 @@
           ];
         };
 
+        # Hostname: openclaw (Proxmox LXC container)
+        openclaw = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs;
+          };
+          modules = [
+            # Main configuration entry point
+            ./hosts/openclaw/default.nix
+
+            # Unstable Packages Overlay
+            (
+              { pkgs, ... }:
+              let
+                unstable = import inputs.nixpkgs-unstable {
+                  inherit (pkgs.stdenv.hostPlatform) system;
+                  config.permittedInsecurePackages = [ "openclaw-2026.4.2" ];
+                };
+              in
+              {
+                nixpkgs.overlays = [
+                  (_final: _prev: {
+                    inherit (unstable) openclaw tailscale;
+                  })
+                ];
+              }
+            )
+
+            # Home Manager configuration for groot
+            home-manager.nixosModules.home-manager
+            (
+              { pkgs, ... }:
+              {
+                home-manager = {
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  backupFileExtension = "bak";
+                  extraSpecialArgs = {
+                    inherit inputs;
+                  };
+                  users.groot = {
+                    home.stateVersion = "25.11";
+                    home.packages = with pkgs; [
+                      openclaw
+                      tailscale
+                      nodejs_24
+                      python314
+                      git
+                      btop
+                      htop
+                      openssl
+                    ];
+                    imports = [
+                      inputs.nixvim.homeModules.nixvim
+                      ./modules/user/bash.nix
+                      ./modules/user/terminal-home.nix
+                      ./modules/user/neovim-home.nix
+                    ];
+                  };
+                };
+              }
+            )
+          ];
+        };
+
       };
     };
 }

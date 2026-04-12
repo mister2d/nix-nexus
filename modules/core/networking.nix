@@ -172,8 +172,14 @@ in
                 ""
               else
                 "--accept-routes";
+
+            # Official resolution for secret-backed auth keys:
+            # Use the 'file:' prefix to avoid leaking the key in the process list.
+            authKey = lib.optionalString (
+              config.services.tailscale.authKeyFile != null
+            ) "--auth-key file:${config.services.tailscale.authKeyFile}";
           in
-          "${pkgs.tailscale}/bin/tailscale up --reset --accept-dns ${routing}";
+          "${pkgs.tailscale}/bin/tailscale up --reset --accept-dns ${routing} ${authKey}";
         RemainAfterExit = true;
       };
     };

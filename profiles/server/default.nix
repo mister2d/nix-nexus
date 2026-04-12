@@ -19,6 +19,12 @@
 
   nixpkgs.config.allowUnfree = true;
 
+  environment.variables = {
+    # Disable the nixos-rebuild upgrade daemon for LXC compatibility.
+    # Prevents "Failed to start transient service unit" errors.
+    NIXOS_REBUILD_UPGRADE_DAEMON = "0";
+  };
+
   nix.settings = {
     experimental-features = [
       "nix-command"
