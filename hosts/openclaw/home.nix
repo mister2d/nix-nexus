@@ -5,14 +5,18 @@ _: {
   #   2. Loads the env file so openclaw.json SecretRefs (source: "env") resolve correctly
   #   3. Injects NODE_PATH for the missing Matrix crypto native binary (NixOS compat fix)
   xdg.configFile."systemd/user/openclaw-gateway.service.d/overrides.conf".text = ''
-    [Unit]
-    ConditionPathExists=/run/secrets/openclaw.env
-
     [Service]
     # FIX: Inject the missing Matrix crypto native binary via NODE_PATH.
     Environment="NODE_PATH=/run/openclaw/node_modules"
 
+    # Extend start timeout to outlast vault-agent-init rendering time.
+    # The base unit has TimeoutStartSec=30 which would kill the poll loop.
+    TimeoutStartSec=120
+
     # Block until vault-agent-init has rendered the env file.
+    # ConditionPathExists is intentionally absent: it causes a silent skip on
+    # boot (not a failure), so Restart=always never fires. The poll loop here
+    # is the correct mechanism for waiting across the race with vault-agent-init.
     ExecStartPre=/run/current-system/sw/bin/sh -c 'until [ -f /run/secrets/openclaw.env ]; do sleep 1; done'
 
     # Load Vault-rendered secrets; referenced in openclaw.json via source: "env".
