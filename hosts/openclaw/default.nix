@@ -153,7 +153,7 @@
   # which triggers OpenClaw's SSRF guard. By delegating this domain to
   # Cloudflare, matrix.novuscotia.com resolves to the public Cloudflare IP
   # (via Cloudflare Tunnel), bypassing the guard entirely.
-  environment.etc."systemd/dns-delegate.d/novuscotia.conf".text = ''
+  environment.etc."systemd/dns-delegate.d/novuscotia.dns-delegate".text = ''
     [Delegate]
     DNS=1.1.1.1 1.0.0.1
     Domains=novuscotia.com
