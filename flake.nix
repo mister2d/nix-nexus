@@ -310,7 +310,7 @@
               {
                 nixpkgs.overlays = [
                   (_final: _prev: {
-                    inherit (unstable) openclaw tailscale;
+                    inherit (unstable) openclaw tailscale mcp-nixos;
                   })
                 ];
               }
@@ -333,6 +333,7 @@
                     home.packages = with pkgs; [
                       openclaw
                       tailscale
+                      mcp-nixos
                       nodejs_24
                       python314
                       git
