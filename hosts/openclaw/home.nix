@@ -1,4 +1,15 @@
 _: {
+  # Source Vault-rendered secrets into interactive shells so the openclaw CLI
+  # can authenticate with the gateway (e.g. for pairing users).
+  programs.bash.initExtra = ''
+    if [ -f /run/secrets/openclaw.env ]; then
+      set -a
+      # shellcheck source=/dev/null
+      source /run/secrets/openclaw.env
+      set +a
+    fi
+  '';
+
   # Manage the openclaw-gateway systemd user service override declaratively.
   # openclaw installs its own unit; this drop-in:
   #   1. Blocks startup until /run/secrets/openclaw.env is rendered by vault-agent-init
