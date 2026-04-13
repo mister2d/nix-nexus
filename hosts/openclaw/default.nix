@@ -16,6 +16,9 @@
     manageNetwork = false;
   };
 
+  # Allow HAProxy (running as groot) to bind to port 443
+  boot.kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 443;
+
   # Let Proxmox manage IP assignment, NixOS systemd-networkd handles DHCP locally.
   networking = {
     hostName = "openclaw";
@@ -34,14 +37,91 @@
   # Host-level User configurations
   users.users.groot = {
     isNormalUser = true;
-    extraGroups = [ "wheel" ];
+    extraGroups = [ "openclaw-secrets" ]; # matrix-secrets provides access to /run/secrets and /run/certs
     shell = pkgs.bash;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGQp6H/n2JPSt1VxCAupTC1OTh7R3eu7wO0ZtCNbAkd7"
     ];
   };
 
+  # Security Hardening: Disable sudo entirely.
+  # Administrative tasks must be performed via direct root login.
+  security.sudo.enable = false;
+
+  # FIX: Provide the missing Matrix crypto native binary.
+  # The OpenClaw package is missing the native binding for Matrix, causing startup failure.
+  # We fetch it and place it in a temporary node_modules path reachable via NODE_PATH.
+  systemd.tmpfiles.rules = [
+    "d /run/openclaw 0755 root root -"
+    "d /run/openclaw/node_modules 0755 root root -"
+    "d /run/openclaw/node_modules/@matrix-org 0755 root root -"
+    "d /run/openclaw/node_modules/@matrix-org/matrix-sdk-crypto-nodejs-linux-x64-gnu 0755 root root -"
+    "L+ /run/openclaw/node_modules/@matrix-org/matrix-sdk-crypto-nodejs-linux-x64-gnu/index.node - - - - ${
+      pkgs.fetchurl {
+        url = "https://github.com/matrix-org/matrix-rust-sdk-crypto-nodejs/releases/download/v0.4.0/matrix-sdk-crypto.linux-x64-gnu.node";
+        sha256 = "06779l1ry2hxdxssiwj3gviyrbb43xi4yb0rzndgfa3ik3fx8y3h";
+      }
+    }"
+  ];
+
   services = {
+    haproxy = {
+      enable = true;
+      user = "groot";
+      group = "openclaw-secrets";
+      config =
+        let
+          adminIPs = [
+            "127.0.0.1"
+            "10.0.0.0/8"
+            "172.16.0.0/12"
+            "192.168.0.0/16"
+          ];
+        in
+        ''
+          global
+            maxconn 4096
+            stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+            log stdout format raw local0
+
+            # High-Security SSL configuration
+            ssl-default-bind-ciphers ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384
+            ssl-default-bind-ciphersuites TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+            ssl-default-bind-options no-sslv3 no-tlsv10 no-tlsv11 no-tls-tickets
+
+          defaults
+            mode    http
+            log     global
+            timeout connect 5s
+            timeout client  600s
+            timeout server  600s
+            timeout tunnel  3600s
+            option  forwardfor
+            option  http-server-close
+
+          frontend https_ingress
+            bind *:443 ssl crt /run/certs/haproxy.pem
+            http-request set-header X-Forwarded-Proto https
+
+            acl is_openclaw hdr(host) -i openclaw.novuscotia.com
+            use_backend openclaw_backend if is_openclaw
+
+          frontend stats
+            bind *:8404 ssl crt /run/certs/haproxy.pem
+            stats   enable
+            stats   show-legends
+            stats   show-modules
+            stats   uri /stats
+            stats   admin if { src ${lib.concatStringsSep " " adminIPs} }
+            http-request use-service prometheus-exporter if { path /metrics }
+
+          backend openclaw_backend
+            option httpchk GET /health
+            http-check expect status 200
+            server openclaw_loopback 127.0.0.1:18789 check
+        '';
+    };
+
     resolved = {
       enable = true;
       extraConfig = ''

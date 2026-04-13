@@ -345,6 +345,7 @@
                       ./modules/user/bash.nix
                       ./modules/user/terminal-home.nix
                       ./modules/user/neovim-home.nix
+                      ./hosts/openclaw/home.nix
                     ];
                   };
                 };
