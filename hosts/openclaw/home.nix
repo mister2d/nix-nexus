@@ -1,11 +1,14 @@
 _: {
-  # Inject the pre-fetched Matrix crypto native binary for the openclaw CLI.
-  # Without this, openclaw tries to download it into the read-only Nix store.
-  home.sessionVariables.NODE_PATH = "/run/openclaw/node_modules";
-
-  # Source Vault-rendered secrets into interactive shells so the openclaw CLI
-  # can authenticate with the gateway (e.g. for pairing users).
+  # Source Vault-rendered secrets and inject the pre-fetched Matrix crypto
+  # native binary for interactive shells. Both the openclaw CLI (auth) and
+  # the crypto bootstrap (NODE_PATH) require these to be set.
   programs.bash.initExtra = ''
+    # Inject the pre-fetched Matrix crypto binary so openclaw does not try
+    # to download it into the read-only Nix store.
+    export NODE_PATH=/run/openclaw/node_modules
+
+    # Load Vault-rendered secrets so the openclaw CLI can authenticate
+    # with the gateway (e.g. for pairing Matrix users).
     if [ -f /run/secrets/openclaw.env ]; then
       set -a
       # shellcheck source=/dev/null
