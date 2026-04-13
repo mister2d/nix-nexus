@@ -1,4 +1,8 @@
 _: {
+  # Inject the pre-fetched Matrix crypto native binary for the openclaw CLI.
+  # Without this, openclaw tries to download it into the read-only Nix store.
+  home.sessionVariables.NODE_PATH = "/run/openclaw/node_modules";
+
   # Source Vault-rendered secrets into interactive shells so the openclaw CLI
   # can authenticate with the gateway (e.g. for pairing users).
   programs.bash.initExtra = ''
