@@ -39,6 +39,9 @@
     "Trial"
   ];
 
+  # Prevent NVMe from entering ps 4 (9500µs exit latency); caps at ps 3 (1200µs) for ZFS
+  boot.kernelParams = [ "nvme_core.default_ps_max_latency_us=9000" ];
+
   # ZFS Performance Profile (Coding & General Purpose)
   nix-nexus.zfs = {
     # Assuming 32GB RAM.
