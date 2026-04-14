@@ -108,3 +108,38 @@ No secrets are baked into the NixOS configuration or the Nix store. All runtime 
 ### Terminal Environment
 
 Even if connected via disaster-recovery fallback mechanisms outside of standard user shells, the `tmux` interface provides identical aesthetics natively handled at the host level in `default.nix`. Home Manager controls the robust configuration tree for the automated `groot` execution user (injecting custom `.bashrc`, neovim integrations, and custom prompt styles).
+
+---
+
+## Matrix E2EE & Crypto Infrastructure
+
+OpenClaw on NixOS requires a specialized declarative strategy to support Matrix End-to-End Encryption (E2EE) due to the read-only Nix store and the requirement for native Rust crypto binaries.
+
+### Declarative Crypto Strategy
+
+The infrastructure is declared in `hosts/openclaw/default.nix` and `hosts/openclaw/vault-secrets.nix`:
+
+1.  **Binary Provisioning**: The missing native Matrix crypto binary (`index.node`) is fetched via `pkgs.fetchurl`.
+2.  **Writable Overlay**: A `systemd.tmpfiles` rule creates a writable `tmpfs` directory at `/run/openclaw-crypto`.
+3.  **Population**: The `openclaw-crypto-setup` oneshot service populates this directory with both the original loader files from the Nix store and the fetched native binary.
+4.  **Bind-Mount**: A `systemd.mounts` entry bind-mounts `/run/openclaw-crypto` *over* the read-only Nix store path (`.../lib/openclaw/node_modules/@matrix-org`). This allows Node.js to find the required binaries while still allowing the Matrix SDK to write its lock files and state if needed.
+
+### E2EE Bootstrapping (Imperative)
+
+While the infrastructure is declarative, the initial crypto key generation is an imperative, one-time operation. To enable encryption for a new deployment:
+
+1.  **Enable in Config**: Ensure `"encryption": true` is set in the `channels.matrix` section of `openclaw.json`.
+2.  **Bootstrap**: Run the following command on the `openclaw` host as the `groot` user:
+    ```bash
+    openclaw matrix verify bootstrap
+    ```
+3.  **Verification**: Open a DM with the bot in a client (e.g., Element), click its profile, and select **Verify**. Use `openclaw matrix verify status` to check progress.
+
+---
+
+## Bot Provisioning (MAS SSO)
+
+For homeservers using **Matrix Authentication Service (MAS)** with SSO (MSC3861), standard password-based bot login is unavailable. OpenClaw must be provisioned with a **MAS Compatibility Token**.
+
+Detailed instructions for registering a MAS-local bot account, issuing a compatibility token, and securely storing it in Vault are documented in:
+[**PROVISIONING.md](./PROVISIONING.md)**

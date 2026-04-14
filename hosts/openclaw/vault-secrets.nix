@@ -35,6 +35,7 @@ let
     OPENCLAW_MATRIX_HOMESERVER=https://{{ $mc.Data.data.matrix_domain }}
     OPENCLAW_MATRIX_AUTO_JOIN_ROOM={{ $om.Data.data.initial_auto_join }}:{{ $mc.Data.data.matrix_domain }}
     OPENCLAW_GOPLACES_API_KEY={{ $oc.Data.data.go_places_api_key }}
+    HA_MCP_SECRET_URL={{ $oc.Data.data.ha_mcp_secret_url }}
     {{- end }}
     {{- end }}
     {{- end }}
@@ -46,6 +47,256 @@ let
     {{ with secret "${kvPath}" }}
     {{ .Data.data.fullchain }}{{ .Data.data.privkey }}
     {{ end }}
+  '';
+
+  # OpenClaw Configuration File:
+  # Renders the full openclaw.json with secrets injected directly as strings.
+  # This bypasses the need for SecretRefs in fields where they are not supported (like MCP URL).
+  openclawJsonTmpl = pkgs.writeText "openclaw.json.ctmpl" ''
+    {{ with $mc := secret "${matrixConfigPath}" -}}
+    {{ with $om := secret "${openclawMatrixPath}" -}}
+    {{ with $oc := secret "${openclawConfigPath}" -}}
+    {
+      "agents": {
+        "defaults": {
+          "workspace": "/home/groot/.openclaw/workspace",
+          "timeoutSeconds": 600,
+          "model": {
+            "primary": "custom-glyph-llama-searobin-ts-net-8443/qwen3.5-4b-uncensored-agentic-128k"
+          },
+          "models": {
+            "custom-glyph-llama-searobin-ts-net-8443/qwen3.5-4b-uncensored-agentic-128k": {
+              "alias": "qwen3.5-4b-uncensored-agentic-128k"
+            },
+            "custom-glyph-llama-searobin-ts-net-8443/qwen3.5-9b-q8-agentic-128k": {
+              "alias": "qwen3.5-9b-q8-agentic-128k"
+            },
+            "custom-glyph-llama-searobin-ts-net-8443/gemma4-e4b-agentic-128k": {
+              "alias": "gemma4-e4b-agentic-128k"
+            }
+          }
+        },
+        "list": [
+          {
+            "id": "main",
+            "tools": {
+              "deny": [
+                "tts",
+                "browser"
+              ]
+            }
+          }
+        ]
+      },
+      "gateway": {
+        "mode": "local",
+        "auth": {
+          "mode": "token",
+          "token": "{{ $oc.Data.data.gateway_token }}"
+        },
+        "trustedProxies": ["127.0.0.1"],
+        "controlUi": {
+          "allowedOrigins": [
+            "http://localhost",
+            "https://openclaw.novuscotia.com"
+          ],
+          "dangerouslyDisableDeviceAuth": false
+        },
+        "port": 18789,
+        "bind": "loopback",
+        "tailscale": {
+          "mode": "off",
+          "resetOnExit": false
+        },
+        "nodes": {
+          "denyCommands": [
+            "canvas.eval",
+            "canvas.snapshot"
+          ]
+        }
+      },
+      "session": {
+        "dmScope": "per-channel-peer"
+      },
+      "tools": {
+        "profile": "full",
+        "alsoAllow": [
+          "group:filesystem",
+          "group:shell",
+          "group:web"
+        ],
+        "fs": {
+          "workspaceOnly": false
+        },
+        "web": {
+          "search": {
+            "provider": "searxng",
+            "enabled": true
+          }
+        }
+      },
+      "channels": {
+        "matrix": {
+          "enabled": true,
+          "encryption": true,
+          "homeserver": "https://{{ $mc.Data.data.matrix_domain }}",
+          "accessToken": "{{ $om.Data.data.access_token }}",
+          "groupPolicy": "none",
+          "groups": [],
+          "users": ["@dana:{{ $mc.Data.data.matrix_domain }}"],
+          "network": { "dangerouslyAllowPrivateNetwork": true },
+          "autoJoin": "all",
+          "autoJoinAllowlist": ["!edi-core:{{ $mc.Data.data.matrix_domain }}"],
+          "streaming": "partial",
+          "blockStreaming": true,
+          "dm": { "policy": "pairing" }
+        }
+      },
+      "models": {
+        "mode": "merge",
+        "providers": {
+          "custom-glyph-llama-searobin-ts-net-8443": {
+            "baseUrl": "https://glyph.llama-searobin.ts.net:8443",
+            "api": "openai-completions",
+            "apiKey": "dummy",
+            "models": [
+              {
+                "id": "qwen3.5-4b-uncensored-agentic-128k",
+                "name": "qwen3.5-4b-uncensored-agentic-128k (Custom Provider)",
+                "contextWindow": 128000,
+                "maxTokens": 4096,
+                "input": [
+                  "text",
+                  "image"
+                ],
+                "cost": {
+                  "input": 0,
+                  "output": 0,
+                  "cacheRead": 0,
+                  "cacheWrite": 0
+                },
+                "reasoning": false
+              },
+              {
+                "id": "qwen3.5-9b-q8-agentic-128k",
+                "name": "qwen3.5-9b-q8-agentic-128k (Custom Provider)",
+                "contextWindow": 131072,
+                "maxTokens": 4096,
+                "input": [
+                  "text",
+                  "image"
+                ],
+                "cost": {
+                  "input": 0,
+                  "output": 0,
+                  "cacheRead": 0,
+                  "cacheWrite": 0
+                },
+                "reasoning": false
+              },
+              {
+                "id": "gemma4-e4b-agentic-128k",
+                "name": "gemma4-e4b-agentic-128k (Custom Provider)",
+                "contextWindow": 128000,
+                "maxTokens": 4096,
+                "input": [
+                  "text",
+                  "image"
+                ],
+                "cost": {
+                  "input": 0,
+                  "output": 0,
+                  "cacheRead": 0,
+                  "cacheWrite": 0
+                },
+                "reasoning": false
+              }
+            ]
+          }
+        }
+      },
+      "plugins": {
+        "entries": {
+          "searxng": {
+            "enabled": true,
+            "config": {
+              "webSearch": {
+                "baseUrl": "https://searxng.service.internal.novuscotia.com"
+              }
+            }
+          },
+          "matrix": {
+            "enabled": true
+          }
+        }
+      },
+      "skills": {
+        "load": {
+          "extraDirs": ["/home/groot/.agents/skills"]
+        },
+        "install": {
+          "nodeManager": "npm"
+        },
+        "entries": {
+          "goplaces": {
+            "apiKey": "{{ $oc.Data.data.go_places_api_key }}"
+          },
+          "1password": { "enabled": false },
+          "apple-notes": { "enabled": false },
+          "apple-reminders": { "enabled": false },
+          "bear-notes": { "enabled": false },
+          "bluebubbles": { "enabled": false },
+          "discord": { "enabled": false },
+          "eightctl": { "enabled": false },
+          "notion": { "enabled": false },
+          "obsidian": { "enabled": false },
+          "openhue": { "enabled": false },
+          "oracle": { "enabled": false },
+          "ordercli": { "enabled": false },
+          "peekaboo": { "enabled": false },
+          "searxng": {
+            "enabled": true,
+            "env": {
+              "SEARXNG_URL": "https://searxng.service.internal.novuscotia.com/",
+              "SEARXNG_FORMAT": "json"
+            }
+          },
+          "slack": { "enabled": false },
+          "songsee": { "enabled": false },
+          "sonoscli": { "enabled": false },
+          "spotify-player": { "enabled": false },
+          "things-mac": { "enabled": false },
+          "wacli": { "enabled": false }
+        }
+      },
+      "mcp": {
+        "servers": {
+          "mcp-nixos": {
+            "command": "mcp-nixos",
+            "transport": "stdio"
+          },
+          "home-assistant-mcp": {
+            "url": "{{ $oc.Data.data.ha_mcp_secret_url }}",
+            "transport": "streamable-http",
+            "connectionTimeoutMs": 10000
+          }
+        }
+      },
+      "hooks": {
+        "internal": {
+          "enabled": true,
+          "entries": {
+            "session-memory": { "enabled": true },
+            "boot-md": { "enabled": true },
+            "bootstrap-extra-files": { "enabled": true },
+            "command-logger": { "enabled": true }
+          }
+        }
+      }
+    }
+    {{- end }}
+    {{- end }}
+    {{- end }}
   '';
 
   vaultAgentConfig = pkgs.writeText "vault-agent-openclaw.hcl" ''
@@ -95,8 +346,17 @@ let
       destination = "${secretDir}/openclaw.env"
       user = "groot"
       perms = 0400
-      # Restart the openclaw user service when secrets rotate
-      command = "${pkgs.bash}/bin/bash -c 'su groot -s /bin/sh -c \"XDG_RUNTIME_DIR=/run/user/$(id -u groot) ${pkgs.systemd}/bin/systemctl --user restart --no-block openclaw-gateway.service\" || true'"
+      # Use runuser for more reliable systemd user interaction
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.util-linux}/bin/runuser -l groot -c \"XDG_RUNTIME_DIR=/run/user/1001 ${pkgs.systemd}/bin/systemctl --user restart openclaw-gateway.service\" || true'"
+    }
+
+    template {
+      source = "${openclawJsonTmpl}"
+      destination = "/home/groot/.openclaw/openclaw.json"
+      user = "groot"
+      perms = 0600
+      # Use runuser for more reliable systemd user interaction
+      command = "${pkgs.bash}/bin/bash -c '${pkgs.util-linux}/bin/runuser -l groot -c \"XDG_RUNTIME_DIR=/run/user/1001 ${pkgs.systemd}/bin/systemctl --user restart openclaw-gateway.service\" || true'"
     }
   '';
 in
@@ -108,6 +368,10 @@ in
       "d ${certDir} 0755 root openclaw-secrets -"
       "d ${secretDir} 0750 root openclaw-secrets -"
       "d ${persistentSecretDir} 0700 root root -"
+      "d /home/groot/.openclaw 0700 groot groot -"
+      "d /run/openclaw 0755 groot groot -"
+      "d /run/openclaw/node_modules 0755 groot groot -"
+      "d /run/openclaw/node_modules/@matrix-org 0755 groot groot -"
     ];
 
     services = {
@@ -120,6 +384,8 @@ in
           pkgs.glibc.bin
           pkgs.systemd
           pkgs.bash
+          pkgs.util-linux
+          pkgs.coreutils
         ];
         serviceConfig = {
           Type = "oneshot";
@@ -143,6 +409,8 @@ in
           pkgs.glibc.bin
           pkgs.systemd
           pkgs.bash
+          pkgs.util-linux
+          pkgs.coreutils
         ];
         serviceConfig = {
           ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig}";

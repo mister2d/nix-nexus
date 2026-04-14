@@ -4,6 +4,13 @@
   modulesPath,
   ...
 }:
+let
+  openclawPkgPath = "/nix/store/qi4gvxv4rdwfrh7lb339kkq7wncb1ih7-openclaw-2026.4.2";
+  matrixCryptoBinary = pkgs.fetchurl {
+    url = "https://github.com/matrix-org/matrix-rust-sdk-crypto-nodejs/releases/download/v0.4.0/matrix-sdk-crypto.linux-x64-gnu.node";
+    sha256 = "06779l1ry2hxdxssiwj3gviyrbb43xi4yb0rzndgfa3ik3fx8y3h";
+  };
+in
 {
   imports = [
     (modulesPath + "/virtualisation/proxmox-lxc.nix")
@@ -26,14 +33,6 @@
     firewall.enable = false;
   };
 
-  systemd.network = {
-    enable = true;
-    networks."10-eth0" = {
-      matchConfig.Name = "eth0";
-      networkConfig.DHCP = "yes";
-    };
-  };
-
   # Host-level User configurations
   users.users.groot = {
     isNormalUser = true;
@@ -48,21 +47,71 @@
   # Administrative tasks must be performed via direct root login.
   security.sudo.enable = false;
 
-  # FIX: Provide the missing Matrix crypto native binary.
-  # The OpenClaw package is missing the native binding for Matrix, causing startup failure.
-  # We fetch it and place it in a temporary node_modules path reachable via NODE_PATH.
-  systemd.tmpfiles.rules = [
-    "d /run/openclaw 0755 root root -"
-    "d /run/openclaw/node_modules 0755 root root -"
-    "d /run/openclaw/node_modules/@matrix-org 0755 root root -"
-    "d /run/openclaw/node_modules/@matrix-org/matrix-sdk-crypto-nodejs-linux-x64-gnu 0755 root root -"
-    "L+ /run/openclaw/node_modules/@matrix-org/matrix-sdk-crypto-nodejs-linux-x64-gnu/index.node - - - - ${
-      pkgs.fetchurl {
-        url = "https://github.com/matrix-org/matrix-rust-sdk-crypto-nodejs/releases/download/v0.4.0/matrix-sdk-crypto.linux-x64-gnu.node";
-        sha256 = "06779l1ry2hxdxssiwj3gviyrbb43xi4yb0rzndgfa3ik3fx8y3h";
+  systemd = {
+    network = {
+      enable = true;
+      networks."10-eth0" = {
+        matchConfig.Name = "eth0";
+        networkConfig.DHCP = "yes";
+      };
+    };
+
+    # FIX: Provide the missing Matrix crypto native binary.
+    # We create a writable tmpfs directory, populate it with both the original
+    # loader files and the missing platform-specific binary, and then bind-mount
+    # it over the read-only Nix store path so Node.js find everything in one place.
+    tmpfiles.rules = [
+      "d /run/openclaw-crypto 0755 root root -"
+      "d /run/openclaw-crypto/matrix-sdk-crypto-nodejs 0755 root root -"
+      "d /run/openclaw-crypto/matrix-sdk-crypto-nodejs-linux-x64-gnu 0755 root root -"
+      "d /run/openclaw-crypto/matrix-sdk-crypto-wasm 0755 root root -"
+      # Link the fetched binary into the gnu-specific path
+      "L+ /run/openclaw-crypto/matrix-sdk-crypto-nodejs-linux-x64-gnu/index.node - - - - ${matrixCryptoBinary}"
+      # Link it also into the main path as a fallback
+      "L+ /run/openclaw-crypto/matrix-sdk-crypto-nodejs/index.node - - - - ${matrixCryptoBinary}"
+    ];
+
+    services.openclaw-crypto-setup = {
+      description = "Prepare writable crypto module for bind-mount";
+      before = [
+        "nix-store-qi4gvxv4rdwfrh7lb339kkq7wncb1ih7\\x2dopenclaw\\x2d2026.4.2\\x2dlib\\x2dopenclaw\\x2dnode_modules\\x2d@matrix\\x2dorg.mount"
+      ];
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+        ExecStart = pkgs.writeShellScript "setup-openclaw-crypto" ''
+          # Copy original loader and wasm files from Nix store into our writable /run path
+          # We do this individually to avoid overwriting our fetched index.node
+          for dir in matrix-sdk-crypto-nodejs matrix-sdk-crypto-wasm; do
+            if [ -d ${openclawPkgPath}/lib/openclaw/node_modules/@matrix-org/$dir ]; then
+              cp -rn ${openclawPkgPath}/lib/openclaw/node_modules/@matrix-org/$dir/* /run/openclaw-crypto/$dir/
+            fi
+          done
+          # Create a basic package.json for the gnu folder if it doesn't exist
+          if [ ! -f /run/openclaw-crypto/matrix-sdk-crypto-nodejs-linux-x64-gnu/package.json ]; then
+            echo '{"name": "@matrix-org/matrix-sdk-crypto-nodejs-linux-x64-gnu", "main": "index.node"}' > /run/openclaw-crypto/matrix-sdk-crypto-nodejs-linux-x64-gnu/package.json
+          fi
+          chmod -R 755 /run/openclaw-crypto
+        '';
+      };
+    };
+
+    # FIX: Workaround for OpenClaw's requirement to write into its own node_modules
+    # for the Matrix crypto binary download. We bind-mount a writable directory
+    # from /run over the read-only Nix store path.
+    mounts = [
+      {
+        description = "Writable bind-mount for OpenClaw Matrix Crypto";
+        what = "/run/openclaw-crypto";
+        where = "${openclawPkgPath}/lib/openclaw/node_modules/@matrix-org";
+        type = "none";
+        options = "bind,rw";
+        wantedBy = [ "multi-user.target" ];
+        before = [ "vault-agent-init.service" ];
       }
-    }"
-  ];
+    ];
+  };
 
   services = {
     haproxy = {

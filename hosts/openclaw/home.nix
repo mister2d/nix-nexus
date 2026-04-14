@@ -39,5 +39,8 @@ _: {
 
     # Load Vault-rendered secrets; referenced in openclaw.json via source: "env".
     EnvironmentFile=/run/secrets/openclaw.env
+
+    # Ensure mcp-nixos is in the PATH
+    Environment="PATH=/run/wrappers/bin:/home/groot/.nix-profile/bin:/nix/profile/bin:/home/groot/.local/state/nix/profile/bin:/etc/profiles/per-user/groot/bin:/nix/var/nix/profiles/default/bin:/run/current-system/sw/bin"
   '';
 }
