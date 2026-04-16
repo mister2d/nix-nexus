@@ -7,7 +7,7 @@
     packages = with pkgs; [
       bc # Basic Calculator
       calc # Arbitrary precision calculator
-      utillinux # Provides 'cal', 'pciutils', 'usbutils', etc.
+      util-linux # Provides 'cal', 'pciutils', 'usbutils', etc.
     ];
 
     # Session Path Configuration
