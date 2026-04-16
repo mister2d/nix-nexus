@@ -132,6 +132,7 @@ in
     # Wayland Session Environment
     # These variables optimize application behavior for the Wayland desktop.
     sessionVariables = {
+      MEMVID_SERVER_URL = "http://rock1.home.lan:20001";
       MOZ_ENABLE_WAYLAND = lib.mkForce "1";
       SDL_VIDEODRIVER = lib.mkForce "wayland";
       NIXOS_OZONE_WL = lib.mkForce "1";
