@@ -144,6 +144,7 @@ in
         docker-compose
         llm-init
         uv
+        nodejs_24
 
         # --- Versioned Infrastructure Tools ---
         nomad-pkg

@@ -1,6 +1,36 @@
-_:
+{ pkgs, ... }:
 
 {
+  home = {
+    # Core Terminal Utilities
+    # These are essential for CLI productivity across all users in the architecture.
+    packages = with pkgs; [
+      bc # Basic Calculator
+      calc # Arbitrary precision calculator
+      utillinux # Provides 'cal', 'pciutils', 'usbutils', etc.
+    ];
+
+    # Session Path Configuration
+    # Ensures user-specific binary directories are available in the shell for all users.
+    sessionPath = [
+      "$HOME/bin"
+      "$HOME/.local/bin"
+    ];
+
+    # Environment Variables (Nix way)
+    sessionVariables = {
+      CONSUL_HTTP_ADDR = "https://consul.service.consul:8501";
+      CONSUL_CACERT = "$HOME/.secrets/consul_issuing_ca.pem";
+      NOMAD_ADDR = "https://nomad.service.consul:4646";
+      VAULT_ADDR = "https://vault.service.consul:8200";
+
+      OMNI_ENDPOINT = "https://omni.novuscotia.com/";
+      OMNICONFIG = "$HOME/.config/omni/config";
+
+      RTK_TELEMETRY_DISABLED = "1";
+    };
+  };
+
   programs.bash = {
     enable = true;
 
@@ -104,18 +134,5 @@ _:
       # Load legacy Aliases if they exist
       test -s ~/.alias && . ~/.alias || true
     '';
-  };
-
-  # Environment Variables (Nix way)
-  home.sessionVariables = {
-    CONSUL_HTTP_ADDR = "https://consul.service.consul:8501";
-    CONSUL_CACERT = "$HOME/.secrets/consul_issuing_ca.pem";
-    NOMAD_ADDR = "https://nomad.service.consul:4646";
-    VAULT_ADDR = "https://vault.service.consul:8200";
-
-    OMNI_ENDPOINT = "https://omni.novuscotia.com/";
-    OMNICONFIG = "$HOME/.config/omni/config";
-
-    RTK_TELEMETRY_DISABLED = "1";
   };
 }

@@ -66,11 +66,6 @@ in
   home = {
     stateVersion = "25.11";
 
-    # Add $HOME/bin to user's PATH
-    sessionPath = [
-      "$HOME/bin"
-    ];
-
     # User Applications
     # These are applications installed specifically for the ddukes user.
     packages = with pkgs; [

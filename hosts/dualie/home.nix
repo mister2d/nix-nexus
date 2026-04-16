@@ -18,11 +18,6 @@
     homeDirectory = "/mnt/ironhide/home/groot";
     stateVersion = "25.11"; # Matching codebase standard for 2026
 
-    # Add $HOME/bin to user's PATH
-    sessionPath = [
-      "$HOME/bin"
-    ];
-
     # Basic packages derived from debug/dualie_home_profile.nix
     # Other tools (git, htop, etc.) are already included in the imported modules.
     packages = with pkgs; [

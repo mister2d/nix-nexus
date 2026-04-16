@@ -18,11 +18,6 @@
     homeDirectory = "/home/groot";
     stateVersion = "25.11";
 
-    # Add $HOME/bin to user's PATH
-    sessionPath = [
-      "$HOME/bin"
-    ];
-
     # Basic packages
     packages = with pkgs; [
       zstd
