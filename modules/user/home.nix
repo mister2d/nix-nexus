@@ -38,6 +38,12 @@ let
       config.allowUnfree = true;
     }).signalbackup-tools;
 
+  # Unstable packages for user-level tools
+  unstable-pkgs = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+
   # Handle slicer conflicts by joining them with symlinkJoin
   slicers = pkgs.symlinkJoin {
     name = "slicers";
@@ -74,6 +80,9 @@ in
         inherit (pkgs.stdenv.hostPlatform) system;
         config.allowUnfree = true;
       }).google-chrome
+
+      # Browsers
+      unstable-pkgs.firefox
 
       # --- Environment Tools ---
       krita

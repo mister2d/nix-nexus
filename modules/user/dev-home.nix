@@ -73,6 +73,12 @@ let
       config.allowUnfree = true;
     }).mcp-nixos;
 
+  # Unstable AI Coding Agents
+  unstable-pkgs = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+
   # Kubernetes tools
   kubelogin-oidc-pkg =
     (import inputs.pkgs-talos {
@@ -106,12 +112,12 @@ let
   llmAgentPackages =
     if cfg.enableLlmAgents then
       [
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.claude-code
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.gemini-cli
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.mcporter
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.opencode
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.pi
-        inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system}.rtk
+        unstable-pkgs.claude-code
+        unstable-pkgs.gemini-cli
+        unstable-pkgs.opencode
+        unstable-pkgs.opencode-desktop
+        unstable-pkgs.opencode-claude-auth
+        unstable-pkgs.pi-coding-agent
       ]
     else
       [ ];
