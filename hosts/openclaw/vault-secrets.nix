@@ -61,6 +61,9 @@ let
         "defaults": {
           "workspace": "/home/groot/.openclaw/workspace",
           "timeoutSeconds": 600,
+          "heartbeat": {
+            "every": "0m"
+          },
           "model": {
             "primary": "custom-glyph-llama-searobin-ts-net-8443/qwen3.5-4b-uncensored-agentic-128k"
           },

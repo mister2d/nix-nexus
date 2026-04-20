@@ -94,6 +94,8 @@ let
   # Project-level CUDA environment generator
   inherit ((import ../programs/custom-scripts.nix { inherit pkgs; })) llm-init;
 
+  openclaude-pkg = import ../programs/openclaude.nix { inherit pkgs lib; };
+
   mcpPackages =
     if cfg.enableMcpServers then
       [
@@ -118,6 +120,7 @@ let
         unstable-pkgs.opencode-desktop
         unstable-pkgs.opencode-claude-auth
         unstable-pkgs.pi-coding-agent
+        openclaude-pkg
       ]
     else
       [ ];
