@@ -4,6 +4,12 @@
   ...
 }:
 
+let
+  unstable-pkgs = import inputs.nixpkgs-unstable {
+    inherit (pkgs.stdenv.hostPlatform) system;
+    config.allowUnfree = true;
+  };
+in
 {
   imports = [
     ../../modules/user/bash.nix
@@ -24,6 +30,7 @@
       zstd
       curl
       wget
+      unstable-pkgs.llama-swap
     ];
   };
 
