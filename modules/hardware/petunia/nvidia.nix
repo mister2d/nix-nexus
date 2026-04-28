@@ -14,7 +14,11 @@
   # Machine-specific overrides for Petunia (RTX 3080 Desktop)
   hardware.nvidia = {
     # PCI Bus ID: 0c:00.0 mapped to decimal 12:0:0.
-    prime.nvidiaBusId = "PCI:12:0:0";
+    prime = {
+      offload.enable = false;
+      sync.enable = false;
+      nvidiaBusId = "PCI:12:0:0";
+    };
 
     # Standard power management for desktop use.
     powerManagement.enable = false;

@@ -27,6 +27,13 @@
       nvidiaSettings = lib.mkDefault true;
       nvidiaPersistenced = lib.mkDefault true;
 
+      # Single-GPU systems should have PRIME disabled by default.
+      # Multi-GPU/Laptop systems can override these in host-specific configs.
+      prime = {
+        offload.enable = lib.mkDefault false;
+        sync.enable = lib.mkDefault false;
+      };
+
       package = lib.mkDefault (
         config.boot.kernelPackages.nvidiaPackages.mkDriver {
           version = "590.48.01";
@@ -42,7 +49,11 @@
     # Apply CUDA 13.1 overlay if enabled
     nixpkgs.overlays = lib.mkIf config.nix-nexus.hardware.nvidia.pinCuda [
       (final: _: {
-        cudaPackages = inputs.nixpkgs-unstable.legacyPackages.${final.system}.cudaPackages_13_1;
+        cudaPackages =
+          (import inputs.nixpkgs-unstable {
+            inherit (final) system;
+            config.allowUnfree = true;
+          }).cudaPackages_13_1;
       })
     ];
 
