@@ -3,6 +3,7 @@
   lib,
   config,
   inputs,
+  self,
   ...
 }:
 
@@ -67,16 +68,13 @@ let
       inherit (pkgs.stdenv.hostPlatform) system;
       config.allowUnfree = true;
     }).tflint;
-  mcp-nixos-unstable-pkg =
-    (import inputs.nixpkgs-unstable {
-      inherit (pkgs.stdenv.hostPlatform) system;
-      config.allowUnfree = true;
-    }).mcp-nixos;
 
-  # Unstable AI Coding Agents
+  # Unstable Packages (for agents not in llm-agents or requiring latest unstable)
   unstable-pkgs = import inputs.nixpkgs-unstable {
     inherit (pkgs.stdenv.hostPlatform) system;
     config.allowUnfree = true;
+    # Apply our build fixes to unstable as well
+    overlays = [ self.buildFixesOverlay ];
   };
 
   # Kubernetes tools
@@ -96,14 +94,13 @@ let
 
   openclaude-pkg = import ../programs/openclaude.nix { inherit pkgs lib; };
 
+  # Model Control Protocol (MCP) servers
   mcpPackages =
     if cfg.enableMcpServers then
       [
         pkgs.context7-mcp
         pkgs.github-mcp-server
-        mcp-nixos-unstable-pkg
-        pkgs.mcp-server-fetch
-        pkgs.mcp-server-git
+        unstable-pkgs.mcp-nixos
         pkgs.mcp-server-sequential-thinking
         pkgs.mcp-server-time
         pkgs.terraform-mcp-server
@@ -111,15 +108,25 @@ let
     else
       [ ];
 
+  # AI Coding Agents
+  # Hybrid approach: latest versions from llm-agents, supplemented by unstable nixpkgs.
   llmAgentPackages =
+    let
+      agentPkgs = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+    in
     if cfg.enableLlmAgents then
       [
-        unstable-pkgs.claude-code
-        unstable-pkgs.gemini-cli
-        unstable-pkgs.opencode
+        # From llm-agents (Latest)
+        agentPkgs.claude-code
+        agentPkgs.gemini-cli
+        agentPkgs.opencode
+        agentPkgs.pi # v0.70.2 > unstable v0.67
+        agentPkgs.openclaw
+
+        # From unstable nixpkgs (Exclusives or specific versions)
         unstable-pkgs.opencode-desktop
         unstable-pkgs.opencode-claude-auth
-        unstable-pkgs.pi-coding-agent
+
         openclaude-pkg
       ]
     else
@@ -131,12 +138,12 @@ in
     enableMcpServers = mkOption {
       type = types.bool;
       default = true;
-      description = "Whether to install MCP servers (may fail on older CPUs lacking AVX2).";
+      description = "Whether to install MCP servers.";
     };
     enableLlmAgents = mkOption {
       type = types.bool;
       default = true;
-      description = "Whether to install AI Coding Agents (e.g. opencode, gemini-cli).";
+      description = "Whether to install AI Coding Agents.";
     };
   };
 
@@ -145,8 +152,6 @@ in
       with pkgs;
       [
         # --- Core Development Tools ---
-        # Devenv 2.0 is the primary engine for declarative project environments.
-        # We retain 'devbox' and 'docker-compose' for legacy project interoperability.
         inputs.devenv.packages.${pkgs.stdenv.hostPlatform.system}.devenv
         devbox
         vscodium
@@ -180,7 +185,6 @@ in
     # Direnv integration for automatic environment loading
     programs.direnv = {
       enable = true;
-      # Enables the faster, Nix-optimized implementation of direnv
       nix-direnv.enable = true;
     };
   };

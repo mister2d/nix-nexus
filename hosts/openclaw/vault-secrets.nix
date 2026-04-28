@@ -60,12 +60,12 @@ let
       "agents": {
         "defaults": {
           "workspace": "/home/groot/.openclaw/workspace",
-          "timeoutSeconds": 600,
+          "timeoutSeconds": 1800,
           "heartbeat": {
             "every": "0m"
           },
           "model": {
-            "primary": "custom-glyph-llama-searobin-ts-net-8443/qwen3.5-4b-uncensored-agentic-128k"
+            "primary": "custom-glyph-llama-searobin-ts-net-8443/qwen3.6-35b-a3b-coding-agent-128k"
           },
           "models": {
             "custom-glyph-llama-searobin-ts-net-8443/qwen3.5-4b-uncensored-agentic-128k": {
@@ -163,6 +163,23 @@ let
             "api": "openai-completions",
             "apiKey": "dummy",
             "models": [
+              {
+                "id": "qwen3.6-35b-a3b-coding-agent-128k",
+                "name": "qwen36-35b-a3b-coding-agent 128k (Custom Provider)",
+                "contextWindow": 131072,
+                "maxTokens": 4096,
+                "input": [
+                  "text",
+                  "image"
+                ],
+                "cost": {
+                  "input": 0,
+                  "output": 0,
+                  "cacheRead": 0,
+                  "cacheWrite": 0
+                },
+                "reasoning": false
+              },
               {
                 "id": "qwen3.5-4b-uncensored-agentic-128k",
                 "name": "qwen3.5-4b-uncensored-agentic-128k (Custom Provider)",

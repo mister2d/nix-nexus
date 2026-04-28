@@ -40,7 +40,6 @@
     # AI Coding Agents (including pi and gemini-cli)
     llm-agents = {
       url = "github:numtide/llm-agents.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     # Niri - Scrollable-tiling Wayland compositor
@@ -108,7 +107,7 @@
         };
       });
 
-      # Developer Environment
+      # Development Environment
       # Usage: 'nix develop' to enter environment and install hooks
       devShells = forAllSystems (system: {
         default = nixpkgs.legacyPackages.${system}.mkShell {
@@ -116,6 +115,31 @@
           buildInputs = self.checks.${system}.pre-commit-check.enabledPackages;
         };
       });
+
+      # Global Build Fixes (Overlays applied to all host configurations)
+      # These fix failing builds in upstream dependencies (e.g. failing tests).
+      buildFixesOverlay = _: prev: {
+        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+          (_: pyPrev: {
+            aioboto3 = pyPrev.aioboto3.overridePythonAttrs (_old: {
+              doCheck = false;
+              dontCheck = true;
+              doInstallCheck = false;
+              checkPhase = "true";
+              pytestCheckPhase = "true";
+            });
+          })
+        ];
+      };
+
+      # Patched MCP overlay that includes the python build fixes
+      mcpOverlay =
+        final: prev:
+        let
+          # Apply the python fix to the scope before passing to the mcp overlay
+          patchedPrev = prev.extend self.buildFixesOverlay;
+        in
+        inputs.mcp-servers-nix.overlays.default final patchedPrev;
 
       homeConfigurations = {
 
@@ -128,7 +152,7 @@
             ./hosts/dualie/home.nix
           ];
           extraSpecialArgs = {
-            inherit inputs;
+            inherit inputs self;
           };
         };
 
@@ -141,7 +165,7 @@
             ./hosts/rk3588/home.nix
           ];
           extraSpecialArgs = {
-            inherit inputs;
+            inherit inputs self;
           };
         };
 
@@ -154,7 +178,7 @@
             ./hosts/forge/home.nix
           ];
           extraSpecialArgs = {
-            inherit inputs;
+            inherit inputs self;
           };
         };
       };
@@ -163,8 +187,16 @@
         # Hostname: sweet16
         sweet16 = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
-          specialArgs = { inherit inputs; };
+          specialArgs = {
+            inherit inputs self;
+          };
           modules = [
+            # Global build fixes
+            (_: {
+              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.config.allowUnfree = true;
+            })
+
             # Hardware specific configuration
             nixos-hardware.nixosModules.lenovo-thinkpad-z
             nixos-hardware.nixosModules.common-cpu-amd
@@ -182,7 +214,7 @@
                 useUserPackages = true;
                 backupFileExtension = "bak";
                 extraSpecialArgs = {
-                  inherit inputs;
+                  inherit inputs self;
                 };
                 users.ddukes = {
                   imports = [
@@ -199,9 +231,15 @@
         petunia = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
-            inherit inputs;
+            inherit inputs self;
           };
           modules = [
+            # Global build fixes
+            (_: {
+              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.config.allowUnfree = true;
+            })
+
             # Disko declarative partitioning
             inputs.disko.nixosModules.disko
 
@@ -221,7 +259,7 @@
                 useUserPackages = true;
                 backupFileExtension = "bak";
                 extraSpecialArgs = {
-                  inherit inputs;
+                  inherit inputs self;
                 };
                 users.ddukes = {
                   imports = [
@@ -239,9 +277,15 @@
         avina = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
-            inherit inputs;
+            inherit inputs self;
           };
           modules = [
+            # Global build fixes
+            (_: {
+              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.config.allowUnfree = true;
+            })
+
             # Main configuration entry point
             ./hosts/avina/default.nix
 
@@ -275,7 +319,7 @@
                 useUserPackages = true;
                 backupFileExtension = "bak";
                 extraSpecialArgs = {
-                  inherit inputs;
+                  inherit inputs self;
                 };
                 users.ddukes = {
                   imports = [
@@ -292,29 +336,17 @@
         openclaw = nixpkgs.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
-            inherit inputs;
+            inherit inputs self;
           };
           modules = [
+            # Global build fixes
+            (_: {
+              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.config.allowUnfree = true;
+            })
+
             # Main configuration entry point
             ./hosts/openclaw/default.nix
-
-            # Unstable Packages Overlay
-            (
-              { pkgs, ... }:
-              let
-                unstable = import inputs.nixpkgs-unstable {
-                  inherit (pkgs.stdenv.hostPlatform) system;
-                  config.permittedInsecurePackages = [ "openclaw-2026.4.2" ];
-                };
-              in
-              {
-                nixpkgs.overlays = [
-                  (_final: _prev: {
-                    inherit (unstable) openclaw tailscale mcp-nixos;
-                  })
-                ];
-              }
-            )
 
             # Home Manager configuration for groot
             home-manager.nixosModules.home-manager
@@ -326,14 +358,12 @@
                   useUserPackages = true;
                   backupFileExtension = "bak";
                   extraSpecialArgs = {
-                    inherit inputs;
+                    inherit inputs self;
                   };
                   users.groot = {
                     home.stateVersion = "25.11";
                     home.packages = with pkgs; [
-                      openclaw
                       tailscale
-                      mcp-nixos
                       nodejs_24
                       python314
                       git

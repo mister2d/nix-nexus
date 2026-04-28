@@ -184,14 +184,12 @@
       "XF86MonBrightnessUp".action.spawn = [
         "${pkgs.brightnessctl}/bin/brightnessctl"
         "set"
-        "10%+"
+        "5%+"
       ];
       "XF86MonBrightnessDown".action.spawn = [
         "${pkgs.brightnessctl}/bin/brightnessctl"
-        "-d"
-        "5"
         "set"
-        "10%-"
+        "5%-"
       ];
     };
 
