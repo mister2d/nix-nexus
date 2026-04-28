@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   inputs,
   ...
 }:
@@ -55,6 +56,10 @@
             config.allowUnfree = true;
           }).cudaPackages_13_1;
       })
+    ];
+
+    environment.systemPackages = lib.mkIf config.nix-nexus.hardware.nvidia.pinCuda [
+      pkgs.cudaPackages.cudatoolkit
     ];
 
     # Common NVIDIA Environment
