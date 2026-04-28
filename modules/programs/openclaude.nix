@@ -12,11 +12,6 @@ pkgs.buildNpmPackage rec {
   # Use the generated lock file
   postPatch = ''
     cp ${./openclaude-lock.json} package-lock.json
-
-    # Add a dummy build script to avoid running Bun
-    # buildNpmPackage defaults to 'npm run build' if dontBuild is not respected
-    # and some versions of nixpkgs might ignore dontBuild in buildNpmPackage
-    jq '.scripts.build = "true"' package.json > package.json.tmp && mv package.json.tmp package.json
   '';
 
   npmDepsHash = "sha256-vdAuPPeG2xlIjT4mNf3fs/czW/s8X890a1bcSHKcxgc=";
@@ -25,21 +20,20 @@ pkgs.buildNpmPackage rec {
 
   nativeBuildInputs = with pkgs; [
     makeWrapper
-    jq
   ];
 
-  # Force skipping the build phase
-  dontBuild = true;
+  # Force skipping the build phase entirely by overriding the standard phase
+  buildPhase = "true";
 
-  # Ensure sharp and other native deps are handled
-  makeCacheWritable = true;
+  # We will handle installation manually in a custom installPhase
+  installPhase = ''
+    runHook preInstall
 
-  postInstall = ''
     # Ensure the target directory exists
     mkdir -p $out/lib/node_modules/@gitlawb/openclaude
 
-    # Remove the default symlink created by buildNpmPackage if it exists
-    rm -f $out/bin/openclaude
+    # Copy the package files
+    cp -r . $out/lib/node_modules/@gitlawb/openclaude
 
     # Wrap the actual entry point
     makeWrapper $out/lib/node_modules/@gitlawb/openclaude/bin/openclaude $out/bin/openclaude \
@@ -49,6 +43,8 @@ pkgs.buildNpmPackage rec {
           pkgs.ripgrep
         ]
       }
+
+    runHook postInstall
   '';
 
   meta = with lib; {
