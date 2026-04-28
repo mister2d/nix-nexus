@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 
 {
   security = {
@@ -27,7 +27,8 @@
       settings = {
         PasswordAuthentication = false; # Secure by default, use keys
         KbdInteractiveAuthentication = false;
-        PermitRootLogin = "no";
+        PermitRootLogin = lib.mkDefault "prohibit-password";
+        TrustedUserCAKeys = toString ../../certs/trusted_ssh_ca.pub;
       };
     };
   };

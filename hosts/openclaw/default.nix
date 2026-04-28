@@ -181,16 +181,6 @@ in
 
     fstrim.enable = false;
 
-    openssh = {
-      enable = true;
-      settings = {
-        PasswordAuthentication = lib.mkForce false;
-        KbdInteractiveAuthentication = lib.mkForce false;
-        PermitRootLogin = lib.mkForce "prohibit-password";
-        TrustedUserCAKeys = toString ../../certs/trusted_ssh_ca.pub;
-      };
-    };
-
     tailscale = {
       enable = true;
       authKeyFile = "/run/secrets/tailscale.key";

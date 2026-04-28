@@ -1,5 +1,4 @@
 {
-  lib,
   pkgs,
   modulesPath,
   ...
@@ -111,18 +110,6 @@ in
     # not from inside the container.
     fstrim.enable = false;
 
-    # Secure Remote Access:
-    # Certificate-based auth via repository-managed SSH CA. Password auth
-    # disabled. Root login permitted as prohibit-password (cert/key only).
-    openssh = {
-      enable = true;
-      settings = {
-        PasswordAuthentication = lib.mkForce false;
-        KbdInteractiveAuthentication = lib.mkForce false;
-        PermitRootLogin = lib.mkForce "prohibit-password";
-        TrustedUserCAKeys = toString ../../certs/trusted_ssh_ca.pub;
-      };
-    };
   };
 
   # Session Multiplexer:
