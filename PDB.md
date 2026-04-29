@@ -627,9 +627,9 @@ Override the entire firewall block in `modules/hosts.nix` to eliminate Tailscale
       KbdInteractiveAuthentication = false;
       PermitRootLogin              = "prohibit-password";
       # Trust user certificates signed by the fleet SSH CA.
-      # Operator places the CA public key at certs/ssh_user_ca.pub.
+      # Operator places the CA public key at certs/trusted_ssh_ca.pub.
       # Pattern matches modules/core/security.nix: ../../certs/int_cert.crt
-      TrustedUserCAKeys            = toString ../../certs/ssh_user_ca.pub;
+      TrustedUserCAKeys            = "${../../certs/trusted_ssh_ca.pub}";
     };
     # No listenAddresses restriction — open to 0.0.0.0/0.
   };
