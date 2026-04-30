@@ -23,11 +23,13 @@ _:
         "51-source-routing" = {
           "monitor.alsa.rules" = [
             {
-              matches = [ [ { "node.name" = "alsa_input.usb-HP__Inc_HyperX_SoloCast-00.HiFi__Mic__source"; } ] ];
+              matches = [
+                { "node.name" = "~alsa_input\.usb-HP__Inc_HyperX_SoloCast.*"; }
+              ];
               actions = {
                 update-props = {
-                  "priority.session" = 2500;
-                  "priority.driver" = 2500;
+                  "priority.session" = 3000;
+                  "priority.driver" = 3000;
                   # Moderate timeout (5s) prevents "cold starts" in apps without staying on forever
                   "session.suspend-timeout-seconds" = 5;
                 };
@@ -35,11 +37,13 @@ _:
             }
             {
               # Internal microphones: Fallback priority
-              matches = [ [ { "node.name" = "~alsa_input.pci-*"; } ] ];
+              matches = [
+                { "node.name" = "~alsa_input\.pci-.*"; }
+              ];
               actions = {
                 update-props = {
-                  "priority.session" = 1000;
-                  "priority.driver" = 1000;
+                  "priority.session" = 2200;
+                  "priority.driver" = 2200;
                   "session.suspend-timeout-seconds" = 5;
                 };
               };
