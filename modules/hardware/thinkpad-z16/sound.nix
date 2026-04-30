@@ -40,6 +40,7 @@ _:
                 update-props = {
                   "priority.session" = 1000;
                   "priority.driver" = 1000;
+                  "session.suspend-timeout-seconds" = 5;
                 };
               };
             }
@@ -48,12 +49,12 @@ _:
       };
     };
 
-    # Speaker-optimized settings (Balanced latency/power)
+    # Real-time conferencing and playback (tighter deadline for lighter plugin chains)
     extraConfig.pipewire."92-low-latency" = {
       "context.properties" = {
         "default.clock.rate" = 48000;
-        "default.clock.quantum" = 1024;
-        "default.clock.min-quantum" = 512;
+        "default.clock.quantum" = 512;
+        "default.clock.min-quantum" = 256;
         "default.clock.max-quantum" = 8192;
       };
     };
