@@ -19,6 +19,7 @@
     # - wheel: Sudo/Administrative access
     # - video/audio: Access to display and sound hardware
     # - docker: Access to the Docker daemon
+    # - kvm: Access to hardware virtualization
     extraGroups = [
       "networkmanager"
       "wheel"
@@ -28,6 +29,7 @@
       "docker"
       "fuse"
       "render"
+      "kvm"
     ];
 
     # Shell: Bash (standard)

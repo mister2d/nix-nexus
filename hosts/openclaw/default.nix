@@ -36,7 +36,10 @@ in
   # Host-level User configurations
   users.users.groot = {
     isNormalUser = true;
-    extraGroups = [ "openclaw-secrets" ]; # matrix-secrets provides access to /run/secrets and /run/certs
+    extraGroups = [
+      "openclaw-secrets"
+      "kvm"
+    ]; # matrix-secrets provides access to /run/secrets and /run/certs
     shell = pkgs.bash;
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGQp6H/n2JPSt1VxCAupTC1OTh7R3eu7wO0ZtCNbAkd7"
