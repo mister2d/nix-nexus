@@ -12,6 +12,9 @@
 
   services.xserver.videoDrivers = [ "amdgpu" ];
 
+  # GPU Switching
+  services.supergfxd.enable = true;
+
   # GPU Power Management
   # The ThinkPad Z16 Gen 1 (Radeon 6500M / 680M) has a VBIOS-enforced 30W power limit.
   services.udev.extraRules = ''
@@ -19,6 +22,7 @@
   '';
 
   environment.systemPackages = with pkgs; [
+    supergfxctl
     nvtopPackages.amd
     pkgs.amdgpu_top
     clinfo

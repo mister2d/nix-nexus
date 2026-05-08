@@ -60,7 +60,7 @@
     # Nixvim - Neovim configuration via Nix
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
 
-    # Stable Matrix Stack Components (Pinned to 25.11 for stability)
+    # Stable Components (Pinned to 25.11 for stability)
     pkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11";
 
     # Pinned package versions

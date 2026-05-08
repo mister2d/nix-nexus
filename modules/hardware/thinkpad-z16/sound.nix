@@ -53,12 +53,12 @@ _:
       };
     };
 
-    # Real-time conferencing and playback (tighter deadline for lighter plugin chains)
+    # Real-time conferencing and playback (balanced latency for ML noise suppression)
     extraConfig.pipewire."92-low-latency" = {
       "context.properties" = {
         "default.clock.rate" = 48000;
-        "default.clock.quantum" = 512;
-        "default.clock.min-quantum" = 256;
+        "default.clock.quantum" = 1024;
+        "default.clock.min-quantum" = 512;
         "default.clock.max-quantum" = 8192;
       };
     };
