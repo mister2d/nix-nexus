@@ -41,8 +41,20 @@
     cups.aliases = [ "printing.service" ];
     ensure-printers = {
       aliases = [ "printing-provision.service" ];
-      after = [ "network-online.target" ];
-      wants = [ "network-online.target" ];
+      # Ensure network, CUPS, and Avahi (for local resolution) are fully ready.
+      after = [
+        "network-online.target"
+        "cups.service"
+        "avahi-daemon.service"
+      ];
+      wants = [
+        "network-online.target"
+        "cups.service"
+        "avahi-daemon.service"
+      ];
+      # A small delay to ensure CUPS is actually listening on its socket
+      # and the network stack is fully converged.
+      serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
     };
   };
 
