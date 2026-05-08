@@ -10,16 +10,18 @@
     ];
   };
 
-  services.xserver.videoDrivers = [ "amdgpu" ];
+  services = {
+    xserver.videoDrivers = [ "amdgpu" ];
 
-  # GPU Switching
-  services.supergfxd.enable = true;
+    # GPU Switching
+    supergfxd.enable = true;
 
-  # GPU Power Management
-  # The ThinkPad Z16 Gen 1 (Radeon 6500M / 680M) has a VBIOS-enforced 30W power limit.
-  services.udev.extraRules = ''
-    SUBSYSTEM=="hwmon", DRIVER=="amdgpu", ATTR{power1_cap_max}!="", ATTR{power1_cap}="$attr{power1_cap_max}"
-  '';
+    # GPU Power Management
+    # The ThinkPad Z16 Gen 1 (Radeon 6500M / 680M) has a VBIOS-enforced 30W power limit.
+    udev.extraRules = ''
+      SUBSYSTEM=="hwmon", DRIVER=="amdgpu", ATTR{power1_cap_max}!="", ATTR{power1_cap}="$attr{power1_cap_max}"
+    '';
+  };
 
   environment.systemPackages = with pkgs; [
     supergfxctl
