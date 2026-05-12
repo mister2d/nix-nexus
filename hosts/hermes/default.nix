@@ -66,5 +66,9 @@
     '';
   };
 
+  nixpkgs.config.permittedInsecurePackages = [
+    "olm-3.2.16"
+  ];
+
   system.stateVersion = "25.11";
 }
