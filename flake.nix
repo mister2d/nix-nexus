@@ -450,6 +450,7 @@
                       llm-agents.hermes-agent
                       nodejs_24
                       python314
+                      uv
                       git
                       btop
                       htop
