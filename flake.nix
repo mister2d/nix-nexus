@@ -124,14 +124,19 @@
             # Update mcp to satisfy requirements of latest mcp-servers-nix
             # We must use the source from unstable but keep the local interpreter
             mcp = pyPrev.mcp.overridePythonAttrs (old: {
-              inherit ( (import inputs.nixpkgs-unstable {
-                inherit (prev.stdenv.hostPlatform) system;
-                config.allowUnfree = true;
-              }).python3Packages.mcp ) src version;
+              inherit
+                ((import inputs.nixpkgs-unstable {
+                  inherit (prev.stdenv.hostPlatform) system;
+                  config.allowUnfree = true;
+                }).python3Packages.mcp
+                )
+                src
+                version
+                ;
               propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pyPrev.pyjwt ];
             });
 
-            mcp-nixos = pyPrev.mcp-nixos.overridePythonAttrs (old: {
+            mcp-nixos = pyPrev.mcp-nixos.overridePythonAttrs (_old: {
               doCheck = false;
             });
 
@@ -391,6 +396,71 @@
                       ./modules/user/terminal-home.nix
                       ./modules/user/neovim-home.nix
                       ./hosts/openclaw/home.nix
+                    ];
+                  };
+                };
+              }
+            )
+          ];
+        };
+
+        # Hostname: hermes (Proxmox LXC container — Hermes AI Agent)
+        hermes = nixpkgs.lib.nixosSystem {
+          system = "x86_64-linux";
+          specialArgs = {
+            inherit inputs self;
+          };
+          modules = [
+            # Global build fixes
+            (_: {
+              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.config.allowUnfree = true;
+            })
+
+            # Main configuration entry point
+            ./hosts/hermes/default.nix
+
+            # Host-scoped overlay: make llm-agents packages available
+            (
+              { pkgs, ... }:
+              {
+                nixpkgs.overlays = [
+                  (_final: _prev: {
+                    llm-agents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+                  })
+                ];
+              }
+            )
+
+            # Home Manager configuration for groot
+            home-manager.nixosModules.home-manager
+            (
+              { pkgs, ... }:
+              {
+                home-manager = {
+                  useGlobalPkgs = true;
+                  useUserPackages = true;
+                  backupFileExtension = "bak";
+                  extraSpecialArgs = {
+                    inherit inputs self;
+                  };
+                  users.groot = {
+                    home.stateVersion = "25.11";
+                    home.packages = with pkgs; [
+                      llm-agents.hermes-agent
+                      nodejs_24
+                      python314
+                      git
+                      btop
+                      htop
+                      openssl
+                    ];
+                    imports = [
+                      inputs.nixvim.homeModules.nixvim
+                      ./modules/user/bash.nix
+                      ./modules/user/terminal-home.nix
+                      ./modules/user/neovim-home.nix
+                      ./hosts/hermes/home.nix
                     ];
                   };
                 };
