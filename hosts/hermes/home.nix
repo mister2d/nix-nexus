@@ -7,7 +7,7 @@ let
   allDeps = hermesPkg.propagatedBuildInputs;
   hermesPython = builtins.elemAt allDeps (builtins.length allDeps - 1);
   pythonDeps = builtins.filter (p: p != hermesPython) allDeps;
-  olm-allowed = hermesPython.pkgs.python-olm.olm.overrideAttrs (old: {
+  olm-allowed = pkgs.olm.overrideAttrs (old: {
     meta = old.meta // {
       knownVulnerabilities = [ ];
     };
@@ -18,6 +18,8 @@ let
     ++ [
       (hermesPython.pkgs.python-olm.override { olm = olm-allowed; })
       hermesPython.pkgs.pycryptodome
+      hermesPython.pkgs.unpaddedbase64
+      hermesPython.pkgs.base58
     ]
   );
 in
