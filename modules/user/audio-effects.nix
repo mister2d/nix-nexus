@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+_:
 
 let
   # Impulse response files extracted from the official Lenovo Z16 Windows driver (ds557051)
@@ -29,11 +29,6 @@ let
 
 in
 {
-  # Ensure the DeepFilterNet ML models and LADSPA plugin are available to EasyEffects
-  home.packages = with pkgs; [
-    deepfilternet
-  ];
-
   # Enable the EasyEffects Daemon in the background
   services.easyeffects = {
     enable = true;

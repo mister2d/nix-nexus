@@ -67,6 +67,6 @@ _:
   # Power management support for WirePlumber/Pipewire (Fixes UPower errors)
   services.upower.enable = true;
 
-  # Noise suppression (Superseded by DeepFilterNet in audio-effects.nix)
+  # Noise suppression (RNNoise via EasyEffects; NoiseTorch legacy path disabled)
   programs.noisetorch.enable = false;
 }
