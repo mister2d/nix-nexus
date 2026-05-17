@@ -22,6 +22,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Home Manager for hosts on nixpkgs-unstable (e.g. petunia)
+    home-manager-unstable = {
+      url = "github:nix-community/home-manager/master";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # Pin Google Chrome version (currently 145.0.7632.75)
     nixpkgs-chrome.url = "github:nixos/nixpkgs/fa56d7d6de78f5a7f997b0ea2bc6efd5868ad9e8";
 
@@ -55,6 +61,12 @@
     disko = {
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # RDNA4 (gfx1201) GPU stack — Vulkan + ROCm 7.x + LACT + llama.cpp build env
+    rdna4-stack = {
+      url = "github:tenarches/nix-rdna4";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
     # Nixvim - Neovim configuration via Nix
@@ -247,7 +259,7 @@
         };
 
         # Hostname: petunia
-        petunia = nixpkgs.lib.nixosSystem {
+        petunia = inputs.nixpkgs-unstable.lib.nixosSystem {
           system = "x86_64-linux";
           specialArgs = {
             inherit inputs self;
@@ -264,14 +276,17 @@
 
             # Hardware specific configuration
             nixos-hardware.nixosModules.common-cpu-amd
-            nixos-hardware.nixosModules.common-gpu-nvidia
+            nixos-hardware.nixosModules.common-gpu-amd
             nixos-hardware.nixosModules.common-pc-ssd
+
+            # RDNA4 GPU stack (Vulkan + ROCm 7.x + LACT + llama.cpp build env)
+            inputs.rdna4-stack.nixosModules.rdna4-full
 
             # Main configuration entry point
             ./hosts/petunia/default.nix
 
-            # Home Manager configuration
-            home-manager.nixosModules.home-manager
+            # Home Manager configuration (tracks nixpkgs-unstable to match host channel)
+            inputs.home-manager-unstable.nixosModules.home-manager
             {
               home-manager = {
                 useGlobalPkgs = true;

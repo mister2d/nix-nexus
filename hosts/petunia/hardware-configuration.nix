@@ -23,10 +23,7 @@
     kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
 
     # Kernel Modules (from hardware scan + X570 specifics)
-    initrd = {
-      # availableKernelModules duplicated in modules/hardware/petunia/ryzen.nix — merged by NixOS
-      kernelModules = [ "nvidia" ]; # Early load for KMS / splash continuity
-    };
+    # Early amdgpu KMS is handled by hardware.amdgpu.initrd.enable in rdna4-base.
   };
 
   # Networking

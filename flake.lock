@@ -505,6 +505,27 @@
         "type": "github"
       }
     },
+    "flake-parts_6": {
+      "inputs": {
+        "nixpkgs-lib": [
+          "rdna4-stack",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1778716662,
+        "narHash": "sha256-m1Yf0wZ8j1OHjTc2UwHwyQRSnNeSgLJOd7q5Y45hzi4=",
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "rev": "f7c1a2d347e4c52d5fb8d10cb4d94b5884e546fb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hercules-ci",
+        "repo": "flake-parts",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "inputs": {
         "systems": "systems_3"
@@ -791,6 +812,27 @@
       },
       "original": {
         "owner": "nix-community",
+        "repo": "home-manager",
+        "type": "github"
+      }
+    },
+    "home-manager-unstable": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1779027260,
+        "narHash": "sha256-ZbgWWFQmSyM3HQ31nAZk2hJ7OSeNr9uRFHL8jCifY9M=",
+        "owner": "nix-community",
+        "repo": "home-manager",
+        "rev": "bcb774cfc3268120cd61808629f9aa7dad3750a2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "ref": "master",
         "repo": "home-manager",
         "type": "github"
       }
@@ -1553,12 +1595,34 @@
         "url": "https://git.outfoxxed.me/quickshell/quickshell"
       }
     },
+    "rdna4-stack": {
+      "inputs": {
+        "flake-parts": "flake-parts_6",
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1779033200,
+        "narHash": "sha256-UXZnpe6pSHTycMRFmCldpTzahDhlyvSabL3wgUB04zo=",
+        "owner": "tenarches",
+        "repo": "nix-rdna4",
+        "rev": "fa62b2e46e1d370d8c75831d283f1aa45ab480af",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tenarches",
+        "repo": "nix-rdna4",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "devenv": "devenv",
         "disko": "disko",
         "dms": "dms",
         "home-manager": "home-manager_2",
+        "home-manager-unstable": "home-manager-unstable",
         "llm-agents": "llm-agents",
         "mcp-servers-nix": "mcp-servers-nix",
         "niri": "niri",
@@ -1575,7 +1639,8 @@
         "pkgs-talos": "pkgs-talos",
         "pkgs-terraform": "pkgs-terraform",
         "pkgs-vlc": "pkgs-vlc",
-        "pre-commit-hooks": "pre-commit-hooks_3"
+        "pre-commit-hooks": "pre-commit-hooks_3",
+        "rdna4-stack": "rdna4-stack"
       }
     },
     "rust-overlay": {

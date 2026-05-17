@@ -3,6 +3,6 @@
 {
   imports = [
     ./ryzen.nix
-    ./nvidia.nix
+    ./rdna4.nix
   ];
 }

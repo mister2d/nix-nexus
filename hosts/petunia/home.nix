@@ -14,8 +14,8 @@
     ../../modules/desktop/notifications.nix
   ];
 
-  # Resource Monitor with NVIDIA GPU support
-  programs.btop.package = pkgs.btop.override { cudaSupport = true; };
+  # Resource Monitor (amdgpu_top provides detailed AMD metrics; btop for process view)
+  programs.btop.enable = true;
 
   # Petunia specific home-manager settings
   # (e.g., custom monitor layouts in kanshi)
