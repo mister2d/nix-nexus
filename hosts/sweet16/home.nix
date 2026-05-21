@@ -7,11 +7,11 @@
   imports = [
     ../../modules/user/home.nix
     ../../modules/hardware/thinkpad-z16/kanshi-home.nix
-    ../../modules/hardware/thinkpad-z16/niri-hardware-home.nix
+    ../../modules/hardware/thinkpad-z16/sway-hardware-home.nix
 
     # Desktop Environments & Customization
-    ../../modules/desktop/niri-home.nix
-    ../../modules/desktop/dank-material-shell-home.nix
+    ../../modules/desktop/sway-home.nix
+    ../../modules/desktop/waybar-home.nix
   ];
 
   # Resource Monitor with AMD GPU support

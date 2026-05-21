@@ -115,6 +115,7 @@
 
     binds = {
       "Mod+Return".action.spawn = [ "${pkgs.kitty}/bin/kitty" ];
+      "Mod+Shift+Return".action.spawn = [ "${pkgs.ghostty}/bin/ghostty" ];
       "Mod+Shift+B".action.spawn = [
         "${pkgs.bash}/bin/bash"
         "-c"

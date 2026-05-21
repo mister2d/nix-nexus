@@ -35,26 +35,34 @@
     };
   };
 
-  # Systemd Service Abstractions
-  # These aliases provide human-readable entry points for managing the printing stack.
   systemd.services = {
     cups.aliases = [ "printing.service" ];
     ensure-printers = {
       aliases = [ "printing-provision.service" ];
-      # Ensure network, CUPS, and Avahi (for local resolution) are fully ready.
       after = [
         "network-online.target"
         "cups.service"
         "avahi-daemon.service"
+        "nss-lookup.target"
       ];
       wants = [
         "network-online.target"
         "cups.service"
         "avahi-daemon.service"
+        "nss-lookup.target"
       ];
-      # A small delay to ensure CUPS is actually listening on its socket
-      # and the network stack is fully converged.
-      serviceConfig.ExecStartPre = "${pkgs.coreutils}/bin/sleep 2";
+      serviceConfig = {
+        ExecStartPre = "${pkgs.writeShellScript "wait-for-printer-dns" ''
+          for i in $(seq 1 30); do
+            ${pkgs.glibc.bin}/bin/getent hosts hp-mfp.home.lan > /dev/null 2>&1 && exit 0
+            sleep 2
+          done
+          echo "hp-mfp.home.lan not resolvable after 60s"
+          exit 1
+        ''}";
+        Restart = "on-failure";
+        RestartSec = 30;
+      };
     };
   };
 

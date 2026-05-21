@@ -9,8 +9,9 @@ _:
     "com/github/wwmm/easyeffects" = {
       use-default-input-device = true;
       use-default-output-device = true;
-      process-all-inputs = false;
+      process-all-inputs = true;
       process-all-outputs = false;
+      last-used-input-preset = "Z16-Conference-Mic";
       last-used-output-device = "";
       last-used-input-device = "";
       output-blocklist = [ ];

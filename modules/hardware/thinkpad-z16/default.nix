@@ -15,8 +15,8 @@
       "amdgpu.sg_display=0" # Fix for white flickering on Ryzen 6000 + OLED
       "amdgpu.dcdebugmask=0x410" # Fix for RDNA2 display/PM timeouts + stability
       "amdgpu.gpu_recovery=1" # Enable soft-recovery for GPU resets
-      "amdgpu.lockup_timeout=1000" # Increase timeout threshold for stability
-      "amdgpu.gttsize=4096" # Limit iGPU dynamic memory (GTT) to 4GB to preserve physical RAM for ARC/Apps
+      "amdgpu.lockup_timeout=10000" # Default 10s timeout; 1s was too aggressive and triggered false resets during VA-API video encode
+      "amdgpu.gttsize=8192" # Allow 8GB GTT for video conferencing headroom while still reserving RAM for apps
       "iommu=pt" # Passthrough mode for better GPU memory stability on Ryzen
       "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
       "amd_pstate=active" # Use active P-States for better power/performance on Ryzen 6000

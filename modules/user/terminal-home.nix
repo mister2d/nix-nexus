@@ -34,125 +34,172 @@ let
   };
 in
 {
-  programs.kitty = {
-    enable = true;
-    font = {
-      name = "JetBrainsMono Nerd Font";
-      size = 13;
+  programs = {
+    kitty = {
+      enable = true;
+      font = {
+        name = "JetBrainsMono Nerd Font";
+        size = 13;
+      };
+      settings = {
+        # Standard terminfo for broad compatibility (fixes 'xterm-kitty' missing on remote hosts)
+        term = "xterm-256color";
+
+        # Mouse behavior
+        copy_on_select = "yes";
+        # Click then Shift-Click to select range
+        "mouse_map shift+left press" = "ungrabbed,grabbed mouse_selection extend";
+        "mouse_map shift+left click" = "ungrabbed,grabbed mouse_selection extend";
+        # Right-click to paste from clipboard
+        "mouse_map right press" = "ungrabbed,grabbed paste_from_clipboard";
+
+        # OLED Optimization
+        background_opacity = "1.0";
+        dynamic_background_opacity = "no";
+
+        # Padding
+        window_padding_width = 10;
+
+        # Cursor
+        cursor_shape = "block";
+        cursor_blink_interval = "0.5";
+
+        # Scrollback
+        scrollback_lines = 100000;
+
+        # Tab Bar (High Contrast)
+        tab_bar_edge = "top";
+        tab_bar_style = "powerline";
+        active_tab_foreground = "#000000";
+        active_tab_background = "#00AAAA";
+        inactive_tab_foreground = "#d8d8d8";
+        inactive_tab_background = "#000000";
+
+        # Ported Colors
+        inherit (colors)
+          background
+          foreground
+          cursor
+          cursor_text_color
+          selection_background
+          selection_foreground
+          color0
+          color1
+          color2
+          color3
+          color4
+          color5
+          color6
+          color7
+          color8
+          color9
+          color10
+          color11
+          color12
+          color13
+          color14
+          color15
+          ;
+      };
     };
-    settings = {
-      # Standard terminfo for broad compatibility (fixes 'xterm-kitty' missing on remote hosts)
-      term = "xterm-256color";
 
-      # Mouse behavior
-      copy_on_select = "yes";
-      # Click then Shift-Click to select range
-      "mouse_map shift+left press" = "ungrabbed,grabbed mouse_selection extend";
-      "mouse_map shift+left click" = "ungrabbed,grabbed mouse_selection extend";
-      # Right-click to paste from clipboard
-      "mouse_map right press" = "ungrabbed,grabbed paste_from_clipboard";
+    ghostty = {
+      enable = true;
+      settings = {
+        font-family = "JetBrainsMono Nerd Font";
+        font-size = 13;
 
-      # OLED Optimization
-      background_opacity = "1.0";
-      dynamic_background_opacity = "no";
+        inherit (colors) background foreground;
+        cursor-color = colors.cursor;
+        cursor-text = colors.cursor_text_color;
+        selection-background = colors.selection_background;
+        selection-foreground = colors.selection_foreground;
 
-      # Padding
-      window_padding_width = 10;
+        palette = [
+          "0=${colors.color0}"
+          "1=${colors.color1}"
+          "2=${colors.color2}"
+          "3=${colors.color3}"
+          "4=${colors.color4}"
+          "5=${colors.color5}"
+          "6=${colors.color6}"
+          "7=${colors.color7}"
+          "8=${colors.color8}"
+          "9=${colors.color9}"
+          "10=${colors.color10}"
+          "11=${colors.color11}"
+          "12=${colors.color12}"
+          "13=${colors.color13}"
+          "14=${colors.color14}"
+          "15=${colors.color15}"
+        ];
 
-      # Cursor
-      cursor_shape = "block";
-      cursor_blink_interval = "0.5";
+        cursor-style = "block";
+        cursor-style-blink = true;
 
-      # Scrollback
-      scrollback_lines = 100000;
+        scrollback-limit = 100000;
 
-      # Tab Bar (High Contrast)
-      tab_bar_edge = "top";
-      tab_bar_style = "powerline";
-      active_tab_foreground = "#000000";
-      active_tab_background = "#00AAAA";
-      inactive_tab_foreground = "#d8d8d8";
-      inactive_tab_background = "#000000";
+        window-padding-x = 10;
+        window-padding-y = 10;
 
-      # Ported Colors
-      inherit (colors)
-        background
-        foreground
-        cursor
-        cursor_text_color
-        selection_background
-        selection_foreground
-        color0
-        color1
-        color2
-        color3
-        color4
-        color5
-        color6
-        color7
-        color8
-        color9
-        color10
-        color11
-        color12
-        color13
-        color14
-        color15
-        ;
+        background-opacity = 1.0;
+
+        copy-on-select = "clipboard";
+      };
     };
-  };
 
-  programs.tmux = {
-    enable = true;
-    shell = "${pkgs.bash}/bin/bash";
-    # Standard terminal for compatibility with legacy tools like screen
-    terminal = "tmux-256color";
-    historyLimit = 100000;
-    keyMode = "vi";
-    mouse = true;
-    baseIndex = 1;
-    escapeTime = 0; # Fix for Neovim lag
+    tmux = {
+      enable = true;
+      shell = "${pkgs.bash}/bin/bash";
+      # Standard terminal for compatibility with legacy tools like screen
+      terminal = "tmux-256color";
+      historyLimit = 100000;
+      keyMode = "vi";
+      mouse = true;
+      baseIndex = 1;
+      escapeTime = 0; # Fix for Neovim lag
 
-    # Approachable Screen-like bindings while learning Tmux
-    shortcut = "a";
+      # Approachable Screen-like bindings while learning Tmux
+      shortcut = "a";
 
-    extraConfig = ''
-      # Fix mangled PATH on non-NixOS hosts (e.g. dualie/Debian)
-      # By default tmux starts a login shell, which often resets the PATH.
-      # Setting default-command to bash ensures it starts a non-login shell.
-      set -g default-command "${pkgs.bash}/bin/bash"
+      extraConfig = ''
+        # Fix mangled PATH on non-NixOS hosts (e.g. dualie/Debian)
+        # By default tmux starts a login shell, which often resets the PATH.
+        # Setting default-command to bash ensures it starts a non-login shell.
+        set -g default-command "${pkgs.bash}/bin/bash"
 
-      # OLED High-Contrast Status Bar
-      set -g status-style bg=black,fg=white
-      set -g status-left "#[fg=cyan,bold] #S #[default]| "
-      set -g status-right "#[fg=magenta] %Y-%m-%d #[fg=cyan]%H:%M:%S "
-      set -g window-status-current-style bg=cyan,fg=black,bold
-      set -g window-status-format " #I:#W "
-      set -g window-status-current-style bg=cyan,fg=black,bold
-      set -g window-status-current-format " #I:#W "
+        # OLED High-Contrast Status Bar
+        set -g status-style bg=black,fg=white
+        set -g status-left "#[fg=cyan,bold] #S #[default]| "
+        set -g status-right "#[fg=magenta] %Y-%m-%d #[fg=cyan]%H:%M:%S "
+        set -g window-status-current-style bg=cyan,fg=black,bold
+        set -g window-status-format " #I:#W "
+        set -g window-status-current-style bg=cyan,fg=black,bold
+        set -g window-status-current-format " #I:#W "
 
-      # Easy splits
-      bind | split-window -h -c "#{pane_current_path}"
-      bind - split-window -v -c "#{pane_current_path}"
-      unbind '"'
-      unbind %
+        # Easy splits
+        bind | split-window -h -c "#{pane_current_path}"
+        bind - split-window -v -c "#{pane_current_path}"
+        unbind '"'
+        unbind %
 
-      # Vim-style pane selection
-      bind h select-pane -L
-      bind j select-pane -D
-      bind k select-pane -U
-      bind l select-pane -R
+        # Vim-style pane selection
+        bind h select-pane -L
+        bind j select-pane -D
+        bind k select-pane -U
+        bind l select-pane -R
 
-      # Shift-arrow to switch windows
-      bind -n S-Left  previous-window
-      bind -n S-Right next-window
+        # Shift-arrow to switch windows
+        bind -n S-Left  previous-window
+        bind -n S-Right next-window
 
-      # Smart pane switching with awareness of Vim splits.
-      set -g pane-border-style fg='#333333'
-      set -g pane-active-border-style fg='#00AAAA'
+        # Smart pane switching with awareness of Vim splits.
+        set -g pane-border-style fg='#333333'
+        set -g pane-active-border-style fg='#00AAAA'
 
-      # Right-click to paste from tmux buffer (or clipboard if synced)
-      bind-key -n MouseDown3Pane paste-buffer
-    '';
+        # Right-click to paste from tmux buffer (or clipboard if synced)
+        bind-key -n MouseDown3Pane paste-buffer
+      '';
+    };
   };
 }

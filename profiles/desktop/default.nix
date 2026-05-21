@@ -10,12 +10,10 @@
 
   # Desktop-specific kernel parameters.
   # quiet/splash provide a clean graphical boot experience on workstations.
-  # mem_sleep_default=deep prefers S3 suspend over s2idle on AMD/Intel laptops.
-  # These are intentionally absent from modules/core/boot.nix — server and
-  # SBC hosts must not inherit desktop boot behaviour.
+  # mem_sleep_default is NOT set here — hardware profiles set it per-platform
+  # (e.g. s2idle for Rembrandt, deep for Intel). Setting it here would override them.
   boot.kernelParams = [
     "quiet"
     "splash"
-    "mem_sleep_default=deep"
   ];
 }

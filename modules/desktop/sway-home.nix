@@ -257,8 +257,9 @@ in
 
         # Apps
         "${mod}+Return" = "exec ${pkgs.kitty}/bin/kitty";
+        "${mod}+Shift+Return" = "exec ${pkgs.ghostty}/bin/ghostty";
         "${mod}+Shift+b" =
-          "exec ${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform-hint=auto --enable-features=WebRTCPipeWireCapturer --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform-hint=auto --enable-features=WebRTCPipeWireCapturer --disable-features=ExtensionManifestV2Unsupported; fi'";
+          "exec env DRI_PRIME=1 google-chrome-stable --ozone-platform-hint=auto --enable-features=WebRTCPipeWireCapturer --disable-features=ExtensionManifestV2Unsupported";
         "${mod}+Shift+d" = "exec wdisplays";
         "${mod}+Alt+e" =
           "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00AAAA' --hf '#000000' --tb '#00AAAA' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c";

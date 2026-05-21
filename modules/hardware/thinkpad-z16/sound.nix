@@ -44,7 +44,7 @@ _:
                 update-props = {
                   "priority.session" = 2200;
                   "priority.driver" = 2200;
-                  "session.suspend-timeout-seconds" = 5;
+                  "session.suspend-timeout-seconds" = 0;
                 };
               };
             }
