@@ -74,7 +74,7 @@ let
     inherit (pkgs.stdenv.hostPlatform) system;
     config.allowUnfree = true;
     # Apply our build fixes to unstable as well
-    overlays = [ self.buildFixesOverlay ];
+    overlays = [ self.overlays.buildFixes ];
   };
 
   # Kubernetes tools
