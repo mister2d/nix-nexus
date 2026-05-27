@@ -122,7 +122,7 @@ in
       # Secret Management & VPN
       libsecret # DBus interface for secrets (CLI: secret-tool)
       seahorse # GNOME GUI for managing keys and passwords
-      protonvpn-gui # Official ProtonVPN GTK client
+      proton-vpn # Official ProtonVPN GTK client
 
       # Yubikey & FIDO2 Tools
       yubikey-manager # GUI/CLI to manage YubiKeys
