@@ -128,49 +128,48 @@
         };
       });
 
-      # Global Build Fixes (Overlays applied to all host configurations)
-      # These fix failing builds in upstream dependencies (e.g. failing tests).
-      buildFixesOverlay = _: prev: {
-        pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
-          (_: pyPrev: {
-            # Update mcp to satisfy requirements of latest mcp-servers-nix
-            # We must use the source from unstable but keep the local interpreter
-            mcp = pyPrev.mcp.overridePythonAttrs (old: {
-              inherit
-                ((import inputs.nixpkgs-unstable {
-                  inherit (prev.stdenv.hostPlatform) system;
-                  config.allowUnfree = true;
-                }).python3Packages.mcp
-                )
-                src
-                version
-                ;
-              propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pyPrev.pyjwt ];
-            });
+      # Shared Nixpkgs Overlays
+      overlays = {
+        # Global Build Fixes: fix failing builds in upstream dependencies
+        buildFixes = _: prev: {
+          pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+            (_: pyPrev: {
+              # Update mcp to satisfy requirements of latest mcp-servers-nix
+              # We must use the source from unstable but keep the local interpreter
+              mcp = pyPrev.mcp.overridePythonAttrs (old: {
+                inherit
+                  ((import inputs.nixpkgs-unstable {
+                    inherit (prev.stdenv.hostPlatform) system;
+                    config.allowUnfree = true;
+                  }).python3Packages.mcp
+                  )
+                  src
+                  version
+                  ;
+                propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pyPrev.pyjwt ];
+              });
 
-            mcp-nixos = pyPrev.mcp-nixos.overridePythonAttrs (_old: {
-              doCheck = false;
-            });
+              mcp-nixos = pyPrev.mcp-nixos.overridePythonAttrs (_old: {
+                doCheck = false;
+              });
 
-            aioboto3 = pyPrev.aioboto3.overridePythonAttrs (_old: {
-              doCheck = false;
-              dontCheck = true;
-              doInstallCheck = false;
-              checkPhase = "true";
-              pytestCheckPhase = "true";
-            });
-          })
+              aioboto3 = pyPrev.aioboto3.overridePythonAttrs (_old: {
+                doCheck = false;
+                dontCheck = true;
+                doInstallCheck = false;
+                checkPhase = "true";
+                pytestCheckPhase = "true";
+              });
+            })
+          ];
+        };
+
+        # Patched MCP overlay that includes the python build fixes
+        mcp = lib.composeManyExtensions [
+          self.overlays.buildFixes
+          inputs.mcp-servers-nix.overlays.default
         ];
       };
-
-      # Patched MCP overlay that includes the python build fixes
-      mcpOverlay =
-        final: prev:
-        let
-          # Apply the python fix to the scope before passing to the mcp overlay
-          patchedPrev = prev.extend self.buildFixesOverlay;
-        in
-        inputs.mcp-servers-nix.overlays.default final patchedPrev;
 
       homeConfigurations = {
 
@@ -224,7 +223,7 @@
           modules = [
             # Global build fixes
             (_: {
-              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.overlays = [ self.overlays.buildFixes ];
               nixpkgs.config.allowUnfree = true;
             })
 
@@ -267,7 +266,7 @@
           modules = [
             # Global build fixes
             (_: {
-              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.overlays = [ self.overlays.buildFixes ];
               nixpkgs.config.allowUnfree = true;
             })
 
@@ -316,7 +315,7 @@
           modules = [
             # Global build fixes
             (_: {
-              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.overlays = [ self.overlays.buildFixes ];
               nixpkgs.config.allowUnfree = true;
             })
 
@@ -375,7 +374,7 @@
           modules = [
             # Global build fixes
             (_: {
-              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.overlays = [ self.overlays.buildFixes ];
               nixpkgs.config.allowUnfree = true;
             })
 
@@ -426,9 +425,12 @@
             inherit inputs self;
           };
           modules = [
-            # Global build fixes
+            # Global build fixes + MCP server packages overlay
             (_: {
-              nixpkgs.overlays = [ self.buildFixesOverlay ];
+              nixpkgs.overlays = [
+                self.overlays.buildFixes
+                self.overlays.mcp
+              ];
               nixpkgs.config.allowUnfree = true;
             })
 
@@ -462,6 +464,13 @@
             home-manager.nixosModules.home-manager
             (
               { pkgs, ... }:
+              let
+                unstablePkgs = import inputs.nixpkgs-unstable {
+                  inherit (pkgs.stdenv.hostPlatform) system;
+                  config.allowUnfree = true;
+                  overlays = [ self.overlays.buildFixes ];
+                };
+              in
               {
                 home-manager = {
                   useGlobalPkgs = true;
@@ -481,6 +490,13 @@
                       btop
                       htop
                       openssl
+
+                      # MCP servers (mirrors dev-home.nix mcpPackages)
+                      context7-mcp
+                      github-mcp-server
+                      unstablePkgs.mcp-nixos
+                      mcp-server-time
+                      terraform-mcp-server
                     ];
                     imports = [
                       inputs.nixvim.homeModules.nixvim

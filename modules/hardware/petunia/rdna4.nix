@@ -1,4 +1,4 @@
-{ ... }:
+_:
 
 {
   # rdna4-full (base + rocm + power + build-env) is imported at the flake level.

@@ -101,7 +101,6 @@ let
         pkgs.context7-mcp
         pkgs.github-mcp-server
         unstable-pkgs.mcp-nixos
-        pkgs.mcp-server-sequential-thinking
         pkgs.mcp-server-time
         pkgs.terraform-mcp-server
       ]
@@ -121,7 +120,6 @@ let
         agentPkgs.gemini-cli
         agentPkgs.opencode
         agentPkgs.pi # v0.70.2 > unstable v0.67
-        agentPkgs.openclaw
 
         # From unstable nixpkgs (Exclusives or specific versions)
         unstable-pkgs.opencode-desktop
