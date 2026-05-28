@@ -12,6 +12,9 @@
     # Machine-specific profiles (Quirks & Hardware)
     ../../profiles/hardware/z16.nix
 
+    # CachyOS Optimized Kernel
+    ../../modules/hardware/kernel/cachyos.nix
+
     # Core System Profile (Every machine gets this)
     ../../profiles/workstation
 
@@ -40,6 +43,16 @@
 
   # Prevent NVMe from entering ps 4 (9500µs exit latency); caps at ps 3 (1200µs) for ZFS
   boot.kernelParams = [ "nvme_core.default_ps_max_latency_us=9000" ];
+
+  # CachyOS Kernel Configuration (Phase 2: Kernel Enabled)
+  hardware.cachyosKernel = {
+    enable = true;
+    processorOpt = "x86_64-v3"; # Ryzen 6000 "Rembrandt" (Zen 3+)
+    enableZfs = true;
+    enableBbr3 = true;
+    enableAcpiCall = true;
+    hugepageMode = "madvise";
+  };
 
   # ZFS Performance Profile (Coding & General Purpose)
   nix-nexus.zfs = {

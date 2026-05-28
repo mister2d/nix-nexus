@@ -69,6 +69,11 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    # CachyOS Kernel — Optimized kernels for x86_64
+    nix-cachyos-kernel = {
+      url = "github:xddxdd/nix-cachyos-kernel/release";
+    };
+
     # Nixvim - Neovim configuration via Nix
     nixvim.url = "github:nix-community/nixvim/nixos-25.11";
 
