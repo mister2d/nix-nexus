@@ -12,7 +12,7 @@ in
   programs.waybar = lib.mkIf config.wayland.windowManager.sway.enable {
     enable = true;
     systemd.enable = true;
-    systemd.targets = [ "sway-session.target" ]; # Only start automatically in Sway
+    # systemd.targets = [ "sway-session.target" ]; # Only start automatically in Sway
 
     settings = {
       mainBar = {
