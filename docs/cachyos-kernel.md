@@ -1,9 +1,9 @@
 # CachyOS Kernel: Performance Enhancements on sweet16
 
-**Host:** sweet16 — ThinkPad Z16 Gen 1, AMD Ryzen 7 PRO 6850H (Rembrandt, Zen 3+)
-**Active kernel:** `7.0.10-cachyos` (`linux-cachyos-bore-x86_64-v3`)
-**Module:** `modules/hardware/kernel/cachyos.nix`
-**Upstream source:** `github:xddxdd/nix-cachyos-kernel/release`
+**Host:** sweet16 — ThinkPad Z16 Gen 1, AMD Ryzen 7 PRO 6850H (Rembrandt, Zen 3+)  
+**Active kernel:** `7.0.10-cachyos` (`linux-cachyos-bore-x86_64-v3`)  
+**Module:** `modules/hardware/kernel/cachyos.nix`  
+**Upstream source:** `github:xddxdd/nix-cachyos-kernel/release`  
 
 ---
 
