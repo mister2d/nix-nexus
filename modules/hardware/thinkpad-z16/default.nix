@@ -9,7 +9,7 @@
   boot = {
     # The Z16 benefits greatly from modern kernels for AMDGPU fixes.
     # We pin to 6.12 (LTS) for maximum stability with ZFS while meeting the 6.6+ requirement.
-    kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
+    kernelPackages = lib.mkOverride 900 pkgs.linuxPackages_6_12;
 
     kernelParams = [
       "amdgpu.sg_display=0" # Fix for white flickering on Ryzen 6000 + OLED
@@ -19,7 +19,6 @@
       "amdgpu.gttsize=8192" # Allow 8GB GTT for video conferencing headroom while still reserving RAM for apps
       "iommu=pt" # Passthrough mode for better GPU memory stability on Ryzen
       "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
-      "amd_pstate=active" # Use active P-States for better power/performance on Ryzen 6000
       "initcall_blacklist=acpi_cpufreq_init" # Prevent legacy driver from competing with P-State
       "mem_sleep_default=s2idle" # Modern Standby (S0ix) is required for the Z16's Rembrandt APU
     ];
