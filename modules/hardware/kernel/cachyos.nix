@@ -1,0 +1,219 @@
+# modules/hardware/kernel/cachyos.nix
+#
+# CachyOS kernel NixOS module.
+# Provides BORE-scheduled, x86_64-optimized Linux kernel for interactive workloads.
+#
+# Template usage guide for other nix-nexus x86_64 hosts:
+#   sweet16 (Ryzen 6000, Zen 3+) → linux-cachyos-bore-x86_64-v3, enableZfs = true
+#   forge / dualie (Xeon)        → linux-cachyos-server; verify v3 vs v4 first
+#   rk3588 nodes                 → NOT APPLICABLE (x86_64 only; assertion will fail)
+#   LXC containers               → NOT APPLICABLE (share Proxmox host kernel)
+#
+# Source: https://github.com/xddxdd/nix-cachyos-kernel
+{
+  inputs,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+
+let
+  cfg = config.hardware.cachyosKernel;
+
+  # Canonical attribute name map for BORE-scheduled variants.
+  # Source: package tree in upstream README.
+  # NOTE: x86_64-v2 variants have no binary cache per upstream README.
+  #       "Note that due to build capacity limitations, I do not build
+  #        kernel variants with x86_64-v2 CPU optimization."
+  # The map covers all cached BORE variants.
+  boreVariantAttr = {
+    "x86_64-v1" = "linux-cachyos-bore";
+    "x86_64-v3" = "linux-cachyos-bore-x86_64-v3";
+    "x86_64-v4" = "linux-cachyos-bore-x86_64-v4";
+    "zen4" = "linux-cachyos-bore-zen4";
+  };
+
+  # The linuxPackages wrapper for the selected BORE variant.
+  # e.g. "linux-cachyos-bore-x86_64-v3" → "linuxPackages-cachyos-bore-x86_64-v3"
+  linuxPackagesAttr =
+    let
+      base = boreVariantAttr.${cfg.processorOpt};
+    in
+    lib.replaceStrings [ "linux-cachyos" ] [ "linuxPackages-cachyos" ] base;
+
+in
+{
+  options.hardware.cachyosKernel = {
+
+    enable = lib.mkEnableOption "CachyOS BORE kernel (interactive latency optimization, x86_64 microarch tuning)";
+
+    processorOpt = lib.mkOption {
+      type = lib.types.enum [
+        "x86_64-v1"
+        "x86_64-v3"
+        "x86_64-v4"
+        "zen4"
+      ];
+      default = "x86_64-v3";
+      description = ''
+        Microarchitecture optimization level. Must not exceed the host CPU's feature set.
+        x86_64-v2 is intentionally omitted — upstream Hydra does not build it.
+
+          Ryzen 6000 / Zen 3+ (sweet16): x86_64-v3  ← AVX2 max; no AVX-512
+          Ryzen 7000 / Zen 4+:           zen4
+          Xeon Ice Lake / Sapphire Rapids (verify): x86_64-v4 (has AVX-512)
+          Xeon Skylake-SP / Broadwell-EP: x86_64-v3 (no AVX-512)
+
+        Setting a level above the CPU's capability causes an illegal instruction
+        boot failure. Verify with: grep -m1 flags /proc/cpuinfo | grep -o "avx512\|avx2"
+      '';
+    };
+
+    enableZfs = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Route boot.zfs.package to config.boot.kernelPackages.zfs_cachyos.
+        Must be true on any host where boot.supportedFilesystems.zfs = true.
+
+        This uses ZFS Pattern A (direct attribute access on the pre-built linuxPackages
+        attrset). This pattern is safe because boot.kernelPackages is set to a pre-built
+        attrset provided by the overlay, not a custom packagesFor result.
+
+        If you later switch to an override-based kernel (enableCustomBuild = true),
+        Pattern B is required — see the comment in the config block below.
+      '';
+    };
+
+    enableCustomBuild = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Apply override-based customizations (bbr3, acpiCall, hugepageMode).
+
+        WARNING: Any override produces a new derivation hash. The result will NOT
+        match the Hydra-built binary. Nix will fall back to building the kernel
+        from source (~30–60 min on sweet16). Enable only after the binary cache
+        configuration is confirmed working and you have time for a local build.
+
+        When enableCustomBuild = true, ZFS wiring switches automatically to
+        Pattern B (packagesFor + .extend) to maintain ABI pairing.
+      '';
+    };
+
+    enableBbr3 = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "BBR3 TCP. Only applied when enableCustomBuild = true.";
+    };
+
+    enableAcpiCall = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = ''
+        CachyOS ACPI call patches. Useful on ThinkPads for dGPU power gating and
+        ThinkPad-specific EC/charging ACPI method access.
+        Only applied when enableCustomBuild = true.
+      '';
+    };
+
+    hugepageMode = lib.mkOption {
+      type = lib.types.enum [
+        "always"
+        "madvise"
+        "never"
+      ];
+      default = "madvise";
+      description = ''
+        Transparent Hugepage mode. Only applied when enableCustomBuild = true.
+        "madvise" reduces idle memory pressure on a battery-powered laptop while
+        still benefiting workloads that call madvise(MADV_HUGEPAGE) — llama.cpp
+        does this for weight tensors.
+      '';
+    };
+
+  };
+
+  config = lib.mkMerge [
+    (lib.mkIf cfg.enable {
+
+      assertions = [
+        {
+          assertion = pkgs.stdenv.hostPlatform.isx86_64;
+          message =
+            "hardware.cachyosKernel: CachyOS kernels are x86_64 only. "
+            + "Do not import this module on rk3588 or other aarch64 hosts.";
+        }
+        {
+          assertion = cfg.processorOpt != "x86_64-v2";
+          message =
+            "hardware.cachyosKernel: x86_64-v2 has no binary cache. "
+            + "Use x86_64-v1 (generic) or x86_64-v3 (if CPU supports AVX2).";
+        }
+      ];
+
+      # -------------------------------------------------------------------------
+      # Overlay.
+      # overlays.pinned: locks kernel to the exact version built by upstream Hydra CI,
+      # guaranteeing the store hash matches the binary cache entry.
+      # -------------------------------------------------------------------------
+      nixpkgs.overlays = [
+        inputs.nix-cachyos-kernel.overlays.pinned
+      ];
+
+      # -------------------------------------------------------------------------
+      # Kernel selection — two paths depending on enableCustomBuild.
+      # boot.kernelPackages is types.unspecified; its apply function calls
+      # .extend on the value directly. lib.mkMerge is NOT safe here because
+      # mergeDefaultOption passes the merge-marker attrset straight to apply.
+      # Use if/then/else so the value is the actual linuxPackages scope.
+      # -------------------------------------------------------------------------
+      boot.kernelPackages = lib.mkForce (
+        if !cfg.enableCustomBuild then
+          # PATH A: pre-built attrset from the overlay; binary cache hit guaranteed.
+          pkgs.cachyosKernels.${linuxPackagesAttr}
+        else
+          # PATH B: override-based build; produces a new hash → local build required.
+          let
+            baseKernel = pkgs.cachyosKernels.${boreVariantAttr.${cfg.processorOpt}}.override {
+              bbr3 = cfg.enableBbr3;
+              acpiCall = cfg.enableAcpiCall;
+              hugepage = cfg.hugepageMode;
+            };
+          in
+          (pkgs.linuxKernel.packagesFor baseKernel).extend (
+            _final: _prev: {
+              zfs_cachyos = lib.mkIf cfg.enableZfs (
+                pkgs.cachyosKernels.zfs-cachyos.override { kernel = baseKernel; }
+              );
+            }
+          )
+      );
+
+      # -------------------------------------------------------------------------
+      # ZFS wiring.
+      # -------------------------------------------------------------------------
+      boot.zfs.package = lib.mkIf cfg.enableZfs config.boot.kernelPackages.zfs_cachyos;
+
+    })
+
+    # -------------------------------------------------------------------------
+    # Binary cache substituters.
+    # These are outside the mkIf cfg.enable block to allow "Phase 1" deployment:
+    # Adding the cache settings to the system before enabling the kernel itself.
+    # -------------------------------------------------------------------------
+    {
+      nix.settings = {
+        substituters = lib.mkAfter [
+          "https://attic.xuyh0120.win/lantian"
+          "https://cache.garnix.io"
+        ];
+        trusted-public-keys = lib.mkAfter [
+          "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
+          "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
+        ];
+      };
+    }
+  ];
+}
