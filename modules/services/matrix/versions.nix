@@ -12,19 +12,19 @@ let
   #   4. Update hosts/avina/README.md stack table.
   expected = {
     # Matrix homeserver (stable)
-    synapse = "1.149.1";
+    synapse = "1.152.1";
     # OIDC bridge — MSC3861 native OIDC delegation (stable)
-    mas = "1.13.0";
+    mas = "1.16.0";
     # WebRTC SFU (stable)
     livekit = "1.9.4";
     # LiveKit JWT authentication service (stable)
     lkJwt = "0.4.0";
     # Matrix web client (stable)
-    elementWeb = "1.12.10";
+    elementWeb = "1.12.14";
     # WebRTC calling — MSC4143 (stable)
     elementCall = "0.11.1";
     # Database backend for Synapse and MAS (stable)
-    postgresql = "16.13";
+    postgresql = "16.14";
     # TLS termination and reverse proxy
     haproxy = "3.2.9";
     # Secrets agent — pulls credentials from Vault KV-v2 at runtime
