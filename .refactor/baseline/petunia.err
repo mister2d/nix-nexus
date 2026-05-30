@@ -1,0 +1,4 @@
+warning: Git tree '/home/ddukes/workspace/nix-nexus' is dirty
+evaluation warning: The syntax of services.swayidle.events has changed. While it
+                    previously accepted a list of events, it now accepts an attrset
+                    keyed by the event name.

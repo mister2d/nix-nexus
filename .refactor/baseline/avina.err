@@ -1,0 +1,28 @@
+warning: Git tree '/home/ddukes/workspace/nix-nexus' is dirty
+error:
+       … while calling the 'head' builtin
+         at /nix/store/whpmnfw6wj42iy2r38i53kfiqd84mfw7-source/lib/attrsets.nix:1696:13:
+         1695|           if length values == 1 || pred here (elemAt values 1) (head values) then
+         1696|             head values
+             |             ^
+         1697|           else
+
+       … while evaluating the attribute 'value'
+         at /nix/store/whpmnfw6wj42iy2r38i53kfiqd84mfw7-source/lib/modules.nix:1118:7:
+         1117|     // {
+         1118|       value = addErrorContext "while evaluating the option `${showOption loc}':" value;
+             |       ^
+         1119|       inherit (res.defsFinal') highestPrio;
+
+       … while evaluating the option `system.build.toplevel':
+
+       … while evaluating definitions from `/nix/store/whpmnfw6wj42iy2r38i53kfiqd84mfw7-source/nixos/modules/system/activation/top-level.nix':
+
+       (stack trace truncated; use '--show-trace' to show the full, detailed trace)
+
+       error:
+       Failed assertions:
+       - Matrix stack version drift: matrix-synapse is 1.152.1 but versions.nix declares 1.149.1. Update modules/services/matrix/versions.nix after intentional upgrades.
+       - Matrix stack version drift: matrix-authentication-service is 1.16.0 but versions.nix declares 1.13.0. Update modules/services/matrix/versions.nix after intentional upgrades.
+       - Matrix stack version drift: element-web is 1.12.14 but versions.nix declares 1.12.10. Update modules/services/matrix/versions.nix after intentional upgrades.
+       - Matrix stack version drift: postgresql_16 is 16.14 but versions.nix declares 16.13. Update modules/services/matrix/versions.nix after intentional upgrades.
