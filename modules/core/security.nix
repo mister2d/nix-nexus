@@ -1,75 +1,54 @@
-{ pkgs, lib, ... }:
+_: {
+  flake.modules.nixos.core-security =
+    { pkgs, lib, ... }:
+    {
+      security = {
+        rtkit.enable = true;
+        polkit.enable = true;
 
-{
-  security = {
-    rtkit.enable = true;
-    polkit.enable = true;
-
-    # Custom Certificate Authority
-    # Place your int_cert.crt in the 'certs' directory at the root of the repo
-    pki.certificateFiles = [
-      ../../certs/int_cert.crt
-    ];
-  };
-
-  # System Services
-  services = {
-    # Secret Service for password management (required for ProtonVPN, etc.)
-    gnome.gnome-keyring.enable = true;
-
-    # Hardware-based Authentication (Yubikey & FIDO2)
-    pcscd.enable = true; # Smartcard daemon for Yubikey
-    udev.packages = [ pkgs.yubikey-personalization ]; # Udev rules for hardware access
-
-    # Secure Remote Access (OpenSSH)
-    openssh = {
-      enable = true;
-      settings = {
-        PasswordAuthentication = false; # Secure by default, use keys
-        KbdInteractiveAuthentication = false;
-        PermitRootLogin = lib.mkDefault "prohibit-password";
-        TrustedUserCAKeys = "${../../certs/trusted_ssh_ca.pub}";
+        pki.certificateFiles = [
+          ../../certs/int_cert.crt
+        ];
       };
-    };
-  };
 
-  programs = {
-    # File System Permissions
-    # Enable FUSE for unprivileged mounting
-    fuse.userAllowOther = true;
+      services = {
+        gnome.gnome-keyring.enable = true;
 
-    # System Integration
-    # Enable dconf (required for EasyEffects and GTK portals)
-    dconf.enable = true;
+        pcscd.enable = true;
+        udev.packages = [ pkgs.yubikey-personalization ];
 
-    # Secret & Key Management
-    # The GPG Agent is configured to provide both OpenPGP and SSH agent services.
-    gnupg.agent = {
-      enable = true;
-      enableSSHSupport = true;
-      pinentryPackage = pkgs.pinentry-curses;
-
-      # Session Caching
-      # Extended TTL settings reduce the frequency of authentication prompts
-      # during long working sessions.
-      settings = {
-        default-cache-ttl = 28800; # 8 hours
-        max-cache-ttl = 86400; # 24 hours
-        default-cache-ttl-ssh = 28800; # 8 hours
-        max-cache-ttl-ssh = 86400; # 24 hours
+        openssh = {
+          enable = true;
+          settings = {
+            PasswordAuthentication = false;
+            KbdInteractiveAuthentication = false;
+            PermitRootLogin = lib.mkDefault "prohibit-password";
+            TrustedUserCAKeys = "${../../certs/trusted_ssh_ca.pub}";
+          };
+        };
       };
+
+      programs = {
+        fuse.userAllowOther = true;
+        dconf.enable = true;
+        vim.defaultEditor = false;
+
+        gnupg.agent = {
+          enable = true;
+          enableSSHSupport = true;
+          pinentryPackage = pkgs.pinentry-curses;
+
+          settings = {
+            default-cache-ttl = 28800;
+            max-cache-ttl = 86400;
+            default-cache-ttl-ssh = 28800;
+            max-cache-ttl-ssh = 86400;
+          };
+        };
+      };
+
+      security.sudo.extraConfig = ''
+        Defaults env_keep += "EDITOR VISUAL SUDO_EDITOR"
+      '';
     };
-  };
-
-  # Editor Environment
-  # Disable vim as the default editor to prevent overlaps with custom neovim profiles.
-  programs.vim.defaultEditor = false;
-
-  # Privilege Escalation
-  security.sudo = {
-    # security.sudo.wheelNeedsPassword = false;
-    extraConfig = ''
-      Defaults env_keep += "EDITOR VISUAL SUDO_EDITOR"
-    '';
-  };
 }

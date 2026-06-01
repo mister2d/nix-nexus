@@ -14,35 +14,58 @@ Nix-Nexus is a modular, dendritic NixOS configuration framework designed for hig
 ---
 
 ## 🏛️ Architecture Overview
-The configuration follows a three-tier hierarchy to ensure concerns are properly separated:
+The configuration follows a dendritic (self-registering) flake architecture built on **flake-parts** and **import-tree**:
 
-1.  **Core (Global)**: Foundational settings (Timezones, ZFS, Security) that apply to every machine in the fleet.
-2.  **Profiles (Suites)**: Hardware-agnostic functional bundles (Desktop environments, Server hardening, Dev toolchains).
-3.  **Aspects (Modules)**: Reusable, granular building blocks (Matrix, Ceph, Virtualization) imported by hosts as needed.
+- Every `.nix` file in `modules/`, `hosts/`, and `profiles/` is a flake-parts module fragment that registers itself into `flake.modules.nixos` or `flake.modules.homeManager` under a kebab-cased name.
+- `flake.nix` contains no per-file wiring — `import-tree` auto-discovers all fragments at evaluation time.
+- Host assembly files in `modules/flake/` compose named modules by reference (`nixosModules.core-security`, `homeManagerModules.user-neovim-home`, etc.), producing a single point of truth for what each machine includes.
+
+Concerns are separated across three tiers:
+
+1. **Core** — foundational policies (timezone, ZFS, security, networking) applied globally via `modules/core/`.
+2. **Profiles** — hardware-agnostic functional suites (`profiles/server`, `profiles/workstation`, `profiles/desktop`, `profiles/development`).
+3. **Modules** — granular, opt-in aspects (`modules/hardware/`, `modules/services/`, `modules/user/`) composed by each host.
 
 ## 🚢 Fleet Composition
-Nix-Nexus manages a diverse set of nodes across multiple architectures:
 
-*   **avina**: Public-facing Matrix 2.0 server (Proxmox LXC / x86_64).
-*   **petunia**: Primary home server and storage node (NixOS / x86_64).
-*   **sweet16**: Mobile workstation — ThinkPad Z16 Gen 1 (NixOS / x86_64).
-*   **dualie**: Standalone development environment (Debian Trixie / x86_64).
-*   **forge / rk3588**: Edge compute and SBC nodes (NixOS / aarch64).
+| Host | Role | OS | Arch |
+|------|------|----|------|
+| **avina** | Matrix 2.0 server (Proxmox LXC) | NixOS | x86_64 |
+| **hermes** | LLM/MCP gateway (Proxmox LXC) | NixOS | x86_64 |
+| **openclaw** | Element Matrix bridge (Proxmox LXC) | NixOS | x86_64 |
+| **petunia** | AI/ML workstation & home server | NixOS | x86_64 |
+| **sweet16** | Mobile workstation — ThinkPad Z16 Gen 1 | NixOS | x86_64 |
+| **dualie** | Standalone dev environment | Debian Trixie (standalone HM) | x86_64 |
+| **forge** | Standalone build node | Linux (standalone HM) | x86_64 |
+| **rk3588** | SBC edge node — Rock 5 | Armbian (standalone HM) | aarch64 |
 
 ## 📁 Directory Structure
 ```text
 .
-├── flake.nix               # Project entry point and dependency management
-├── hosts/                  # Machine-specific entry points
-│   ├── avina/              # Matrix 2.0 Stack (LXC)
-│   ├── petunia/            # Home Server & Storage
-│   └── sweet16/            # Workstation (ThinkPad Z16)
-├── profiles/               # Functional suites (Server, Workstation, Desktop)
-├── modules/                # Aspect-oriented modules
-│   ├── core/               # System foundations (Security, Networking)
-│   ├── hardware/           # Hardware-specific aspects (GPU, Ryzen)
-│   ├── services/           # Matrix 2.0, Ceph, Vault
-│   └── user/               # Home Manager aspects (Shell, Terminal, Neovim)
+├── flake.nix               # Three-root import-tree entry point
+├── flake.lock
+├── lib/                    # Non-module helpers (derivations, pure data)
+│   ├── custom-scripts.nix  # Battery-alert, llm-init, etc.
+│   ├── openclaude.nix      # Claude npm package derivation
+│   └── avina/site-config.nix  # Avina domain constants
+├── modules/
+│   ├── flake/              # Host assembly files and flake output wiring
+│   ├── core/               # System foundations (security, networking, ZFS)
+│   ├── hardware/           # GPU, kernel, and platform aspects
+│   ├── desktop/            # Sway, Waybar, theming, and HM companions
+│   ├── programs/           # Dev toolchains, scripts, package sets
+│   ├── services/matrix/    # Matrix 2.0 stack (Synapse, MAS, LiveKit, HAProxy)
+│   └── user/               # Home Manager aspects (shell, editor, terminal)
+├── hosts/
+│   ├── avina/              # Matrix 2.0 stack (LXC)
+│   ├── hermes/             # LLM/MCP gateway (LXC)
+│   ├── openclaw/           # Element bridge (LXC)
+│   ├── petunia/            # AI/ML workstation & home server
+│   ├── sweet16/            # Mobile workstation (ThinkPad Z16)
+│   ├── dualie/             # Standalone HM — Debian x86_64
+│   ├── forge/              # Standalone HM — Linux x86_64
+│   └── rk3588/             # Standalone HM — Armbian aarch64
+├── profiles/               # Functional suites (server, workstation, desktop, development)
 └── docs/                   # Deep-dive technical guides
 ```
 
@@ -60,13 +83,11 @@ The **avina** host runs a state-of-the-art, OIDC-native Matrix 2.0 stack. This i
 
 ## 🚀 Getting Started
 ### NixOS Hosts
-To apply the configuration to a NixOS machine:
 ```bash
 nixos-rebuild switch --flake .#sweet16
 ```
 
 ### Standalone Home Manager (Non-NixOS)
-Manage user environments on existing distributions (Debian, macOS) or corporate laptops:
 ```bash
 nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
 ```
@@ -89,13 +110,14 @@ direnv allow
 ---
 
 ## 📚 Technical Documentation
-- [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Detailed specifications for the Matrix 2.0 stack and hybrid ingress.
-- [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and Hybrid GPU management.
-- [**Package Inventory**](./docs/packages.md): Versions and maintenance guide for pinned DevOps tools and hardware drivers (NVIDIA/CUDA).
-- [**Storage Management**](./docs/storage.md): Centralized CephFS mounting and ZFS dataset strategies.
-- [**Terminal & Multiplexing**](./docs/terminal.md): High-performance Kitty/Tmux configuration and Bash aliases.
-- [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix securely on non-NixOS hosts.
-- [**Devenv 2.0 Workflows**](./docs/devenv.md): Modern declarative development environments replacing Docker Compose.
+- [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Specifications for the Matrix 2.0 stack and hybrid ingress architecture.
+- [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and hybrid GPU management.
+- [**CachyOS Kernel**](./docs/cachyos-kernel.md): CachyOS kernel setup, ZFS integration, and BBR3 tuning.
+- [**Package Inventory**](./docs/packages.md): Pinned DevOps tools and hardware driver versions (NVIDIA/CUDA).
+- [**Storage Management**](./docs/storage.md): CephFS mounting and ZFS dataset strategies.
+- [**Terminal & Multiplexing**](./docs/terminal.md): Kitty/Tmux configuration and Bash aliases.
+- [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix on non-NixOS hosts.
+- [**Devenv 2.0 Workflows**](./docs/devenv.md): Declarative development environments replacing Docker Compose.
 
 ---
 Enjoy your reproducible, structured environment.

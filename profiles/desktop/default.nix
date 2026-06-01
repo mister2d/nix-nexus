@@ -1,19 +1,21 @@
-{ ... }:
+_: {
+  flake.modules.nixos.desktop-default =
+    { nixosModules, ... }:
+    {
+      imports = [
+        nixosModules.desktop-greetd
+        nixosModules.desktop-wayland
+        nixosModules.desktop-fonts
+        nixosModules.desktop-theme
+      ];
 
-{
-  imports = [
-    ../../modules/desktop/greetd.nix
-    ../../modules/desktop/wayland.nix
-    ../../modules/desktop/fonts.nix
-    ../../modules/desktop/theme.nix
-  ];
-
-  # Desktop-specific kernel parameters.
-  # quiet/splash provide a clean graphical boot experience on workstations.
-  # mem_sleep_default is NOT set here — hardware profiles set it per-platform
-  # (e.g. s2idle for Rembrandt, deep for Intel). Setting it here would override them.
-  boot.kernelParams = [
-    "quiet"
-    "splash"
-  ];
+      # Desktop-specific kernel parameters.
+      # quiet/splash provide a clean graphical boot experience on workstations.
+      # mem_sleep_default is NOT set here — hardware profiles set it per-platform
+      # (e.g. s2idle for Rembrandt, deep for Intel). Setting it here would override them.
+      boot.kernelParams = [
+        "quiet"
+        "splash"
+      ];
+    };
 }

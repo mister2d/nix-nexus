@@ -1,47 +1,51 @@
-{
-  pkgs,
-  inputs,
-  ...
-}:
+_: {
+  flake.modules.homeManager.forge-home =
+    {
+      pkgs,
+      inputs,
+      homeManagerModules,
+      ...
+    }:
 
-{
-  imports = [
-    ../../modules/user/bash.nix
-    ../../modules/user/neovim-home.nix
-    ../../modules/user/terminal-home.nix
-    ../../modules/user/dev-home.nix
-  ];
+    {
+      imports = [
+        homeManagerModules.user-bash
+        homeManagerModules.user-neovim-home
+        homeManagerModules.user-terminal-home
+        homeManagerModules.user-dev-home
+      ];
 
-  # Home Configuration
-  home = {
-    username = "groot";
-    homeDirectory = "/home/groot";
-    stateVersion = "25.11";
+      # Home Configuration
+      home = {
+        username = "groot";
+        homeDirectory = "/home/groot";
+        stateVersion = "25.11";
 
-    # Basic packages
-    packages = with pkgs; [
-      zstd
-      curl
-      wget
-      htop
-      nvtopPackages.nvidia # For monitoring the Quadro T2000
-    ];
-  };
+        # Basic packages
+        packages = with pkgs; [
+          zstd
+          curl
+          wget
+          htop
+          nvtopPackages.nvidia # For monitoring the Quadro T2000
+        ];
+      };
 
-  # Development Home Profile
-  # Enabled MCP servers and LLM agents because i7-9850H supports AVX2
-  programs.dev-home = {
-    enable = true;
-    enableMcpServers = true;
-    enableLlmAgents = true;
-  };
+      # Development Home Profile
+      # Enabled MCP servers and LLM agents because i7-9850H supports AVX2
+      programs.dev-home = {
+        enable = true;
+        enableMcpServers = true;
+        enableLlmAgents = true;
+      };
 
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+      # Let Home Manager install and manage itself.
+      programs.home-manager.enable = true;
 
-  # Allow unfree packages for the Home Manager profile
-  nixpkgs.config.allowUnfree = true;
+      # Allow unfree packages for the Home Manager profile
+      nixpkgs.config.allowUnfree = true;
 
-  # Add Model Control Protocol (MCP) server packages via overlay
-  nixpkgs.overlays = [ inputs.mcp-servers-nix.overlays.default ];
+      # Add Model Control Protocol (MCP) server packages via overlay
+      nixpkgs.overlays = [ inputs.mcp-servers-nix.overlays.default ];
+    };
 }

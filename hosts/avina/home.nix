@@ -1,9 +1,12 @@
-{ ... }:
-{
-  imports = [
-    ../../modules/user/bash.nix
-    ../../modules/user/neovim-home.nix
-  ];
+_: {
+  flake.modules.homeManager.avina-home =
+    { homeManagerModules, ... }:
+    {
+      imports = [
+        homeManagerModules.user-bash
+        homeManagerModules.user-neovim-home
+      ];
 
-  home.stateVersion = "25.11";
+      home.stateVersion = "25.11";
+    };
 }

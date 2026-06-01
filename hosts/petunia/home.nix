@@ -1,22 +1,21 @@
-{ ... }:
+_: {
+  flake.modules.homeManager.petunia-home =
+    { homeManagerModules, ... }:
 
-{
-  imports = [
-    ../../modules/user/home.nix
-    ../../modules/user/dev-home.nix
-    ../../modules/user/terminal-home.nix
-    ../../modules/user/neovim-home.nix
-    ../../modules/user/television-home.nix
+    {
+      imports = [
+        homeManagerModules.user-home
 
-    # Desktop Environments & Customization
-    ../../modules/desktop/sway-home.nix
-    ../../modules/desktop/waybar-home.nix
-    ../../modules/desktop/notifications.nix
-  ];
+        # Desktop Environments & Customization
+        homeManagerModules.desktop-sway-home
+        homeManagerModules.desktop-waybar-home
+        homeManagerModules.desktop-notifications
+      ];
 
-  # Resource Monitor (amdgpu_top provides detailed AMD metrics; btop for process view)
-  programs.btop.enable = true;
+      # Resource Monitor (amdgpu_top provides detailed AMD metrics; btop for process view)
+      programs.btop.enable = true;
 
-  # Petunia specific home-manager settings
-  # (e.g., custom monitor layouts in kanshi)
+      # Petunia specific home-manager settings
+      # (e.g., custom monitor layouts in kanshi)
+    };
 }
