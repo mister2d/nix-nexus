@@ -50,6 +50,16 @@
 - pre-commit: green
 - signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
 
+### groot@dualie — PASS (Phase 3)
+- baseline .drv: /nix/store/64kk73cnybv63zmsva328zj51llhb4v7-home-manager-generation.drv
+- candidate .drv: /nix/store/64kk73cnybv63zmsva328zj51llhb4v7-home-manager-generation.drv
+- closure diff: identical
+- justification: n/a — homeManagerConfiguration moved to hm-groot-dualie.nix flake module
+- pkgs-* pins: unchanged
+- nix flake check: deferred to full check below
+- pre-commit: green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
 ## Phase 3 — Host Collapse Sign-offs
 
 ### petunia — PASS (Phase 3)
