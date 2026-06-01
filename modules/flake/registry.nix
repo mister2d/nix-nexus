@@ -12,6 +12,15 @@ _: {
     petunia-default = import ../../hosts/petunia/default.nix;
     server-default = import ../../profiles/server/default.nix;
     services-matrix-default = import ../../modules/services/matrix/default.nix;
+    services-matrix-versions = import ../../modules/services/matrix/versions.nix;
+    services-matrix-synapse = import ../../modules/services/matrix/synapse.nix;
+    services-matrix-database = import ../../modules/services/matrix/database.nix;
+    services-matrix-mas = import ../../modules/services/matrix/mas.nix;
+    services-matrix-livekit = import ../../modules/services/matrix/livekit.nix;
+    services-matrix-element = import ../../modules/services/matrix/element.nix;
+    services-matrix-element-call = import ../../modules/services/matrix/element-call.nix;
+    services-matrix-haproxy = import ../../modules/services/matrix/haproxy.nix;
+    services-matrix-vault-secrets = import ../../modules/services/matrix/vault-secrets.nix;
     programs-common = import ../../modules/programs/common.nix;
     programs-dev = import ../../modules/programs/dev.nix;
     programs-scripts = import ../../modules/programs/scripts.nix;
