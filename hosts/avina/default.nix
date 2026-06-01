@@ -1,6 +1,7 @@
 {
   pkgs,
   modulesPath,
+  nixosModules,
   ...
 }:
 let
@@ -30,8 +31,8 @@ in
     # (which is why services.resolved works here but fails when isContainer is set manually).
     (modulesPath + "/virtualisation/proxmox-lxc.nix")
 
-    ../../profiles/server # Base: security, sysctl, users — no ZFS, no boot, no NM
-    ../../modules/services/matrix # Matrix 2.0 communications suite
+    nixosModules.server-default # Base: security, sysctl, users — no ZFS, no boot, no NM
+    nixosModules.services-matrix-default # Matrix 2.0 communications suite
   ];
 
   # Container Policy:

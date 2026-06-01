@@ -145,60 +145,6 @@ in
         ];
       };
 
-      # Hostname: avina (Proxmox LXC container — Matrix 2.0 public server)
-      avina = inputs.nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          inherit (inputs) self;
-          nixosModules = nixos;
-        };
-        modules = [
-          (_: {
-            nixpkgs.overlays = [ overlays.buildFixes ];
-            nixpkgs.config.allowUnfree = true;
-          })
-          nixos.avina-default
-          (
-            { pkgs, ... }:
-            {
-              nixpkgs.overlays = [
-                (_final: _prev: {
-                  inherit (inputs.pkgs-stable.legacyPackages.${pkgs.stdenv.hostPlatform.system})
-                    matrix-synapse-unwrapped
-                    matrix-authentication-service
-                    livekit
-                    lk-jwt-service
-                    element-web
-                    element-call
-                    postgresql_16
-                    ;
-                })
-              ];
-            }
-          )
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              backupFileExtension = "bak";
-              extraSpecialArgs = {
-                inherit (inputs) self;
-                inherit inputs;
-                homeManagerModules = hm;
-              };
-              users.ddukes = {
-                imports = [
-                  nixvim.homeModules.nixvim
-                  hm.avina-home
-                ];
-              };
-            };
-          }
-        ];
-      };
-
       # Hostname: hermes (Proxmox LXC container — Hermes AI Agent)
       hermes = inputs.nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

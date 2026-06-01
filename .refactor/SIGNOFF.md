@@ -52,6 +52,16 @@
 
 ## Phase 3 — Host Collapse Sign-offs
 
+### avina — PASS (Phase 3)
+- baseline .drv: /nix/store/85mq1za6ziknh8rb4mpmjqkr3is5m4wf-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
+- candidate .drv: /nix/store/85mq1za6ziknh8rb4mpmjqkr3is5m4wf-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
+- closure diff: identical
+- justification: n/a — pkgs-stable overlay extracted to nixos.matrix-pin-stable, HM wiring to nixos.hm-ddukes-avina; overlay body unchanged
+- pkgs-* pins: unchanged
+- nix flake check: green
+- pre-commit: green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
 ### openclaw — PASS (Phase 3)
 - baseline .drv: /nix/store/lz9w213f8p70kc3z9wvfhc47jb7izimm-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
 - candidate .drv: /nix/store/lz9w213f8p70kc3z9wvfhc47jb7izimm-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv

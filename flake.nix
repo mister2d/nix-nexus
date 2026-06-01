@@ -110,6 +110,7 @@
         ./modules/flake/overlays.nix
         ./modules/flake/hosts.nix
         ./modules/flake/nixos-openclaw.nix
+        ./modules/flake/nixos-avina.nix
         ./modules/flake/registry.nix
       ];
     });

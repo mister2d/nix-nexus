@@ -27,6 +27,8 @@ _: {
     programs-dev = import ../../modules/programs/dev.nix;
     programs-scripts = import ../../modules/programs/scripts.nix;
     hm-groot-openclaw = import ../../hosts/openclaw/groot-hm.nix;
+    matrix-pin-stable = import ../../hosts/avina/matrix-pin-stable.nix;
+    hm-ddukes-avina = import ../../hosts/avina/ddukes-hm.nix;
   };
   flake.modules.homeManager = {
     dualie-home = import ../../hosts/dualie/home.nix;

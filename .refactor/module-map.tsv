@@ -65,7 +65,9 @@ profiles/hardware/z16.nix	nixos.hardware-z16
 profiles/server/default.nix	nixos.server-default
 profiles/workstation/default.nix	nixos.workstation-default
 hosts/avina/default.nix	nixos.avina-default
+hosts/avina/ddukes-hm.nix	nixos.hm-ddukes-avina
 hosts/avina/home.nix	homeManager.avina-home
+hosts/avina/matrix-pin-stable.nix	nixos.matrix-pin-stable
 hosts/dualie/home.nix	homeManager.dualie-home
 hosts/forge/home.nix	homeManager.forge-home
 hosts/hermes/default.nix	nixos.hermes-default
