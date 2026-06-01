@@ -11,13 +11,13 @@
     ./hardware-configuration.nix
 
     # Machine-specific profiles (Quirks & Hardware)
-    ../../profiles/hardware/z16.nix
+    nixosModules.hardware-z16
 
     # CachyOS Optimized Kernel
     nixosModules.hardware-kernel-cachyos
 
     # Core System Profile (Every machine gets this)
-    ../../profiles/workstation
+    nixosModules.workstation-default
 
     # Ceph Integration
     nixosModules.core-ceph
@@ -26,8 +26,8 @@
     nixosModules.core-printing
 
     # Functional Profiles (Suites)
-    ../../profiles/desktop
-    ../../profiles/development
+    nixosModules.desktop-default
+    nixosModules.development-default
 
     # Compositors & Desktop Environments
     nixosModules.desktop-sway

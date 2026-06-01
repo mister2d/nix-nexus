@@ -32,6 +32,7 @@ _: {
     hermes-mcp-overlay = import ../../hosts/hermes/mcp-overlay.nix;
     llm-agents-hermes = import ../../hosts/hermes/llm-agents-overlay.nix;
     hm-groot-hermes = import ../../hosts/hermes/groot-hm.nix;
+    hm-ddukes-sweet16 = import ../../hosts/sweet16/ddukes-hm.nix;
   };
   flake.modules.homeManager = {
     dualie-home = import ../../hosts/dualie/home.nix;

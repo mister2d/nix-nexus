@@ -83,4 +83,5 @@ hosts/petunia/default.nix	nixos.petunia-default
 hosts/petunia/home.nix	homeManager.petunia-home
 hosts/rk3588/home.nix	homeManager.rk3588-home
 hosts/sweet16/default.nix	nixos.sweet16-default
+hosts/sweet16/ddukes-hm.nix	nixos.hm-ddukes-sweet16
 hosts/sweet16/home.nix	homeManager.sweet16-home

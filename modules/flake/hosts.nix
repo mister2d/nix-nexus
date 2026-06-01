@@ -63,46 +63,6 @@ in
     };
 
     nixosConfigurations = {
-      # Hostname: sweet16
-      sweet16 = inputs.nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          inherit (inputs) self;
-          nixosModules = nixos;
-        };
-        modules = [
-          (_: {
-            nixpkgs.overlays = [ overlays.buildFixes ];
-            nixpkgs.config.allowUnfree = true;
-          })
-          nixos-hardware.nixosModules.lenovo-thinkpad-z
-          nixos-hardware.nixosModules.common-cpu-amd
-          nixos-hardware.nixosModules.common-gpu-amd
-          nixos-hardware.nixosModules.common-pc-ssd
-          nixos.sweet16-default
-          home-manager.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              backupFileExtension = "bak";
-              extraSpecialArgs = {
-                inherit (inputs) self;
-                inherit inputs;
-                homeManagerModules = hm;
-              };
-              users.ddukes = {
-                imports = [
-                  nixvim.homeModules.nixvim
-                  hm.sweet16-home
-                ];
-              };
-            };
-          }
-        ];
-      };
-
       # Hostname: petunia
       petunia = inputs.nixpkgs-unstable.lib.nixosSystem {
         system = "x86_64-linux";

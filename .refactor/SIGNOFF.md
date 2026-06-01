@@ -52,6 +52,16 @@
 
 ## Phase 3 — Host Collapse Sign-offs
 
+### sweet16 — PASS (Phase 3)
+- baseline .drv: /nix/store/0yz0ja7wsz11fsn19mckzzzwq88z5qrq-nixos-system-sweet16-25.11.20260522.b77b3de.drv
+- candidate .drv: /nix/store/0yz0ja7wsz11fsn19mckzzzwq88z5qrq-nixos-system-sweet16-25.11.20260522.b77b3de.drv
+- closure diff: identical
+- justification: n/a — path imports replaced with nixosModules refs; ddukes HM extracted to nixos.hm-ddukes-sweet16
+- pkgs-* pins: unchanged
+- nix flake check: green
+- pre-commit: green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
 ### hermes — PASS (Phase 3)
 - baseline .drv: /nix/store/jqvr9z26dw5bpxlvykxngnlnl6bhjpar-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
 - candidate .drv: /nix/store/jqvr9z26dw5bpxlvykxngnlnl6bhjpar-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
