@@ -62,10 +62,11 @@ _: {
           };
         };
 
-        # FIX: Provide the missing Matrix crypto native binary.
-        # We create a writable tmpfs directory, populate it with both the original
-        # loader files and the missing platform-specific binary, and then bind-mount
-        # it over the read-only Nix store path so Node.js find everything in one place.
+        # Matrix Crypto Native Binary:
+        # OpenClaw's @matrix-org/matrix-sdk-crypto-nodejs ships without the
+        # linux-x64-gnu platform binary. A writable tmpfs is populated with the
+        # original loader files plus the fetched binary, then bind-mounted over the
+        # read-only Nix store path so Node.js resolves everything in one place.
         tmpfiles.rules = [
           "d /run/openclaw-crypto 0755 root root -"
           "d /run/openclaw-crypto/matrix-sdk-crypto-nodejs 0755 root root -"
@@ -103,9 +104,9 @@ _: {
           };
         };
 
-        # FIX: Workaround for OpenClaw's requirement to write into its own node_modules
-        # for the Matrix crypto binary download. We bind-mount a writable directory
-        # from /run over the read-only Nix store path.
+        # Writable bind-mount for Matrix Crypto:
+        # OpenClaw attempts to write into its own node_modules at runtime; the Nix
+        # store path is read-only, so a writable /run directory is bind-mounted over it.
         mounts = [
           {
             description = "Writable bind-mount for OpenClaw Matrix Crypto";

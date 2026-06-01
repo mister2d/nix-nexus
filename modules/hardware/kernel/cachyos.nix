@@ -188,9 +188,9 @@ _: {
         })
 
         # -------------------------------------------------------------------------
-        # Binary cache substituters.
-        # These are outside the mkIf cfg.enable block to allow "Phase 1" deployment:
-        # Adding the cache settings to the system before enabling the kernel itself.
+        # Binary cache substituters (unconditional).
+        # Outside the mkIf block so the caches are configured before the kernel is
+        # enabled — first nixos-rebuild always hits the cache regardless of enable state.
         # -------------------------------------------------------------------------
         {
           nix.settings = {

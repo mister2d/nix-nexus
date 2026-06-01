@@ -25,7 +25,7 @@ _: {
     #   3. Injects NODE_PATH for the missing Matrix crypto native binary (NixOS compat fix)
     xdg.configFile."systemd/user/openclaw-gateway.service.d/overrides.conf".text = ''
       [Service]
-      # FIX: Inject the missing Matrix crypto native binary via NODE_PATH.
+      # Expose the writable crypto module path to Node.js.
       Environment="NODE_PATH=/run/openclaw/node_modules"
 
       # Extend start timeout to outlast vault-agent-init rendering time.

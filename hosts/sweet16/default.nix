@@ -55,7 +55,7 @@ _: {
       # Prevent NVMe from entering ps 4 (9500µs exit latency); caps at ps 3 (1200µs) for ZFS
       boot.kernelParams = [ "nvme_core.default_ps_max_latency_us=9000" ];
 
-      # CachyOS Kernel Configuration (Phase 2: Kernel Enabled)
+      # CachyOS Kernel Configuration
       hardware.cachyosKernel = {
         enable = true;
         processorOpt = "x86_64-v3"; # Ryzen 6000 "Rembrandt" (Zen 3+)

@@ -8,10 +8,10 @@ _: {
     }:
     let
       # Client Configuration:
-      # Minimal config — homeserver autodiscovery only. LiveKit JWT URL is NOT set
-      # here: config.json livekit.livekit_service_url is officially debug/dev only
-      # per element-call upstream docs, and the correct production path is
-      # well-known org.matrix.msc4143.rtc_foci (already served by haproxy.nix).
+      # Minimal config — homeserver autodiscovery only. livekit_service_url is
+      # intentionally absent: upstream classifies it as a local-dev override; the
+      # production discovery path is /.well-known org.matrix.msc4143.rtc_foci,
+      # served statically by haproxy.nix.
       elementCallConfig = pkgs.writeText "element-call-config.json" (
         builtins.toJSON {
           default_server_config = {

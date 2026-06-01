@@ -27,8 +27,7 @@ _: {
         homeDirectory = "/mnt/ironhide/home/groot";
         stateVersion = "25.11"; # Matching codebase standard for 2026
 
-        # Basic packages derived from debug/dualie_home_profile.nix
-        # Other tools (git, htop, etc.) are already included in the imported modules.
+        # Other tools (git, htop, etc.) are included via imported modules.
         packages = with pkgs; [
           zstd
           curl
