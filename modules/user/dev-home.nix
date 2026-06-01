@@ -92,9 +92,9 @@ _: {
         }).kubectl-rook-ceph;
 
       # Project-level CUDA environment generator
-      inherit ((import ../programs/custom-scripts.nix { inherit pkgs; })) llm-init;
+      inherit ((import ../../lib/custom-scripts.nix { inherit pkgs; })) llm-init;
 
-      openclaude-pkg = import ../programs/openclaude.nix { inherit pkgs lib; };
+      openclaude-pkg = import ../../lib/openclaude.nix { inherit pkgs lib; };
 
       # Model Control Protocol (MCP) servers
       mcpPackages =

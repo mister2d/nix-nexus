@@ -1,47 +1,50 @@
-{
-  pkgs,
-  homeManagerModules,
-  ...
-}:
+_: {
+  flake.modules.homeManager.rk3588-home =
+    {
+      pkgs,
+      homeManagerModules,
+      ...
+    }:
 
-{
-  imports = [
-    homeManagerModules.user-bash
-    homeManagerModules.user-neovim-home
-    homeManagerModules.user-terminal-home
-    homeManagerModules.user-dev-home
-  ];
+    {
+      imports = [
+        homeManagerModules.user-bash
+        homeManagerModules.user-neovim-home
+        homeManagerModules.user-terminal-home
+        homeManagerModules.user-dev-home
+      ];
 
-  # Home Configuration
-  home = {
-    username = "groot";
-    # Standard Armbian home path for SBC fleet
-    homeDirectory = "/home/groot";
-    stateVersion = "25.11"; # Matching codebase standard for 2026
+      # Home Configuration
+      home = {
+        username = "groot";
+        # Standard Armbian home path for SBC fleet
+        homeDirectory = "/home/groot";
+        stateVersion = "25.11"; # Matching codebase standard for 2026
 
-    # Basic packages derived from debug/rk3588.md
-    # Other tools (git, htop, etc.) are already included in the imported modules.
-    packages = with pkgs; [
-      zstd
-      curl
-      wget
-      htop
-      tmux
-    ];
-  };
+        # Basic packages derived from debug/rk3588.md
+        # Other tools (git, htop, etc.) are already included in the imported modules.
+        packages = with pkgs; [
+          zstd
+          curl
+          wget
+          htop
+          tmux
+        ];
+      };
 
-  # Development Home Profile
-  # Disabled AI/Compute modules for ARM64 SBC RAM/CPU constraints.
-  # These often require modern x86_64 CPU instructions or heavy resources.
-  programs.dev-home = {
-    enable = true;
-    enableMcpServers = false;
-    enableLlmAgents = false;
-  };
+      # Development Home Profile
+      # Disabled AI/Compute modules for ARM64 SBC RAM/CPU constraints.
+      # These often require modern x86_64 CPU instructions or heavy resources.
+      programs.dev-home = {
+        enable = true;
+        enableMcpServers = false;
+        enableLlmAgents = false;
+      };
 
-  # Let Home Manager install and manage itself.
-  programs.home-manager.enable = true;
+      # Let Home Manager install and manage itself.
+      programs.home-manager.enable = true;
 
-  # Allow unfree packages for the Home Manager profile
-  nixpkgs.config.allowUnfree = true;
+      # Allow unfree packages for the Home Manager profile
+      nixpkgs.config.allowUnfree = true;
+    };
 }

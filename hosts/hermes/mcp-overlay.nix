@@ -1,4 +1,7 @@
-{ inputs, ... }:
-{
-  nixpkgs.overlays = [ inputs.self.overlays.mcp ];
+_: {
+  flake.modules.nixos.hermes-mcp-overlay =
+    { inputs, ... }:
+    {
+      nixpkgs.overlays = [ inputs.self.overlays.mcp ];
+    };
 }

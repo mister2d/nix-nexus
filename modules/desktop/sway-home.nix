@@ -325,7 +325,7 @@ _: {
             }
             {
               command = "${
-                (import ../programs/custom-scripts.nix { inherit pkgs; }).battery-alert
+                (import ../../lib/custom-scripts.nix { inherit pkgs; }).battery-alert
               }/bin/battery-alert > /dev/null 2>&1";
               always = false;
             }

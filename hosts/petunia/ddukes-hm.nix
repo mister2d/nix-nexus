@@ -1,16 +1,19 @@
-{ inputs, homeManagerModules, ... }:
-{
-  home-manager = {
-    useGlobalPkgs = true;
-    useUserPackages = true;
-    backupFileExtension = "bak";
-    extraSpecialArgs = {
-      inherit (inputs) self;
-      inherit inputs homeManagerModules;
+_: {
+  flake.modules.nixos.hm-ddukes-petunia =
+    { inputs, homeManagerModules, ... }:
+    {
+      home-manager = {
+        useGlobalPkgs = true;
+        useUserPackages = true;
+        backupFileExtension = "bak";
+        extraSpecialArgs = {
+          inherit (inputs) self;
+          inherit inputs homeManagerModules;
+        };
+        users.ddukes.imports = [
+          inputs.nixvim.homeModules.nixvim
+          homeManagerModules.petunia-home
+        ];
+      };
     };
-    users.ddukes.imports = [
-      inputs.nixvim.homeModules.nixvim
-      homeManagerModules.petunia-home
-    ];
-  };
 }

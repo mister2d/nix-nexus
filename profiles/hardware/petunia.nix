@@ -1,7 +1,9 @@
-{ nixosModules, ... }:
-
-{
-  imports = [
-    nixosModules.hardware-petunia-default
-  ];
+_: {
+  flake.modules.nixos.hardware-petunia =
+    { nixosModules, ... }:
+    {
+      imports = [
+        nixosModules.hardware-petunia-default
+      ];
+    };
 }

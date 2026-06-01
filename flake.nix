@@ -100,23 +100,9 @@
     inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } (_: {
       imports = [
-        ./modules/flake/module-types.nix
-        (inputs.import-tree ./modules/core)
-        (inputs.import-tree ./modules/hardware)
-        (inputs.import-tree ./modules/desktop)
-        (inputs.import-tree ./modules/user)
-        ./modules/flake/systems.nix
-        ./modules/flake/checks.nix
-        ./modules/flake/overlays.nix
-        ./modules/flake/nixos-openclaw.nix
-        ./modules/flake/nixos-avina.nix
-        ./modules/flake/nixos-hermes.nix
-        ./modules/flake/nixos-sweet16.nix
-        ./modules/flake/nixos-petunia.nix
-        ./modules/flake/hm-groot-dualie.nix
-        ./modules/flake/hm-groot-rk3588.nix
-        ./modules/flake/hm-groot-forge.nix
-        ./modules/flake/registry.nix
+        (inputs.import-tree ./modules)
+        (inputs.import-tree ./hosts)
+        (inputs.import-tree ./profiles)
       ];
     });
 }

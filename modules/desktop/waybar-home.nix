@@ -8,7 +8,7 @@ _: {
     }:
 
     let
-      scripts = import ../programs/custom-scripts.nix { inherit pkgs; };
+      scripts = import ../../lib/custom-scripts.nix { inherit pkgs; };
     in
     {
       programs.waybar = lib.mkIf config.wayland.windowManager.sway.enable {

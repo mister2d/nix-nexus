@@ -2,32 +2,35 @@
 # Tailored for 'petunia' with ZFS on Samsung 990 EVO Plus.
 # Filesystems and swap are now managed declaratively via 'disko.nix'.
 
-{
-  lib,
-  pkgs,
-  modulesPath,
-  ...
-}:
+_: {
+  flake.modules.nixos.petunia-hardware =
+    {
+      lib,
+      pkgs,
+      modulesPath,
+      ...
+    }:
 
-{
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+    {
+      imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  # Boot Loader and Kernel Configuration
-  boot = {
-    loader = {
-      systemd-boot.enable = true;
-      efi.canTouchEfiVariables = true;
+      # Boot Loader and Kernel Configuration
+      boot = {
+        loader = {
+          systemd-boot.enable = true;
+          efi.canTouchEfiVariables = true;
+        };
+
+        # Pin to 6.12 (LTS) for ZFS stability as per GEMINI.md requirements
+        kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
+
+        # Kernel Modules (from hardware scan + X570 specifics)
+        # Early amdgpu KMS is handled by hardware.amdgpu.initrd.enable in rdna4-base.
+      };
+
+      # Networking
+      networking.useDHCP = lib.mkDefault true;
+
+      nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
     };
-
-    # Pin to 6.12 (LTS) for ZFS stability as per GEMINI.md requirements
-    kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
-
-    # Kernel Modules (from hardware scan + X570 specifics)
-    # Early amdgpu KMS is handled by hardware.amdgpu.initrd.enable in rdna4-base.
-  };
-
-  # Networking
-  networking.useDHCP = lib.mkDefault true;
-
-  nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

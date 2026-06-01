@@ -131,3 +131,35 @@
 - nix flake check: green
 - pre-commit: green
 - signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
+## Phase 4 — Gate A Completion (Full Dendritic Wiring)
+
+### Summary
+
+All 50+ `.nix` files in `modules/`, `hosts/`, and `profiles/` are now proper
+flake-parts module fragments (`_: { flake.modules.nixos.<name> = inner; }`).
+
+Changes:
+- Converted remaining matrix service modules: synapse, element, haproxy, vault-secrets
+- Converted all avina host files (4), hermes host files (5), sweet16 host files (4)
+- Converted all petunia host files (5), plus wrapped hardware-configuration.nix and disko.nix
+- Converted standalone HM homes: dualie, rk3588, forge
+- Moved non-module helpers to lib/: custom-scripts.nix, openclaude.nix, openclaude-lock.json
+- Moved pure data attrset to lib/avina/site-config.nix
+- Deleted modules/flake/registry.nix (transitional shim no longer needed)
+- Simplified flake.nix outputs to canonical 3-root import-tree form:
+  (import-tree ./modules) + (import-tree ./hosts) + (import-tree ./profiles)
+
+### Gate B — All 5 hosts PASS (post-Gate-A)
+
+| Host | Baseline drv | Candidate drv | Result |
+|------|-------------|--------------|--------|
+| sweet16 | 0yz0ja7w... | 0yz0ja7w... | PASS |
+| avina | 85mq1za6... | 85mq1za6... | PASS |
+| hermes | jqvr9z26... | jqvr9z26... | PASS |
+| openclaw | lz9w213f... | lz9w213f... | PASS |
+| petunia | y6k7zzwy... | y6k7zzwy... | PASS |
+
+- nix flake check: green (all 5 nixosConfigurations checked)
+- pre-commit (deadnix + nixfmt + statix): green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
