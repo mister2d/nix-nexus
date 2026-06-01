@@ -21,6 +21,7 @@ _: {
     services-matrix-element-call = import ../../modules/services/matrix/element-call.nix;
     services-matrix-haproxy = import ../../modules/services/matrix/haproxy.nix;
     services-matrix-vault-secrets = import ../../modules/services/matrix/vault-secrets.nix;
+    services-matrix-whatsapp = import ../../modules/services/matrix/whatsapp.nix;
     programs-common = import ../../modules/programs/common.nix;
     programs-dev = import ../../modules/programs/dev.nix;
     programs-scripts = import ../../modules/programs/scripts.nix;
