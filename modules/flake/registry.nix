@@ -2,7 +2,6 @@ _: {
   flake.modules.nixos = {
     hardware-z16 = import ../../profiles/hardware/z16.nix;
     hardware-petunia = import ../../profiles/hardware/petunia.nix;
-    hardware-kernel-cachyos = import ../../modules/hardware/kernel/cachyos.nix;
     workstation-default = import ../../profiles/workstation/default.nix;
     desktop-default = import ../../profiles/desktop/default.nix;
     development-default = import ../../profiles/development/default.nix;

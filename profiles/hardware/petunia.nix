@@ -1,7 +1,7 @@
-{ ... }:
+{ nixosModules, ... }:
 
 {
   imports = [
-    ../../modules/hardware/petunia/default.nix
+    nixosModules.hardware-petunia-default
   ];
 }

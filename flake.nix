@@ -102,6 +102,7 @@
       imports = [
         ./modules/flake/module-types.nix
         (inputs.import-tree ./modules/core)
+        (inputs.import-tree ./modules/hardware)
         ./modules/flake/systems.nix
         ./modules/flake/checks.nix
         ./modules/flake/overlays.nix

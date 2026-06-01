@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, homeManagerModules, ... }:
 
 {
   # ThinkPad Z16 (sweet16) Host-Specific Home Manager Profile
@@ -6,8 +6,8 @@
   # for the OLED display, haptic touchpad, and docking behavior.
   imports = [
     ../../modules/user/home.nix
-    ../../modules/hardware/thinkpad-z16/kanshi-home.nix
-    ../../modules/hardware/thinkpad-z16/sway-hardware-home.nix
+    homeManagerModules.hardware-z16-kanshi-home
+    homeManagerModules.hardware-z16-sway-home
 
     # Desktop Environments & Customization
     ../../modules/desktop/sway-home.nix

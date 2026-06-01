@@ -1,10 +1,10 @@
-{ ... }:
+{ nixosModules, ... }:
 
 {
   imports = [
-    ../../modules/hardware/thinkpad-z16/amd-gpu.nix
-    ../../modules/hardware/thinkpad-z16/bluetooth.nix
-    ../../modules/hardware/thinkpad-z16/sound.nix
-    ../../modules/hardware/thinkpad-z16/default.nix
+    nixosModules.hardware-z16-amd-gpu
+    nixosModules.hardware-z16-bluetooth
+    nixosModules.hardware-z16-sound
+    nixosModules.hardware-z16-default
   ];
 }
