@@ -108,7 +108,6 @@
         ./modules/flake/systems.nix
         ./modules/flake/checks.nix
         ./modules/flake/overlays.nix
-        ./modules/flake/hosts.nix
         ./modules/flake/nixos-openclaw.nix
         ./modules/flake/nixos-avina.nix
         ./modules/flake/nixos-hermes.nix
@@ -116,6 +115,7 @@
         ./modules/flake/nixos-petunia.nix
         ./modules/flake/hm-groot-dualie.nix
         ./modules/flake/hm-groot-rk3588.nix
+        ./modules/flake/hm-groot-forge.nix
         ./modules/flake/registry.nix
       ];
     });

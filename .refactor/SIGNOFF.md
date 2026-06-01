@@ -50,6 +50,16 @@
 - pre-commit: green
 - signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
 
+### groot@forge — PASS (Phase 3)
+- baseline .drv: /nix/store/fd81lbj2ygllpc9jp03nickkvx0mqm9s-home-manager-generation.drv
+- candidate .drv: /nix/store/fd81lbj2ygllpc9jp03nickkvx0mqm9s-home-manager-generation.drv
+- closure diff: identical
+- justification: n/a — homeManagerConfiguration moved to hm-groot-forge.nix; hosts.nix deleted (last entry removed)
+- pkgs-* pins: unchanged
+- nix flake check: green
+- pre-commit: green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
 ### groot@rk3588 — BLOCKED (Phase 3, arch-deferred)
 - baseline .drv: EVAL-FAIL (aarch64-linux, cannot evaluate on x86_64-linux builder)
 - candidate .drv: EVAL-FAIL (same arch constraint)
