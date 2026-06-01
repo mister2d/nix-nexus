@@ -98,12 +98,13 @@
 
   outputs =
     inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } (
-      { ... }:
-      {
-        imports = [
-          (inputs.import-tree ./modules/flake)
-        ];
-      }
-    );
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } (_: {
+      imports = [
+        ./modules/flake/systems.nix
+        ./modules/flake/checks.nix
+        ./modules/flake/overlays.nix
+        ./modules/flake/hosts.nix
+        ./modules/flake/registry.nix
+      ];
+    });
 }

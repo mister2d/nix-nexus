@@ -1,4 +1,8 @@
-{ inputs, ... }:
+{
+  inputs,
+  config,
+  ...
+}:
 let
   inherit (inputs.nixpkgs) lib;
   inherit (inputs)
@@ -6,8 +10,9 @@ let
     nixvim
     nixos-hardware
     ;
-  # Reference our own overlays via inputs.self
   inherit (inputs.self) overlays;
+  inherit (config.flake.modules) nixos;
+  hm = config.flake.modules.homeManager;
 in
 {
   flake = {
@@ -18,7 +23,7 @@ in
         pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
         modules = [
           nixvim.homeModules.nixvim
-          ../../hosts/dualie/home.nix
+          hm.dualie-home
         ];
         extraSpecialArgs = {
           inherit (inputs) self;
@@ -32,7 +37,7 @@ in
         pkgs = inputs.nixpkgs.legacyPackages."aarch64-linux";
         modules = [
           nixvim.homeModules.nixvim
-          ../../hosts/rk3588/home.nix
+          hm.rk3588-home
         ];
         extraSpecialArgs = {
           inherit (inputs) self;
@@ -46,7 +51,7 @@ in
         pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
         modules = [
           nixvim.homeModules.nixvim
-          ../../hosts/forge/home.nix
+          hm.forge-home
         ];
         extraSpecialArgs = {
           inherit (inputs) self;
@@ -64,22 +69,15 @@ in
           inherit (inputs) self;
         };
         modules = [
-          # Global build fixes
           (_: {
             nixpkgs.overlays = [ overlays.buildFixes ];
             nixpkgs.config.allowUnfree = true;
           })
-
-          # Hardware specific configuration
           nixos-hardware.nixosModules.lenovo-thinkpad-z
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           nixos-hardware.nixosModules.common-pc-ssd
-
-          # Main configuration entry point
-          ../../hosts/sweet16/default.nix
-
-          # Home Manager configuration
+          nixos.sweet16-default
           home-manager.nixosModules.home-manager
           {
             home-manager = {
@@ -93,7 +91,7 @@ in
               users.ddukes = {
                 imports = [
                   nixvim.homeModules.nixvim
-                  ../../hosts/sweet16/home.nix
+                  hm.sweet16-home
                 ];
               };
             };
@@ -109,27 +107,16 @@ in
           inherit (inputs) self;
         };
         modules = [
-          # Global build fixes
           (_: {
             nixpkgs.overlays = [ overlays.buildFixes ];
             nixpkgs.config.allowUnfree = true;
           })
-
-          # Disko declarative partitioning
           inputs.disko.nixosModules.disko
-
-          # Hardware specific configuration
           nixos-hardware.nixosModules.common-cpu-amd
           nixos-hardware.nixosModules.common-gpu-amd
           nixos-hardware.nixosModules.common-pc-ssd
-
-          # RDNA4 GPU stack (Vulkan + ROCm 7.x + LACT + llama.cpp build env)
           inputs.rdna4-stack.nixosModules.rdna4-full
-
-          # Main configuration entry point
-          ../../hosts/petunia/default.nix
-
-          # Home Manager configuration (tracks nixpkgs-unstable to match host channel)
+          nixos.petunia-default
           inputs.home-manager-unstable.nixosModules.home-manager
           {
             home-manager = {
@@ -143,7 +130,7 @@ in
               users.ddukes = {
                 imports = [
                   nixvim.homeModules.nixvim
-                  ../../hosts/petunia/home.nix
+                  hm.petunia-home
                 ];
               };
             };
@@ -152,7 +139,6 @@ in
       };
 
       # Hostname: avina (Proxmox LXC container — Matrix 2.0 public server)
-      # Deploy: nixos-rebuild switch --flake .#avina (run inside the container)
       avina = inputs.nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";
         specialArgs = {
@@ -160,18 +146,11 @@ in
           inherit (inputs) self;
         };
         modules = [
-          # Global build fixes
           (_: {
             nixpkgs.overlays = [ overlays.buildFixes ];
             nixpkgs.config.allowUnfree = true;
           })
-
-          # Main configuration entry point
-          ../../hosts/avina/default.nix
-
-          # Stability Policy:
-          # Pin the Matrix 2.0 stack to the current stable release cycle (25.11)
-          # to ensure long-term reliability and spec compatibility.
+          nixos.avina-default
           (
             { pkgs, ... }:
             {
@@ -190,8 +169,6 @@ in
               ];
             }
           )
-
-          # Home Manager configuration
           home-manager.nixosModules.home-manager
           {
             home-manager = {
@@ -205,7 +182,7 @@ in
               users.ddukes = {
                 imports = [
                   nixvim.homeModules.nixvim
-                  ../../hosts/avina/home.nix
+                  hm.avina-home
                 ];
               };
             };
@@ -221,16 +198,11 @@ in
           inherit (inputs) self;
         };
         modules = [
-          # Global build fixes
           (_: {
             nixpkgs.overlays = [ overlays.buildFixes ];
             nixpkgs.config.allowUnfree = true;
           })
-
-          # Main configuration entry point
-          ../../hosts/openclaw/default.nix
-
-          # Home Manager configuration for groot
+          nixos.openclaw-default
           home-manager.nixosModules.home-manager
           (
             { pkgs, ... }:
@@ -256,10 +228,10 @@ in
                   ];
                   imports = [
                     inputs.nixvim.homeModules.nixvim
-                    ../../modules/user/bash.nix
-                    ../../modules/user/terminal-home.nix
-                    ../../modules/user/neovim-home.nix
-                    ../../hosts/openclaw/home.nix
+                    hm.user-bash
+                    hm.user-terminal-home
+                    hm.user-neovim-home
+                    hm.openclaw-home
                   ];
                 };
               };
@@ -276,7 +248,6 @@ in
           inherit (inputs) self;
         };
         modules = [
-          # Global build fixes + MCP server packages overlay
           (_: {
             nixpkgs.overlays = [
               overlays.buildFixes
@@ -284,11 +255,7 @@ in
             ];
             nixpkgs.config.allowUnfree = true;
           })
-
-          # Main configuration entry point
-          ../../hosts/hermes/default.nix
-
-          # Host-scoped overlay: make llm-agents packages available
+          nixos.hermes-default
           (
             { pkgs, ... }:
             let
@@ -310,8 +277,6 @@ in
               ];
             }
           )
-
-          # Home Manager configuration for groot
           home-manager.nixosModules.home-manager
           (
             { pkgs, ... }:
@@ -352,10 +317,10 @@ in
                   ];
                   imports = [
                     inputs.nixvim.homeModules.nixvim
-                    ../../modules/user/bash.nix
-                    ../../modules/user/terminal-home.nix
-                    ../../modules/user/neovim-home.nix
-                    ../../hosts/hermes/home.nix
+                    hm.user-bash
+                    hm.user-terminal-home
+                    hm.user-neovim-home
+                    hm.hermes-home
                   ];
                 };
               };
