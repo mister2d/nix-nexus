@@ -5,7 +5,7 @@
   # This profile merges shared user settings with hardware-specific optimizations
   # for the OLED display, haptic touchpad, and docking behavior.
   imports = [
-    ../../modules/user/home.nix
+    homeManagerModules.user-home
     homeManagerModules.hardware-z16-kanshi-home
     homeManagerModules.hardware-z16-sway-home
 

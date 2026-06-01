@@ -1,15 +1,16 @@
 {
   pkgs,
   inputs,
+  homeManagerModules,
   ...
 }:
 
 {
   imports = [
-    ../../modules/user/bash.nix
-    ../../modules/user/neovim-home.nix
-    ../../modules/user/terminal-home.nix
-    ../../modules/user/dev-home.nix
+    homeManagerModules.user-bash
+    homeManagerModules.user-neovim-home
+    homeManagerModules.user-terminal-home
+    homeManagerModules.user-dev-home
   ];
 
   # Home Configuration

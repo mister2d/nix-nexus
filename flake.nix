@@ -104,6 +104,7 @@
         (inputs.import-tree ./modules/core)
         (inputs.import-tree ./modules/hardware)
         (inputs.import-tree ./modules/desktop)
+        (inputs.import-tree ./modules/user)
         ./modules/flake/systems.nix
         ./modules/flake/checks.nix
         ./modules/flake/overlays.nix

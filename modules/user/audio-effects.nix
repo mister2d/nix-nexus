@@ -1,5 +1,4 @@
 _:
-
 let
   # Impulse response files extracted from the official Lenovo Z16 Windows driver (ds557051)
   irsPath = ./../../assets/audio/irs;
@@ -29,16 +28,18 @@ let
 
 in
 {
-  # Enable the EasyEffects Daemon in the background
-  services.easyeffects = {
-    enable = true;
-    preset = "Z16-Music-Balanced";
-  };
+  flake.modules.homeManager.user-audio-effects = {
+    # Enable the EasyEffects Daemon in the background
+    services.easyeffects = {
+      enable = true;
+      preset = "Z16-Music-Balanced";
+    };
 
-  # Wire assets into EasyEffects XDG spec for v8.x
-  home.file =
-    (mapFiles ".local/share/easyeffects/irs" irsPath)
-    // (mapFiles ".local/share/easyeffects/input" inputPresetsPath)
-    // (mapFiles ".local/share/easyeffects/output" enhancedPresetsPath)
-    // (mapFiles ".local/share/easyeffects/output" desktopPresetsPath);
+    # Wire assets into EasyEffects XDG spec for v8.x
+    home.file =
+      (mapFiles ".local/share/easyeffects/irs" irsPath)
+      // (mapFiles ".local/share/easyeffects/input" inputPresetsPath)
+      // (mapFiles ".local/share/easyeffects/output" enhancedPresetsPath)
+      // (mapFiles ".local/share/easyeffects/output" desktopPresetsPath);
+  };
 }

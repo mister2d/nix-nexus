@@ -2,11 +2,7 @@
 
 {
   imports = [
-    ../../modules/user/home.nix
-    ../../modules/user/dev-home.nix
-    ../../modules/user/terminal-home.nix
-    ../../modules/user/neovim-home.nix
-    ../../modules/user/television-home.nix
+    homeManagerModules.user-home
 
     # Desktop Environments & Customization
     homeManagerModules.desktop-sway-home

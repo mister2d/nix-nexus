@@ -22,9 +22,5 @@ _: {
     petunia-home = import ../../hosts/petunia/home.nix;
     openclaw-home = import ../../hosts/openclaw/home.nix;
     hermes-home = import ../../hosts/hermes/home.nix;
-    user-bash = import ../../modules/user/bash.nix;
-    user-terminal-home = import ../../modules/user/terminal-home.nix;
-    user-neovim-home = import ../../modules/user/neovim-home.nix;
-    user-dev-home = import ../../modules/user/dev-home.nix;
   };
 }

@@ -1,8 +1,8 @@
-{ ... }:
+{ homeManagerModules, ... }:
 {
   imports = [
-    ../../modules/user/bash.nix
-    ../../modules/user/neovim-home.nix
+    homeManagerModules.user-bash
+    homeManagerModules.user-neovim-home
   ];
 
   home.stateVersion = "25.11";
