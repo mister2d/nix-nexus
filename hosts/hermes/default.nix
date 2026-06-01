@@ -1,12 +1,13 @@
 {
   pkgs,
   modulesPath,
+  nixosModules,
   ...
 }:
 {
   imports = [
     (modulesPath + "/virtualisation/proxmox-lxc.nix")
-    ../../profiles/server
+    nixosModules.server-default
   ];
 
   proxmoxLXC = {

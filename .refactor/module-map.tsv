@@ -71,7 +71,10 @@ hosts/avina/matrix-pin-stable.nix	nixos.matrix-pin-stable
 hosts/dualie/home.nix	homeManager.dualie-home
 hosts/forge/home.nix	homeManager.forge-home
 hosts/hermes/default.nix	nixos.hermes-default
+hosts/hermes/groot-hm.nix	nixos.hm-groot-hermes
 hosts/hermes/home.nix	homeManager.hermes-home
+hosts/hermes/llm-agents-overlay.nix	nixos.llm-agents-hermes
+hosts/hermes/mcp-overlay.nix	nixos.hermes-mcp-overlay
 hosts/openclaw/default.nix	nixos.openclaw-default
 hosts/openclaw/groot-hm.nix	nixos.hm-groot-openclaw
 hosts/openclaw/home.nix	homeManager.openclaw-home

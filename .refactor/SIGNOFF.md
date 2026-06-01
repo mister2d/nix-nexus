@@ -52,6 +52,16 @@
 
 ## Phase 3 — Host Collapse Sign-offs
 
+### hermes — PASS (Phase 3)
+- baseline .drv: /nix/store/jqvr9z26dw5bpxlvykxngnlnl6bhjpar-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
+- candidate .drv: /nix/store/jqvr9z26dw5bpxlvykxngnlnl6bhjpar-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
+- closure diff: identical
+- justification: n/a — llm-agents/PYTHONPATH overlay extracted verbatim to nixos.llm-agents-hermes; mcp overlay referenced as nixos.hermes-mcp-overlay; groot HM with unstablePkgs to nixos.hm-groot-hermes
+- pkgs-* pins: unchanged
+- nix flake check: green
+- pre-commit: green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
 ### avina — PASS (Phase 3)
 - baseline .drv: /nix/store/85mq1za6ziknh8rb4mpmjqkr3is5m4wf-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
 - candidate .drv: /nix/store/85mq1za6ziknh8rb4mpmjqkr3is5m4wf-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv

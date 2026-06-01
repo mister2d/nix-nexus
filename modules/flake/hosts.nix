@@ -4,7 +4,6 @@
   ...
 }:
 let
-  inherit (inputs.nixpkgs) lib;
   inherit (inputs)
     home-manager
     nixvim
@@ -145,95 +144,6 @@ in
         ];
       };
 
-      # Hostname: hermes (Proxmox LXC container — Hermes AI Agent)
-      hermes = inputs.nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          inherit (inputs) self;
-          nixosModules = nixos;
-        };
-        modules = [
-          (_: {
-            nixpkgs.overlays = [
-              overlays.buildFixes
-              overlays.mcp
-            ];
-            nixpkgs.config.allowUnfree = true;
-          })
-          nixos.hermes-default
-          (
-            { pkgs, ... }:
-            let
-              agentPkgs = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
-            in
-            {
-              nixpkgs.overlays = [
-                (_final: _prev: {
-                  llm-agents = agentPkgs // {
-                    hermes-agent = agentPkgs.hermes-agent.overridePythonAttrs (old: {
-                      makeWrapperArgs = (old.makeWrapperArgs or [ ]) ++ [
-                        "--set"
-                        "PYTHONPATH"
-                        (lib.makeSearchPath "lib/python3.13/site-packages" (old.propagatedBuildInputs or [ ]))
-                      ];
-                    });
-                  };
-                })
-              ];
-            }
-          )
-          home-manager.nixosModules.home-manager
-          (
-            { pkgs, ... }:
-            let
-              unstablePkgs = import inputs.nixpkgs-unstable {
-                inherit (pkgs.stdenv.hostPlatform) system;
-                config.allowUnfree = true;
-                overlays = [ overlays.buildFixes ];
-              };
-            in
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  inherit (inputs) self;
-                  inherit inputs;
-                };
-                users.groot = {
-                  home.stateVersion = "25.11";
-                  home.packages = with pkgs; [
-                    llm-agents.hermes-agent
-                    nodejs_24
-                    python314
-                    uv
-                    git
-                    btop
-                    htop
-                    openssl
-
-                    # MCP servers (mirrors dev-home.nix mcpPackages)
-                    context7-mcp
-                    github-mcp-server
-                    unstablePkgs.mcp-nixos
-                    mcp-server-time
-                    terraform-mcp-server
-                  ];
-                  imports = [
-                    inputs.nixvim.homeModules.nixvim
-                    hm.user-bash
-                    hm.user-terminal-home
-                    hm.user-neovim-home
-                    hm.hermes-home
-                  ];
-                };
-              };
-            }
-          )
-        ];
-      };
     };
   };
 }

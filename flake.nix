@@ -111,6 +111,7 @@
         ./modules/flake/hosts.nix
         ./modules/flake/nixos-openclaw.nix
         ./modules/flake/nixos-avina.nix
+        ./modules/flake/nixos-hermes.nix
         ./modules/flake/registry.nix
       ];
     });
