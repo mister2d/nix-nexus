@@ -18,8 +18,6 @@ _: {
         nixosModules.core-users
       ];
 
-      nixpkgs.config.allowUnfree = true;
-
       environment.variables = {
         # Disable the nixos-rebuild upgrade daemon for LXC compatibility.
         # Prevents "Failed to start transient service unit" errors.

@@ -11,9 +11,6 @@ _: {
         nixosModules.core-zfs
       ];
 
-      # Allow unfree packages (e.g. vscode, google-chrome)
-      nixpkgs.config.allowUnfree = true;
-
       # Nix Package Manager Settings
       nix.settings = {
         # Nix-specific experimental features
@@ -40,14 +37,6 @@ _: {
           "ddukes"
           "groot"
         ];
-
-        # Limit the number of parallel build jobs to 8 to avoid memory exhaustion
-        # on this 16-thread system (32GB RAM). Each heavy compilation job (e.g., LLVM/Chromium)
-        # can easily consume 2-4GB of RAM.
-        max-jobs = 8;
-
-        # Allow each job to use up to 2 CPU cores, balancing throughput and memory pressure.
-        cores = 2;
       };
 
       # Set Timezone

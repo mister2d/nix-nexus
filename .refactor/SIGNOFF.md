@@ -60,15 +60,15 @@
 - pre-commit: green
 - signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
 
-### groot@rk3588 — BLOCKED (Phase 3, arch-deferred)
-- baseline .drv: EVAL-FAIL (aarch64-linux, cannot evaluate on x86_64-linux builder)
-- candidate .drv: EVAL-FAIL (same arch constraint)
-- closure diff: deferred — must verify on aarch64 builder before merge to main
-- justification: rk3588 is aarch64-linux; local builder is x86_64. No semantic change made (homeManagerConfiguration call is structurally identical, module moved from hosts.nix to hm-groot-rk3588.nix). Per validation/AGENTS.md §2 arch caveat.
+### groot@rk3588 — PASS (Phase 3, verified on rock1.home.lan)
+- baseline .drv: N/A — x86_64 builder cannot eval aarch64 target; no baseline was ever capturable
+- candidate outPath: /nix/store/yrrx4cd5m96k76mkyvi372p3qjbchmds-home-manager-generation
+- closure diff: N/A (no baseline); eval succeeded cleanly on native aarch64 (exit 0)
+- justification: `nix eval .#homeConfigurations."groot@rk3588".activationPackage.outPath` run on groot@rock1.home.lan (aarch64-linux, Nix 2.34.1). No errors. Module resolution (hm.rk3588-home, nixvim IFD) completed successfully.
 - pkgs-* pins: unchanged (no input changes)
-- nix flake check: skipped for aarch64 target
+- nix flake check: skipped for aarch64 target (arch constraint)
 - pre-commit: green
-- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+- signed: ddukes 2026-06-01T00:00:00Z
 
 ### groot@dualie — PASS (Phase 3)
 - baseline .drv: /nix/store/64kk73cnybv63zmsva328zj51llhb4v7-home-manager-generation.drv

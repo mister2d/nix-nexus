@@ -38,6 +38,14 @@ _: {
       # Machine-specific overrides
       networking.hostName = "sweet16";
 
+      # Limit parallel build jobs to avoid memory exhaustion (16-thread, 32GB RAM).
+      # Each heavy job (LLVM, Chromium) can consume 2-4GB. Caps at ps3 to keep
+      # ZFS ARC responsive during builds.
+      nix.settings = {
+        max-jobs = 8;
+        cores = 2;
+      };
+
       # Tailscale roaming: accept-routes is suppressed on home SSIDs (LAN is directly
       # reachable) and enabled everywhere else (road/hotspot access to LAN resources).
       nix-nexus.tailscale.homeSSIDs = [
