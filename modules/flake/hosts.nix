@@ -4,13 +4,7 @@
   ...
 }:
 let
-  inherit (inputs)
-    home-manager
-    nixvim
-    nixos-hardware
-    ;
-  inherit (inputs.self) overlays;
-  inherit (config.flake.modules) nixos;
+  inherit (inputs) home-manager nixvim;
   hm = config.flake.modules.homeManager;
 in
 {
@@ -62,48 +56,5 @@ in
       };
     };
 
-    nixosConfigurations = {
-      # Hostname: petunia
-      petunia = inputs.nixpkgs-unstable.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          inherit (inputs) self;
-          nixosModules = nixos;
-        };
-        modules = [
-          (_: {
-            nixpkgs.overlays = [ overlays.buildFixes ];
-            nixpkgs.config.allowUnfree = true;
-          })
-          inputs.disko.nixosModules.disko
-          nixos-hardware.nixosModules.common-cpu-amd
-          nixos-hardware.nixosModules.common-gpu-amd
-          nixos-hardware.nixosModules.common-pc-ssd
-          inputs.rdna4-stack.nixosModules.rdna4-full
-          nixos.petunia-default
-          inputs.home-manager-unstable.nixosModules.home-manager
-          {
-            home-manager = {
-              useGlobalPkgs = true;
-              useUserPackages = true;
-              backupFileExtension = "bak";
-              extraSpecialArgs = {
-                inherit (inputs) self;
-                inherit inputs;
-                homeManagerModules = hm;
-              };
-              users.ddukes = {
-                imports = [
-                  nixvim.homeModules.nixvim
-                  hm.petunia-home
-                ];
-              };
-            };
-          }
-        ];
-      };
-
-    };
   };
 }

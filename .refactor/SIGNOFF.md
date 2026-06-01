@@ -52,6 +52,16 @@
 
 ## Phase 3 — Host Collapse Sign-offs
 
+### petunia — PASS (Phase 3)
+- baseline .drv: /nix/store/y6k7zzwyvhi86m99yg45s5m4asr1l4fv-nixos-system-petunia-26.05.20260523.64c08a7.drv
+- candidate .drv: /nix/store/y6k7zzwyvhi86m99yg45s5m4asr1l4fv-nixos-system-petunia-26.05.20260523.64c08a7.drv
+- closure diff: identical
+- justification: n/a — unstable channel + disko + rdna4 preserved verbatim; path imports replaced with nixosModules refs; ddukes HM to nixos.hm-ddukes-petunia
+- pkgs-* pins: unchanged
+- nix flake check: green
+- pre-commit: green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
 ### sweet16 — PASS (Phase 3)
 - baseline .drv: /nix/store/0yz0ja7wsz11fsn19mckzzzwq88z5qrq-nixos-system-sweet16-25.11.20260522.b77b3de.drv
 - candidate .drv: /nix/store/0yz0ja7wsz11fsn19mckzzzwq88z5qrq-nixos-system-sweet16-25.11.20260522.b77b3de.drv

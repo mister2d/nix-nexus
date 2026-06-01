@@ -9,10 +9,10 @@
     ./hardware-configuration.nix
 
     # Machine-specific profiles (Quirks & Hardware)
-    ../../profiles/hardware/petunia.nix
+    nixosModules.hardware-petunia
 
     # Core System Profile (Every machine gets this)
-    ../../profiles/workstation
+    nixosModules.workstation-default
 
     # Ceph Integration
     nixosModules.core-ceph
@@ -21,8 +21,8 @@
     nixosModules.core-printing
 
     # Functional Profiles (Suites)
-    ../../profiles/desktop
-    ../../profiles/development
+    nixosModules.desktop-default
+    nixosModules.development-default
 
     # Compositor
     nixosModules.desktop-sway

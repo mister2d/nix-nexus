@@ -113,6 +113,7 @@
         ./modules/flake/nixos-avina.nix
         ./modules/flake/nixos-hermes.nix
         ./modules/flake/nixos-sweet16.nix
+        ./modules/flake/nixos-petunia.nix
         ./modules/flake/registry.nix
       ];
     });

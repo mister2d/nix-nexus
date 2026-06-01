@@ -80,6 +80,7 @@ hosts/openclaw/groot-hm.nix	nixos.hm-groot-openclaw
 hosts/openclaw/home.nix	homeManager.openclaw-home
 hosts/openclaw/vault-secrets.nix	nixos.openclaw-vault-secrets
 hosts/petunia/default.nix	nixos.petunia-default
+hosts/petunia/ddukes-hm.nix	nixos.hm-ddukes-petunia
 hosts/petunia/home.nix	homeManager.petunia-home
 hosts/rk3588/home.nix	homeManager.rk3588-home
 hosts/sweet16/default.nix	nixos.sweet16-default
