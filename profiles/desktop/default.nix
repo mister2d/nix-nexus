@@ -1,11 +1,11 @@
-{ ... }:
+{ nixosModules, ... }:
 
 {
   imports = [
-    ../../modules/desktop/greetd.nix
-    ../../modules/desktop/wayland.nix
-    ../../modules/desktop/fonts.nix
-    ../../modules/desktop/theme.nix
+    nixosModules.desktop-greetd
+    nixosModules.desktop-wayland
+    nixosModules.desktop-fonts
+    nixosModules.desktop-theme
   ];
 
   # Desktop-specific kernel parameters.

@@ -1,4 +1,4 @@
-{ ... }:
+{ homeManagerModules, ... }:
 
 {
   imports = [
@@ -9,9 +9,9 @@
     ../../modules/user/television-home.nix
 
     # Desktop Environments & Customization
-    ../../modules/desktop/sway-home.nix
-    ../../modules/desktop/waybar-home.nix
-    ../../modules/desktop/notifications.nix
+    homeManagerModules.desktop-sway-home
+    homeManagerModules.desktop-waybar-home
+    homeManagerModules.desktop-notifications
   ];
 
   # Resource Monitor (amdgpu_top provides detailed AMD metrics; btop for process view)

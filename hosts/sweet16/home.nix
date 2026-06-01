@@ -10,8 +10,8 @@
     homeManagerModules.hardware-z16-sway-home
 
     # Desktop Environments & Customization
-    ../../modules/desktop/sway-home.nix
-    ../../modules/desktop/waybar-home.nix
+    homeManagerModules.desktop-sway-home
+    homeManagerModules.desktop-waybar-home
   ];
 
   # Resource Monitor with AMD GPU support

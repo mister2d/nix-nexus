@@ -14,7 +14,7 @@
     ../../profiles/hardware/z16.nix
 
     # CachyOS Optimized Kernel
-    ../../modules/hardware/kernel/cachyos.nix
+    nixosModules.hardware-kernel-cachyos
 
     # Core System Profile (Every machine gets this)
     ../../profiles/workstation
@@ -30,7 +30,7 @@
     ../../profiles/development
 
     # Compositors & Desktop Environments
-    ../../modules/desktop/sway.nix
+    nixosModules.desktop-sway
   ];
 
   # Machine-specific overrides

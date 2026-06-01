@@ -129,6 +129,7 @@ in
               extraSpecialArgs = {
                 inherit (inputs) self;
                 inherit inputs;
+                homeManagerModules = hm;
               };
               users.ddukes = {
                 imports = [

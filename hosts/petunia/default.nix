@@ -25,7 +25,7 @@
     ../../profiles/development
 
     # Compositor
-    ../../modules/desktop/sway.nix
+    nixosModules.desktop-sway
   ];
 
   # Machine-specific overrides

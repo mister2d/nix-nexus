@@ -5,7 +5,6 @@ _: {
     workstation-default = import ../../profiles/workstation/default.nix;
     desktop-default = import ../../profiles/desktop/default.nix;
     development-default = import ../../profiles/development/default.nix;
-    desktop-sway = import ../../modules/desktop/sway.nix;
     openclaw-default = import ../../hosts/openclaw/default.nix;
     hermes-default = import ../../hosts/hermes/default.nix;
     sweet16-default = import ../../hosts/sweet16/default.nix;
