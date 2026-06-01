@@ -1,9 +1,9 @@
-{ ... }:
+{ nixosModules, ... }:
 
 {
   imports = [
-    ../../modules/programs/common.nix
-    ../../modules/programs/dev.nix
-    ../../modules/programs/scripts.nix
+    nixosModules.programs-common
+    nixosModules.programs-dev
+    nixosModules.programs-scripts
   ];
 }

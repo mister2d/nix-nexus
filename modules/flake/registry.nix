@@ -12,6 +12,9 @@ _: {
     petunia-default = import ../../hosts/petunia/default.nix;
     server-default = import ../../profiles/server/default.nix;
     services-matrix-default = import ../../modules/services/matrix/default.nix;
+    programs-common = import ../../modules/programs/common.nix;
+    programs-dev = import ../../modules/programs/dev.nix;
+    programs-scripts = import ../../modules/programs/scripts.nix;
   };
   flake.modules.homeManager = {
     dualie-home = import ../../hosts/dualie/home.nix;
