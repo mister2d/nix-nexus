@@ -6,6 +6,7 @@ _: {
     desktop-default = import ../../profiles/desktop/default.nix;
     development-default = import ../../profiles/development/default.nix;
     openclaw-default = import ../../hosts/openclaw/default.nix;
+    openclaw-vault-secrets = import ../../hosts/openclaw/vault-secrets.nix;
     hermes-default = import ../../hosts/hermes/default.nix;
     sweet16-default = import ../../hosts/sweet16/default.nix;
     avina-default = import ../../hosts/avina/default.nix;
@@ -25,6 +26,7 @@ _: {
     programs-common = import ../../modules/programs/common.nix;
     programs-dev = import ../../modules/programs/dev.nix;
     programs-scripts = import ../../modules/programs/scripts.nix;
+    hm-groot-openclaw = import ../../hosts/openclaw/groot-hm.nix;
   };
   flake.modules.homeManager = {
     dualie-home = import ../../hosts/dualie/home.nix;

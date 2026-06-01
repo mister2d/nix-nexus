@@ -109,6 +109,7 @@
         ./modules/flake/checks.nix
         ./modules/flake/overlays.nix
         ./modules/flake/hosts.nix
+        ./modules/flake/nixos-openclaw.nix
         ./modules/flake/registry.nix
       ];
     });

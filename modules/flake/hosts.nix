@@ -199,57 +199,6 @@ in
         ];
       };
 
-      # Hostname: openclaw (Proxmox LXC container)
-      openclaw = inputs.nixpkgs.lib.nixosSystem {
-        system = "x86_64-linux";
-        specialArgs = {
-          inherit inputs;
-          inherit (inputs) self;
-          nixosModules = nixos;
-        };
-        modules = [
-          (_: {
-            nixpkgs.overlays = [ overlays.buildFixes ];
-            nixpkgs.config.allowUnfree = true;
-          })
-          nixos.openclaw-default
-          home-manager.nixosModules.home-manager
-          (
-            { pkgs, ... }:
-            {
-              home-manager = {
-                useGlobalPkgs = true;
-                useUserPackages = true;
-                backupFileExtension = "bak";
-                extraSpecialArgs = {
-                  inherit (inputs) self;
-                  inherit inputs;
-                };
-                users.groot = {
-                  home.stateVersion = "25.11";
-                  home.packages = with pkgs; [
-                    tailscale
-                    nodejs_24
-                    python314
-                    git
-                    btop
-                    htop
-                    openssl
-                  ];
-                  imports = [
-                    inputs.nixvim.homeModules.nixvim
-                    hm.user-bash
-                    hm.user-terminal-home
-                    hm.user-neovim-home
-                    hm.openclaw-home
-                  ];
-                };
-              };
-            }
-          )
-        ];
-      };
-
       # Hostname: hermes (Proxmox LXC container — Hermes AI Agent)
       hermes = inputs.nixpkgs.lib.nixosSystem {
         system = "x86_64-linux";

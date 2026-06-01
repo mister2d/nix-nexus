@@ -49,3 +49,15 @@
 - nix flake check: green
 - pre-commit: green
 - signed: claude-sonnet-4-6 2026-06-01T00:00:00Z
+
+## Phase 3 — Host Collapse Sign-offs
+
+### openclaw — PASS (Phase 3)
+- baseline .drv: /nix/store/lz9w213f8p70kc3z9wvfhc47jb7izimm-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
+- candidate .drv: /nix/store/lz9w213f8p70kc3z9wvfhc47jb7izimm-nixos-system-unnamed-lxc-proxmox-25.11.20260522.b77b3de.drv
+- closure diff: identical
+- justification: n/a — host collapse extracted inline HM block to nixos.hm-groot-openclaw, rewired path imports to nixosModules refs; no semantic change
+- pkgs-* pins: unchanged
+- nix flake check: green
+- pre-commit: green
+- signed: claude-sonnet-4-6 2026-06-01T00:00:00Z

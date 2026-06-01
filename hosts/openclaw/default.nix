@@ -2,6 +2,7 @@
   lib,
   pkgs,
   modulesPath,
+  nixosModules,
   ...
 }:
 let
@@ -14,8 +15,8 @@ in
 {
   imports = [
     (modulesPath + "/virtualisation/proxmox-lxc.nix")
-    ../../profiles/server
-    ./vault-secrets.nix
+    nixosModules.server-default
+    nixosModules.openclaw-vault-secrets
   ];
 
   proxmoxLXC = {

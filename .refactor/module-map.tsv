@@ -1,3 +1,4 @@
+modules/core/overlays-global.nix	nixos.overlays-global
 modules/core/boot.nix	nixos.core-boot
 modules/core/ceph.nix	nixos.core-ceph
 modules/core/networking.nix	nixos.core-networking
@@ -70,6 +71,7 @@ hosts/forge/home.nix	homeManager.forge-home
 hosts/hermes/default.nix	nixos.hermes-default
 hosts/hermes/home.nix	homeManager.hermes-home
 hosts/openclaw/default.nix	nixos.openclaw-default
+hosts/openclaw/groot-hm.nix	nixos.hm-groot-openclaw
 hosts/openclaw/home.nix	homeManager.openclaw-home
 hosts/openclaw/vault-secrets.nix	nixos.openclaw-vault-secrets
 hosts/petunia/default.nix	nixos.petunia-default
