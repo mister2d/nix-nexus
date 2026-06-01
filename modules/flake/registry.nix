@@ -4,8 +4,6 @@ _: {
     hardware-petunia = import ../../profiles/hardware/petunia.nix;
     hardware-kernel-cachyos = import ../../modules/hardware/kernel/cachyos.nix;
     workstation-default = import ../../profiles/workstation/default.nix;
-    core-ceph = import ../../modules/core/ceph.nix;
-    core-printing = import ../../modules/core/printing.nix;
     desktop-default = import ../../profiles/desktop/default.nix;
     development-default = import ../../profiles/development/default.nix;
     desktop-sway = import ../../modules/desktop/sway.nix;

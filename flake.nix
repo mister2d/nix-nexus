@@ -100,6 +100,8 @@
     inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } (_: {
       imports = [
+        ./modules/flake/module-types.nix
+        (inputs.import-tree ./modules/core)
         ./modules/flake/systems.nix
         ./modules/flake/checks.nix
         ./modules/flake/overlays.nix

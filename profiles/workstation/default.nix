@@ -1,13 +1,13 @@
-{ pkgs, ... }:
+{ pkgs, nixosModules, ... }:
 
 {
   imports = [
-    ../../modules/core/boot.nix
-    ../../modules/core/networking.nix
-    ../../modules/core/security.nix
-    ../../modules/core/sysctl.nix
-    ../../modules/core/users.nix
-    ../../modules/core/zfs.nix
+    nixosModules.core-boot
+    nixosModules.core-networking
+    nixosModules.core-security
+    nixosModules.core-sysctl
+    nixosModules.core-users
+    nixosModules.core-zfs
   ];
 
   # Allow unfree packages (e.g. vscode, google-chrome)

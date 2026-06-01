@@ -1,4 +1,4 @@
-{ ... }:
+{ nixosModules, ... }:
 
 {
   imports = [
@@ -15,10 +15,10 @@
     ../../profiles/workstation
 
     # Ceph Integration
-    ../../modules/core/ceph.nix
+    nixosModules.core-ceph
 
     # Printing Support
-    ../../modules/core/printing.nix
+    nixosModules.core-printing
 
     # Functional Profiles (Suites)
     ../../profiles/desktop

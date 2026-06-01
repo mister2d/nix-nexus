@@ -67,6 +67,7 @@ in
         specialArgs = {
           inherit inputs;
           inherit (inputs) self;
+          nixosModules = nixos;
         };
         modules = [
           (_: {
@@ -105,6 +106,7 @@ in
         specialArgs = {
           inherit inputs;
           inherit (inputs) self;
+          nixosModules = nixos;
         };
         modules = [
           (_: {
@@ -144,6 +146,7 @@ in
         specialArgs = {
           inherit inputs;
           inherit (inputs) self;
+          nixosModules = nixos;
         };
         modules = [
           (_: {
@@ -196,6 +199,7 @@ in
         specialArgs = {
           inherit inputs;
           inherit (inputs) self;
+          nixosModules = nixos;
         };
         modules = [
           (_: {
@@ -246,6 +250,7 @@ in
         specialArgs = {
           inherit inputs;
           inherit (inputs) self;
+          nixosModules = nixos;
         };
         modules = [
           (_: {

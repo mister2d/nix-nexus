@@ -8,13 +8,13 @@
 #
 # Hosts importing this profile set boot.isContainer = true (or their own boot
 # config) and configure networking (firewall, interface) in their own default.nix.
-{ ... }:
+{ nixosModules, ... }:
 
 {
   imports = [
-    ../../modules/core/security.nix
-    ../../modules/core/sysctl.nix
-    ../../modules/core/users.nix
+    nixosModules.core-security
+    nixosModules.core-sysctl
+    nixosModules.core-users
   ];
 
   nixpkgs.config.allowUnfree = true;
