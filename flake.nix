@@ -115,6 +115,7 @@
         ./modules/flake/nixos-sweet16.nix
         ./modules/flake/nixos-petunia.nix
         ./modules/flake/hm-groot-dualie.nix
+        ./modules/flake/hm-groot-rk3588.nix
         ./modules/flake/registry.nix
       ];
     });
