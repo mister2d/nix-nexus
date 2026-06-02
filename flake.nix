@@ -1,6 +1,15 @@
 {
   description = "Portable NixOS Configuration Framework";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://noctalia.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+    ];
+  };
+
   inputs = {
     # Official NixOS package source - Using 25.11 for 2026 stability
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
@@ -58,6 +67,13 @@
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    # Noctalia v5 shell
+    # inputs.nixpkgs.follows is intentionally absent — required for Cachix binary cache compatibility.
+    # See: https://docs.noctalia.dev/v5/getting-started/nixos/#binary-cache
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell/v5";
     };
 
     # DankMaterialShell - Material Design Shell for Wayland
