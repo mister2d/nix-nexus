@@ -116,6 +116,7 @@ direnv allow
 - [**Cookbook**](./docs/cookbook.md): Step-by-step recipes for adding modules, users, application stacks, and new hosts.
 
 ### System Guides
+- [**Upgrading**](./docs/upgrading.md): Routine updates, major release upgrades, rollback, and automatic upgrades — flake-native workflow.
 - [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Specifications for the Matrix 2.0 stack and hybrid ingress architecture.
 - [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and hybrid GPU management.
 - [**CachyOS Kernel**](./docs/cachyos-kernel.md): CachyOS kernel setup, ZFS integration, and BBR3 tuning.
