@@ -53,10 +53,6 @@ _: {
               border.enable = false;
             };
 
-            # Required so Noctalia IPC can activate windows in response to
-            # notification actions.
-            debug.honor-xdg-activation-with-invalid-serial = true;
-
             # -----------------------------------------------------------------
             # Window rules
             # Ref: https://docs.noctalia.dev/v5/getting-started/compositor-settings/niri/
