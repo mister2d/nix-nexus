@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.hardware-petunia-ryzen = _: {
+  flake.modules.nixos.hardware-petunia = _: {
     # Core Hardware Support for Ryzen Desktop (AM4/X570)
     # Optimized for Ryzen 5 5600X (Zen 3) + Gigabyte X570 AORUS MASTER
 

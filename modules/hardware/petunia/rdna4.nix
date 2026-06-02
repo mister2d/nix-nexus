@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.hardware-petunia-rdna4 = _: {
+  flake.modules.nixos.hardware-petunia = _: {
     # rdna4-full (base + rocm + power + build-env) is imported at the flake level.
     # This file holds petunia-specific option values for those shared modules.
 
