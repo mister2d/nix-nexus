@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.desktop-wayland =
+  flake.modules.nixos.desktop-default =
     {
       pkgs,
       lib,
