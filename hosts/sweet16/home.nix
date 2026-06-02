@@ -9,11 +9,10 @@ _: {
       imports = [
         homeManagerModules.user-home
         homeManagerModules.hardware-z16-kanshi-home
-        homeManagerModules.hardware-z16-sway-home
+        homeManagerModules.hardware-z16-niri-home
 
-        # Desktop Environments & Customization
-        homeManagerModules.desktop-sway-home
-        homeManagerModules.desktop-waybar-home
+        # NNN stack: Niri compositor + Noctalia v5 shell
+        homeManagerModules.desktop-noctalia-home
       ];
 
       # Resource Monitor with AMD GPU support
