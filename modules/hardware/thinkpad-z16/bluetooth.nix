@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.hardware-z16-bluetooth = _: {
+  flake.modules.nixos.hardware-z16 = _: {
     hardware.bluetooth = {
       enable = true;
       powerOnBoot = true;

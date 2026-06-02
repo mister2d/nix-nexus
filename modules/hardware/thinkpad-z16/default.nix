@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.hardware-z16-default =
+  flake.modules.nixos.hardware-z16 =
     {
       lib,
       pkgs,
