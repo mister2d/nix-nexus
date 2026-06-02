@@ -48,3 +48,19 @@ Conclusion: drift is structural/hash-chain only, not semantic. Rendered
 equivalent. Proceeding per validation.md §4 (content-level diff confirms
 no rendered output change).
 
+
+### Verification: phase-A-group-1 development-default (2026-06-02)
+
+| Host | Post-step-0 hash | Post-group-1 hash | Result |
+|---|---|---|---|
+| sweet16 (NixOS) | `2686a8e04c4a46f5ebd9967131d6955e0176aba5406c7ba9de9694764c46f5cb` | `28902fd8c3ee01897513ef6e191bf4ad1288f23400f21203f4d646b2faaec4f6` | ✗ DRIFT — explained |
+| petunia (NixOS) | `8abce4e3bbcedf4cb7a7666b63a098f4ed4cb06c101764009e52e550987e2c8b` | `4fb5100f9070087798210ce789105dc9fad6c746d71a1b0deeedd8107194e713` | ✗ DRIFT — explained |
+
+Drift cause: replacing the single-definition aggregator (one deferred module that
+imports three sub-modules) with three direct deferred-module contributions changes
+the merge structure depth. Content-level diff confirms:
+- system-path: 160 inputs identical (0 added, 0 removed) — same package set
+- etc: 4 symmetric input swaps (same units, different hash chain)
+- kernelParams: identical set, identical ordering (no change from step-0 state)
+
+Conclusion: structural hash-chain drift only. Semantically equivalent.

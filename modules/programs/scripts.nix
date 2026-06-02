@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.programs-scripts =
+  flake.modules.nixos.development-default =
     { pkgs, ... }:
     let
       scripts = import ../../lib/custom-scripts.nix { inherit pkgs; };
