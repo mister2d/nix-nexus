@@ -963,6 +963,19 @@
         "type": "github"
       }
     },
+    "nixpkgs_7": {
+      "locked": {
+        "lastModified": 1777268161,
+        "narHash": "sha256-e1tDUQMbFCxCnke314UpghgRqg3FJLtcXFfq/WTRLYI=",
+        "rev": "1c3fe55ad329cbcb28471bb30f05c9827f724c76",
+        "type": "tarball",
+        "url": "https://releases.nixos.org/nixos/unstable/nixos-26.05pre987561.1c3fe55ad329/nixexprs.tar.xz"
+      },
+      "original": {
+        "type": "tarball",
+        "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
+      }
+    },
     "nixvim": {
       "inputs": {
         "flake-parts": "flake-parts_5",
@@ -982,6 +995,25 @@
         "owner": "nix-community",
         "ref": "nixos-25.11",
         "repo": "nixvim",
+        "type": "github"
+      }
+    },
+    "noctalia": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_7"
+      },
+      "locked": {
+        "lastModified": 1780419877,
+        "narHash": "sha256-8ppEAcXX/SDl2A1xBEs69IGZC18Ru7JA7c/fc6Miq2Q=",
+        "owner": "noctalia-dev",
+        "repo": "noctalia-shell",
+        "rev": "3a21dc052298a1595922b8df34ac05f95ad332cb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "noctalia-dev",
+        "ref": "v5",
+        "repo": "noctalia-shell",
         "type": "github"
       }
     },
@@ -1219,6 +1251,7 @@
         "nixpkgs-chrome": "nixpkgs-chrome",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvim": "nixvim",
+        "noctalia": "noctalia",
         "pkgs-apps": "pkgs-apps",
         "pkgs-ceph": "pkgs-ceph",
         "pkgs-hashicorp": "pkgs-hashicorp",

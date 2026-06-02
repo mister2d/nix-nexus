@@ -31,8 +31,9 @@ _: {
         nixosModules.desktop-default
         nixosModules.development-default
 
-        # Compositors & Desktop Environments
-        nixosModules.desktop-sway
+        # Compositor & Shell
+        nixosModules.desktop-niri
+        nixosModules.desktop-noctalia
       ];
 
       # Machine-specific overrides
