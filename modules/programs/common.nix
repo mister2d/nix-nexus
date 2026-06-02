@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.programs-common =
+  flake.modules.nixos.development-default =
     { pkgs, ... }:
     {
       environment.systemPackages = with pkgs; [

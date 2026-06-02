@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.services-matrix-synapse =
+  flake.modules.nixos.services-matrix =
     {
       lib,
       matrixDomain,

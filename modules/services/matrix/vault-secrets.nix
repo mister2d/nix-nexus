@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.services-matrix-vault-secrets =
+  flake.modules.nixos.services-matrix =
     {
       pkgs,
       vaultAddr,

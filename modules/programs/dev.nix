@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.programs-dev =
+  flake.modules.nixos.development-default =
     {
       pkgs,
       self,

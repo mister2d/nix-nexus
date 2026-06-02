@@ -7,10 +7,10 @@ _: {
       ...
     }:
     let
-      cfg = config.nix-nexus.tailscale;
+      cfg = config.nix-nexus.networking.tailscale;
     in
     {
-      options.nix-nexus.tailscale = {
+      options.nix-nexus.networking.tailscale = {
         homeSSIDs = lib.mkOption {
           type = lib.types.listOf lib.types.str;
           default = [ ];

@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.desktop-greetd =
+  flake.modules.nixos.desktop-default =
     { pkgs, ... }:
     {
       # Display Manager (Greetd)

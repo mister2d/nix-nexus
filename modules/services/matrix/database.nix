@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.services-matrix-database =
+  flake.modules.nixos.services-matrix =
     { pkgs, ... }:
     {
       services.postgresql = {

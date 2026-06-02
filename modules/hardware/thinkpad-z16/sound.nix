@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.hardware-z16-sound = _: {
+  flake.modules.nixos.hardware-z16 = _: {
     security.rtkit.enable = true;
     services.pipewire = {
       enable = true;

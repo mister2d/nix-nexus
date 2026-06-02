@@ -42,7 +42,7 @@ Concerns are separated across three tiers:
 ## 📁 Directory Structure
 ```text
 .
-├── flake.nix               # Three-root import-tree entry point
+├── flake.nix               # Composable import-tree builder (addPath over modules/hosts/profiles)
 ├── flake.lock
 ├── lib/                    # Non-module helpers (derivations, pure data)
 │   ├── custom-scripts.nix  # Battery-alert, llm-init, etc.
@@ -110,6 +110,12 @@ direnv allow
 ---
 
 ## 📚 Technical Documentation
+
+### Architecture & Contributing
+- [**Architecture Guide**](./docs/architecture.md): How the dendritic pattern works — registries, fragments, host assembly, naming conventions.
+- [**Cookbook**](./docs/cookbook.md): Step-by-step recipes for adding modules, users, application stacks, and new hosts.
+
+### System Guides
 - [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Specifications for the Matrix 2.0 stack and hybrid ingress architecture.
 - [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and hybrid GPU management.
 - [**CachyOS Kernel**](./docs/cachyos-kernel.md): CachyOS kernel setup, ZFS integration, and BBR3 tuning.

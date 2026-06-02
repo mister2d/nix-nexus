@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.services-matrix-haproxy =
+  flake.modules.nixos.services-matrix =
     {
       pkgs,
       lib,

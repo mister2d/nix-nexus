@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.hardware-z16-amd-gpu =
+  flake.modules.nixos.hardware-z16 =
     { pkgs, ... }:
     {
       # Graphics
