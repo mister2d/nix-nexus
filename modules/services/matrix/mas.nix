@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.services-matrix-mas =
+  flake.modules.nixos.services-matrix =
     { pkgs, ... }:
     let
       stateDir = "/var/lib/matrix-authentication-service";

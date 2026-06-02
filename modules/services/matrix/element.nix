@@ -1,5 +1,5 @@
 _: {
-  flake.modules.nixos.services-matrix-element =
+  flake.modules.nixos.services-matrix =
     {
       pkgs,
       matrixDomain,

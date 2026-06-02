@@ -34,7 +34,7 @@ _: {
         (modulesPath + "/virtualisation/proxmox-lxc.nix")
 
         nixosModules.server-default # Base: security, sysctl, users — no ZFS, no boot, no NM
-        nixosModules.services-matrix-default # Matrix 2.0 communications suite
+        nixosModules.services-matrix # Matrix 2.0 communications suite
       ];
 
       # Container Policy:
