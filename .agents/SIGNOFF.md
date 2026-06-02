@@ -82,3 +82,35 @@ is **identical** in pre and post Phase B — confirmed by matching store paths.
 The rendered shell script content did not change.
 
 Conclusion: structural/hash-chain drift only. No semantic output change.
+
+### Verification: phase-C composable-builder (2026-06-02)
+
+| Host | Phase B hash | Phase C hash | Result |
+|---|---|---|---|
+| sweet16 (NixOS) | `807c0e5befef124bfd2c0f1a4a72b6953e82ab55296b678d906f33acf4b0d30f` | `807c0e5befef124bfd2c0f1a4a72b6953e82ab55296b678d906f33acf4b0d30f` | ✓ PASS |
+| petunia (NixOS) | `956bd95752ce25ae2277ba4e4f4a8e62772d82d003e41880c920593872b2c14c` | `956bd95752ce25ae2277ba4e4f4a8e62772d82d003e41880c920593872b2c14c` | ✓ PASS |
+| avina (NixOS) | `29cc212ce7eedd695ab0c33475ebb0ed8a38b28e958d2d38d2ee3dd1db09b94c` | `29cc212ce7eedd695ab0c33475ebb0ed8a38b28e958d2d38d2ee3dd1db09b94c` | ✓ PASS |
+| hermes (NixOS) | `eee66dc752a8c1d9209e03ae85bdd6c005e778586c521a924e02a543662cc3fb` | `eee66dc752a8c1d9209e03ae85bdd6c005e778586c521a924e02a543662cc3fb` | ✓ PASS |
+| openclaw (NixOS) | `5cfad2580c0d0437018a68bbb4114cb631c7ba7ad2b856a1a1a141491b2733c0` | `5cfad2580c0d0437018a68bbb4114cb631c7ba7ad2b856a1a1a141491b2733c0` | ✓ PASS |
+
+All 5 NixOS hosts: PASS. File discovery order preserved: addPath appends via
+`p ++ [path]`, so paths are [./modules, ./hosts, ./profiles] — same left-to-right
+order as the three-root imports list.
+
+## FINAL SIGN-OFF — Simplification Refactor Complete
+
+All phases (A, B, C) complete. AGENTS.md §6 Definition of Done:
+
+- [x] module-types.nix uses lib.types.deferredModule for both registries.
+- [x] All five aggregator files deleted; no replacements introduced.
+- [x] All sub-modules renamed to shared target names; zero dangling references.
+- [x] nix-nexus.tailscale.* → nix-nexus.networking.tailscale.* everywhere.
+- [x] flake.nix contains one composable builder; three-root pattern is gone.
+- [x] nix flake check green; pre-commit (nixfmt-rfc-style, deadnix, statix) green.
+
+Drift summary: all observed hash changes are structural/hash-chain from
+deferredModule evaluation ordering. Kernel param sets, package closures,
+rendered /etc configs, and systemd units are semantically equivalent
+throughout. Confirmed by content-level diffs per validation.md §4.
+
+Date: 2026-06-02

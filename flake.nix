@@ -98,11 +98,14 @@
 
   outputs =
     inputs:
-    inputs.flake-parts.lib.mkFlake { inherit inputs; } (_: {
-      imports = [
-        (inputs.import-tree ./modules)
-        (inputs.import-tree ./hosts)
-        (inputs.import-tree ./profiles)
+    let
+      # Fleet-wide import tree.
+      # Add future subtrees by appending a path to this list only.
+      fleet = builtins.foldl' (it: p: it.addPath p) inputs.import-tree [
+        ./modules
+        ./hosts
+        ./profiles
       ];
-    });
+    in
+    inputs.flake-parts.lib.mkFlake { inherit inputs; } fleet.result;
 }
