@@ -48,7 +48,7 @@ _: {
 
       # Tailscale roaming: accept-routes is suppressed on home SSIDs (LAN is directly
       # reachable) and enabled everywhere else (road/hotspot access to LAN resources).
-      nix-nexus.tailscale.homeSSIDs = [
+      nix-nexus.networking.tailscale.homeSSIDs = [
         "Trial"
       ];
 

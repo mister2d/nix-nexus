@@ -64,3 +64,21 @@ the merge structure depth. Content-level diff confirms:
 - kernelParams: identical set, identical ordering (no change from step-0 state)
 
 Conclusion: structural hash-chain drift only. Semantically equivalent.
+
+### Verification: phase-B option-namespace-tighten (2026-06-02)
+
+| Host | Post-group-4 hash | Post-phase-B hash | Result |
+|---|---|---|---|
+| sweet16 (NixOS) | (group-4 accumulated drift) | `807c0e5befef124bfd2c0f1a4a72b6953e82ab55296b678d906f33acf4b0d30f` | ✗ DRIFT — explained |
+
+Drift cause: changing the option declaration depth from `nix-nexus.tailscale`
+(depth 2) to `nix-nexus.networking.tailscale` (depth 3) alters the module
+system's option attrset traversal, shifting list-merge ordering.
+`boot.kernelParams`: `quiet splash` moved from position 9-10 to position 1-2.
+Same param set; ordering has no runtime effect.
+
+NM dispatcher script `/nix/store/78p8xq9fyv936b1yr3acniy9df2xqc5j-tailscale-accept-routes`
+is **identical** in pre and post Phase B — confirmed by matching store paths.
+The rendered shell script content did not change.
+
+Conclusion: structural/hash-chain drift only. No semantic output change.
