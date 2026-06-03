@@ -87,6 +87,7 @@ _: {
 
           # Browsers
           unstable-pkgs.firefox
+          (vivaldi.override { proprietaryCodecs = true; })
 
           # --- Environment Tools ---
           krita

@@ -157,6 +157,7 @@ _: {
                     "msg"
                   ]
                   ++ lib.strings.splitString " " cmd;
+                vivaldi = pkgs.vivaldi.override { proprietaryCodecs = true; };
               in
               {
                 # Noctalia panels
@@ -200,7 +201,12 @@ _: {
                 "Mod+Alt+E".action.spawn = [
                   "${pkgs.bash}/bin/bash"
                   "-c"
-                  "BEMOJI_PICKER_CMD=\"${pkgs.wofi}/bin/wofi -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#008080' --hf '#000000' --tb '#008080' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -t -c"
+                  "BEMOJI_PICKER_CMD=\"${pkgs.fuzzel}/bin/fuzzel --dmenu --width 40 --lines 10\" ${pkgs.bemoji}/bin/bemoji -t -c"
+                ];
+                "Mod+Shift+V".action.spawn = [
+                  "${vivaldi}/bin/vivaldi"
+                  "--ozone-platform=wayland"
+                  "--disable-features=ExtensionManifestV2Unsupported"
                 ];
                 "Mod+Shift+D".action.spawn = [ "${pkgs.wdisplays}/bin/wdisplays" ];
 
