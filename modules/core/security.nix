@@ -1,6 +1,6 @@
 _: {
   flake.modules.nixos.core-security =
-    { pkgs, lib, ... }:
+    { pkgs, ... }:
     {
       security = {
         rtkit.enable = true;
@@ -16,16 +16,6 @@ _: {
 
         pcscd.enable = true;
         udev.packages = [ pkgs.yubikey-personalization ];
-
-        openssh = {
-          enable = true;
-          settings = {
-            PasswordAuthentication = false;
-            KbdInteractiveAuthentication = false;
-            PermitRootLogin = lib.mkDefault "prohibit-password";
-            TrustedUserCAKeys = "${../../certs/trusted_ssh_ca.pub}";
-          };
-        };
       };
 
       programs = {

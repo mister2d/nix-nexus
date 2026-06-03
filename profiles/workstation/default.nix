@@ -6,6 +6,7 @@ _: {
         nixosModules.core-boot
         nixosModules.core-networking
         nixosModules.core-security
+        nixosModules.core-sshd
         nixosModules.core-sysctl
         nixosModules.core-users
         nixosModules.core-zfs
