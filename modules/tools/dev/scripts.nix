@@ -2,7 +2,7 @@ _: {
   flake.modules.nixos.development-default =
     { pkgs, ... }:
     let
-      scripts = import ../../lib/custom-scripts.nix { inherit pkgs; };
+      scripts = import ../../../lib/custom-scripts.nix { inherit pkgs; };
     in
     {
       environment.systemPackages = [
