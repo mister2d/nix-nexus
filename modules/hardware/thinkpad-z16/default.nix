@@ -62,9 +62,10 @@ _: {
           # Set battery charge thresholds to 75% start / 80% stop
           SUBSYSTEM=="power_supply", KERNEL=="BAT0", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
 
-          # Force mic mute LED off at boot. thinkpad_acpi initialises it on; write 0
-          # to brightness the instant the sysfs node appears (race-free vs tmpfiles).
-          ACTION=="add", SUBSYSTEM=="leds", KERNEL=="platform::micmute", ATTR{brightness}="0"
+          # Mic mute LED: force off at boot and allow audio group to sync it at runtime.
+          # thinkpad_acpi initialises brightness=1; GROUP+MODE lets the
+          # mic-mute-led-sync user service update it without elevated privileges.
+          ACTION=="add", SUBSYSTEM=="leds", KERNEL=="platform::micmute", GROUP="audio", MODE="0664", ATTR{brightness}="0"
         '';
       };
 
