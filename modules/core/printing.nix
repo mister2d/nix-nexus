@@ -41,14 +41,6 @@ _: {
             "nss-lookup.target"
           ];
           serviceConfig = {
-            ExecStartPre = "${pkgs.writeShellScript "wait-for-printer-dns" ''
-              for i in $(seq 1 30); do
-                ${pkgs.glibc.bin}/bin/getent hosts hp-mfp.home.lan > /dev/null 2>&1 && exit 0
-                sleep 2
-              done
-              echo "hp-mfp.home.lan not resolvable after 60s"
-              exit 1
-            ''}";
             Restart = "on-failure";
             RestartSec = 30;
           };
@@ -61,7 +53,7 @@ _: {
             name = "hp-m283fdw";
             description = "HP Color LaserJet MFP M283fdw";
             location = "Home Office";
-            deviceUri = "ipp://hp-mfp.home.lan/ipp/print";
+            deviceUri = "ipp://10.0.5.10/ipp/print";
             model = "everywhere";
           }
         ];

@@ -223,6 +223,10 @@ _: {
                 "Mod+Shift+Page_Up".action.move-window-to-workspace-up = { };
               };
           };
+
+          extraConfig = ''
+            include "experimental.kdl"
+          '';
         };
 
         # -------------------------------------------------------------------

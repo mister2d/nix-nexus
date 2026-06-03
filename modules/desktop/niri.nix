@@ -32,8 +32,7 @@ _: {
 
       # Systemd User Service Scoping
       systemd.user.services = {
-        # DANK LINUX 1.4 DOCS FIX: Disable niri-flake's polkit agent.
-        # The DMS built-in agent is the sole authentication authority.
+        # The shell's built-in agent is the sole authentication authority.
         niri-flake-polkit.enable = false;
 
         # Generic service scoping for background daemons

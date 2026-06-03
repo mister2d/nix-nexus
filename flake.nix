@@ -76,9 +76,6 @@
       url = "github:noctalia-dev/noctalia-shell/v5";
     };
 
-    # DankMaterialShell - Material Design Shell for Wayland
-    dms.url = "github:AvengeMedia/DankMaterialShell/v1.4.2";
-
     # Disko - Declarative disk partitioning
     disko = {
       url = "github:nix-community/disko";
