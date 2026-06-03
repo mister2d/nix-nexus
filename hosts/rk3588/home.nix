@@ -11,6 +11,7 @@ _: {
         homeManagerModules.user-bash
         homeManagerModules.user-neovim-home
         homeManagerModules.user-terminal-home
+        homeManagerModules.user-television-home
         homeManagerModules.user-dev-home
       ];
 

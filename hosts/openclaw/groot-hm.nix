@@ -31,6 +31,7 @@ _: {
             homeManagerModules.user-bash
             homeManagerModules.user-terminal-home
             homeManagerModules.user-neovim-home
+            homeManagerModules.user-television-home
             homeManagerModules.openclaw-home
           ];
         };
