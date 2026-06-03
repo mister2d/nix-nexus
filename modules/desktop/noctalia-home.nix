@@ -3,6 +3,7 @@ _: {
     {
       lib,
       pkgs,
+      config,
       inputs,
       ...
     }:
@@ -224,9 +225,6 @@ _: {
               };
           };
 
-          extraConfig = ''
-            include "experimental.kdl"
-          '';
         };
 
         # -------------------------------------------------------------------
@@ -295,6 +293,14 @@ _: {
             };
           };
         };
+      };
+
+      # niri-flake validates config.kdl in a Nix sandbox at build time, so any
+      # include of a runtime file fails validation. Override the output file to
+      # append the include as plain text, bypassing the sandbox validation step.
+      xdg.configFile.niri-config = lib.mkForce {
+        target = "niri/config.kdl";
+        text = config.programs.niri.finalConfig + "\ninclude \"experimental.kdl\"\n";
       };
     };
 }
