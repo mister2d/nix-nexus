@@ -61,6 +61,7 @@ _: {
 
             # Padding
             window_padding_width = 10;
+            hide_window_decorations = "yes";
 
             # Cursor
             cursor_shape = "block";
