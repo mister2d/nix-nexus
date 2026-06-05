@@ -3,25 +3,22 @@ _: {
     {
       pkgs,
       lib,
+      inputs,
       ...
     }:
     {
       nixpkgs.overlays = [
         (_final: prev: {
-          # Globally disable tests for niri to prevent build failures in ISO/resource-constrained environments.
-          niri = prev.niri.overrideAttrs (_old: {
+          niri = inputs.pkgs-niri.legacyPackages.${prev.stdenv.hostPlatform.system}.niri.overrideAttrs (_: {
             doCheck = false;
           });
         })
       ];
 
-      # Niri Configuration
-      # HEEDING THE WARNING: Using niri 25.11 from nixpkgs.
       programs.niri = {
         enable = true;
-        # Force the package override to ensure tests are skipped system-wide.
         package = lib.mkForce (
-          pkgs.niri.overrideAttrs (_old: {
+          inputs.pkgs-niri.legacyPackages.${pkgs.stdenv.hostPlatform.system}.niri.overrideAttrs (_: {
             doCheck = false;
           })
         );

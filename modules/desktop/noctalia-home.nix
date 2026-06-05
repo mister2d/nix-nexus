@@ -22,6 +22,7 @@ _: {
         # -------------------------------------------------------------------
         niri = {
           enable = true;
+          package = pkgs.niri;
           settings = {
 
             input = {
@@ -80,8 +81,7 @@ _: {
                   fixed = 920;
                 };
               }
-              # Per-window blur — requires niri ≥ 26.04.
-              # Uncomment once the fleet niri version is confirmed.
+              # background-effect (blur) — waiting on niri-flake HM module schema support
               # {
               #   background-effect = { blur = true; xray = false; };
               # }
@@ -98,8 +98,7 @@ _: {
                 matches = [ { namespace = "^noctalia-backdrop"; } ];
                 place-within-backdrop = true;
               }
-              # Blur behind bar, notification, dock, and panel surfaces.
-              # Requires niri ≥ 26.04; uncomment once confirmed.
+              # background-effect (blur) — waiting on niri-flake HM module schema support
               # {
               #   matches = [ { namespace = "^noctalia-(bar-[^\"]+|notification|dock|panel)$"; } ];
               #   background-effect.xray = false;
