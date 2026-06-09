@@ -2,9 +2,13 @@
   description = "nix-nexus — fleet configuration for NixOS workstations, servers, and standalone Home Manager hosts";
 
   nixConfig = {
-    extra-substituters = [ "https://noctalia.cachix.org" ];
+    extra-substituters = [
+      "https://noctalia.cachix.org"
+      "https://hyprland.cachix.org"
+    ];
     extra-trusted-public-keys = [
       "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
+      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
     ];
   };
 
@@ -29,6 +33,13 @@
     niri = {
       url = "github:sodiboo/niri-flake";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # Hyprland upstream flake for v0.55.3. nixos-25.11 ships 0.52.1 which lacks
+    # render.cm_auto_hdr. nixpkgs.follows reduces nixpkgs duplication; Hyprland's
+    # sub-inputs (aquamarine, hyprlang, etc.) retain their own pinned nixpkgs.
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     # inputs.nixpkgs.follows intentionally absent — required for the Noctalia Cachix binary cache.
     # See: https://docs.noctalia.dev/v5/getting-started/nixos/#binary-cache

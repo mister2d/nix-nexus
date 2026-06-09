@@ -51,6 +51,18 @@ _: {
             "gnome"
             "gtk"
           ];
+
+          # Hyprland uses its own portal for screen capture; GTK for the rest.
+          # xdg-desktop-portal-hyprland is added to extraPortals automatically
+          # by programs.hyprland in desktop-hyprland.nix; no manual entry needed.
+          hyprland = {
+            default = [
+              "hyprland"
+              "gtk"
+            ];
+            "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+            "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
+          };
         };
       };
     };

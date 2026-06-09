@@ -97,6 +97,70 @@ All 5 NixOS hosts: PASS. File discovery order preserved: addPath appends via
 `p ++ [path]`, so paths are [./modules, ./hosts, ./profiles] — same left-to-right
 order as the three-root imports list.
 
+## Hyprland + Noctalia v5 Stack Addition — sweet16 (2026-06-09)
+
+### Commits
+1. `feat(flake)`: add hyprland input and Cachix binary cache
+2. `feat(desktop)`: add hyprland XDG portal config to wayland module
+3. `feat(desktop)`: add desktop-hyprland NixOS module
+4. `feat(desktop)`: add desktop-hyprland-home HM module with Noctalia v5
+5. `feat(hardware)`: add hardware-z16-hypr-home for Hyprland on ThinkPad Z16
+6. `feat(sweet16)`: wire desktop-hyprland NixOS module to sweet16
+7. `feat(sweet16)`: wire Hyprland HM stack to sweet16 home profile
+8. `fix(desktop)`: remove duplicate noctalia module import from hyprland-home
+
+### NixOS closure delta (commit 6 wiring)
+
+Pre-wiring sweet16: `/nix/store/nfnsb03j1z9mg79y98sgcfvw2jniz4k4-nixos-system-sweet16-25.11.20260522.b77b3de.drv`
+Post-wiring sweet16: `/nix/store/6j42mkhy9v154h2w6mjfj1pphfmkwnav-nixos-system-sweet16-25.11.20260522.b77b3de.drv`
+
+| Host | Result |
+|---|---|
+| sweet16 | EXPECTED DELTA — Hyprland, hyprutils, gamemode, xdg-desktop-portal-hyprland added |
+| petunia | `/nix/store/6hssmlmvc40js6k97hmbmxd78aj1r3w2-…` ✓ ZERO DRIFT |
+| avina | `/nix/store/85mq1za6ziknh8rb4mpmjqkr3is5m4wf-…` ✓ ZERO DRIFT |
+| hermes | `/nix/store/xgmzf4jg3bb55gwxyngyi1xwi5pw4wx0-…` ✓ ZERO DRIFT |
+| openclaw | `/nix/store/yims0ds3jlflq1dhzpvipnc9sxicd16s-…` ✓ ZERO DRIFT |
+
+### HM closure delta (commit 7 wiring)
+
+sweet16 (ddukes): EXPECTED DELTA — wayland.windowManager.hyprland, hyprlock,
+hypridle, hyprsunset, hyprpicker packages added; programs.noctalia already
+present from desktop-noctalia-home (noctalia package not duplicated).
+Standalone HM configs (groot@dualie, groot@forge): ZERO DRIFT ✓
+groot@rk3588: empty (aarch64 not evaluated on this x86_64 host) ✓
+
+### programs.noctalia merge verification
+
+Both desktop-noctalia-home and desktop-hyprland-home contribute to
+programs.noctalia. The duplicate import conflict on programs.noctalia.package
+(unique option) was fixed by removing inputs.noctalia.homeModules.default from
+desktop-hyprland-home — it is imported once by desktop-noctalia-home.
+
+`nix flake check` passes green with no evaluation errors.
+
+### v0.55 config fix + keybinding restoration (2026-06-09)
+
+Post-initial-wiring, `hyprctl -j configerrors` revealed 24 config parse errors
+from Hyprland v0.53+ breaking changes. Fixed in commit `6e85cd3`:
+
+- `input.kb_repeat_delay/rate` → `input.repeat_delay/rate`
+- `gestures.workspace_swipe` and `workspace_swipe_fingers` removed
+- `dwindle.pseudotile` removed (toggle-only via dispatcher)
+- `layerrule` syntax: `blur namespace` → `blur on, match:namespace ^name$`
+- `layerrule` syntax: `ignorezero` → `ignore_alpha 0.0`
+- `windowrulev2` → `windowrule` with `rule value, match:field pattern` syntax
+- `togglesplit` dispatcher → `layoutmsg, togglesplit`
+- Removed `xwayland:force` rule (no v0.55 equivalent)
+- Added missing `Mod+Shift+V` Vivaldi keybind (absent from niri migration)
+- Fixed `Mod+Alt+E` emoji picker: wrapped in `bash -c` so inline env var is
+  evaluated by a shell; switched from bemenu to fuzzel (cleaner flag syntax)
+
+`nix build .#nixosConfigurations.sweet16.config.system.build.toplevel` PASS.
+Zero drift on non-sweet16 hosts (pure config-content change, no package adds).
+
+---
+
 ## FINAL SIGN-OFF — Simplification Refactor Complete
 
 All phases (A, B, C) complete. AGENTS.md §6 Definition of Done:

@@ -280,10 +280,10 @@ nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
 | Core NixOS | `core-<subsystem>` | `core-networking`, `core-zfs` |
 | Profiles | `<role>-default` | `workstation-default`, `server-default`, `desktop-default` |
 | Hardware NixOS | `hardware-<platform>` | `hardware-z16`, `hardware-petunia` |
-| Hardware HM | `hardware-<platform>-<compositor>-home` | `hardware-z16-sway-home` |
+| Hardware HM | `hardware-<platform>-<compositor>-home` | `hardware-z16-sway-home`, `hardware-z16-hypr-home` |
 | Services | `services-<stack>` | `services-matrix` |
-| Desktop NixOS | `desktop-<compositor>` | `desktop-sway`, `desktop-niri` |
-| Desktop HM | `desktop-<compositor>-home` | `desktop-sway-home`, `desktop-waybar-home` |
+| Desktop NixOS | `desktop-<compositor>` | `desktop-sway`, `desktop-niri`, `desktop-hyprland` |
+| Desktop HM | `desktop-<compositor>-home` | `desktop-sway-home`, `desktop-niri-home`, `desktop-hyprland-home` |
 | User HM | `user-<aspect>` | `user-home`, `user-bash`, `user-neovim-home` |
 | Host NixOS | `<hostname>-default` | `sweet16-default`, `hermes-default` |
 | Host HM | `<hostname>-home` | `sweet16-home`, `dualie-home` |

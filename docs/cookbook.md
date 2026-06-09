@@ -436,7 +436,7 @@ _: {
         nixosModules.workstation-default   # core policies
         nixosModules.desktop-default       # greetd, Wayland, fonts, theming
         nixosModules.development-default   # dev tools, Docker, scripts
-        nixosModules.desktop-sway          # compositor (or desktop-niri)
+        nixosModules.desktop-sway          # compositor (or desktop-niri, desktop-hyprland)
       ];
 
       networking.hostName = "<hostname>";

@@ -78,7 +78,7 @@ These have no hard release coupling. Update when you need new features or
 bug fixes from them:
 
 `flake-parts`, `import-tree`, `devenv`, `pre-commit-hooks`, `nixos-hardware`,
-`mcp-servers-nix`, `llm-agents`, `niri`, `dms`, `disko`, `rdna4-stack`,
+`mcp-servers-nix`, `llm-agents`, `niri`, `hyprland`, `dms`, `disko`, `rdna4-stack`,
 `nix-cachyos-kernel`
 
 ### Category 4 — Intentionally pinned inputs (do NOT update without review)

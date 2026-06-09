@@ -32,8 +32,7 @@ _: {
         nixosModules.development-default
 
         # Compositor & Shell
-        nixosModules.desktop-niri
-        nixosModules.desktop-noctalia
+        nixosModules.desktop-hyprland
       ];
 
       # Machine-specific overrides
