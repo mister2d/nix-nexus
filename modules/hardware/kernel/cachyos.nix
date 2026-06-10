@@ -35,7 +35,7 @@ _: {
     {
       options.hardware.cachyosKernel = {
 
-        enable = lib.mkEnableOption "CachyOS BORE kernel (interactive latency optimization, x86_64 microarch tuning)";
+        enable = lib.mkEnableOption "CachyOS kernel (performance-optimized Linux with x86_64 microarch tuning)";
 
         processorOpt = lib.mkOption {
           type = lib.types.enum [
@@ -54,8 +54,30 @@ _: {
               Xeon Ice Lake / Sapphire Rapids (verify): x86_64-v4 (has AVX-512)
               Xeon Skylake-SP / Broadwell-EP: x86_64-v3 (no AVX-512)
 
+            For variant = "server" with enableCustomBuild = false, this option is
+            ignored — no per-arch server binaries exist upstream.
+            Set enableCustomBuild = true to apply this to the server variant.
+
             Setting a level above the CPU's capability causes an illegal instruction
             boot failure. Verify with: grep -m1 flags /proc/cpuinfo | grep -o "avx512\|avx2"
+          '';
+        };
+
+        variant = lib.mkOption {
+          type = lib.types.enum [
+            "bore"
+            "server"
+          ];
+          default = "bore";
+          description = ''
+            Kernel variant to use.
+
+              bore   — BORE scheduler, 1000Hz, full preemption. Desktop/interactive. (default)
+              server — EEVDF scheduler, 300Hz, no preemption. Server/LLM inference.
+
+            When variant = "server" and enableCustomBuild = false, processorOpt is ignored
+            (no pre-built per-arch server variants upstream). Set enableCustomBuild = true
+            to also apply processorOpt (e.g. x86_64-v3) to the server kernel.
           '';
         };
 
@@ -135,9 +157,9 @@ _: {
                 + "Do not import this module on rk3588 or other aarch64 hosts.";
             }
             {
-              assertion = cfg.processorOpt != "x86_64-v2";
+              assertion = cfg.variant != "bore" || cfg.processorOpt != "x86_64-v2";
               message =
-                "hardware.cachyosKernel: x86_64-v2 has no binary cache. "
+                "hardware.cachyosKernel: x86_64-v2 has no binary cache for bore variant. "
                 + "Use x86_64-v1 (generic) or x86_64-v3 (if CPU supports AVX2).";
             }
           ];
@@ -152,18 +174,43 @@ _: {
           ];
 
           # -------------------------------------------------------------------------
-          # Kernel selection — two paths depending on enableCustomBuild.
+          # Kernel selection — four paths across variant × enableCustomBuild.
           # boot.kernelPackages is types.unspecified; its apply function calls
           # .extend on the value directly. lib.mkMerge is NOT safe here because
           # mergeDefaultOption passes the merge-marker attrset straight to apply.
           # Use if/then/else so the value is the actual linuxPackages scope.
           # -------------------------------------------------------------------------
           boot.kernelPackages = lib.mkForce (
-            if !cfg.enableCustomBuild then
-              # PATH A: pre-built attrset from the overlay; binary cache hit guaranteed.
+            if cfg.variant == "server" && !cfg.enableCustomBuild then
+              # SERVER PATH A: pre-built server kernel from overlay. No per-arch
+              # linuxPackages-cachyos-server exists, so packagesFor wraps it.
+              let
+                baseKernel = pkgs.cachyosKernels.linux-cachyos-server;
+              in
+              (pkgs.linuxKernel.packagesFor baseKernel).extend (
+                _final: _prev:
+                lib.optionalAttrs cfg.enableZfs {
+                  zfs_cachyos = pkgs.cachyosKernels.zfs-cachyos.override { kernel = baseKernel; };
+                }
+              )
+            else if cfg.variant == "server" && cfg.enableCustomBuild then
+              # SERVER PATH B: server kernel with CPU arch override → local build.
+              let
+                baseKernel = pkgs.cachyosKernels.linux-cachyos-server.override {
+                  inherit (cfg) processorOpt;
+                };
+              in
+              (pkgs.linuxKernel.packagesFor baseKernel).extend (
+                _final: _prev:
+                lib.optionalAttrs cfg.enableZfs {
+                  zfs_cachyos = pkgs.cachyosKernels.zfs-cachyos.override { kernel = baseKernel; };
+                }
+              )
+            else if !cfg.enableCustomBuild then
+              # BORE PATH A: pre-built attrset from overlay; binary cache hit guaranteed.
               pkgs.cachyosKernels.${linuxPackagesAttr}
             else
-              # PATH B: override-based build; produces a new hash → local build required.
+              # BORE PATH B: override-based build; produces a new hash → local build required.
               let
                 baseKernel = pkgs.cachyosKernels.${boreVariantAttr.${cfg.processorOpt}}.override {
                   bbr3 = cfg.enableBbr3;

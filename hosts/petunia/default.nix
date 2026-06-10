@@ -28,10 +28,23 @@ _: {
 
         # Compositor
         nixosModules.desktop-sway
+
+        # CachyOS server kernel (EEVDF + 300Hz + no preemption + x86_64-v3)
+        nixosModules.hardware-kernel-cachyos
       ];
 
       # Machine-specific overrides
       networking.hostName = "petunia";
+
+      # CachyOS server kernel: EEVDF scheduler, 300Hz timer, no preemption, x86_64-v3 ISA.
+      # processorOpt requires a local build (~45 min on the 5600X); ZFS wired via zfs-cachyos.
+      hardware.cachyosKernel = {
+        enable = true;
+        variant = "server";
+        processorOpt = "x86_64-v3";
+        enableZfs = true;
+        enableCustomBuild = true;
+      };
 
       # ZFS Workstation Tuning (AI/ML & Coding)
       nix-nexus.zfs = {

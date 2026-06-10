@@ -6,7 +6,6 @@ _: {
   flake.modules.nixos.petunia-hardware =
     {
       lib,
-      pkgs,
       modulesPath,
       ...
     }:
@@ -20,12 +19,9 @@ _: {
           systemd-boot.enable = true;
           efi.canTouchEfiVariables = true;
         };
-
-        # Pin to 6.12 (LTS) for ZFS stability as per GEMINI.md requirements
-        kernelPackages = lib.mkForce pkgs.linuxPackages_6_12;
-
         # Kernel Modules (from hardware scan + X570 specifics)
         # Early amdgpu KMS is handled by hardware.amdgpu.initrd.enable in rdna4-base.
+        # Kernel selection is handled by hardware.cachyosKernel in petunia-default.
       };
 
       # Networking
