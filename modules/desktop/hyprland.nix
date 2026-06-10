@@ -46,6 +46,8 @@ _: {
           };
           gpu = {
             apply_gpu_optimisations = "accept-responsibility";
+            # sweet16 has no card0; dGPU (RX 6700M) is card1.
+            gpu_device = 1;
           };
         };
       };
