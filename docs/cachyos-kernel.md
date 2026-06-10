@@ -1,17 +1,26 @@
-# CachyOS Kernel: Performance Enhancements on sweet16
+# CachyOS Kernel: Performance Enhancements
 
-**Host:** sweet16 — ThinkPad Z16 Gen 1, AMD Ryzen 7 PRO 6850H (Rembrandt, Zen 3+)  
-**Active kernel:** `7.0.10-cachyos` (`linux-cachyos-bore-x86_64-v3`)  
 **Module:** `modules/hardware/kernel/cachyos.nix`  
-**Upstream source:** `github:xddxdd/nix-cachyos-kernel/release`  
+**Upstream source:** `github:xddxdd/nix-cachyos-kernel/release`
+
+Two hosts use the CachyOS kernel, each with a different variant tuned to its workload:
+
+| Host | Variant | Scheduler | Timer | Preemption | CPU arch | Build |
+|------|---------|-----------|-------|------------|----------|-------|
+| sweet16 | `linux-cachyos-bore-x86_64-v3` | BORE | 1000Hz | full dynamic | x86_64-v3 | binary cache |
+| petunia | `linux-cachyos-server` + x86_64-v3 | EEVDF | 300Hz | full | x86_64-v3 | local (from source) |
 
 ---
+
+# sweet16 — ThinkPad Z16 Gen 1
+
+**Hardware:** AMD Ryzen 7 PRO 6850H (Rembrandt, Zen 3+), 32GB RAM  
+**Active kernel:** `7.0.10-cachyos` (`linux-cachyos-bore-x86_64-v3`)  
+**Config:** `hosts/sweet16/default.nix` → `hardware.cachyosKernel.variant = "bore"`
 
 ## Why This Kernel
 
-The stock NixOS kernel (6.12 LTS, previously used on this host) is tuned for server throughput: 250Hz timer, voluntary preemption, EEVDF scheduler. On an interactive laptop these defaults cause measurable scheduling latency, CPU frequency hesitation during burst tasks, and suboptimal ZFS integration. The CachyOS BORE variant rebalances all of these toward interactive responsiveness while retaining full upstream ABI compatibility for ZFS and kernel modules.
-
----
+The stock NixOS kernel (6.12 LTS) is tuned for server throughput: 250Hz timer, voluntary preemption, EEVDF scheduler. On an interactive laptop these defaults cause measurable scheduling latency, CPU frequency hesitation during burst tasks, and suboptimal ZFS integration. The CachyOS BORE variant rebalances all of these toward interactive responsiveness while retaining full upstream ABI compatibility for ZFS and kernel modules.
 
 ## Active Optimizations
 
@@ -162,9 +171,7 @@ $ cat /sys/kernel/mm/transparent_hugepage/enabled
 | `metaLimitPercent` | 85% | Allows metadata to occupy most of ARC; benefits inode-heavy dev workloads |
 | `dnodeLimitPercent` | 25% | Increases dnode cache for large directory trees (nixpkgs store, git repos) |
 
----
-
-## AMD P-State EPP (from nixos-hardware)
+## AMD P-State EPP
 
 **What it is:** The `amd_pstate=active` kernel parameter activates AMD's P-State EPP (Energy Performance Preference) driver. This is injected by `nixos-hardware.nixosModules.common-cpu-amd` for kernels >= 6.3 (the Z16 runs 7.0.10).
 
@@ -174,8 +181,6 @@ $ cat /sys/kernel/mm/transparent_hugepage/enabled
 - Frequency transitions occur in hardware in tens of microseconds vs. the OS governor's ~10ms polling cycle.
 - `power-profiles-daemon` (PPD) selects among `performance`, `balanced`, and `power-saver` EPP hints via the ACPI platform profile interface — these are exposed as the ThinkPad's Lenovo power modes.
 - The `initcall_blacklist=acpi_cpufreq_init` kernel param prevents the legacy driver from registering and conflicting.
-
----
 
 ## Host Kernel Parameters (ThinkPad Z16 Specific)
 
@@ -194,97 +199,265 @@ These complement the CachyOS kernel features with Z16-specific hardware quirks.
 | `initcall_blacklist=acpi_cpufreq_init` | Prevents the legacy CPUFreq driver from binding before AMD P-State can claim the interface |
 | `mem_sleep_default=s2idle` | Forces Modern Standby (S0ix) sleep state; the Z16 does not implement S3 at the firmware level |
 
----
+## Kernel Build Parameters Summary (sweet16)
 
-## Binary Cache Deployment
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Kernel variant | `linux-cachyos-bore-x86_64-v3` | `kernel-cachyos/default.nix` |
+| Kernel version | 7.0.10-cachyos | `linuxSources.latest` |
+| `cpusched` | `bore` | BORE patchset |
+| `processorOpt` | `x86_64-v3` | AVX2/BMI2/FMA, no AVX-512 |
+| `hzTicks` | `1000` | BORE variant default |
+| `tickrate` | `full` | `NO_HZ_FULL` |
+| `preemptType` | `full` | `PREEMPT_DYNAMIC` + `PREEMPT` |
+| `ccHarder` | `true` | `-O3` compilation |
+| `lto` | `none` | GCC; binary cache compatible |
+| `hugepage` | `always` | binary default |
+| `bbr3` | `false` | custom build only |
+| `acpiCall` | `false` | custom build only |
 
-The `linux-cachyos-bore-x86_64-v3` kernel is pre-built by upstream Hydra CI. The module adds two substituters so the closure is downloaded rather than compiled:
-
-| Cache | Purpose |
-|-------|---------|
-| `https://attic.xuyh0120.win/lantian` | Primary cache for CachyOS kernel closures |
-| `https://cache.garnix.io` | Secondary; also hosts ZFS and module package closures |
-
-The `overlays.pinned` overlay locks `pkgs.cachyosKernels` to the exact Hydra-built attrset, ensuring the store hash matches the cache entry. Using `overlays.default` instead would rebuild from source.
-
-These substituter settings are applied **unconditionally** (outside `mkIf cfg.enable`) to support the two-phase deployment pattern: Phase 1 activates the cache before the kernel is enabled, so the first `enable = true` rebuild is a binary download rather than a 45-minute local build.
-
----
-
-## Pending Enhancements (Require `enableCustomBuild = true`)
-
-These are declared in `hosts/sweet16/default.nix` but are not active in the current binary build. Enabling them requires setting `enableCustomBuild = true`, which invalidates the Hydra cache hash and triggers a full local kernel build (~45 min on the 6850H).
+## Pending Enhancements (sweet16, require `enableCustomBuild = true`)
 
 ### BBR3 TCP Congestion Control
 
 **Declared:** `enableBbr3 = true`
 **Current state:** Not active (`net.ipv4.tcp_congestion_control = cubic`). BBR3 is compiled as a module (`CONFIG_TCP_CONG_BBR3=m`) but not the system default.
 
-When active (custom build), `cachySettings.bbr3` sets:
-```
-TCP_CONG_BBR = yes
-DEFAULT_BBR = yes
-DEFAULT_TCP_CONG = bbr
-NET_SCH_FQ = yes       # Fair Queue — BBR3's required qdisc
-NET_SCH_FQ_CODEL = module
-```
-BBR3 measures the bottleneck bandwidth and RTT directly and adjusts the send rate to keep inflight data at exactly one BDP. On a high-speed WiFi or Ethernet link with occasional bufferbloat (hotel networks, hotspots), BBR3 maintains throughput while eliminating the latency spikes that CUBIC causes by backing off only after detecting loss.
+When active, sets `DEFAULT_TCP_CONG = bbr` and `NET_SCH_FQ = yes`. BBR3 measures bottleneck bandwidth and RTT directly, avoiding the loss-based backoff that CUBIC uses — useful on links with occasional bufferbloat.
 
 ### ACPI Call Patch
 
 **Declared:** `enableAcpiCall = true`
-**Current state:** Not active (patch not applied to binary build).
+**Current state:** Not active.
 
-Applies `misc/0001-acpi-call.patch` from `github:CachyOS/kernel-patches`. This exposes the kernel's `acpi_call` interface, allowing userspace to invoke arbitrary ACPI methods. On ThinkPads this is used to:
-- Gate/ungate the discrete 6500M dGPU via ACPI power methods when switching between iGPU-only and hybrid GPU modes.
-- Access ThinkPad EC charging methods for finer battery control beyond what the `charge_control_*_threshold` sysfs interface exposes.
+Applies `misc/0001-acpi-call.patch` from `github:CachyOS/kernel-patches`. Used on ThinkPads to gate/ungate the discrete 6500M dGPU and access EC charging ACPI methods.
 
 ### Transparent Hugepages — madvise Mode
 
 **Declared:** `hugepageMode = "madvise"`
-**Current state:** Not active; kernel built with ALWAYS (`[always] madvise never`).
+**Current state:** Not active; binary built with ALWAYS.
 
-When active, `cachySettings.hugepage.madvise` sets:
-```
-TRANSPARENT_HUGEPAGE_ALWAYS = no
-TRANSPARENT_HUGEPAGE_MADVISE = yes
-```
-Under `madvise`, hugepages are only allocated for address ranges where the application explicitly calls `madvise(MADV_HUGEPAGE)`. Applications that do this include llama.cpp (weight tensor regions), Java/JVM (heap), and some malloc implementations. The benefit over ALWAYS on a laptop: anonymous mappings that never need 2MB pages (many small allocations) don't waste memory on promotions that will be immediately split on access. Reduces idle RAM pressure from ~200–400MB typical overhead under ALWAYS mode.
+Under `madvise`, hugepages are only allocated for ranges that call `madvise(MADV_HUGEPAGE)` — llama.cpp weight tensors, JVM heap. Reduces idle RAM overhead from ALWAYS (~200–400MB) on a laptop where small anonymous mappings are common.
 
----
+## Before/After Comparison (sweet16)
 
-## Kernel Build Parameters Summary
-
-| Parameter | Value | Source |
-|-----------|-------|--------|
-| Kernel variant | `linux-cachyos-bore-x86_64-v3` | `kernel-cachyos/default.nix` |
-| Kernel version | 7.0.10-cachyos | `linuxSources.latest` |
-| `configVariant` | `linux-cachyos-bore` | CachyOS upstream |
-| `cpusched` | `bore` | BORE patchset |
-| `processorOpt` | `x86_64-v3` | AVX2/BMI2/FMA, no AVX-512 |
-| `hzTicks` | `1000` | mkCachyKernel default |
-| `tickrate` | `full` | `NO_HZ_FULL` |
-| `preemptType` | `full` | `PREEMPT_DYNAMIC` + `PREEMPT` |
-| `ccHarder` | `true` | `-O3` compilation |
-| `lto` | `none` | GCC; binary cache compatible |
-| `hugepage` | `always` | mkCachyKernel default (binary) |
-| `bbr3` | `false` | Not in binary; custom build only |
-| `acpiCall` | `false` | Not in binary; custom build only |
-| `hardened` | `false` | — |
-| `autoModules` | `true` | Maximizes module coverage |
-
----
-
-## Comparison: Before and After
-
-| Attribute | Before (6.12 LTS NixOS) | After (7.0.10 CachyOS BORE) |
-|-----------|------------------------|------------------------------|
+| Attribute | Before (6.12 LTS) | After (7.0.10 CachyOS BORE) |
+|-----------|-------------------|-----------------------------|
 | Scheduler | EEVDF | BORE (burst-aware EEVDF) |
 | I/O scheduler | bfq / mq-deadline | ADIOS |
-| Timer rate | 250Hz (4ms) | 1000Hz (1ms) |
-| Tickless | idle only (`NO_HZ_IDLE`) | full (`NO_HZ_FULL`) |
+| Timer rate | 250Hz | 1000Hz |
+| Tickless | idle only | full (`NO_HZ_FULL`) |
 | Preemption | voluntary | full dynamic (`PREEMPT_DYNAMIC`) |
 | Optimization | `-O2` | `-O3` |
 | ISA targeting | generic x86_64 | x86_64-v3 (AVX2/BMI2/FMA) |
 | ZFS package | nixpkgs `zfs` | `zfs_cachyos` (ABI-matched) |
-| Kernel line | 6.12.x | 7.0.x (latest-stable) |
+| Kernel line | 6.12.x | 7.0.x |
+
+---
+
+# petunia — LLM Inference Server
+
+**Hardware:** AMD Ryzen 5 5600X (Vermeer, Zen 3), 64GB RAM, RDNA4 GPU (Navi 48)  
+**Active kernel:** `7.0.10-cachyos` (`linux-cachyos-server`, custom build with `processorOpt = "x86_64-v3"`)  
+**Config:** `hosts/petunia/default.nix` → `hardware.cachyosKernel.variant = "server"`
+
+## Why This Kernel
+
+petunia is a dedicated LLM inference server. Its workload is sustained GPU compute (ROCm/HIP on RDNA4) with CPU work limited to tokenization, sampling, and ROCm dispatch overhead. The BORE scheduler is designed for interactive desktop workloads — it actively penalizes tasks that hold the CPU continuously, which is exactly what inference dispatch threads do. The server variant instead uses EEVDF with a 300Hz timer and full preemption, trading interactive-latency optimizations for reduced interrupt overhead and throughput-oriented scheduling.
+
+The upstream `linux-cachyos-server` binary does not have a pre-built x86_64-v3 variant, so a local build with `processorOpt = "x86_64-v3"` is used to preserve the AVX2/BMI2/FMA ISA tuning for ZFS ARC operations and memory paths. Build time on the 12-thread 5600X: **98 minutes 59 seconds**.
+
+## Active Optimizations
+
+All items below are confirmed active from `/proc/config.gz` on the running 7.0.10-cachyos kernel.
+
+### 1. EEVDF CPU Scheduler (no `CONFIG_SCHED_BORE`)
+
+**What it is:** Completely Fair EEVDF (Earliest Eligible Virtual Deadline First) scheduling without the BORE burst-penalty layer on top. Tasks are scheduled by their virtual deadline regardless of past CPU burst history.
+
+**What it does for this host:**
+- ROCm dispatch threads and inference loop threads are not penalized for holding the CPU — they run for their full time slice without having their priority reduced for doing sustained compute.
+- The scheduler does not introduce the burst-tracking overhead that BORE adds on every task wakeup.
+- EEVDF's deadline-based fairness is appropriate for a server where there is no interactive workload competing for the CPU.
+
+**Verified active:**
+```
+$ sysctl kernel.sched_bore
+sysctl: cannot stat /proc/sys/kernel/sched_bore: No such file or directory
+```
+
+### 2. 300Hz Timer (`CONFIG_HZ=300`)
+
+**What it is:** The server variant reduces the timer interrupt rate to 300Hz (3.3ms granularity), down from the 1000Hz used by the BORE desktop variant and up from the 250Hz stock NixOS default.
+
+**What it does for this host:**
+- During sustained GPU inference the CPU is mostly idle, waiting on the GPU. At 1000Hz, the CPU would service 700 extra timer IRQs/s compared to 300Hz for no benefit.
+- Lower timer rate means fewer unnecessary wakeups while the CPU is blocked on GPU command completion, allowing deeper C-states and reduced power draw.
+- 300Hz is a deliberate middle ground: coarser than 1000Hz (less interrupt overhead) but finer than 250Hz (allows reasonable sleep precision for async I/O and dispatch loops).
+
+**Verified active:**
+```
+CONFIG_HZ=300
+```
+
+### 3. Full Preemption (`CONFIG_PREEMPT=y`)
+
+**What it is:** The kernel is compiled with full preemption. Any kernel code path outside a spin-lock can be preempted by a higher-priority task.
+
+**Note on the server variant:** The `linux-cachyos-server` upstream definition declares `preemptType = "none"`, which was expected to produce `CONFIG_PREEMPT_NONE`. The compiled kernel has `CONFIG_PREEMPT=y` (full preemption) with `PREEMPT_DYNAMIC` disabled. This means the CachyOS server variant compiles with fixed full preemption rather than no-preemption. For a dedicated inference server with no interactive competing workloads, full preemption adds minimal overhead and is not a regression from the previous 6.12 LTS voluntary preemption.
+
+**Verified active:**
+```
+CONFIG_PREEMPT=y
+# CONFIG_PREEMPT_DYNAMIC is not set
+```
+
+### 4. O3 Compiler Optimization (`CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=y`)
+
+**What it is:** The kernel is compiled with GCC `-O3`.
+
+**What it does for this host:**
+- ZFS ARC lookup, NVMe I/O submission, memory allocator paths, and ROCm DMA management code in the AMDGPU driver are compiled with more aggressive inlining and vectorization.
+- On Zen 3, `-O3` with x86_64-v3 targeting enables AVX2 auto-vectorization for hot memory and math paths.
+
+**Verified active:**
+```
+CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=y
+```
+
+### 5. x86_64-v3 Microarchitecture Tuning (`CONFIG_X86_64_VERSION=3`)
+
+**What it is:** The kernel is compiled targeting x86_64-v3 (AVX, AVX2, BMI1, BMI2, FMA, MOVBE, POPCNT, SSE4.x, SSSE3).
+
+**What it does for this host:**
+The Ryzen 5 5600X (Zen 3) confirms all required flags:
+```
+$ grep -o "avx2\|bmi2\|fma" /proc/cpuinfo | sort -u
+avx2
+bmi2
+fma
+```
+- ZFS CRC32c checksumming and ARC metadata operations use AVX2-vectorized paths. On a model-serving host that loads multi-GB weight files through ZFS at startup, this reduces checksumming overhead.
+- Kernel memory management (page allocation, copy_from_user, memcpy) uses AVX2 instructions across the board.
+- This was the primary motivation for using `enableCustomBuild = true` — no pre-built `linux-cachyos-server-x86_64-v3` binary exists upstream.
+
+**Verified active:**
+```
+CONFIG_X86_64_VERSION=3
+```
+
+### 6. ADIOS I/O Scheduler — Compiled In (`CONFIG_MQ_IOSCHED_ADIOS=y`)
+
+**What it is:** ADIOS is compiled into the kernel. For the Samsung 990 EVO Plus NVMe, the active scheduler is `none` (hardware passthrough to the NVMe submission queues directly).
+
+**What it does for this host:**
+- NVMe SSDs with multiple hardware submission queues are most efficient with the `none` scheduler — I/O requests are submitted directly to the device's internal queue without software reordering overhead.
+- ADIOS is available for future use if a rotational or SATA device is added, without requiring a kernel rebuild.
+- Model file loading at startup (multi-GB reads from ZFS on NVMe) benefits from the direct-passthrough path.
+
+**Verified active:**
+```
+CONFIG_MQ_IOSCHED_ADIOS=y
+```
+```
+$ cat /sys/block/nvme0n1/queue/scheduler
+[none] mq-deadline kyber adios
+```
+
+### 7. Transparent Hugepages — Always Mode
+
+**What it is:** The kernel promotes anonymous 4KB pages into 2MB hugepages automatically.
+
+**What it does for this host:**
+- LLM weight tensors loaded into VRAM-adjacent system memory and ROCm pinned buffers use 2MB pages automatically, reducing TLB pressure during GPU DMA transfers.
+- The ROCm/HIP runtime's large buffer allocations (system memory staging for GPU upload) benefit from reduced page-table walk depth.
+- llama.cpp calls `madvise(MADV_HUGEPAGE)` on weight regions; with ALWAYS mode this is redundant but harmless.
+
+**Verified active:**
+```
+$ cat /sys/kernel/mm/transparent_hugepage/enabled
+[always] madvise never
+```
+
+### 8. ZFS — CachyOS-Matched Build (`zfs-cachyos 2.4.2-1`)
+
+**What it is:** ZFS built against the exact ABI of `7.0.10-cachyos`. Wired via the `packagesFor + .override { kernel = baseKernel; }` pattern (Pattern B) because no pre-built `linuxPackages-cachyos-server` attrset exists in the overlay.
+
+**Why it matters:**
+- `linux-cachyos-server` uses the same upstream kernel source as `linux-cachyos-latest`, so `zfs-cachyos` (built against latest) ABI-matches after the `override { kernel = baseKernel; }` substitution.
+- The ZFS module loads from `/run/booted-system/kernel-modules/lib/modules/7.0.10-cachyos/extra/zfs.ko.xz` — the CachyOS-patched build, not the nixpkgs vanilla ZFS.
+
+**ZFS tuning active on petunia:**
+
+| Parameter | Value | Rationale |
+|-----------|-------|-----------|
+| `arcMax` | 16 GB | 64GB RAM; 16GB ARC leaves headroom for GPU drivers and model buffers |
+| `arcMin` | 4 GB | Prevents aggressive ARC eviction under ROCm memory pressure |
+| `arcSysFree` | 8 GB | OOM safety margin for GPU driver allocations |
+| `metaLimitPercent` | 80% | Metadata-heavy workloads (nixpkgs store, git repos) |
+| `dnodeLimitPercent` | 20% | Dnode cache for large directory trees |
+
+**Pool status post-migration:**
+```
+pool: petunia  state: ONLINE  errors: No known data errors
+```
+
+## AMD P-State EPP
+
+`amd_pstate=active` is set in `modules/hardware/petunia/ryzen.nix`. The Ryzen 5 5600X supports CPPC (Collaborative Processor Performance Control); P-State EPP allows the firmware to handle frequency transitions directly in hardware, bypassing the OS governor polling cycle.
+
+## Host Kernel Parameters
+
+| Parameter | Effect |
+|-----------|--------|
+| `amd_pstate=active` | AMD P-State EPP driver; CPPC frequency control (set in `hardware-petunia`) |
+| `pcie_aspm=off` | Disables PCIe ASPM on the Gigabyte X570 AORUS MASTER (known stability quirk) |
+| `amdgpu.gpu_recovery=1` | Soft-reset on RDNA4 lockup detection |
+| `amdgpu.lockup_timeout=10000` | 10s lockup threshold; prevents false resets during sustained ROCm compute |
+| `iommu=pt` | IOMMU passthrough; reduces remapping overhead for RDNA4 DMA |
+| `amdgpu.ppfeaturemask=0xfffd7fff` | Enables full RDNA4 power/performance feature set |
+
+## Kernel Build Parameters Summary (petunia)
+
+| Parameter | Value | Source |
+|-----------|-------|--------|
+| Kernel variant | `linux-cachyos-server` | `kernel-cachyos/default.nix` |
+| Kernel version | 7.0.10-cachyos | `linuxSources.latest` |
+| `cpusched` | `eevdf` | server variant |
+| `processorOpt` | `x86_64-v3` | custom build override (no upstream binary) |
+| `hzTicks` | `300` | server variant |
+| `preemptType` | declared `none`, compiled `full` | see note in §3 above |
+| `ccHarder` | `true` | `-O3` compilation |
+| `lto` | `none` | GCC |
+| `hugepage` | `always` | default |
+| `enableCustomBuild` | `true` | required for `processorOpt` override |
+| Build time | 98 min 59 sec | 12-thread Ryzen 5 5600X, 2026-06-10 |
+
+## Before/After Comparison (petunia)
+
+| Attribute | Before (6.12.91 LTS) | After (7.0.10 CachyOS server+v3) |
+|-----------|----------------------|----------------------------------|
+| Scheduler | EEVDF (stock) | EEVDF (CachyOS-tuned, no BORE) |
+| I/O scheduler | bfq / mq-deadline | none (NVMe passthrough); ADIOS compiled in |
+| Timer rate | 250Hz | 300Hz |
+| Tickless | idle only | idle only |
+| Preemption | voluntary | full |
+| Optimization | `-O2` | `-O3` |
+| ISA targeting | generic x86_64 | x86_64-v3 (AVX2/BMI2/FMA) |
+| ZFS package | nixpkgs `zfs` | `zfs-cachyos 2.4.2-1` (ABI-matched) |
+| Kernel line | 6.12.x | 7.0.x |
+
+---
+
+# Binary Cache and Build Notes
+
+The `hardware-kernel-cachyos` module adds two substituters unconditionally (outside `mkIf cfg.enable`) so the caches are active before the kernel is enabled. This supports a two-phase deployment: Phase 1 activates the cache; Phase 2 enables the kernel and downloads rather than builds.
+
+| Cache | Purpose |
+|-------|---------|
+| `https://attic.xuyh0120.win/lantian` | Primary cache for CachyOS kernel and ZFS closures |
+| `https://cache.garnix.io` | Secondary; also hosts ZFS and module package closures |
+
+**sweet16 (bore, x86_64-v3):** Pre-built by upstream Hydra CI. `overlays.pinned` locks the store hash to the cache entry — always a binary download, no local build required.
+
+**petunia (server, x86_64-v3):** No pre-built binary exists for `linux-cachyos-server` with `processorOpt = "x86_64-v3"`. The kernel and ZFS module are built from source on the host. On a 12-thread Ryzen 5 5600X the build takes approximately 99 minutes. The `overlays.pinned` overlay still ensures the base kernel source is downloaded from cache; only the compilation step runs locally.
