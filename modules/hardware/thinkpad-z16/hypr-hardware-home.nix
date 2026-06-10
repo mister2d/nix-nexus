@@ -8,8 +8,12 @@ _: {
         # DP-1:  External ultrawide 3440×1440, to the right.
         # Catchall: any other connected output at preferred mode.
         monitor = [
-          "eDP-1,3840x2400@60.01,0x0,1.15,bitdepth,10"
-          "DP-1,3440x1440@144,3344x0,1.0"
+          # Scale 1.20 is the nearest preferred fractional value Hyprland v0.55
+          # supports for wp_fractional_scale_v1; 1.15 was silently rounded up.
+          # DP-1 offset = 3840 / 1.20 = 3200 scaled units.
+          # @60 matches the EDID — the panel only reports 60.00Hz.
+          "eDP-1,3840x2400@60,0x0,1.20,bitdepth,10"
+          "DP-1,3440x1440@144,3200x0,1.0"
           ",preferred,auto,1.0"
         ];
 

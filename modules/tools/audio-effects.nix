@@ -35,6 +35,17 @@ in
       preset = "Z16-Music-Balanced";
     };
 
+    # Ensure EasyEffects starts after PipeWire is ready, not just after the
+    # graphical session target fires. Without this, the service races PipeWire
+    # on some boots and the 5s Restart=on-failure delay causes audible silence.
+    systemd.user.services.easyeffects = {
+      Unit.After = [
+        "graphical-session.target"
+        "pipewire.service"
+        "pipewire-pulse.service"
+      ];
+    };
+
     # Wire assets into EasyEffects XDG spec for v8.x
     home.file =
       (mapFiles ".local/share/easyeffects/irs" irsPath)
