@@ -5,7 +5,7 @@ _: {
       home-manager = {
         useGlobalPkgs = true;
         useUserPackages = true;
-        backupFileExtension = "bak";
+        backupFileExtension = "bak-$(date +%Y%m%d%H%M%S)";
         extraSpecialArgs = {
           inherit (inputs) self;
           inherit inputs homeManagerModules;
