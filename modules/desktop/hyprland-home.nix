@@ -97,11 +97,12 @@ _: {
             "${pkgs.wl-clipboard}/bin/wl-paste -t text --watch ${pkgs.clipman}/bin/clipman store --no-persist"
             # Battery alert script.
             "${(import ../../lib/custom-scripts.nix { inherit pkgs; }).battery-alert}/bin/battery-alert"
-            # EasyEffects: WAYLAND_DISPLAY is not exported into the systemd user
-            # session until after graphical-session.target fires, so the service
-            # crashes on first start. Reset the failed state and restart it here,
-            # once the Wayland environment is live.
-            "systemctl --user reset-failed easyeffects.service; systemctl --user start easyeffects.service"
+            # EasyEffects: two races to win —
+            # 1. WAYLAND_DISPLAY is not in the systemd env until exec-once runs,
+            #    so the service crashes on first start; reset-failed clears that.
+            # 2. Noctalia's StatusNotifierWatcher may not be on the session bus
+            #    yet; poll until it is before restarting so the tray icon lands.
+            "bash -c 'until busctl --user status org.kde.StatusNotifierWatcher &>/dev/null; do sleep 0.2; done; systemctl --user reset-failed easyeffects.service; systemctl --user start easyeffects.service'"
           ];
 
           # ── General ───────────────────────────────────────────────────────
