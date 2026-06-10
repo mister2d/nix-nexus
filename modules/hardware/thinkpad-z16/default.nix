@@ -63,9 +63,10 @@ _: {
           SUBSYSTEM=="power_supply", KERNEL=="BAT0", ATTR{charge_control_start_threshold}="75", ATTR{charge_control_end_threshold}="80"
 
           # Mic mute LED: force off at boot and allow audio group to sync it at runtime.
-          # thinkpad_acpi initialises brightness=1; GROUP+MODE lets the
-          # mic-mute-led-sync user service update it without elevated privileges.
-          ACTION=="add", SUBSYSTEM=="leds", KERNEL=="platform::micmute", GROUP="audio", MODE="0664", ATTR{brightness}="0"
+          # thinkpad_acpi initialises brightness=1. GROUP/MODE on the device node
+          # does not propagate to sysfs attribute files, so RUN+= explicitly sets
+          # group ownership and mode on the brightness file for mic-mute-led-sync.
+          ACTION=="add", SUBSYSTEM=="leds", KERNEL=="platform::micmute", ATTR{brightness}="0", RUN+="${pkgs.coreutils}/bin/chown :audio /sys/class/leds/platform::micmute/brightness", RUN+="${pkgs.coreutils}/bin/chmod 0664 /sys/class/leds/platform::micmute/brightness"
         '';
       };
 
