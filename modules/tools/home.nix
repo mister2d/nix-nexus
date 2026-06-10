@@ -123,6 +123,9 @@ _: {
           zam-plugins # EasyEffects zam-plugins-lv2
           mda_lv2 # EasyEffects mda.lv2
 
+          # Sync (manual invocation — service autostart disabled)
+          syncthing
+
           # Secret Management & VPN
           libsecret # DBus interface for secrets (CLI: secret-tool)
           seahorse # GNOME GUI for managing keys and passwords
@@ -202,16 +205,7 @@ _: {
       };
 
       # User Services
-      # These services run in the background for the current user.
-      services.syncthing = {
-        enable = true;
-        # Disable the internal monitor process to allow systemd to manage the lifecycle
-        # directly. This ensures only one 'syncthing' process appears in the list.
-        extraOptions = [
-          "--no-restart"
-          "--no-browser"
-        ];
-      };
+      services.syncthing.enable = false;
 
       # Activation Scripts
       # These scripts run during Home Manager activation to handle session state.
