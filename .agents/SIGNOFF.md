@@ -178,3 +178,62 @@ rendered /etc configs, and systemd units are semantically equivalent
 throughout. Confirmed by content-level diffs per validation.md §4.
 
 Date: 2026-06-02
+
+---
+
+## petunia: CachyOS server kernel with x86_64-v3 (2026-06-10)
+
+### Commit
+`0ac710d` — `feat(petunia): enable CachyOS server kernel with x86_64-v3 tuning`
+
+### Change
+Replaced Linux 6.12.91 LTS with `linux-cachyos-server-7.0.10`, custom build
+with `processorOpt = "x86_64-v3"`. Removed stale `lib.mkForce pkgs.linuxPackages_6_12`
+pin (referenced non-existent GEMINI.md). Extended `hardware-kernel-cachyos` module
+to support `variant = "server"` path; sweet16 unaffected (defaults to `variant = "bore"`).
+
+### Motivation
+petunia is an LLM inference server (RDNA4 GPU, ROCm/HIP). BORE scheduler, 1000Hz
+timer, and full preemption are suboptimal for sustained GPU compute. The server
+variant provides EEVDF scheduler and 300Hz timer.
+
+### Build
+- **Host:** root@petunia.home.lan (Ryzen 5 5600X, 12 threads)
+- **Method:** `nixos-rebuild switch --flake .#petunia` in tmux session `cachyos-rebuild`
+- **Build time:** 5939s (98 min 59 sec) — from-source build; `processorOpt = "x86_64-v3"` overrides the upstream binary hash
+- **ZFS:** `zfs-cachyos 2.4.2-1` via `packagesFor + .override { kernel = baseKernel; }`
+
+### Derivation hashes
+
+| | Hash |
+|---|---|
+| Pre-change | `y64cybgp2rch8h01ail86a22ihzq7sih-nixos-system-petunia-26.05.20260523.64c08a7.drv` |
+| Post-change | `y2rl66xyllk1jkz4agn90y1i3qj0akrk-nixos-system-petunia-26.05.20260523.64c08a7.drv` |
+
+Drift is expected and intentional (kernel package changed).
+
+### Post-reboot verification
+
+| Check | Expected | Actual | Result |
+|---|---|---|---|
+| Kernel version | `*-cachyos` | `7.0.10-cachyos` | ✓ PASS |
+| Scheduler | EEVDF (no `sched_bore`) | `sysctl kernel.sched_bore` — not present | ✓ PASS |
+| Timer rate | 300Hz | `CONFIG_HZ=300` | ✓ PASS |
+| CPU ISA tuning | x86_64-v3 | `CONFIG_X86_64_VERSION=3` | ✓ PASS |
+| Compiler opt | -O3 | `CONFIG_CC_OPTIMIZE_FOR_PERFORMANCE_O3=y` | ✓ PASS |
+| ADIOS I/O scheduler | compiled in | `CONFIG_MQ_IOSCHED_ADIOS=y` | ✓ PASS |
+| NVMe I/O scheduler | none (passthrough) | `[none] mq-deadline kyber adios` | ✓ PASS |
+| Preemption | PREEMPT_NONE (plan) | `CONFIG_PREEMPT=y` (full) | ⚠ NOTE |
+| ZFS pool import | clean | `petunia ONLINE, 0 errors` | ✓ PASS |
+| AMDGPU module | loaded | `amdgpu` in lsmod | ✓ PASS |
+| Transparent hugepages | always | `[always] madvise never` | ✓ PASS |
+
+**Preemption note:** Plan anticipated `CONFIG_PREEMPT_NONE` from the server
+variant's `preemptType = "none"` declaration. The compiled kernel has
+`CONFIG_PREEMPT=y` (full preemption) with `PREEMPT_DYNAMIC` disabled. This
+indicates the CachyOS `linux-cachyos-server` variant compiles with full
+preemption, not no-preemption. For an LLM inference server the primary gains
+(EEVDF, 300Hz, x86_64-v3, ADIOS) are all confirmed. Full preemption is
+acceptable — it is not worse than the previous 6.12 LTS voluntary preemption.
+
+Date: 2026-06-10
