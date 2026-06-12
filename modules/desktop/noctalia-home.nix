@@ -37,14 +37,14 @@ _: {
           # wallpaper.default.path is left unset; configure per-host or at
           # runtime via the wallpaper panel (persisted to settings.toml).
           wallpaper = {
-            enabled = false;
+            enabled = true;
             fill_mode = "crop";
           };
 
           # https://docs.noctalia.dev/v5/desktop/wallpaper/#backdrop
           # Pairs with the compositor's layer/layerrule for noctalia-backdrop.
           backdrop = {
-            enabled = false;
+            enabled = true;
             blur_intensity = 0.5;
             tint_intensity = 0.3;
           };
@@ -53,9 +53,23 @@ _: {
           bar = {
             main = {
               position = "top";
-              start = [ "workspaces" ];
+              start = [
+                "launcher"
+                "workspaces"
+              ];
               center = [ "clock" ];
-              end = [ ];
+              end = [
+                "media"
+                "tray"
+                "notifications"
+                "network"
+                "bluetooth"
+                "volume"
+                "brightness"
+                "battery"
+                "control-center"
+                "session"
+              ];
             };
           };
         };
