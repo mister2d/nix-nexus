@@ -40,7 +40,7 @@ _: {
         #                     ships 0.52.1 which predates the option rename).
         render = {
           cm_enabled = true;
-          cm_auto_hdr = true;
+          cm_auto_hdr = false;
         };
 
         # ── Z16-Specific Input Overrides ──────────────────────────────────
