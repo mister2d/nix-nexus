@@ -121,11 +121,11 @@ _: {
           decoration = {
             rounding = 10;
             active_opacity = 1.0;
-            inactive_opacity = 0.92;
+            inactive_opacity = 1.0;
             fullscreen_opacity = 1.0;
 
             blur = {
-              enabled = true;
+              enabled = false;
               size = 8;
               passes = 3;
               new_optimizations = true;
@@ -136,20 +136,20 @@ _: {
             };
 
             shadow = {
-              enabled = true;
+              enabled = false;
               range = 8;
               render_power = 3;
               color = "rgba(00000066)";
               color_inactive = "rgba(00000033)";
             };
 
-            dim_inactive = true;
+            dim_inactive = false;
             dim_strength = 0.1;
           };
 
           # ── Animations ────────────────────────────────────────────────────
           animations = {
-            enabled = true;
+            enabled = false;
             bezier = [
               "myBezier, 0.05, 0.9, 0.1, 1.05"
               "linear, 0.0, 0.0, 1.0, 1.0"
@@ -212,21 +212,6 @@ _: {
           # ── Render / Color Management / HDR ───────────────────────────────
           # INTENTIONALLY ABSENT HERE. These are display-hardware-specific
           # (OLED HDR capability) and live in hardware-z16-hypr-home.nix.
-
-          # ── Layer rules for Noctalia surfaces ─────────────────────────────
-          # Noctalia publishes named wlr-layer-shell surfaces. These rules apply
-          # blur and transparency effects via Hyprland's compositor pipeline.
-          # ignorezero: prevents input bleed-through behind transparent regions.
-          layerrule = [
-            "blur on, match:namespace ^noctalia-backdrop$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-backdrop$"
-            "blur on, match:namespace ^noctalia-bar-main$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-bar-main$"
-            "blur on, match:namespace ^noctalia-notification$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-notification$"
-            "blur on, match:namespace ^noctalia-panel$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-panel$"
-          ];
 
           # ── Window rules ──────────────────────────────────────────────────
           windowrule = [
