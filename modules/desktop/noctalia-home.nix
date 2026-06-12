@@ -44,7 +44,7 @@ _: {
           # https://docs.noctalia.dev/v5/desktop/wallpaper/#backdrop
           # Pairs with the compositor's layer/layerrule for noctalia-backdrop.
           backdrop = {
-            enabled = true;
+            enabled = false;
             blur_intensity = 0.5;
             tint_intensity = 0.3;
           };
