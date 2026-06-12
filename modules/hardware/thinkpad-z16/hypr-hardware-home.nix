@@ -39,8 +39,8 @@ _: {
         #                     Added in v0.41; requires upstream flake (nixos-25.11
         #                     ships 0.52.1 which predates the option rename).
         render = {
-          cm_enabled = false;
-          cm_auto_hdr = false;
+          cm_enabled = true;
+          cm_auto_hdr = true;
         };
 
         # ── Z16-Specific Input Overrides ──────────────────────────────────
