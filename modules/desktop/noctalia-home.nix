@@ -54,7 +54,7 @@ _: {
             main = {
               position = "top";
               start = [ ];
-              center = [ ];
+              center = [ "clock" ];
               end = [ ];
             };
           };
