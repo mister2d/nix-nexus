@@ -53,7 +53,7 @@ _: {
           bar = {
             main = {
               position = "top";
-              start = [ ];
+              start = [ "workspaces" ];
               center = [ "clock" ];
               end = [ ];
             };
