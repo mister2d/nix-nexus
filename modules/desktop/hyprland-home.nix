@@ -429,13 +429,7 @@ _: {
       # Noctalia does not bundle a blue-light daemon. Runs as an independent
       # systemd user service tied to hyprland-session.target.
       # -----------------------------------------------------------------------
-      services.hyprsunset = {
-        enable = true;
-        extraArgs = [
-          "--temperature"
-          "4000"
-        ];
-      };
+      services.hyprsunset.enable = false;
 
       home.sessionVariables = {
         XDG_CURRENT_DESKTOP = lib.mkDefault "Hyprland";
