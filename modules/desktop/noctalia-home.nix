@@ -58,18 +58,7 @@ _: {
                 "workspaces"
               ];
               center = [ "clock" ];
-              end = [
-                "media"
-                "tray"
-                "notifications"
-                "network"
-                "bluetooth"
-                "volume"
-                "brightness"
-                "battery"
-                "control-center"
-                "session"
-              ];
+              end = [ ];
             };
           };
         };
