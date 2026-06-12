@@ -53,11 +53,8 @@ _: {
           bar = {
             main = {
               position = "top";
-              start = [
-                "launcher"
-                "workspaces"
-              ];
-              center = [ "clock" ];
+              start = [ ];
+              center = [ ];
               end = [ ];
             };
           };
