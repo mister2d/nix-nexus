@@ -37,7 +37,7 @@ _: {
           # wallpaper.default.path is left unset; configure per-host or at
           # runtime via the wallpaper panel (persisted to settings.toml).
           wallpaper = {
-            enabled = true;
+            enabled = false;
             fill_mode = "crop";
           };
 
