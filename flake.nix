@@ -38,7 +38,7 @@
     # render.cm_auto_hdr. nixpkgs.follows reduces nixpkgs duplication; Hyprland's
     # sub-inputs (aquamarine, hyprlang, etc.) retain their own pinned nixpkgs.
     hyprland = {
-      url = "github:hyprwm/Hyprland";
+      url = "github:hyprwm/Hyprland/v0.55.4";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
     # inputs.nixpkgs.follows intentionally absent — required for the Noctalia Cachix binary cache.
