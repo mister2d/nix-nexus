@@ -255,7 +255,7 @@ _: {
             # ── Applications ──
             "$mod, RETURN, exec, $terminal"
             "$mod SHIFT, RETURN, exec, $terminal2"
-            "$mod SHIFT, B, exec, google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported"
+            "$mod SHIFT, B, exec, ${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi'"
             "$mod CTRL, B, exec, google-chrome-stable --ozone-platform=wayland"
             "$mod SHIFT, D, exec, ${pkgs.wdisplays}/bin/wdisplays"
             "$mod SHIFT, A, exec, audio-selector sink"
@@ -268,9 +268,8 @@ _: {
             "$mod SHIFT, E, exit"
             "$mod, F, fullscreen"
             "$mod SHIFT, SPACE, togglefloating"
-            "$mod, SPACE, togglefloating"
             "$mod, P, pseudo"
-            "$mod, J, layoutmsg, togglesplit"
+            "$mod, E, layoutmsg, togglesplit"
             "$mod, R, submap, resize"
 
             # ── Focus — Vim keys ──
@@ -336,7 +335,7 @@ _: {
           binde = , l,      resizeactive, 20 0
           binde = , h,      resizeactive, -20 0
           binde = , k,      resizeactive, 0 -20
-          binde = , j,      resizeactive, 0 10
+          binde = , j,      resizeactive, 0 20
           bind  = , escape, submap, reset
           bind  = , return, submap, reset
           bind  = $mod, R,  submap, reset
