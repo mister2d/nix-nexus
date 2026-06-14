@@ -20,15 +20,17 @@ _: {
       fgHex = "FFFFFF";
 
       # Workspace switch + move binds for 1–10, generated to avoid repetition.
+      # Workspace 10 uses key "0", matching sway's $mod+0 = workspace 10.
       wsBinds = builtins.concatLists (
         builtins.genList (
           i:
           let
-            n = toString (i + 1);
+            num = i + 1;
+            key = if num == 10 then "0" else toString num;
           in
           [
-            "${mod}, ${n}, workspace, ${n}"
-            "${mod} SHIFT, ${n}, movetoworkspace, ${n}"
+            "${mod}, ${key}, workspace, ${toString num}"
+            "${mod} SHIFT, ${key}, movetoworkspace, ${toString num}"
           ]
         ) 10
       );
