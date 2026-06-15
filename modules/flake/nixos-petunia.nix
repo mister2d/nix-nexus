@@ -18,6 +18,7 @@ in
       inputs.nixos-hardware.nixosModules.common-cpu-amd
       inputs.nixos-hardware.nixosModules.common-gpu-amd
       inputs.nixos-hardware.nixosModules.common-pc-ssd
+      inputs.rdna4-stack.nixosModules.rdna4-dual
       inputs.rdna4-stack.nixosModules.rdna4-full
       nixos.petunia-default
       inputs.home-manager-unstable.nixosModules.home-manager
