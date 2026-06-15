@@ -538,7 +538,8 @@ docs/
 ├── storage.md                ← CephFS and ZFS dataset strategies
 ├── terminal.md               ← Kitty/Tmux config and Bash aliases
 ├── non-nixos.md              ← standalone HM migration guide
-└── devenv.md                 ← declarative dev environments
+├── devenv.md                 ← declarative dev environments
+└── petunia.md                ← TPM2 auto-unlock, dual GPU, rebuild procedure
 .agents/
 ├── SIGNOFF.md                ← closure baseline and drift sign-offs
 ├── validation.md             ← baseline capture and verification scripts
