@@ -23,7 +23,7 @@ _: {
         # ── Input Overrides ───────────────────────────────────────────────
         # Desktop workstation: flat mouse acceleration, no touchpad overrides.
         input = {
-          accel_profile = "flat";
+          accel_profile = lib.mkForce "flat";
         };
       };
 
