@@ -27,7 +27,7 @@ _: {
         nixosModules.development-default
 
         # Compositor
-        nixosModules.desktop-sway
+        nixosModules.desktop-hyprland
 
         # CachyOS server kernel (EEVDF + 300Hz + no preemption + x86_64-v3)
         nixosModules.hardware-kernel-cachyos
