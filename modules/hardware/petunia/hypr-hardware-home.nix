@@ -22,7 +22,7 @@ _: {
 
         # ── Input Overrides ───────────────────────────────────────────────
         # Desktop workstation: flat mouse acceleration, no touchpad overrides.
-        input.mouse = {
+        input = {
           accel_profile = "flat";
         };
       };
