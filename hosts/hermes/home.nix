@@ -16,7 +16,8 @@ _: {
       });
       pythonEnv = hermesPython.withPackages (
         _:
-        pythonDeps
+        [ hermesPkg ]
+        ++ pythonDeps
         ++ [
           (hermesPython.pkgs.python-olm.override { olm = olm-allowed; })
           hermesPython.pkgs.pycryptodome
