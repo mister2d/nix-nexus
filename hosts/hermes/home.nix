@@ -14,10 +14,20 @@ _: {
           knownVulnerabilities = [ ];
         };
       });
+      aiosqlite-updated = hermesPython.pkgs.aiosqlite.overridePythonAttrs (_old: {
+        version = "0.22.1";
+        src = pkgs.fetchPypi {
+          pname = "aiosqlite";
+          version = "0.22.1";
+          hash = "sha256-RfAKUKB1+/w7qF2tTEjN3EpD7E4sp5nuidfJBo46xi0=";
+        };
+      });
       pythonEnv = hermesPython.withPackages (
         _:
         pythonDeps
         ++ [
+          aiosqlite-updated
+          hermesPython.pkgs.aiohttp-socks
           (hermesPython.pkgs.python-olm.override { olm = olm-allowed; })
           hermesPython.pkgs.pycryptodome
           hermesPython.pkgs.unpaddedbase64
