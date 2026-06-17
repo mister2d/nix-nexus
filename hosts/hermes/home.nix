@@ -8,7 +8,7 @@ _: {
       hermesPkg = pkgs.llm-agents.hermes-agent;
       allDeps = hermesPkg.propagatedBuildInputs;
       hermesPython = builtins.elemAt allDeps (builtins.length allDeps - 1);
-      pythonDeps = builtins.filter (p: p != hermesPython) allDeps;
+      pythonDeps = builtins.filter (p: p != hermesPython && (p.pname or null) != "aiosqlite") allDeps;
       olm-allowed = pkgs.olm.overrideAttrs (old: {
         meta = old.meta // {
           knownVulnerabilities = [ ];
