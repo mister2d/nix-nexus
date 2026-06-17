@@ -35,6 +35,13 @@
             checkPhase = "true";
             pytestCheckPhase = "true";
           });
+
+          # PyO3 0.24.x caps at Python 3.13; use stable ABI for 3.14+
+          pydantic-core = pyPrev.pydantic-core.overridePythonAttrs (old: {
+            env = (old.env or { }) // {
+              PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1";
+            };
+          });
         })
       ];
     };
