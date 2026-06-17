@@ -19,7 +19,7 @@ _: {
         src = pkgs.fetchPypi {
           pname = "aiosqlite";
           version = "0.22.1";
-          hash = "sha256-RfAKUKB1+/w7qF2tTEjN3EpD7E4sp5nuidfJBo46xi0=";
+          hash = "sha256-BD4L140yiIwKnKkPx4izh5aEM2DIVacmKlMoExM6BlA=";
         };
       });
       pythonEnv = hermesPython.withPackages (
