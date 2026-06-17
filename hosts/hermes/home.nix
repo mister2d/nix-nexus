@@ -16,8 +16,7 @@ _: {
       });
       pythonEnv = hermesPython.withPackages (
         _:
-        [ hermesPkg ]
-        ++ pythonDeps
+        pythonDeps
         ++ [
           (hermesPython.pkgs.python-olm.override { olm = olm-allowed; })
           hermesPython.pkgs.pycryptodome
@@ -29,7 +28,7 @@ _: {
     {
       xdg.configFile."systemd/user/hermes-gateway.service.d/nix-deps.conf".text = ''
         [Service]
-        Environment="PYTHONPATH=${pythonEnv}/${hermesPython.sitePackages}"
+        Environment="PYTHONPATH=${hermesPkg}/${hermesPython.sitePackages}:${pythonEnv}/${hermesPython.sitePackages}"
       '';
     };
 }
