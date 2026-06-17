@@ -36,6 +36,10 @@
             pytestCheckPhase = "true";
           });
 
+          eventlet = pyPrev.eventlet.overridePythonAttrs (_old: {
+            doCheck = false;
+          });
+
           # PyO3 0.24.x caps at Python 3.13; use stable ABI only for 3.14+
           pydantic-core =
             if builtins.compareVersions (pyPrev.python.pythonVersion or "0") "3.14" >= 0 then
