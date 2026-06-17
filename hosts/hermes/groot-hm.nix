@@ -29,6 +29,7 @@ _: {
             llm-agents.hermes-agent
             nodejs_24
             python314
+            python314Packages.mcp
             uv
             git
             btop
