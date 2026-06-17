@@ -36,12 +36,16 @@
             pytestCheckPhase = "true";
           });
 
-          # PyO3 0.24.x caps at Python 3.13; use stable ABI for 3.14+
-          pydantic-core = pyPrev.pydantic-core.overridePythonAttrs (old: {
-            env = (old.env or { }) // {
-              PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1";
-            };
-          });
+          # PyO3 0.24.x caps at Python 3.13; use stable ABI only for 3.14+
+          pydantic-core =
+            if builtins.compareVersions (pyPrev.python.pythonVersion or "0") "3.14" >= 0 then
+              pyPrev.pydantic-core.overridePythonAttrs (old: {
+                env = (old.env or { }) // {
+                  PYO3_USE_ABI3_FORWARD_COMPATIBILITY = "1";
+                };
+              })
+            else
+              pyPrev.pydantic-core;
         })
       ];
     };
