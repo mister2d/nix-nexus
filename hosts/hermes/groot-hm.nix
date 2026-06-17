@@ -28,8 +28,8 @@ _: {
           home.packages = with pkgs; [
             llm-agents.hermes-agent
             nodejs_24
-            python314
-            python314Packages.mcp
+            python313
+            python313Packages.mcp
             uv
             git
             btop

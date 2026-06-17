@@ -36,44 +36,6 @@
             pytestCheckPhase = "true";
           });
 
-          eventlet = pyPrev.eventlet.overridePythonAttrs (_old: {
-            doCheck = false;
-          });
-
-          # pydantic-core 2.33.2 uses PyO3 0.24.1 which caps at Python 3.13.
-          # For Python 3.14+ we pull the source from nixpkgs-unstable (2.41.5)
-          # which has proper Python 3.14 support, and upgrade pydantic to match.
-          pydantic-core =
-            let
-              isPy314Plus = builtins.compareVersions (pyPrev.python.pythonVersion or "0") "3.14" >= 0;
-              unstablePy314 =
-                (import inputs.nixpkgs-unstable {
-                  inherit (prev.stdenv.hostPlatform) system;
-                  config.allowUnfree = true;
-                }).python314Packages;
-            in
-            if isPy314Plus then
-              pyPrev.pydantic-core.overridePythonAttrs (_old: {
-                inherit (unstablePy314.pydantic-core) version src cargoDeps;
-              })
-            else
-              pyPrev.pydantic-core;
-
-          pydantic =
-            let
-              isPy314Plus = builtins.compareVersions (pyPrev.python.pythonVersion or "0") "3.14" >= 0;
-              unstablePy314 =
-                (import inputs.nixpkgs-unstable {
-                  inherit (prev.stdenv.hostPlatform) system;
-                  config.allowUnfree = true;
-                }).python314Packages;
-            in
-            if isPy314Plus then
-              pyPrev.pydantic.overridePythonAttrs (_old: {
-                inherit (unstablePy314.pydantic) version src;
-              })
-            else
-              pyPrev.pydantic;
         })
       ];
     };
