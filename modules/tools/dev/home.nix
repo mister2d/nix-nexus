@@ -119,7 +119,7 @@ _: {
           [
             # From llm-agents (Latest)
             agentPkgs.claude-code
-            agentPkgs.gemini-cli
+            agentPkgs.antigravity-cli
             agentPkgs.opencode
             agentPkgs.pi # v0.70.2 > unstable v0.67
 
