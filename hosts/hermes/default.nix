@@ -54,8 +54,6 @@ _: {
         fstrim.enable = false;
       };
 
-      programs.nix-ld.enable = true;
-
       programs.tmux = {
         enable = true;
         shortcut = "a";
