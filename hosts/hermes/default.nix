@@ -13,7 +13,7 @@ _: {
       ];
 
       proxmoxLXC = {
-        privileged = false;
+        privileged = true;
         manageNetwork = false;
       };
 
