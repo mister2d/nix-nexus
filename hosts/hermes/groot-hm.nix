@@ -41,6 +41,7 @@ _: {
             github-mcp-server
             unstablePkgs.mcp-nixos
             unstablePkgs.tirith
+            unstablePkgs.apptainer
             mcp-server-time
             terraform-mcp-server
           ];
