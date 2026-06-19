@@ -40,6 +40,7 @@ _: {
             context7-mcp
             github-mcp-server
             unstablePkgs.mcp-nixos
+            unstablePkgs.tirith
             mcp-server-time
             terraform-mcp-server
           ];
