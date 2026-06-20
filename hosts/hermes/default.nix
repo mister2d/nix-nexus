@@ -2,10 +2,17 @@ _: {
   flake.modules.nixos.hermes-default =
     {
       pkgs,
+      inputs,
       modulesPath,
       nixosModules,
       ...
     }:
+    let
+      unstablePkgs = import inputs.nixpkgs-unstable {
+        inherit (pkgs.stdenv.hostPlatform) system;
+        config.allowUnfree = true;
+      };
+    in
     {
       imports = [
         (modulesPath + "/virtualisation/proxmox-lxc.nix")
@@ -54,21 +61,30 @@ _: {
         fstrim.enable = false;
       };
 
-      programs.nix-ld.enable = true;
+      programs = {
+        nix-ld.enable = true;
 
-      programs.tmux = {
-        enable = true;
-        shortcut = "a";
-        baseIndex = 1;
-        escapeTime = 0;
-        keyMode = "vi";
-        terminal = "tmux-256color";
-        extraConfig = ''
-          set -g status-style bg=black,fg=cyan
-          set -g status-left "#[fg=cyan,bold] #S #[default]| "
-          bind | split-window -h -c "#{pane_current_path}"
-          bind - split-window -v -c "#{pane_current_path}"
-        '';
+        singularity = {
+          enable = true;
+          enableSuid = true;
+          package = unstablePkgs.apptainer;
+          systemBinPaths = [ "/run/current-system/sw/bin" ];
+        };
+
+        tmux = {
+          enable = true;
+          shortcut = "a";
+          baseIndex = 1;
+          escapeTime = 0;
+          keyMode = "vi";
+          terminal = "tmux-256color";
+          extraConfig = ''
+            set -g status-style bg=black,fg=cyan
+            set -g status-left "#[fg=cyan,bold] #S #[default]| "
+            bind | split-window -h -c "#{pane_current_path}"
+            bind - split-window -v -c "#{pane_current_path}"
+          '';
+        };
       };
 
       system.stateVersion = "25.11";

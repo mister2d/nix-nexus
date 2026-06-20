@@ -43,7 +43,6 @@ _: {
             unstablePkgs.github-cli
             unstablePkgs.mcp-nixos
             unstablePkgs.tirith
-            unstablePkgs.apptainer
             unstablePkgs.chromium
             mcp-server-time
             terraform-mcp-server
