@@ -67,7 +67,12 @@ _: {
         singularity = {
           enable = true;
           enableSuid = true;
-          package = unstablePkgs.apptainer;
+          package = unstablePkgs.apptainer.overrideAttrs (old: {
+            postInstall = (old.postInstall or "") + ''
+              substituteInPlace "$out/etc/apptainer/apptainer.conf" \
+                --replace-fail "# allow setuid-mount squashfs = iflimited" "allow setuid-mount squashfs = yes"
+            '';
+          });
           systemBinPaths = [ "/run/current-system/sw/bin" ];
         };
 
