@@ -36,9 +36,10 @@ _: {
             htop
             openssl
 
-            # MCP servers (mirrors dev-home.nix mcpPackages)
+            # agentic use packages
             context7-mcp
             github-mcp-server
+            unstablePkgs.github-cli
             unstablePkgs.mcp-nixos
             unstablePkgs.tirith
             unstablePkgs.apptainer
