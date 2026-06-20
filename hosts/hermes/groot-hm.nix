@@ -35,6 +35,7 @@ _: {
             btop
             htop
             openssl
+            ripgrep
 
             # agentic use packages
             context7-mcp
