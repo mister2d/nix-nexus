@@ -43,7 +43,7 @@
     };
     # inputs.nixpkgs.follows intentionally absent — required for the Noctalia Cachix binary cache.
     # See: https://docs.noctalia.dev/v5/getting-started/nixos/#binary-cache
-    noctalia.url = "github:noctalia-dev/noctalia-shell/v5";
+    noctalia.url = "github:noctalia-dev/noctalia";
 
     # ── System ──────────────────────────────────────────────────────────────
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";

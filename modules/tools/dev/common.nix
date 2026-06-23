@@ -35,7 +35,7 @@ _: {
         input-leap
 
         # Browsers
-        librewolf
+        vivaldi
 
         # Security & Secret Management
         pass
