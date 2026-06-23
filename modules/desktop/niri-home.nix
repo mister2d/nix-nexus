@@ -14,7 +14,7 @@ _: {
 
       programs.niri = {
         enable = true;
-        package = pkgs.niri;
+        package = inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
         settings = {
 
           input = {

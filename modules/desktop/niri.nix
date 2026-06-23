@@ -7,21 +7,9 @@ _: {
       ...
     }:
     {
-      nixpkgs.overlays = [
-        (_final: prev: {
-          niri = inputs.pkgs-niri.legacyPackages.${prev.stdenv.hostPlatform.system}.niri.overrideAttrs (_: {
-            doCheck = false;
-          });
-        })
-      ];
-
       programs.niri = {
         enable = true;
-        package = lib.mkForce (
-          inputs.pkgs-niri.legacyPackages.${pkgs.stdenv.hostPlatform.system}.niri.overrideAttrs (_: {
-            doCheck = false;
-          })
-        );
+        package = lib.mkForce inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.niri-unstable;
       };
 
       # Required for GTK/GNOME portal settings and DMS configuration

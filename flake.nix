@@ -72,7 +72,6 @@
 
     # ── Pinned nixpkgs snapshots ─────────────────────────────────────────────
     # Each pin preserves a working version of one or more packages.
-    pkgs-niri.url = "github:nixos/nixpkgs/3109eaae18e09d0b8aef23dc2579e7d94b8d4b4e"; # niri v26.04
     pkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11"; # Matrix stack (avina)
     nixpkgs-chrome.url = "github:nixos/nixpkgs/fa56d7d6de78f5a7f997b0ea2bc6efd5868ad9e8"; # google-chrome
     pkgs-nomad.url = "github:nixos/nixpkgs/ae67888ff7ef9dff69b3cf0cc0fbfbcd3a722abe"; # nomad
