@@ -46,17 +46,17 @@ _: {
         enableCustomBuild = true;
       };
 
-      # ZFS Workstation Tuning (AI/ML & Coding)
+      # ZFS Inference Tuning
       nix-nexus.zfs = {
-        # Assuming 64GB RAM (Swap is 66G).
-        # 16GB ARC is a good balance for datasets without starving GPU/Apps.
-        arcMax = 17179869184; # 16GB
-        arcMin = 4294967296; # 4GB
-        arcSysFree = 8589934592; # 8GB (Generous headroom for GPU/drivers/OOM safety)
+        # 64GB RAM; ARC kept small to maximise KV-cache / CPU-offload headroom.
+        # NVMe latency (~50-100µs) makes a large ARC unnecessary.
+        arcMax = 4294967296; # 4GB
+        arcMin = 1073741824; # 1GB
+        arcSysFree = 8589934592; # 8GB (ROCm dual-GPU dynamic alloc headroom)
 
-        # Coding & Small Files optimization
-        metaLimitPercent = 80;
-        dnodeLimitPercent = 20;
+        # Inference is data-heavy, not metadata-heavy; favour data cache.
+        metaLimitPercent = 50;
+        dnodeLimitPercent = 10;
       };
 
       # Host ID for ZFS (needs to be unique and persistent)
