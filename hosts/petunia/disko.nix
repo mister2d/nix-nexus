@@ -99,14 +99,6 @@ _: {
               mountpoint = "/var";
               options.mountpoint = "legacy";
             };
-            swap = {
-              type = "zfs_volume";
-              size = "66G";
-              content = {
-                type = "swap";
-                randomEncryption = true;
-              };
-            };
           };
         };
       };

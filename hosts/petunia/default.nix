@@ -63,7 +63,14 @@ _: {
       # Generated randomly for petunia
       networking.hostId = "4e1a0d9b";
 
-      # Enable NVIDIA-specific configurations if needed
-      # (Already handled by profile, but can add overrides here)
+      swapDevices = [
+        {
+          device = "/dev/disk/by-partuuid/5eacdc8e-39ba-435a-8283-bb0e290e7846";
+          randomEncryption = {
+            enable = true;
+            allowDiscards = true;
+          };
+        }
+      ];
     };
 }
