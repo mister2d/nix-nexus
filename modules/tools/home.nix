@@ -200,7 +200,7 @@ _: {
       # Ensures Qt applications match the system's GTK theme for a consistent UI.
       qt = {
         enable = true;
-        platformTheme.name = "gtk";
+        platformTheme.name = "gtk3";
         style.name = "breeze";
       };
 

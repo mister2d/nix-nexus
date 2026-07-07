@@ -52,10 +52,10 @@ _: {
       services = {
         resolved = {
           enable = true;
-          extraConfig = ''
-            Cache=true
-            CacheFromLocalhost=true
-          '';
+          settings.Resolve = {
+            Cache = "yes";
+            CacheFromLocalhost = "yes";
+          };
         };
 
         fstrim.enable = false;

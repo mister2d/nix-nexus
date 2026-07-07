@@ -4,8 +4,8 @@ _: {
     let
       # ── Matrix 2.0 Stack — Authoritative Version Registry ────────────────────
       # Packages prefixed with (stable) are sourced via the pkgs-stable overlay
-      # declared in flake.nix (nixos-25.11 @ 812b3986fd15). All other packages
-      # come from the primary nixpkgs input (nixos-25.11 @ addf7cf5f383).
+      # declared in flake.nix (nixos-25.11 @ d6df3513). All other packages
+      # come from the primary nixpkgs input (nixos-26.05 @ a50de1b7).
       #
       # To upgrade a component:
       #   1. Update the version constant below.
@@ -28,9 +28,9 @@ _: {
         # Database backend for Synapse and MAS (stable)
         postgresql = "16.14";
         # TLS termination and reverse proxy
-        haproxy = "3.2.19";
+        haproxy = "3.3.9";
         # Secrets agent — pulls credentials from Vault KV-v2 at runtime
-        vault = "1.21.1";
+        vault = "1.21.4";
         # Static file server — well-known discovery and ToS
         darkhttpd = "1.17";
       };

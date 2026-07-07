@@ -106,10 +106,10 @@ _: {
         # resolved does not conflict with the container's host resolv.conf setup.
         resolved = {
           enable = true;
-          extraConfig = ''
-            Cache=true
-            CacheFromLocalhost=true
-          '';
+          settings.Resolve = {
+            Cache = "yes";
+            CacheFromLocalhost = "yes";
+          };
         };
 
         # Disable fstrim — TRIM/discard is managed at the Proxmox storage layer,
