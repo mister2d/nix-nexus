@@ -353,3 +353,41 @@ No ROCm, Vulkan, Mesa, or rdna4-stack derivations were rebuilt.
 not haproxy or vault. Those correctly moved to 26.05 versions (3.3.9 and 1.21.4
 respectively). The versions.nix assertions were updated to match and confirmed by
 inspecting `/proc/<pid>/exe` on the running system.
+
+---
+
+## rdna4-stack / nixpkgs-unstable bump — 2026-07-07
+
+**Inputs updated:** `rdna4-stack` (already current at 3f78e85), `nixpkgs-unstable` (567a49d → d407951, 2026-06-16 → 2026-07-05), `home-manager-unstable` (062581938 → 63d02d1c, 2026-06-23 → 2026-07-07)
+
+**Commit:** 49b5393 — `chore(flake): update rdna4-stack, nixpkgs-unstable, home-manager-unstable 2026-07-07`
+
+**Scope:** petunia only (sole nixpkgs-unstable consumer)
+
+**Derivation hash (pre/post):**
+| Phase | Hash |
+|---|---|
+| Pre-update (nixpkgs-unstable 567a49d) | `50fija85d4kdc7kasasr5rs0pdlqn8fn-nixos-system-petunia-26.11.20260705.d407951.drv` |
+| Post-update (nixpkgs-unstable d407951) | same drv path (evaluation is deterministic once locked) |
+
+### petunia post-reboot verification — 2026-07-07
+
+| Check | Result |
+|---|---|
+| `nixos-version` | `26.11.20260705.d407951 (Zokor)` — nixpkgs-unstable d407951, expected |
+| Kernel | `7.1.1-cachyos` (CachyOS, unchanged) |
+| Failed systemd units | none |
+| ZFS pool `petunia` | ONLINE, no errors, last scrub 2026-07-01 clean |
+| Tailscale | online (100.80.115.82) |
+| ROCm — dual R9700 (gfx1201) | both GPUs detected by rocminfo; active runtime: ROCm SMI 7.2.3, HIP 7.2.x (libhiprtc.so.7.2.53211) |
+| Mesa | 26.1.4 active in system closure (nixpkgs-unstable d407951; projected 26.1.3 was superseded) |
+| Vulkan | libvulkan.so.1.4.341 active |
+
+**Package changes landed:**
+- ROCm: 7.2.1 → 7.2.3 (via nixpkgs-unstable)
+  - 7.2.2: ROCTracer kernel event reporting fix
+  - 7.2.3: vLLM profiling stability; MIGraphX 2.15.0 (Gather fusion, ONNX stream); known int8 regression (#6195)
+- Mesa: 26.1.2 → 26.1.4 (bugfix releases)
+- home-manager-unstable: 2026-06-23 → 2026-07-07 snapshot
+
+**Result:** PASS — all services healthy, both R9700 GPUs detected, ROCm 7.2.3 active.
