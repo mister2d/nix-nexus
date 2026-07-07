@@ -67,15 +67,12 @@ _: {
 
       # ZFS Performance Profile (Coding & General Purpose)
       nix-nexus.zfs = {
-        # Assuming 32GB RAM.
-        # 8GB ARC is a good balance for a mobile workstation.
-        arcMax = 8589934592; # 8GB
-        arcMin = 2147483648; # 2GB
-        arcSysFree = 4294967296; # 4GB (Safety margin for Nix builds)
+        arcMax = 4294967296; # 4GB
+        arcMin = 1073741824; # 1GB
+        arcSysFree = 8589934592; # 8GB
 
-        # Coding & Development Optimization
-        metaLimitPercent = 85;
-        dnodeLimitPercent = 25;
+        metaLimitPercent = 50;
+        dnodeLimitPercent = 10;
       };
 
       environment.systemPackages =
