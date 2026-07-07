@@ -271,8 +271,8 @@ Date: 2026-06-10
 |---|---|---|
 | sweet16 | `/nix/store/25di65hwvj74m22di9zikp73zjwrnbd0-nixos-system-sweet16-26.05.20260704.a50de1b.drv` | yes — rebooted, verified |
 | petunia | `/nix/store/awmhz6na8d5s28ars6di9ln0g5jcxbp4-nixos-system-petunia-26.11.20260616.567a49d.drv` | no — unchanged (uses nixpkgs-unstable) |
-| avina | `/nix/store/0k8nbj68kp4pyfkkvzcyw4wd562q6g9w-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | no — evaluated clean, deploy pending |
-| hermes | `/nix/store/rr31xn7bmjmymr2pb7w2bphbb5c2z1ng-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | no — evaluated clean, deploy pending |
+| avina | `/nix/store/0k8nbj68kp4pyfkkvzcyw4wd562q6g9w-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | yes — rebooted 2026-07-07, verified |
+| hermes | `/nix/store/rr31xn7bmjmymr2pb7w2bphbb5c2z1ng-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | yes — rebooted 2026-07-07, verified |
 
 ### Drift analysis
 
@@ -280,7 +280,7 @@ Date: 2026-06-10
   `25.11.20260615.d6df351` to `26.05.20260704.a50de1b`.
 - **petunia**: unchanged — its nixosSystem uses `nixpkgs-unstable`; not affected by
   the stable channel bump. Drift relative to pre-upgrade baseline is zero.
-- **avina / hermes**: expected drift from the channel bump. Not yet deployed.
+- **avina / hermes**: expected drift from the channel bump. Deployed and verified 2026-07-07.
 - **openclaw**: no flake assembly exists (`modules/flake/nixos-openclaw.nix` absent,
   `hosts/openclaw/` absent). Host is decommissioned; stale references being removed.
 
@@ -297,4 +297,39 @@ Date: 2026-06-10
 | CUPS / NetworkManager | active |
 | Nix daemon | trusted, 2.34.7 |
 
-Date: 2026-07-06
+Date: 2026-07-06 (sweet16) / 2026-07-07 (avina, hermes)
+
+### hermes post-reboot verification
+
+| Check | Result |
+|---|---|
+| `nixos-version` | `26.05.20260704.a50de1b (Yarara)` |
+| Kernel | `6.17.4-2-pve` (Proxmox LTS) |
+| Failed systemd units | none |
+| sshd | active (per-connection socket mode) |
+| systemd-resolved | active, `Cache=yes` / `CacheFromLocalhost=yes` applied |
+| nix-daemon | running |
+| systemd-networkd | running |
+
+### avina post-reboot verification
+
+| Check | Result |
+|---|---|
+| `nixos-version` | `26.05.20260704.a50de1b (Yarara)` |
+| Kernel | `6.17.4-2-pve` (Proxmox LTS) |
+| Failed systemd units | none |
+| haproxy | active, running **3.3.9** (26.05 primary nixpkgs) |
+| vault-agent | active, running **1.21.4** (26.05 primary nixpkgs) |
+| matrix-synapse | active |
+| matrix-authentication-service | active |
+| livekit | active |
+| lk-jwt-service | active |
+| element-web / element-call | active |
+| systemd-resolved | active, `Cache=yes` / `CacheFromLocalhost=yes` applied |
+| pkgs-stable packages | confirmed unchanged from nixos-25.11 (overlay verified) |
+
+**Note on haproxy/vault versions:** The `matrix-pin-stable` overlay covers 7 packages
+(synapse, MAS, livekit, lk-jwt-service, element-web, element-call, postgresql_16) but
+not haproxy or vault. Those correctly moved to 26.05 versions (3.3.9 and 1.21.4
+respectively). The versions.nix assertions were updated to match and confirmed by
+inspecting `/proc/<pid>/exe` on the running system.
