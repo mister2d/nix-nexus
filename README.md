@@ -32,7 +32,6 @@ Concerns are separated across three tiers:
 |------|------|----|------|
 | **avina** | Matrix 2.0 server (Proxmox LXC) | NixOS | x86_64 |
 | **hermes** | LLM/MCP gateway (Proxmox LXC) | NixOS | x86_64 |
-| **openclaw** | Element Matrix bridge (Proxmox LXC) | NixOS | x86_64 |
 | **petunia** | AI/ML workstation & home server | NixOS | x86_64 |
 | **sweet16** | Mobile workstation — ThinkPad Z16 Gen 1 | NixOS | x86_64 |
 | **dualie** | Standalone dev environment | Debian Trixie (standalone HM) | x86_64 |
@@ -59,7 +58,6 @@ Concerns are separated across three tiers:
 ├── hosts/
 │   ├── avina/              # Matrix 2.0 stack (LXC)
 │   ├── hermes/             # LLM/MCP gateway (LXC)
-│   ├── openclaw/           # Element bridge (LXC)
 │   ├── petunia/            # AI/ML workstation & home server
 │   ├── sweet16/            # Mobile workstation (ThinkPad Z16)
 │   ├── dualie/             # Standalone HM — Debian x86_64

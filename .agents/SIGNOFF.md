@@ -237,3 +237,64 @@ preemption, not no-preemption. For an LLM inference server the primary gains
 acceptable — it is not worse than the previous 6.12 LTS voluntary preemption.
 
 Date: 2026-06-10
+
+---
+
+## NixOS 25.11 → 26.05 "Yarara" upgrade — sweet16 canary (2026-07-06)
+
+### What changed
+
+- `flake.nix` inputs bumped: `nixpkgs` nixos-25.11 → nixos-26.05 (a50de1b7),
+  `home-manager` release-25.11 → release-26.05, `nixvim` nixos-25.11 → nixos-26.05.
+- `pkgs-stable` intentionally left on nixos-25.11 (avina Matrix stack stability pin).
+- Compatibility fixes required by 26.05:
+  - `services.resolved.extraConfig` removed fleet-wide → migrated to
+    `services.resolved.settings.Resolve` (avina, hermes).
+  - haproxy 3.2.19 → 3.3.9, vault 1.21.1 → 1.21.4 in `modules/services/matrix/versions.nix`
+    (primary nixpkgs version drift, pkgs-stable packages unaffected).
+  - `wayland.windowManager.hyprland.configType = "hyprlang"` set explicitly in
+    `modules/desktop/hyprland-home.nix` (suppresses HM warning about new Lua default).
+  - `qt.platformTheme.name` "gtk" → "gtk3" in `modules/tools/home.nix` (alias removed).
+
+### Pre-upgrade derivation hashes
+
+| Host | Derivation |
+|---|---|
+| sweet16 | `/nix/store/yybval87rirfb0d3yna4zd7vsbhf7gh8-nixos-system-sweet16-25.11.20260615.d6df351.drv` |
+| petunia | `/nix/store/swlqncl3zwidwd283fdwxfdshgcpxpqm-nixos-system-petunia-26.11.20260616.567a49d.drv` |
+| avina | `/nix/store/c946v57ar01xs9mk86jjl762sgxc1189-nixos-system-unnamed-lxc-proxmox-25.11.20260615.d6df351.drv` |
+| hermes | `/nix/store/hqsw9jwv2ic1p2c2yv8fyqds40cqrk31-nixos-system-unnamed-lxc-proxmox-25.11.20260615.d6df351.drv` |
+
+### Post-upgrade derivation hashes
+
+| Host | Derivation | Deployed |
+|---|---|---|
+| sweet16 | `/nix/store/25di65hwvj74m22di9zikp73zjwrnbd0-nixos-system-sweet16-26.05.20260704.a50de1b.drv` | yes — rebooted, verified |
+| petunia | `/nix/store/awmhz6na8d5s28ars6di9ln0g5jcxbp4-nixos-system-petunia-26.11.20260616.567a49d.drv` | no — unchanged (uses nixpkgs-unstable) |
+| avina | `/nix/store/0k8nbj68kp4pyfkkvzcyw4wd562q6g9w-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | no — evaluated clean, deploy pending |
+| hermes | `/nix/store/rr31xn7bmjmymr2pb7w2bphbb5c2z1ng-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | no — evaluated clean, deploy pending |
+
+### Drift analysis
+
+- **sweet16**: expected drift — new channel = new packages. Label changed from
+  `25.11.20260615.d6df351` to `26.05.20260704.a50de1b`.
+- **petunia**: unchanged — its nixosSystem uses `nixpkgs-unstable`; not affected by
+  the stable channel bump. Drift relative to pre-upgrade baseline is zero.
+- **avina / hermes**: expected drift from the channel bump. Not yet deployed.
+- **openclaw**: no flake assembly exists (`modules/flake/nixos-openclaw.nix` absent,
+  `hosts/openclaw/` absent). Host is decommissioned; stale references being removed.
+
+### sweet16 post-reboot verification
+
+| Check | Result |
+|---|---|
+| `nixos-version` | `26.05.20260704.a50de1b (Yarara)` |
+| Kernel | `7.1.1-cachyos` |
+| ZFS pools | all pools healthy |
+| Tailscale | online (100.89.249.35) |
+| Failed systemd units | none |
+| ceph-fuse | present (ceph 19.2.3 squid) |
+| CUPS / NetworkManager | active |
+| Nix daemon | trusted, 2.34.7 |
+
+Date: 2026-07-06

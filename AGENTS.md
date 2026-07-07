@@ -33,7 +33,7 @@ changes. Do not rely on training-data memory of any of these projects.
 
 ## 1. What this repository is (plain-terms orientation)
 
-nix-nexus manages the complete system configuration for a fleet of eight machines
+nix-nexus manages the complete system configuration for a fleet of seven machines
 (NixOS workstations, NixOS LXC servers, and non-NixOS standalone nodes) using a
 single Nix flake. It uses the **dendritic pattern**: every `.nix` configuration
 file announces its own name into a shared registry, and hosts compose themselves
@@ -308,7 +308,7 @@ Capture derivation hashes before touching any file:
 
 ```bash
 # For all NixOS hosts:
-for host in sweet16 petunia avina hermes openclaw; do
+for host in sweet16 petunia avina hermes; do
   echo "$host: $(nix path-info --derivation .#nixosConfigurations.$host.config.system.build.toplevel 2>/dev/null)"
 done
 
@@ -462,7 +462,6 @@ Current hosts and their assembly structure:
 | petunia | NixOS | x86_64 | `modules/flake/nixos-petunia.nix` | `hosts/petunia/default.nix` | `hosts/petunia/ddukes-hm.nix` |
 | avina | NixOS | x86_64 | `modules/flake/nixos-avina.nix` | `hosts/avina/default.nix` | `hosts/avina/ddukes-hm.nix` |
 | hermes | NixOS | x86_64 | `modules/flake/nixos-hermes.nix` | `hosts/hermes/default.nix` | `hosts/hermes/groot-hm.nix` |
-| openclaw | NixOS | x86_64 | `modules/flake/nixos-openclaw.nix` | `hosts/openclaw/default.nix` | `hosts/openclaw/groot-hm.nix` |
 | dualie | Debian (standalone HM) | x86_64 | `modules/flake/hm-groot-dualie.nix` | `hosts/dualie/home.nix` | n/a |
 | forge | Linux (standalone HM) | x86_64 | `modules/flake/hm-groot-forge.nix` | `hosts/forge/home.nix` | n/a |
 | rk3588 | Armbian (standalone HM) | aarch64 | `modules/flake/hm-groot-rk3588.nix` | `hosts/rk3588/home.nix` | n/a |

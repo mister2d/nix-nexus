@@ -20,7 +20,6 @@
 | `petunia` (NixOS) | `.#nixosConfigurations.petunia.config.system.build.toplevel` | nixpkgs-unstable |
 | `avina` (NixOS) | `.#nixosConfigurations.avina.config.system.build.toplevel` | nixpkgs 25.11 |
 | `hermes` (NixOS) | `.#nixosConfigurations.hermes.config.system.build.toplevel` | nixpkgs 25.11 |
-| `openclaw` (NixOS) | `.#nixosConfigurations.openclaw.config.system.build.toplevel` | nixpkgs 25.11 |
 | `groot@dualie` (HM) | `.#homeConfigurations."groot@dualie".activationPackage` | nixpkgs 25.11 |
 | `groot@forge` (HM) | `.#homeConfigurations."groot@forge".activationPackage` | nixpkgs 25.11 |
 | `groot@rk3588` (HM) | `.#homeConfigurations."groot@rk3588".activationPackage` | nixpkgs 25.11 (aarch64) |
@@ -51,7 +50,7 @@ echo "" >> "$OUTFILE"
 echo "| Host | Derivation hash |" >> "$OUTFILE"
 echo "|---|---|" >> "$OUTFILE"
 
-NIXOS_HOSTS="sweet16 petunia avina hermes openclaw"
+NIXOS_HOSTS="sweet16 petunia avina hermes"
 for host in $NIXOS_HOSTS; do
   hash=$(nix derivation show \
     ".#nixosConfigurations.${host}.config.system.build.toplevel" 2>/dev/null \
@@ -184,7 +183,6 @@ Each entry follows this format:
 | petunia (NixOS) | `def456...` |
 | avina (NixOS)   | `789abc...` |
 | hermes (NixOS)  | `...` |
-| openclaw (NixOS)| `...` |
 | groot@dualie (HM)  | `...` |
 | groot@forge (HM)   | `...` |
 | groot@rk3588 (HM)  | `...` |

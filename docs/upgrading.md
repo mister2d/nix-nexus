@@ -139,7 +139,6 @@ nixos-rebuild switch --flake .#petunia
 # For remote NixOS hosts (LXC containers, servers):
 nixos-rebuild switch --flake .#avina --target-host root@avina
 nixos-rebuild switch --flake .#hermes --target-host root@hermes
-nixos-rebuild switch --flake .#openclaw --target-host root@openclaw
 
 # Standalone Home Manager (non-NixOS):
 nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
@@ -242,8 +241,8 @@ Once satisfied, roll out to all remaining hosts in order of criticality
 ```bash
 nixos-rebuild switch --flake .#sweet16
 nixos-rebuild switch --flake .#petunia
-nixos-rebuild switch --flake .#openclaw --target-host root@openclaw
 nixos-rebuild switch --flake .#avina   --target-host root@avina
+nixos-rebuild switch --flake .#hermes  --target-host root@hermes
 ```
 
 Standalone HM hosts use the new release branch in the `nix run` invocation:

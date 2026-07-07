@@ -22,12 +22,11 @@
 
 Convert in ascending risk so problems surface on the simplest host first:
 
-1. `openclaw` — simplest LXC, inline `groot` HM, no host overlay.
-2. `avina` — adds the Matrix `pkgs-stable` overlay.
-3. `hermes` — adds `llm-agents` + `mcp` overlays and inline `unstablePkgs`.
-4. `sweet16` — nixos-hardware stack, `ddukes` HM.
-5. `petunia` — **unstable channel**, disko, rdna4, `home-manager-unstable`.
-6. Then the 3 standalone HM configs (`groot@dualie`, `groot@rk3588`,
+1. `avina` — adds the Matrix `pkgs-stable` overlay.
+2. `hermes` — adds `llm-agents` + `mcp` overlays and inline `unstablePkgs`.
+3. `sweet16` — nixos-hardware stack, `ddukes` HM.
+4. `petunia` — **unstable channel**, disko, rdna4, `home-manager-unstable`.
+5. Then the 3 standalone HM configs (`groot@dualie`, `groot@rk3588`,
    `groot@forge`).
 
 **One host per commit. One sign-off per commit.** Never batch.
@@ -109,10 +108,10 @@ Key moves:
   preserving the `overridePythonAttrs`/`makeWrapperArgs` body verbatim — that
   PYTHONPATH wrapper is load-bearing. The inline `unstablePkgs` import in the HM
   block also stays verbatim.
-- **`openclaw` / `hermes` HM** use the `groot` user with an inline `imports`
-  list of `modules/user/{bash,terminal-home,neovim-home}.nix` + the host
-  `home.nix`. Those module files are now named (Phase 2) — reference them by
-  name; the host `home.nix` becomes `flake.modules.homeManager.home-<host>`.
+- **`hermes` HM** uses the `groot` user with an inline `imports` list of
+  `modules/user/{bash,terminal-home,neovim-home}.nix` + the host `home.nix`.
+  Those module files are now named (Phase 2) — reference them by name; the
+  host `home.nix` becomes `flake.modules.homeManager.home-<host>`.
 
 ---
 
