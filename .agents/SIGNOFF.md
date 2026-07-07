@@ -270,7 +270,7 @@ Date: 2026-06-10
 | Host | Derivation | Deployed |
 |---|---|---|
 | sweet16 | `/nix/store/25di65hwvj74m22di9zikp73zjwrnbd0-nixos-system-sweet16-26.05.20260704.a50de1b.drv` | yes — rebooted, verified |
-| petunia | `/nix/store/awmhz6na8d5s28ars6di9ln0g5jcxbp4-nixos-system-petunia-26.11.20260616.567a49d.drv` | no — unchanged (uses nixpkgs-unstable) |
+| petunia | `/nix/store/awmhz6na8d5s28ars6di9ln0g5jcxbp4-nixos-system-petunia-26.11.20260616.567a49d.drv` | yes — rebooted 2026-07-07, verified |
 | avina | `/nix/store/0k8nbj68kp4pyfkkvzcyw4wd562q6g9w-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | yes — rebooted 2026-07-07, verified |
 | hermes | `/nix/store/rr31xn7bmjmymr2pb7w2bphbb5c2z1ng-nixos-system-unnamed-lxc-proxmox-26.05.20260704.a50de1b.drv` | yes — rebooted 2026-07-07, verified |
 
@@ -278,8 +278,9 @@ Date: 2026-06-10
 
 - **sweet16**: expected drift — new channel = new packages. Label changed from
   `25.11.20260615.d6df351` to `26.05.20260704.a50de1b`.
-- **petunia**: unchanged — its nixosSystem uses `nixpkgs-unstable`; not affected by
-  the stable channel bump. Drift relative to pre-upgrade baseline is zero.
+- **petunia**: nixpkgs-unstable was not updated so the system-path is byte-for-byte
+  identical to pre-upgrade. The drv hash changed only because the `etc` and `activate`
+  derivations changed (Qt theme + Hyprland configType). Deployed and verified 2026-07-07.
 - **avina / hermes**: expected drift from the channel bump. Deployed and verified 2026-07-07.
 - **openclaw**: no flake assembly exists (`modules/flake/nixos-openclaw.nix` absent,
   `hosts/openclaw/` absent). Host is decommissioned; stale references being removed.
@@ -297,7 +298,7 @@ Date: 2026-06-10
 | CUPS / NetworkManager | active |
 | Nix daemon | trusted, 2.34.7 |
 
-Date: 2026-07-06 (sweet16) / 2026-07-07 (avina, hermes)
+Date: 2026-07-06 (sweet16) / 2026-07-07 (avina, hermes, petunia)
 
 ### hermes post-reboot verification
 
@@ -327,6 +328,25 @@ Date: 2026-07-06 (sweet16) / 2026-07-07 (avina, hermes)
 | element-web / element-call | active |
 | systemd-resolved | active, `Cache=yes` / `CacheFromLocalhost=yes` applied |
 | pkgs-stable packages | confirmed unchanged from nixos-25.11 (overlay verified) |
+
+### petunia post-reboot verification
+
+| Check | Result |
+|---|---|
+| `nixos-version` | `26.11.20260616.567a49d (Zokor)` — nixpkgs-unstable, expected |
+| Kernel | `7.1.1-cachyos` (CachyOS server variant) |
+| Failed systemd units | none |
+| ZFS pools | all healthy |
+| Tailscale | online (100.80.115.82) |
+| NetworkManager / CUPS / nix-daemon | all active |
+| ROCm — dual R9700 (gfx1201) | both GPUs detected by rocminfo |
+| Vulkan | Vulkan 1.4.348, RADV GFX1201, driverVersion 26.1.2, both GPUs |
+| Qt platform theme | `gtk3` active (session env, not a file on disk) |
+
+**Package change scope:** `system-path` was byte-for-byte identical to pre-upgrade
+(nixpkgs-unstable not updated). Only `etc` and `activate` changed — from the
+Qt `"gtk"` → `"gtk3"` rename and the explicit `configType = "hyprlang"` addition.
+No ROCm, Vulkan, Mesa, or rdna4-stack derivations were rebuilt.
 
 **Note on haproxy/vault versions:** The `matrix-pin-stable` overlay covers 7 packages
 (synapse, MAS, livekit, lk-jwt-service, element-web, element-call, postgresql_16) but
