@@ -443,3 +443,57 @@ rk3588 on-device at next deploy.
 **Result:** `nix flake check` PASS — no errors, no nixfmt deprecation warnings.
 Remaining warning `unknown flake output 'modules'` is structural (dendritic
 `flake.modules.*` registry) and pre-dates this bump.
+
+## Baseline: unknown (2026-07-18T07:09:12Z)
+
+| Host | Derivation hash |
+|---|---|
+| sweet16 (NixOS) | `63be0bc439cd7f89f71de52a8c3ab8a1caedd25c7fe3df863c3905d87ec4fc34` |
+| petunia (NixOS) | `f0693973fc852cbd39391627dddc25da0e52e4aa46ce867ac1b7121c5213ad15` |
+| avina (NixOS) | `32b852548c180259f1ae3d8924b1409af6a75219d5c5c44aaa256bdb9300b122` |
+| hermes (NixOS) | `974756d26a412ee14f2646db0e9a430741b4e0138927374cf2a696289c02239f` |
+| openclaw (NixOS) | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+| groot@dualie (HM) | `6547901a83712508bc247546ab69c651ea04272b4f58a618d9c73bb86c7fd136` |
+| groot@forge (HM) | `f5479b3c64c2ae2c14d29bc4a1dc34c904fc7cc60948bb2dd0d91ba19df9c21e` |
+| groot@rk3588 (HM) | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
+
+Git commit at baseline: 30a33955c536b855ada2c4d3d5101017ae07609c
+
+### Verification: noctalia v5.0.0-beta.3 bump + Ayu Blue theme (2026-07-18T07:30:00Z)
+
+Commits verified:
+- 30a3395 chore(flake): update noctalia to v5.0.0-beta.3 (flake.lock only; noctalia input 77087ad0ccad3909e00e828cadd94aba9e7a02dc → 8b5b1381d5a2ea94b787da11abe4f2411b89b196)
+- c1a0f2c feat(desktop): switch noctalia to vendored Ayu Blue palette with OLED pure black (modules/desktop/noctalia-home.nix)
+- cf89cda style(desktop): align hyprland accent with Ayu Blue palette (modules/desktop/hyprland-home.nix)
+
+Evaluation method: `nix path-info --derivation "git+file:$PWD?rev=<rev>#..."` at
+1ad87de (pre-change) and HEAD (cf89cda), avoiding dirty-working-tree artifacts.
+
+| Host | Pre drv (1ad87de) | Post drv (cf89cda) | Drifted | Expected |
+|---|---|---|---|---|
+| sweet16 (NixOS) | `qrg62pf4...` | `9sam2kcn...` | YES | YES — noctalia palette (Ayu Blue + pure_black_dark) + hyprland accent change; sweet16 imports desktop-noctalia-home + desktop-hyprland-home |
+| petunia (NixOS) | `klh3qlv1...` | `g2gmqaqa...` | YES | YES — same as sweet16; petunia also imports desktop-noctalia-home + desktop-hyprland-home |
+| avina (NixOS) | `hwg8mwqm...` | `hwg8mwqm...` | NO | NO — avina does not consume noctalia/hyprland-home; zero drift correct |
+| hermes (NixOS) | `3h2fmais...` | `3h2fmais...` | NO | NO — hermes does not consume noctalia/hyprland-home; zero drift correct |
+| groot@dualie (HM) | `b3fflyrh...` | `b3fflyrh...` | NO | NO — standalone HM, no noctalia; zero drift correct |
+| groot@forge (HM) | `arrhgdy9...` | `arrhgdy9...` | NO | NO — standalone HM, no noctalia; zero drift correct |
+| groot@rk3588 (HM) | n/a | n/a | n/a | aarch64-linux eval fails on x86_64-linux host (pre-existing); not evaluable |
+
+**Drift analysis:**
+
+flake.lock diff (1ad87de → 30a3395): exactly one node changed — noctalia
+77087ad0ccad3909e00e828cadd94aba9e7a02dc → 8b5b1381d5a2ea94b787da11abe4f2411b89b196.
+No nixpkgs or other inputs changed. Drift is therefore confined exclusively to the
+noctalia input bump and the palette/accent config changes, and touches only the two
+hosts (sweet16, petunia) that import desktop-noctalia-home and desktop-hyprland-home.
+avina, hermes, groot@dualie, and groot@forge are drv-identical pre- and post-change.
+
+**Note on baseline-pre.txt hashes:** the capture-baseline.sh script hashed
+`nix derivation show` output from a dirty working tree, producing spurious hash
+changes for all configs. Additionally, on eval failure the pipeline hashes empty
+stdin, producing `e3b0c44...` instead of a meaningful error marker (known script bug).
+Those hashes should not be used for drift comparison; the clean per-rev evals above
+are authoritative.
+
+**`nix flake check` result:** all checks passed (aarch64-linux configs skipped on x86_64 host, pre-existing limitation).
+
