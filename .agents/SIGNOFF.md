@@ -391,3 +391,55 @@ inspecting `/proc/<pid>/exe` on the running system.
 - home-manager-unstable: 2026-06-23 → 2026-07-07 snapshot
 
 **Result:** PASS — all services healthy, both R9700 GPUs detected, ROCm 7.2.3 active.
+
+---
+
+## Full flake input bump — 2026-07-18
+
+**Inputs updated:** broad `nix flake update` (applied before this session). Root-visible movers:
+`nixpkgs` (nixos-26.05 a50de1b7 → 8eeec934), `pkgs-stable` (nixos-25.11 d6df3513 → b6018f87),
+`nixpkgs-unstable` (d4079514 → 18b9261c), `home-manager` (af2beae5 → 3cd22efe),
+`home-manager-unstable` (63d02d1c → a45a7c45), `pre-commit-hooks` (3bbec39b → bca82caa),
+plus devenv, cachyos-kernel(+patches), niri(+unstable), noctalia, ghostty, nixd,
+nixos-hardware, llm-agents, mcp-servers-nix, bun2nix, treefmt-nix and transitive nodes.
+`blueprint` input dropped from the lock (no longer referenced).
+
+**Fixes required by the bump:**
+1. avina failed its `modules/services/matrix/versions.nix` drift assertions:
+   synapse 1.154.0 → **1.155.0** (via pkgs-stable), haproxy 3.3.9 → **3.3.11** (via
+   primary nixpkgs). Upgrade accepted; registry and `hosts/avina/README.md` stack
+   table updated. All eight other asserted stack versions verified unchanged
+   (MAS 1.17.0, livekit 1.9.4, lk-jwt 0.4.0, element-web 1.12.18, element-call
+   0.11.1, postgresql 16.14, vault 1.21.4, darkhttpd 1.17).
+2. Evaluation warning `nixfmt-rfc-style is now the same as pkgs.nixfmt` (×2, from
+   `checks.pre-commit-check` and `devShells.default`): migrated the git-hooks hook
+   from `nixfmt-rfc-style` to `nixfmt` (pkgs.nixfmt 1.4.0, RFC 166 style — same
+   formatter binary). `modules/flake/checks.nix`, AGENTS.md hook references, and
+   the regenerated `.pre-commit-config.yaml` updated.
+
+**Post-update derivation hashes** (pre-update hashes not captured — the lock was
+already updated when validation began; drift vs prior baselines is expected and
+attributable to the input bumps):
+
+| Config | Post-update drv |
+|---|---|
+| sweet16 | `qrg62pf4j4bkzqryns9r0r7n6j9hac6i-nixos-system-sweet16-26.05.20260714.8eeec93.drv` |
+| petunia | `klh3qlv1ldmiqgjqgvhxmvmca5gcg4rv-nixos-system-petunia-26.11.20260714.18b9261.drv` |
+| avina | `hwg8mwqmji6gj6q3ivb163dhv3mcbzh7-nixos-system-unnamed-lxc-proxmox-26.05.20260714.8eeec93.drv` |
+| hermes | `3h2fmaisdr5fk1zj2bsl4alp5i86xi6k-nixos-system-unnamed-lxc-proxmox-26.05.20260714.8eeec93.drv` |
+| groot@dualie | `b3fflyrhifhvb1pd2kri02bfd5qqhxfj-home-manager-generation.drv` |
+| groot@forge | `arrhgdy9ngv05dgaglwc7l7s3nip2z4l-home-manager-generation.drv` |
+
+The versions.nix / checks.nix / README fixes themselves produced **zero drift**:
+sweet16, petunia, hermes, dualie, forge drvs were identical before and after the
+edits (assertions and pre-commit tooling are eval-time only).
+
+**Known limitation — groot@rk3588:** cannot be evaluated from x86_64.
+`modules/tools/dev/home.nix` pulls `inputs.devenv.packages.aarch64-linux.devenv`,
+which triggers IFD (`cabal2nix-cachix.drv`) requiring an aarch64 builder. This does
+not block `nix flake check` (homeConfigurations is not deep-checked); verify
+rk3588 on-device at next deploy.
+
+**Result:** `nix flake check` PASS — no errors, no nixfmt deprecation warnings.
+Remaining warning `unknown flake output 'modules'` is structural (dendritic
+`flake.modules.*` registry) and pre-dates this bump.
