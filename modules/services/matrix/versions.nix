@@ -4,8 +4,8 @@ _: {
     let
       # ── Matrix 2.0 Stack — Authoritative Version Registry ────────────────────
       # Packages prefixed with (stable) are sourced via the pkgs-stable overlay
-      # declared in flake.nix (nixos-25.11 @ d6df3513). All other packages
-      # come from the primary nixpkgs input (nixos-26.05 @ a50de1b7).
+      # declared in flake.nix (nixos-25.11 @ b6018f87). All other packages
+      # come from the primary nixpkgs input (nixos-26.05 @ 8eeec934).
       #
       # To upgrade a component:
       #   1. Update the version constant below.
@@ -14,7 +14,7 @@ _: {
       #   4. Update hosts/avina/README.md stack table.
       expected = {
         # Matrix homeserver (stable)
-        synapse = "1.154.0";
+        synapse = "1.155.0";
         # OIDC bridge — MSC3861 native OIDC delegation (stable)
         mas = "1.17.0";
         # WebRTC SFU (stable)
@@ -28,7 +28,7 @@ _: {
         # Database backend for Synapse and MAS (stable)
         postgresql = "16.14";
         # TLS termination and reverse proxy
-        haproxy = "3.3.9";
+        haproxy = "3.3.11";
         # Secrets agent — pulls credentials from Vault KV-v2 at runtime
         vault = "1.21.4";
         # Static file server — well-known discovery and ToS

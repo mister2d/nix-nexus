@@ -13,23 +13,22 @@ build time — `nixos-rebuild` fails with a descriptive error if any resolved
 package drifts from the declared version.
 
 Matrix-facing packages are sourced from the `pkgs-stable` overlay
-(`nixos-25.11 @ 812b3986fd15`). Infrastructure packages come from the primary
-nixpkgs input (`nixos-25.11 @ addf7cf5f383`). Both track the same NixOS stable
-channel at different commits.
+(`nixos-25.11 @ b6018f87da91`). Infrastructure packages come from the primary
+nixpkgs input (`nixos-26.05 @ 8eeec934ae0d`).
 
 | Component | Version | Role | nixpkgs source |
 |---|---|---|---|
-| NixOS | 25.11 | Host OS | `addf7cf5f383` |
-| Synapse | 1.149.1 | Matrix homeserver (MSC3861 delegated auth) | pkgs-stable `812b3986fd15` |
-| MAS | 1.13.0 | OIDC bridge — MSC3861 native OIDC provider | pkgs-stable `812b3986fd15` |
-| Element Web | 1.12.10 | Matrix web client | pkgs-stable `812b3986fd15` |
-| Element Call | 0.11.1 | WebRTC calling — MSC4143 RTC foci | pkgs-stable `812b3986fd15` |
-| LiveKit | 1.9.4 | WebRTC SFU (media server) | pkgs-stable `812b3986fd15` |
-| lk-jwt-service | 0.4.0 | LiveKit JWT token auth service | pkgs-stable `812b3986fd15` |
-| PostgreSQL | 16.13 | Database backend (Synapse + MAS) | pkgs-stable `812b3986fd15` |
-| HAProxy | 3.2.9 | TLS termination + reverse proxy | `addf7cf5f383` |
-| Vault | 1.21.1 | Secrets backend (vault-agent on avina) | `addf7cf5f383` |
-| darkhttpd | 1.17 | Static file server (well-known, ToS) | `addf7cf5f383` |
+| NixOS | 26.05 | Host OS | `8eeec934ae0d` |
+| Synapse | 1.155.0 | Matrix homeserver (MSC3861 delegated auth) | pkgs-stable `b6018f87da91` |
+| MAS | 1.17.0 | OIDC bridge — MSC3861 native OIDC provider | pkgs-stable `b6018f87da91` |
+| Element Web | 1.12.18 | Matrix web client | pkgs-stable `b6018f87da91` |
+| Element Call | 0.11.1 | WebRTC calling — MSC4143 RTC foci | pkgs-stable `b6018f87da91` |
+| LiveKit | 1.9.4 | WebRTC SFU (media server) | pkgs-stable `b6018f87da91` |
+| lk-jwt-service | 0.4.0 | LiveKit JWT token auth service | pkgs-stable `b6018f87da91` |
+| PostgreSQL | 16.14 | Database backend (Synapse + MAS) | pkgs-stable `b6018f87da91` |
+| HAProxy | 3.3.11 | TLS termination + reverse proxy | `8eeec934ae0d` |
+| Vault | 1.21.4 | Secrets backend (vault-agent on avina) | `8eeec934ae0d` |
+| darkhttpd | 1.17 | Static file server (well-known, ToS) | `8eeec934ae0d` |
 | cloudflared | — | External signaling ingress (tunnel) | not on avina |
 | Split-Horizon DNS| — | Internal signaling ingress (local routing) | configured on edge |
 
