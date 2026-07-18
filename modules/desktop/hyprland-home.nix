@@ -13,7 +13,7 @@ _: {
       # Hyprland's exec takes a plain string; niri's spawn takes listOf str.
       noc = cmd: "noctalia msg ${cmd}";
 
-      accentHex = "00AAAA";
+      accentHex = "39BAE6";
       inactiveHex = "333333";
       urgentHex = "AA00AA";
       bgHex = "000000";
