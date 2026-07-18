@@ -275,7 +275,7 @@ Follow these on every task, every commit:
    ```bash
    nix develop --command pre-commit run --files <space-separated changed files>
    ```
-   All three hooks must pass: `nixfmt-rfc-style` (formatting), `deadnix`
+   All three hooks must pass: `nixfmt` (formatting, RFC 166 style), `deadnix`
    (unused bindings), `statix` (Nix anti-patterns).
 
 5. **Evaluate after committing:**
@@ -331,7 +331,7 @@ nix develop --command pre-commit run
 ```
 
 Fix all failures before proceeding. Common failures:
-- `nixfmt-rfc-style`: auto-formats; re-stage the reformatted file.
+- `nixfmt`: auto-formats; re-stage the reformatted file.
 - `deadnix`: remove the flagged unused binding.
 - `statix`: read the warning; fix the anti-pattern. Common ones:
   - `{ ... }:` empty pattern → change to `_:`.
@@ -507,7 +507,7 @@ Nix is a functional language; unused bindings are dead code.
 
 ### Pre-commit reformats a file after you edit it
 
-`nixfmt-rfc-style` auto-reformats on check. Re-stage the reformatted file with
+`nixfmt` auto-reformats on check. Re-stage the reformatted file with
 `git add <file>` and re-run pre-commit. Do not fight the formatter.
 
 ### Unexpected closure drift after a structural change

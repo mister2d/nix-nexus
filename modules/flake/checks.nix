@@ -13,7 +13,7 @@
         src = ../../.;
         hooks = {
           # Standard Formatting (RFC 166)
-          nixfmt-rfc-style.enable = true;
+          nixfmt.enable = true;
 
           # Linting: Unused code and anti-patterns
           deadnix.enable = true;
