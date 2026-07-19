@@ -532,3 +532,58 @@ sweet16's evaluated Hyprland bind now resolves to
 chromium-codecs-ffmpeg-extra-2026-05-18 and launches cleanly (verified pre-deploy).
 
 **`nix flake check` result:** all checks passed (aarch64-linux configs skipped, pre-existing).
+
+
+### Verification: fastmcp sandbox test disable (2026-07-19T00:30:00Z)
+
+Commit verified:
+- 0edecdc fix(overlays): disable sandbox-hostile fastmcp supabase test
+  (modules/flake/overlays.nix — appends `test_unauthorized_access` to
+  fastmcp's `disabledTests` in the `buildFixes` overlay's
+  `pythonPackagesExtensions`)
+
+Evaluation method: `.agents/scripts/lock-diff.sh 96fffd5 HEAD` +
+`.agents/scripts/verify-drift.sh 96fffd5 HEAD` (clean per-rev evals via
+`git+file:$PWD?rev=<rev>#...`), plus direct `nix-store -qR <drv> | grep
+fastmcp` closure inspection per host to confirm expectedness (code-only
+overlay change, so registry-key/consumer greps alone are insufficient —
+`fastmcp` is a transitive dependency, never referenced by name in any
+module/host file).
+
+`lock-diff.sh` result: zero flake.lock nodes changed (confirmed code-only commit).
+
+| Host | Pre drv (96fffd5) | Post drv (HEAD) | Drifted | fastmcp in closure | Expected |
+|---|---|---|---|---|---|
+| sweet16 (NixOS) | `05w36lnq...` | `982sbjqchz...` | YES | YES (`python3.14-fastmcp-3.3.1`, `-slim`) | YES — imports `nixosModules.development-default`, whose `services.nix` applies `overlays.mcp` (= `buildFixes` + `mcp-servers-nix.overlays.default`) fleet-wide, pulling fastmcp transitively into the system closure |
+| petunia (NixOS) | `g2gmqaqa...` | `xfavbarn...` | YES | YES (same fastmcp drv paths as sweet16) | YES — same `development-default` import as sweet16 |
+| avina (NixOS) | `wvaydwbj...` | `wvaydwbj...` | NO | NO | NO — avina does not import `development-default`; `overlays-global` (buildFixes only, no mcp-servers-nix) is applied fleet-wide but fastmcp never enters avina's closure since nothing pulls the mcp-servers-nix package set in — zero drift correct |
+| hermes (NixOS) | `5w9z5918...` | `4nag1vi1...` | YES | YES (same fastmcp drv paths) | YES — `hosts/hermes/groot-hm.nix` directly installs `unstablePkgs.mcp-nixos` (with `overlays.buildFixes` applied to that unstable pkgs import), and mcp-nixos depends on fastmcp |
+| groot@dualie (HM) | `y5a8swdg...` | `y5a8swdg...` | NO | NO | NO — wires `user-dev-home` but with `enableMcpServers = false`, so `mcp-nixos` (and transitively fastmcp) is never installed; zero drift correct |
+| groot@forge (HM) | `4lhi9q99...` | `09mm4bh0...` | YES | YES (same fastmcp drv paths) | YES — wires `user-dev-home` with `enableMcpServers = true`, installing `unstable-pkgs.mcp-nixos` → fastmcp |
+| groot@rk3588 (HM) | n/a | n/a | N/A | N/A | aarch64-linux eval not possible on x86_64 host (pre-existing); `enableMcpServers = false` there too, so would be NO even if evaluable |
+
+**Drift analysis:** actual-drift set {sweet16, petunia, hermes, forge} exactly
+equals the expected-drift set derived from tracing actual consumers of
+`mcp-nixos`/`development-default`'s `overlays.mcp` (not `consumers.sh`'s raw
+text-reference search alone, which missed avina's `overlays-global` exposure
+and can't resolve through `flake.nixosConfigurations` assembly files in
+`modules/flake/nixos-*.nix`). Confirmed directly for every host by grepping
+each host's post-change derivation closure (`nix-store -qR <drv> | grep
+fastmcp`): the four drifting hosts contain the rebuilt
+`python3.14-fastmcp-3.3.1.drv` / `-slim` derivations; avina and dualie contain
+no fastmcp derivation at all.
+
+**Known pre-existing issue (implementer note):** the `buildFixes` overlay is
+applied twice on some paths — once fleet-wide via `modules/core/overlays-global.nix`
+(`nixpkgs.overlays = [ inputs.self.overlays.buildFixes ]`) and again via
+`modules/tools/dev/services.nix`'s `overlays.mcp` (`composeManyExtensions
+[ buildFixes mcp-servers-nix.overlays.default ]`) on hosts that also pull in
+`development-default`. This double-application is idempotent for the
+`overridePythonAttrs`/`disabledTests` changes made here (list append is
+order-independent for this purpose) and does not change build output, but is
+noted as a pre-existing overlay-composition redundancy, not something
+introduced or fixed by this commit.
+
+**`nix flake check` result:** not re-run in this verification pass (code-only
+overlay change; `lock-diff` + `verify-drift` clean per-rev evals are the
+authoritative closure check per `.agents/validation.md`).
