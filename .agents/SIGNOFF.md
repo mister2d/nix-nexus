@@ -497,3 +497,38 @@ are authoritative.
 
 **`nix flake check` result:** all checks passed (aarch64-linux configs skipped on x86_64 host, pre-existing limitation).
 
+
+### Verification: vivaldi ffmpeg-codecs pin + nixpkgs bump (2026-07-18T22:30:00Z)
+
+Commits verified:
+- 85136e8 fix(browsers): pin vivaldi to nixpkgs snapshot with matched ffmpeg codecs
+  (flake.nix, flake.lock, modules/desktop/hyprland-home.nix, modules/desktop/niri-home.nix,
+  modules/tools/home.nix; nixpkgs nixos-26.05 8eeec934 (2026-07-14) → 293d6abe (2026-07-17);
+  new input pkgs-vivaldi = github:nixos/nixpkgs/3b32825d)
+
+Root cause: nixos-26.05 pairs vivaldi 8.1.4087.48 with vivaldi-ffmpeg-codecs 120726,
+which lacks `av_dynamic_hdr_smpte2094_app5_to_t35`. With `proprietaryCodecs = true`
+vivaldi aborts at startup with a symbol lookup error (observed on sweet16 as a
+"dead" $mod+SHIFT+V keybinding). Commit 3b32825d ships the matched codecs build
+2026-05-18; verified by building the override from that rev and running
+`vivaldi --version` successfully. Current nixos-26.05 HEAD (293d6abe) is still broken;
+the pin is required until the codecs bump reaches the channel.
+
+Evaluation method: `nix path-info --derivation "git+file:$PWD?rev=<rev>#..."` at
+d622f9b (pre) and 85136e8 (post); clean per-rev evals.
+
+| Host | Pre drv (d622f9b) | Post drv (85136e8) | Drifted | Expected |
+|---|---|---|---|---|
+| sweet16 (NixOS) | `9sam2kcn...` | `05w36lnq...` | YES | YES — nixpkgs 26.05 bump + pinned vivaldi in user-home/desktop-hyprland-home |
+| petunia (NixOS) | `g2gmqaqa...` | `g2gmqaqa...` | NO | NO — builds from nixpkgs-unstable (not bumped); unstable's vivaldi drv (84yqpg9k) is byte-identical to the pkgs-vivaldi pin, so the module edits are a no-op for petunia |
+| avina (NixOS) | `hwg8mwqm...` | `wvaydwbj...` | YES | YES — nixpkgs 26.05 bump (3 days of channel movement) |
+| hermes (NixOS) | `3h2fmais...` | `5w9z5918...` | YES | YES — nixpkgs 26.05 bump |
+| groot@dualie (HM) | `b3fflyrh...` | `y5a8swdg...` | YES | YES — home-manager follows nixpkgs (bumped) |
+| groot@forge (HM) | `arrhgdy9...` | `4lhi9q99...` | YES | YES — same as dualie |
+| groot@rk3588 (HM) | n/a | n/a | n/a | aarch64-linux eval not possible on x86_64 host (pre-existing) |
+
+sweet16's evaluated Hyprland bind now resolves to
+/nix/store/ckh62yrzhnli7ra8f39az0xy97c4pv7y-vivaldi-8.1.4087.48, which pairs with
+chromium-codecs-ffmpeg-extra-2026-05-18 and launches cleanly (verified pre-deploy).
+
+**`nix flake check` result:** all checks passed (aarch64-linux configs skipped, pre-existing).
