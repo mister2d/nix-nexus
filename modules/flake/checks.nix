@@ -9,6 +9,9 @@
       # Usage: 'nix develop' to enter environment and install hooks
       devenv.shells.default = {
         packages = [
+          # JS/TS runtime for the context-mode plugin's execution sandbox.
+          pkgs.bun
+
           # langfuse is not packaged in nixpkgs; vendored from PyPI, pinned to
           # satisfy the Claude Code Stop hook's >=4.0,<5 constraint.
           (pkgs.python3.withPackages (ps: [
