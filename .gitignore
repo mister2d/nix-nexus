@@ -14,6 +14,8 @@ result-*
 !.claude/agents/
 !.claude/agents/*.md
 !.claude/settings.json
+!.claude/hooks/
+!.claude/hooks/*.py
 .env
 .direnv/
 debug/
