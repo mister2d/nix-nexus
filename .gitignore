@@ -10,7 +10,9 @@ result-*
 
 # User-specific
 .mcp.json
-.claude/
+.claude/*
+!.claude/agents/
+!.claude/agents/*.md
 .env
 .direnv/
 debug/
