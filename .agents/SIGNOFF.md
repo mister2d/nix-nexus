@@ -587,3 +587,60 @@ introduced or fixed by this commit.
 **`nix flake check` result:** not re-run in this verification pass (code-only
 overlay change; `lock-diff` + `verify-drift` clean per-rev evals are the
 authoritative closure check per `.agents/validation.md`).
+
+
+### Verification: mcp-nixos check override scope fix (2026-07-19T01:00:00Z)
+
+Commit verified:
+- cba5569 fix(overlays): move mcp-nixos check override to its real scope
+  (modules/flake/overlays.nix — removes the dead `pyPrev.mcp-nixos`
+  override inside `pythonPackagesExtensions` (mcp-nixos is a
+  `pkgs.by-name` `buildPythonApplication`, never a `python3Packages`
+  entry, so that override could never match); adds a top-level
+  `prev.mcp-nixos.overridePythonAttrs` in `buildFixes` setting both
+  `doCheck = false` and `doInstallCheck = false`, since mcp-nixos's
+  tests run in `installCheckPhase` gated by `doInstallCheck`, not
+  `checkPhase`/`doCheck`)
+
+This is a genuine behavior change (the prior override was dead code), so
+the mcp-nixos derivation itself changes for every consumer, not just a
+no-op re-verification.
+
+Evaluation method: `.agents/scripts/lock-diff.sh 389ce53 HEAD` +
+`.agents/scripts/verify-drift.sh 389ce53 HEAD` (clean per-rev evals), plus
+direct `nix-store -qR <drv> | grep mcp-nixos` closure inspection and a
+`nix show-derivation | jq -S` diff of the `mcp-nixos` `.drv` itself to
+confirm the root cause.
+
+`lock-diff.sh` result: zero flake.lock nodes changed (confirmed code-only commit).
+
+| Host | Pre drv (389ce53) | Post drv (HEAD) | Drifted | mcp-nixos in closure | Expected |
+|---|---|---|---|---|---|
+| sweet16 (NixOS) | `982sbjqchz...` | `q671xmfwla...` | YES | YES (`mcp-nixos-2.4.3`: `hrvd9an5...` → `yqj2s91l...`) | YES — same `development-default` consumer set established in the prior sign-off |
+| petunia (NixOS) | `xfavbarn...` | `s2k2x2hg...` | YES | YES (mcp-nixos present) | YES — imports `development-default`, same as sweet16 |
+| avina (NixOS) | `wvaydwbj...` | `wvaydwbj...` | NO | NO | NO — avina never pulls the mcp-nixos package; zero drift correct |
+| hermes (NixOS) | `4nag1vi1...` | `l6ll104n...` | YES | YES (mcp-nixos present) | YES — `groot-hm.nix` directly installs `unstablePkgs.mcp-nixos` |
+| groot@dualie (HM) | `y5a8swdg...` | `y5a8swdg...` | NO | NO | NO — `enableMcpServers = false`; mcp-nixos never installed |
+| groot@forge (HM) | `09mm4bh0...` | `5nnkq88n...` | YES | YES (mcp-nixos present) | YES — `enableMcpServers = true` installs `unstable-pkgs.mcp-nixos` |
+| groot@rk3588 (HM) | n/a | n/a | N/A | N/A | aarch64-linux eval not possible on x86_64 host (pre-existing) |
+
+**Drift analysis:** actual-drift set {sweet16, petunia, hermes, forge}
+exactly equals the expected set — identical to the consumer set established
+in the fastmcp sign-off above, since both changes live in the same
+`buildFixes` overlay and only affect hosts whose closures actually contain
+`mcp-nixos`. avina and dualie remain drift-free because neither ever
+installs the `mcp-nixos` package (confirmed absent from both closures via
+`nix-store -qR`).
+
+**Root cause, confirmed not assumed:** diffed the `mcp-nixos-2.4.3.drv`
+itself pre/post on sweet16 with `nix show-derivation | jq -S`. The only
+environment-affecting change is `doInstallCheck: "1"` → `doInstallCheck:
+""`, and `nativeBuildInputs` drops `pytest-check-hook`,
+`python3.14-pytest-asyncio`, and `python3.14-pytest-cov-stub` accordingly —
+exactly the mechanism described in the commit message (the prior fix never
+reached `doInstallCheck` because the override never matched at all; this
+commit is the first time mcp-nixos's checks are actually disabled).
+
+**`nix flake check` result:** not re-run in this verification pass
+(code-only overlay change; `lock-diff` + `verify-drift` clean per-rev evals
+are the authoritative closure check per `.agents/validation.md`).
