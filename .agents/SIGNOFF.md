@@ -698,3 +698,73 @@ consumer — precisely the six hosts/configs identified above.
 **`nix flake check` result:** not re-run in this verification pass
 (code-only module change; `lock-diff` + `verify-drift` clean per-rev evals
 are the authoritative closure check per `.agents/validation.md`).
+
+
+### Verification: devenv migration (2026-07-19T06:46:12Z)
+
+Commits verified (02f5287..5851bb0):
+- 2e33fb4 feat(devenv): migrate devshell to devenv with git-hooks parity
+- d5f4cc3 feat(devenv): declare claude code hooks and mcp servers in devenv
+- aac50e6 docs(devenv): document devenv-owned claude code environment
+- 94f3aaf fix(devenv): pass explicit flake ref to nix-direnv's use flake
+- 5851bb0 chore(devenv): gitignore .devenv/
+
+Evaluation method: `.agents/scripts/lock-diff.sh 02f5287 5851bb0` +
+`.agents/scripts/verify-drift.sh 02f5287 5851bb0` (clean per-rev evals),
+plus `.agents/scripts/consumers.sh mk-shell-bin nix2container devenv` and
+direct grep of the resolved consumer files to judge whether the reported
+consumers are genuine host-facing dependents.
+
+`lock-diff.sh` result: two `flake.lock` nodes added —
+`mk-shell-bin` (`null` → `ff5d8bd4d68a347be5042e2f16caee391cd75887`) and
+`nix2container` (`null` → `76be9608a7f4d6c985d28b0e7be903ae2547df3e`).
+Both are new inputs of `root` (i.e. required directly by `flake.nix`, not by
+any consumed subgraph), pulled in because `modules/flake/checks.nix` newly
+imports `inputs.devenv.flakeModule` to define `devShells.default` — they are
+devenv's own shell-building machinery dependencies. No other node in
+`flake.lock` changed: `devenv` itself remains locked at
+`bd1c175d8aff2cd47e1999f6be7b7d79a4253d93` (identical `inputs` map, same
+rev, pre and post), and `nixpkgs`, `nixpkgs-unstable`, `home-manager`,
+`noctalia`, `hyprland`, and `git-hooks` are all byte-identical.
+
+**Expected-drift derivation:** `consumers.sh mk-shell-bin nix2container
+devenv` reported `forge`, `rk3588`, `dualie`, `sweet16`, and `petunia` as
+touching the string `devenv` — but only via `modules/tools/dev/home.nix:155`,
+which installs `inputs.devenv.packages.${system}.devenv` (the devenv CLI
+binary) into the `user-dev-home` profile these hosts import. Neither
+`mk-shell-bin` nor `nix2container` appears anywhere in `modules/`, `hosts/`,
+or `profiles/` — they are devShell-only, never referenced by a host or HM
+config. Because the `devenv` flake input's locked rev is unchanged, the
+`devenv` CLI package derivation those five configs consume is expected to
+be bit-identical, so the true expected-drift set for this migration is
+**empty** across all seven configs (`groot@rk3588` N/A on x86_64 per
+standing policy).
+
+`verify-drift.sh` result:
+
+| Config | 02f5287 | 5851bb0 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `2af8ymr7lv...` | `2af8ymr7lv...` | none |
+| petunia (NixOS) | `30jr82wp...` | `30jr82wp...` | none |
+| avina (NixOS) | `wvaydwbj...` | `wvaydwbj...` | none |
+| hermes (NixOS) | `ia61nz7b...` | `ia61nz7b...` | none |
+| groot@dualie (HM) | `y3qql25g...` | `y3qql25g...` | none |
+| groot@forge (HM) | `6r1jq79j...` | `6r1jq79j...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+`verify-drift.sh` exited 0 (no drift). No devenv/flake-compat impurity
+assertion was hit during evaluation — both `lock-diff.sh` and
+`verify-drift.sh` ran clean on the first pass; no `--impure` accommodation
+or script patch was needed.
+
+**Drift analysis:** actual-drift set is empty, exactly matching the
+expected-drift set. All five toplevel/generation derivation hashes are
+byte-identical pre/post across the full commit range, confirming the
+devenv migration (devShell definition, Claude Code hooks/MCP generation,
+git-hooks parity) is fully devShell-scoped and does not touch any
+`nixosConfigurations` or `homeConfigurations` output.
+
+**`nix flake check` result:** not re-run in this verification pass
+(clean per-rev `lock-diff` + `verify-drift` evals are the authoritative
+closure check per `.agents/validation.md`, and both completed without
+error on the first attempt).
