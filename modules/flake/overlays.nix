@@ -7,6 +7,15 @@
   flake.overlays = {
     # Global Build Fixes: fix failing builds in upstream dependencies
     buildFixes = _: prev: {
+      # mcp-nixos is a pkgs.by-name application (buildPythonApplication), not a
+      # python3Packages entry — its checks run in installCheckPhase, gated by
+      # doInstallCheck rather than doCheck. test_read_text_file reads an
+      # arbitrary store file and asserts the substring "Error" is absent.
+      mcp-nixos = prev.mcp-nixos.overridePythonAttrs (_old: {
+        doCheck = false;
+        doInstallCheck = false;
+      });
+
       pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
         (_: pyPrev: {
           # Update mcp to satisfy requirements of latest mcp-servers-nix
@@ -22,10 +31,6 @@
               version
               ;
             propagatedBuildInputs = (old.propagatedBuildInputs or [ ]) ++ [ pyPrev.pyjwt ];
-          });
-
-          mcp-nixos = pyPrev.mcp-nixos.overridePythonAttrs (_old: {
-            doCheck = false;
           });
 
           # test_unauthorized_access: async server fixture cannot start in the build sandbox
