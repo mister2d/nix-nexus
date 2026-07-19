@@ -16,6 +16,7 @@ result-*
 !.claude/settings.json
 !.claude/hooks/
 !.claude/hooks/*.py
+!.claude/hooks/*.sh
 .env
 .direnv/
 debug/
