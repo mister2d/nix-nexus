@@ -28,6 +28,11 @@
             doCheck = false;
           });
 
+          # test_unauthorized_access: async server fixture cannot start in the build sandbox
+          fastmcp = pyPrev.fastmcp.overridePythonAttrs (old: {
+            disabledTests = (old.disabledTests or [ ]) ++ [ "test_unauthorized_access" ];
+          });
+
           aioboto3 = pyPrev.aioboto3.overridePythonAttrs (_old: {
             doCheck = false;
             dontCheck = true;
