@@ -45,6 +45,40 @@
           deadnix.enable = true;
           statix.enable = true;
         };
+
+        # Claude Code integration: generates .claude/settings.json and
+        # .mcp.json from these options. Hook scripts and .claude/agents/*.md
+        # stay hand-authored; only the wiring is declared here.
+        claude.code = {
+          enable = true;
+
+          hooks = {
+            # devenv auto-enables this hook (runs prek after every
+            # Edit/MultiEdit/Write) once git-hooks.enable is true. Disabled
+            # to keep exactly the three hooks below — no added automation.
+            git-hooks-run.enable = false;
+
+            commit-reminder = {
+              hookType = "PostToolUse";
+              matcher = "^Bash$";
+              command = ''bash "$CLAUDE_PROJECT_DIR"/.agents/scripts/hook-commit-reminder.sh'';
+            };
+            push-guard = {
+              hookType = "PreToolUse";
+              matcher = "^Bash$";
+              command = ''bash "$CLAUDE_PROJECT_DIR"/.agents/scripts/hook-push-guard.sh'';
+            };
+            langfuse = {
+              hookType = "Stop";
+              command = ''python3 "$CLAUDE_PROJECT_DIR"/.claude/hooks/langfuse_hook.py'';
+            };
+          };
+
+          mcpServers.nixos-tools = {
+            type = "stdio";
+            command = "mcp-nixos";
+          };
+        };
       };
 
       # Tree-wide Validation and Linting (nix flake check)
