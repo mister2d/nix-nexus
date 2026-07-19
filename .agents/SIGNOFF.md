@@ -644,3 +644,57 @@ commit is the first time mcp-nixos's checks are actually disabled).
 **`nix flake check` result:** not re-run in this verification pass
 (code-only overlay change; `lock-diff` + `verify-drift` clean per-rev evals
 are the authoritative closure check per `.agents/validation.md`).
+
+
+### Verification: television package dedup (2026-07-19T01:30:00Z)
+
+Commit verified:
+- f35a127 fix(tools): drop redundant television package shadowed by
+  programs.television (modules/tools/television-home.nix — removes
+  `home.packages = [ pkgs.television ]`, which collided with the wrapped
+  package `programs.television` already installs into the same
+  home-manager profile; also collapses the module header to `_:` and
+  applies a `nixfmt` reformat pass)
+
+Evaluation method: `.agents/scripts/lock-diff.sh 9dd47a1 HEAD` +
+`.agents/scripts/verify-drift.sh 9dd47a1 HEAD` (clean per-rev evals), plus
+`.agents/scripts/consumers.sh user-television-home user-home` and direct
+grep of each host's HM wiring file to derive the expected-drift set.
+
+`lock-diff.sh` result: zero flake.lock nodes changed (confirmed code-only commit).
+
+**Expected-drift derivation:** `user-television-home` is imported directly
+by `hosts/{rk3588,dualie,forge}/home.nix` and `hosts/hermes/groot-hm.nix`,
+and indirectly by `modules/tools/home.nix`'s `user-home` key, which is in
+turn imported by `hosts/sweet16/home.nix` and `hosts/petunia/home.nix`.
+`avina` was checked explicitly (`hosts/avina/home.nix` imports only
+`user-bash` and `user-neovim-home`) and does not reach
+`user-television-home` at all — confirmed excluded from the expected set.
+
+| Host | Pre drv (9dd47a1) | Post drv (HEAD) | Drifted | Expected |
+|---|---|---|---|---|
+| sweet16 (NixOS) | `q671xmfwla...` | `2af8ymr7lv...` | YES | YES — `hosts/sweet16/home.nix` imports `user-home`, which pulls in `user-television-home` via `modules/tools/home.nix:65` |
+| petunia (NixOS) | `s2k2x2hg...` | `30jr82wp...` | YES | YES — same `user-home` path as sweet16 |
+| avina (NixOS) | `wvaydwbj...` | `wvaydwbj...` | NO | NO — `hosts/avina/home.nix` never imports `user-home` or `user-television-home`; zero drift correct |
+| hermes (NixOS) | `l6ll104n...` | `ia61nz7b...` | YES | YES — `hosts/hermes/groot-hm.nix:55` imports `user-television-home` directly |
+| groot@dualie (HM) | `y5a8swdg...` | `y3qql25g...` | YES | YES — `hosts/dualie/home.nix:21` imports `user-television-home` directly |
+| groot@forge (HM) | `5nnkq88n...` | `6r1jq79j...` | YES | YES — `hosts/forge/home.nix:15` imports `user-television-home` directly |
+| groot@rk3588 (HM) | n/a | n/a | N/A | aarch64-linux eval not possible on x86_64 host (pre-existing). Note: `hosts/rk3588/home.nix:14` also imports `user-television-home` directly, so this config **would** drift the same as dualie/forge if it were evaluable — the N/A here is an evaluation-environment limitation, not evidence of no-drift. |
+
+**Drift analysis:** actual-drift set {sweet16, petunia, hermes, dualie,
+forge} exactly equals the expected set derived above. `avina` is the only
+NixOS host that does not drift, and it is the only one that never reaches
+`user-television-home` through any import chain.
+
+**Mechanism (mechanical, not deep-forensic — sufficient given the change
+shape):** the `television` package derivation build itself is unchanged
+(`television-0.15.6.drv` has the identical store hash pre/post, confirmed
+via `nix-store -qR` on the groot@dualie activation closure). What changed
+is `home.packages`: removing the extra `pkgs.television` entry shrinks the
+HM profile's package buildEnv (`home-manager-path.drv`), which changes that
+derivation's hash and cascades to the generation/toplevel for every
+consumer — precisely the six hosts/configs identified above.
+
+**`nix flake check` result:** not re-run in this verification pass
+(code-only module change; `lock-diff` + `verify-drift` clean per-rev evals
+are the authoritative closure check per `.agents/validation.md`).
