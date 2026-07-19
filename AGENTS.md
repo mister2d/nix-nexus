@@ -556,8 +556,11 @@ docs/
     ├── cert-check.sh           ← ephemeral Vault SSH cert validity check
     ├── build-host.sh           ← timed local build with cache stats
     ├── deploy-host.sh          ← cert-check → ssh probe → nixos-rebuild → verify
-    └── verify-generation.sh    ← remote system profile check
+    ├── verify-generation.sh    ← remote system profile check
+    ├── hook-commit-reminder.sh ← PostToolUse(Bash) hook: nudge validation after a commit
+    └── hook-push-guard.sh      ← PreToolUse(Bash) hook: block push without a SIGNOFF entry
 .claude/
+├── settings.json               ← project-shared hook wiring (tracked)
 └── agents/
     ├── upstream-scout.md       ← verifies upstream facts (haiku)
     ├── nix-implementer.md      ← writes and commits module/host changes (sonnet)
@@ -610,3 +613,22 @@ output format, exit codes). Summary:
 | `build-host.sh` | timed local build with cache stats |
 | `deploy-host.sh` | cert-check → ssh probe → `nixos-rebuild --target-host` → generation verify |
 | `verify-generation.sh` | remote system profile vs. expected toplevel |
+
+### Mechanical hooks
+
+Below the agent tier sits a mechanical tier: two Claude Code hooks wired in
+`.claude/settings.json`, deterministic and zero-token. They don't judge — they
+notice a pattern and nudge the orchestrating session to dispatch the right
+judgment agent.
+
+| Hook | Event | Enforces |
+|---|---|---|
+| `hook-commit-reminder.sh` | `PostToolUse(Bash)` | after a `git commit` whose files match `^(modules\|hosts\|profiles\|flake\.(nix\|lock))`, exits 2 with a stderr reminder to dispatch `closure-validator` before deploy/push |
+| `hook-push-guard.sh` | `PreToolUse(Bash)` | before a `git push`, if the outgoing range touches evaluated config without a `.agents/SIGNOFF.md` entry in the same range, exits 2 and blocks the push |
+
+Both fail open: `hook-commit-reminder.sh` only fires on an actual `git commit`
+match and can't block (`PostToolUse` exit 2 is non-blocking — the commit
+already happened). `hook-push-guard.sh` exits 0 on any git probing failure or
+an unresolvable outgoing range, so it never blocks a push due to its own
+error. Neither hook re-implements judgment already owned by
+`closure-validator` — they only detect the precondition for dispatching it.

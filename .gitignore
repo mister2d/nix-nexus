@@ -13,6 +13,7 @@ result-*
 .claude/*
 !.claude/agents/
 !.claude/agents/*.md
+!.claude/settings.json
 .env
 .direnv/
 debug/
