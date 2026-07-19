@@ -76,3 +76,18 @@ devenv container run shell
 
 ### Hardware Optimization
 Our ThinkPad Z16 environments (and high-resource core servers) benefit greatly from Devenv 2.0's Rust and C implementations, especially with AVX2 instruction sets enabled, resulting in extremely fast environment evaluations and process management.
+
+## 5. This repo's own devshell
+
+nix-nexus's own Claude Code environment is itself devenv-managed, declared in
+`modules/flake/checks.nix` via `inputs.devenv.flakeModule` and
+`perSystem.devenv.shells.default` — this keeps `devShells.default` a real
+flake output, so `nix develop`, `preflight.sh`, and `nix flake check` work
+unchanged. `git-hooks.hooks` (nixfmt, deadnix, statix) replaces the previous
+direct `pre-commit-hooks.lib.run` invocation, and `claude.code.hooks` /
+`claude.code.mcpServers` generate `.claude/settings.json` and `.mcp.json` as
+store-path symlinks on shell entry, replacing the hand-maintained copies.
+`.envrc` activates it via `use flake --impure` — `--impure` is required
+because devenv's flakeModule resolves `devenv.root` from `$PWD`
+(`builtins.getEnv "PWD"`), and this repo does not declare a `devenv-root`
+flake input.

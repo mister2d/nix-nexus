@@ -46,9 +46,10 @@ validate reachability before a real deploy.
 
 ## Mechanical hooks
 
-Wired via `.claude/settings.json`. Deterministic; nudge the orchestrating
-session toward the agent pipeline above rather than judging anything
-themselves.
+Declared in `modules/flake/checks.nix` (devenv's `claude.code.hooks`) and
+generated into `.claude/settings.json` on devenv shell entry. Deterministic;
+nudge the orchestrating session toward the agent pipeline above rather than
+judging anything themselves.
 
 | Script | Event | Args | Exit codes |
 |---|---|---|---|
