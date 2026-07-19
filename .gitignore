@@ -4,6 +4,7 @@ result-*
 .direnv/
 .nix-profile/
 .nix-defexpr/
+.devenv/
 
 # Lock files
 # flake.lock # Keep this if you want reproducible builds!
