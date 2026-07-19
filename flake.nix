@@ -59,6 +59,12 @@
 
     # ── Development tooling ─────────────────────────────────────────────────
     devenv.url = "github:cachix/devenv";
+    # Required by devenv's flakeModule container plumbing even when unused.
+    nix2container = {
+      url = "github:nlewo/nix2container";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    mk-shell-bin.url = "github:rrbutani/nix-mk-shell-bin";
     nixvim.url = "github:nix-community/nixvim/nixos-26.05";
     pre-commit-hooks = {
       url = "github:cachix/pre-commit-hooks.nix";

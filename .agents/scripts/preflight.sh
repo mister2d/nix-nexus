@@ -5,11 +5,14 @@
 #   file...   one or more changed files to run pre-commit hooks against
 #
 # Runs, in order:
-#   1. nix develop --command pre-commit run --files <file>...
-#   2. nix flake check
+#   1. nix develop --impure --command prek run --files <file>...
+#   2. nix flake check --impure
 # Reports pass/fail per stage. Stops at the first failing stage (pre-commit
 # failures are usually auto-fixes that need re-staging; flake check failures
 # mean the module tree does not evaluate).
+#
+# --impure is required: the devenv shell resolves devenv.root from $PWD
+# (builtins.getEnv "PWD") since this repo has no devenv-root flake input.
 #
 # Exit codes: 0 = both stages passed, 1 = pre-commit failed, 2 = flake check
 # failed, 3 = argument error.
@@ -25,7 +28,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
 echo "== preflight: pre-commit =="
-if nix develop --command pre-commit run --files "$@"; then
+if nix develop --impure --command prek run --files "$@"; then
   echo "pre-commit: PASS"
 else
   echo "pre-commit: FAIL"
@@ -33,7 +36,7 @@ else
 fi
 
 echo "== preflight: nix flake check =="
-if nix flake check; then
+if nix flake check --impure; then
   echo "flake check: PASS"
 else
   echo "flake check: FAIL"

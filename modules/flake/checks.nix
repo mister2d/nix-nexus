@@ -1,31 +1,14 @@
 { inputs, ... }:
 {
+  imports = [ inputs.devenv.flakeModule ];
+
   perSystem =
+    { config, pkgs, ... }:
     {
-      config,
-      pkgs,
-      system,
-      ...
-    }:
-    {
-      # Tree-wide Validation and Linting
-      checks.pre-commit-check = inputs.pre-commit-hooks.lib.${system}.run {
-        src = ../../.;
-        hooks = {
-          # Standard Formatting (RFC 166)
-          nixfmt.enable = true;
-
-          # Linting: Unused code and anti-patterns
-          deadnix.enable = true;
-          statix.enable = true;
-        };
-      };
-
       # Development Environment
       # Usage: 'nix develop' to enter environment and install hooks
-      devShells.default = pkgs.mkShell {
-        inherit (config.checks.pre-commit-check) shellHook;
-        buildInputs = config.checks.pre-commit-check.enabledPackages ++ [
+      devenv.shells.default = {
+        packages = [
           # langfuse is not packaged in nixpkgs; vendored from PyPI, pinned to
           # satisfy the Claude Code Stop hook's >=4.0,<5 constraint.
           (pkgs.python3.withPackages (ps: [
@@ -52,6 +35,19 @@
             })
           ]))
         ];
+
+        # Tree-wide Validation and Linting
+        git-hooks.hooks = {
+          # Standard Formatting (RFC 166)
+          nixfmt.enable = true;
+
+          # Linting: Unused code and anti-patterns
+          deadnix.enable = true;
+          statix.enable = true;
+        };
       };
+
+      # Tree-wide Validation and Linting (nix flake check)
+      checks.pre-commit-check = config.devenv.shells.default.git-hooks.run;
     };
 }
