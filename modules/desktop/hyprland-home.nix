@@ -34,7 +34,12 @@ _: {
           ]
         ) 10
       );
-      vivaldi = pkgs.vivaldi.override { proprietaryCodecs = true; };
+      vivaldi =
+        (import inputs.pkgs-vivaldi {
+          inherit (pkgs.stdenv.hostPlatform) system;
+          config.allowUnfree = true;
+        }).vivaldi.override
+          { proprietaryCodecs = true; };
     in
     {
       imports = [
