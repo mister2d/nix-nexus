@@ -542,8 +542,71 @@ docs/
 └── petunia-sbom.md           ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
 .agents/
 ├── SIGNOFF.md                ← closure baseline and drift sign-offs
-├── validation.md             ← baseline capture and verification scripts
+├── validation.md             ← script toolbox reference (current-state)
+├── phase-A.md                ← historical: dendritic refactor phase A record
+├── phase-B.md                ← historical: dendritic refactor phase B record
+├── phase-C.md                ← historical: dendritic refactor phase C record
 └── scripts/
-    ├── capture-baseline.sh   ← captures drv hashes for all hosts
-    └── verify-hosts.sh       ← compares current vs baseline hashes
+    ├── lib.sh                 ← fleet lists + clean per-rev drv eval helper
+    ├── capture-baseline.sh    ← records drv paths at a rev into SIGNOFF.md
+    ├── verify-drift.sh        ← per-config drv diff between two revs
+    ├── consumers.sh           ← recursive registry-key/input consumer lookup
+    ├── lock-diff.sh            ← node-by-node flake.lock diff via jq
+    ├── preflight.sh            ← pre-commit + nix flake check gate
+    ├── cert-check.sh           ← ephemeral Vault SSH cert validity check
+    ├── build-host.sh           ← timed local build with cache stats
+    ├── deploy-host.sh          ← cert-check → ssh probe → nixos-rebuild → verify
+    └── verify-generation.sh    ← remote system profile check
+.claude/
+└── agents/
+    ├── upstream-scout.md       ← verifies upstream facts (haiku)
+    ├── nix-implementer.md      ← writes and commits module/host changes (sonnet)
+    ├── closure-validator.md    ← judges drift, signs off in SIGNOFF.md (sonnet)
+    └── fleet-deployer.md       ← deploys validated commits to the fleet (sonnet)
 ```
+
+---
+
+## 12. Agent workflow
+
+The maintenance pipeline is split between deterministic scripts (§ toolbox
+below, in `.agents/scripts/`) and thin judgment-only agents
+(`.claude/agents/*.md`). Scripts own *how* — clean per-rev evals, drift
+comparison, lint gates, deploys. Agents own *whether/why* — where code goes,
+whether drift is expected, when it's safe to deploy. This keeps LLM context
+spent on judgment, not on restating deterministic process in every prompt.
+
+### Roster
+
+| Agent | Phase | Trigger |
+|---|---|---|
+| `upstream-scout` | scout | a package attr, NixOS/HM option, or flake input schema needs verifying and isn't already established this session |
+| `nix-implementer` | implement | facts are in hand; a module/host file needs writing and committing |
+| `closure-validator` | validate | a commit could affect an evaluated host/HM config; judges actual vs. expected drift and signs off in `SIGNOFF.md` |
+| `fleet-deployer` | deploy | a validated commit needs to reach one or more live hosts |
+
+### Standard pipeline
+
+scout → implement (`preflight.sh` per commit) → validate → deploy. The main
+session orchestrates: it dispatches each agent, relays their conclusions,
+and makes the final call — it does not re-derive their work. Trivial
+doc-only edits (no module/host/option changes) skip the pipeline entirely;
+just edit and commit.
+
+### Script toolbox
+
+See `.agents/validation.md` for the full contract of each script (args,
+output format, exit codes). Summary:
+
+| Script | Purpose |
+|---|---|
+| `lib.sh` | fleet host/HM lists, clean per-rev eval helper (sourced only) |
+| `capture-baseline.sh` | records per-config drv paths at a rev into `SIGNOFF.md` |
+| `verify-drift.sh` | per-config drv comparison between two revs |
+| `consumers.sh` | recursively resolves which hosts reach a registry key or flake input |
+| `lock-diff.sh` | node-by-node `flake.lock` diff |
+| `preflight.sh` | pre-commit hooks + `nix flake check` |
+| `cert-check.sh` | validates the ephemeral Vault SSH cert |
+| `build-host.sh` | timed local build with cache stats |
+| `deploy-host.sh` | cert-check → ssh probe → `nixos-rebuild --target-host` → generation verify |
+| `verify-generation.sh` | remote system profile vs. expected toplevel |
