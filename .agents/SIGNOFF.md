@@ -768,3 +768,64 @@ git-hooks parity) is fully devShell-scoped and does not touch any
 (clean per-rev `lock-diff` + `verify-drift` evals are the authoritative
 closure check per `.agents/validation.md`, and both completed without
 error on the first attempt).
+
+
+### Verification: legacy vim/tmux copy-paste fix (2026-07-20T00:00:00Z)
+
+Commit verified: c2ca3c9 "fix(tools): restore legacy vim/tmux copy-paste
+behavior" (parent 4aca4dd).
+
+What changed (both Home Manager option-value edits, no structural or
+namespace changes):
+- `modules/tools/neovim-home.nix` (`user-neovim-home`): removed
+  `clipboard.register = "unnamedplus";` from the nixvim `clipboard = { ... }`
+  block (kept `providers.wl-copy.enable = true;`), so the unnamed register
+  no longer aliases the system clipboard on every delete/change.
+- `modules/tools/terminal-home.nix` (`user-terminal-home`): changed
+  `programs.tmux.mouse` from `true` to `false`, restoring native
+  terminal-emulator click-drag selection instead of tmux mouse-mode capture.
+
+Evaluation method: `.agents/scripts/lock-diff.sh 4aca4dd c2ca3c9` +
+`.agents/scripts/consumers.sh user-neovim-home user-terminal-home` +
+`.agents/scripts/verify-drift.sh 4aca4dd c2ca3c9` (clean per-rev evals),
+followed by a content-level diff of the realized
+`home-manager-files` store paths for `groot@dualie` to confirm the drift
+is scoped to only the two rendered config files.
+
+`lock-diff.sh` result: exit 0, no `flake.lock` nodes changed (this is a
+pure module-code edit; no input touched).
+
+`consumers.sh user-neovim-home user-terminal-home` result: all seven
+hosts/configs consume both keys — `sweet16` and `petunia` via
+`hosts/sweet16/home.nix` / `hosts/petunia/home.nix`, `avina` via
+`hosts/avina/home.nix`, `hermes` via `hosts/hermes/groot-hm.nix`, and
+`dualie`/`forge`/`rk3588` via their respective `hosts/<host>/home.nix`.
+Expected-drift set: every config except `groot@rk3588` (N/A on x86_64).
+
+`verify-drift.sh` result (exit 10, drift found):
+
+| Config | 4aca4dd | c2ca3c9 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `2af8ymr7lv...` | `yp6kr05qpr...` | DRIFT |
+| petunia (NixOS) | `30jr82wpgf...` | `jmm8im3qqs...` | DRIFT |
+| avina (NixOS) | `wvaydwbj0k...` | `i2hk8dl2zs...` | DRIFT |
+| hermes (NixOS) | `ia61nz7b0m...` | `zcbgbprm5b...` | DRIFT |
+| groot@dualie (HM) | `y3qql25grd...` | `gkfzdppll6...` | DRIFT |
+| groot@forge (HM) | `6r1jq79jrd...` | `j9wc1rqhx9...` | DRIFT |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+**Drift analysis:** actual-drift set (all six evaluable configs) is exactly
+equal to the expected-drift set derived from `consumers.sh` — no config
+outside the two modules' consumers moved, and every consumer did move.
+Content-level confirmation: realized and diffed the `home-manager-files`
+outputs for `groot@dualie` pre/post (`zqhmyb31...` vs `qyc4j0lg...`);
+`diff -rq` reports exactly two differing files —
+`.config/nvim/init.lua` and `.config/tmux/tmux.conf` — and nothing else in
+the tree. This matches the two edited option values precisely; the
+generation/toplevel hash cascade above is the expected chain reaction of
+those two rendered file changes, not evidence of unrelated drift.
+
+**`nix flake check` result:** not re-run in this verification pass
+(clean per-rev `lock-diff` + `verify-drift` evals plus the content-level
+`home-manager-files` diff are the authoritative closure check per
+`.agents/validation.md`, and all completed without error).
