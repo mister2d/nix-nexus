@@ -158,7 +158,7 @@ _: {
           terminal = "tmux-256color";
           historyLimit = 100000;
           keyMode = "vi";
-          mouse = true;
+          mouse = false;
           baseIndex = 1;
           escapeTime = 0; # Fix for Neovim lag
 
