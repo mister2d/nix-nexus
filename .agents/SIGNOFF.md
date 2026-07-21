@@ -829,3 +829,95 @@ those two rendered file changes, not evidence of unrelated drift.
 (clean per-rev `lock-diff` + `verify-drift` evals plus the content-level
 `home-manager-files` diff are the authoritative closure check per
 `.agents/validation.md`, and all completed without error).
+
+### Verification: hermes python-olm fix + llm-agents nixpkgs.follows (2026-07-20)
+
+Commit verified: e0c0c39 "fix(hermes): resolve python-olm buildEnv conflict,
+follow nixpkgs for llm-agents" (parent f2488b5).
+
+What changed:
+- `hosts/hermes/home.nix`: excludes `python-olm` from `pythonDeps` (same
+  pattern as the existing `aiosqlite` exclusion), removing the `buildEnv`
+  collision between `hermes-agent`'s propagated stock `python-olm` and the
+  host's overridden one.
+- `hosts/hermes/llm-agents-overlay.nix`: replaces a hardcoded
+  `"lib/python3.13/site-packages"` string with `hermesPython.sitePackages`,
+  derived from the actual interpreter.
+- `flake.nix` / `flake.lock`: adds `inputs.llm-agents.inputs.nixpkgs.follows
+  = "nixpkgs"` and re-locks; `llm-agents` bumps to a new upstream rev
+  (`5c73869` → `2af0e04`) and its nixpkgs input is dropped in favor of the
+  fleet's top-level pin.
+
+`lock-diff.sh f2488b5 e0c0c39` result (exit 10, nodes changed): `llm-agents`
+(new rev), `treefmt-nix_2` (llm-agents' own transitive pin, moved with its
+rev bump), and a cascade of `nixpkgs_2`..`nixpkgs_7` node-alias renumbers.
+Verified by diffing both lockfiles directly: the fleet's actual top-level
+`nixpkgs` node (`nixpkgs_5` → `nixpkgs_4`) is **the same commit**,
+`293d6abedf0478e681a4dfcfcb35b30fc796a32f`, before and after — the
+renumbering is purely index-shift from removing llm-agents' now-unused
+standalone `nixpkgs_2` node, not a real nixpkgs bump. `pkgs-vivaldi`'s
+independent pin (`3b32825d…`) is untouched (separate node, not an alias
+target).
+
+`consumers.sh llm-agents` result: `hermes` (via `llm-agents-overlay.nix` and
+`home.nix`), plus `forge`, `rk3588`, `dualie`, `sweet16`, `petunia` — all via
+a shared chain through `modules/tools/dev/home.nix` (`user-dev-home`, which
+references `inputs.llm-agents.packages` directly for `llmAgentPackages`) →
+`modules/tools/home.nix` (`user-home`) → each host's `home.nix`. `avina` is
+correctly absent: it only imports `user-bash` + `user-neovim-home`, never
+`user-home`. This means the **expected-drift set is not hermes-only** —
+`llm-agents` was already a broader dependency than the commit message
+implies, reached by every HM-composed host via the shared dev-tools module,
+not just hermes's dedicated overlay.
+
+Of those consumers, `rk3588` and `dualie` explicitly set
+`nix-nexus.dev.enableLlmAgents = false`; `forge` sets it `true`; `sweet16`,
+`petunia`, and `hermes` take the module's `default = true` (unset). Because
+`agentPkgs = inputs.llm-agents.packages.${system}` is bound lazily inside a
+`let` and only forced when `cfg.enableLlmAgents` is true, hosts with the flag
+off are expected to reference `llm-agents` textually but not pull it into
+their built closure.
+
+`verify-drift.sh f2488b5 e0c0c39` result (exit 10, drift found):
+
+| Config | f2488b5 | e0c0c39 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `yp6kr05qpr...` | `s5wvw3bw76...` | DRIFT |
+| petunia (NixOS) | `jmm8im3qqs...` | `7qpq4bf47v...` | DRIFT |
+| avina (NixOS) | `i2hk8dl2zs...` | `i2hk8dl2zs...` | none |
+| hermes (NixOS) | `zcbgbprm5b...` | `701q0flnbr...` | DRIFT |
+| groot@dualie (HM) | `gkfzdppll6...` | `gkfzdppll6...` | none |
+| groot@forge (HM) | `j9wc1rqhx9...` | `jv3hfb44bk...` | DRIFT |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+**Drift analysis:** actual-drift set is `{sweet16, petunia, hermes, forge}`.
+This is an exact match against the `consumers.sh`-derived expected set once
+the `enableLlmAgents` laziness is accounted for: `avina` (not a consumer at
+all) and `dualie`/`rk3588` (consumers with the flag disabled, so
+`agentPkgs` is never forced) correctly show zero drift, while every host
+that both consumes `user-dev-home`/`llm-agents-hermes` *and* has
+`enableLlmAgents` true (`sweet16`, `petunia`, `hermes`, `forge`) drifted.
+No host outside the expected consumer set moved — the `nixpkgs.follows`
+change had no wider blast radius than intended.
+
+Content-level confirmation on `groot@forge`: diffed both
+`home-manager-generation.drv`s with
+`nix derivation show | python3 -m json.tool`. The only differing inputs are
+`activation-script.drv` and `home-manager-path.drv` — consistent with the
+`llmAgentPackages` package set changing under the new `llm-agents` rev
+(now built against the fleet's Python 3.13 nixpkgs instead of the prior
+independent pin), and nothing else in forge's derivation graph moved.
+
+The pre-existing local build (`nix build
+.#nixosConfigurations.hermes.config.system.build.toplevel`) succeeding, plus
+`preflight.sh`'s clean `pre-commit` + `nix flake check --impure` pass before
+commit, are consistent with this analysis.
+
+**Verdict: SIGNED OFF.** Drift is fully expected once the correct
+expected-drift set is derived from `consumers.sh` rather than assumed from
+the commit message — `sweet16` and `petunia` drifting is not evidence of
+unintended blast radius; it is because they were already indirect consumers
+of `llm-agents` through the shared `user-dev-home` module (default
+`enableLlmAgents = true`), which the commit message did not call out.
+`avina` correctly shows zero drift (not a consumer), and `groot@rk3588` is
+`N/A` on x86_64 per convention.
