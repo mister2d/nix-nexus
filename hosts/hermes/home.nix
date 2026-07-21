@@ -8,9 +8,18 @@ _: {
       hermesPkg = pkgs.llm-agents.hermes-agent;
       allDeps = hermesPkg.propagatedBuildInputs;
       hermesPython = builtins.elemAt allDeps (builtins.length allDeps - 1);
-      # Exclude hermesPython itself and the bundled aiosqlite — aiosqlite is
-      # replaced below with the exact 0.22.1 pin that platform.matrix requires.
-      pythonDeps = builtins.filter (p: p != hermesPython && (p.pname or null) != "aiosqlite") allDeps;
+      # Exclude hermesPython itself, the bundled aiosqlite (replaced below with
+      # the exact 0.22.1 pin platform.matrix requires), and the bundled
+      # python-olm (replaced below with an override allowing its known-vuln
+      # olm) — keeping the stock copies would collide in buildEnv.
+      pythonDeps = builtins.filter (
+        p:
+        p != hermesPython
+        && !(builtins.elem (p.pname or null) [
+          "aiosqlite"
+          "python-olm"
+        ])
+      ) allDeps;
       olm-allowed = pkgs.olm.overrideAttrs (old: {
         meta = old.meta // {
           knownVulnerabilities = [ ];

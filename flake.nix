@@ -74,7 +74,10 @@
       url = "github:natsukium/mcp-servers-nix";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    llm-agents.url = "github:numtide/llm-agents.nix";
+    llm-agents = {
+      url = "github:numtide/llm-agents.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     # ── Pinned nixpkgs snapshots ─────────────────────────────────────────────
     # Each pin preserves a working version of one or more packages.
