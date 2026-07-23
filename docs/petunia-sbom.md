@@ -151,11 +151,12 @@ Target ISA: `amdgcn-amd-amdhsa--gfx1201` (RDNA4) and `gfx12-generic`.
 
 ### RDNA4 dual-GPU wiring
 
-Managed by `tenarches/nix-rdna4` flake (commit `3f78e85`):
-- `rdna4.dualGpu.enable = true`
-- `rdna4.buildEnv.enableRocm = true`
-- `rdna4.buildEnv.enableVulkan = true`
-- `rocm-combined-gfx1201` closure pulled for both cards
+Configured directly in `modules/hardware/petunia/rdna4.nix` (plain nixpkgs-unstable
+options; no external GPU flake):
+- Dual-GPU env wiring: `ROCR_VISIBLE_DEVICES=0,1`, `HCC_AMDGPU_TARGET=gfx1201,gfx1201`
+- `rocm-combined-gfx1201` symlinkJoin at `/opt/rocm` for both cards
+- HIP/Vulkan build toolchain lives in per-project devShells
+  (`github:tenarches/nix-rdna4` `llama-rocm` / `llama-vulkan`), not the system closure
 
 ### Runtime environment
 

@@ -52,10 +52,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
-    rdna4-stack = {
-      url = "github:tenarches/nix-rdna4";
-      inputs.nixpkgs.follows = "nixpkgs-unstable";
-    };
 
     # ── Development tooling ─────────────────────────────────────────────────
     devenv.url = "github:cachix/devenv";

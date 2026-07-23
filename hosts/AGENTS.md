@@ -25,7 +25,7 @@ Convert in ascending risk so problems surface on the simplest host first:
 1. `avina` — adds the Matrix `pkgs-stable` overlay.
 2. `hermes` — adds `llm-agents` + `mcp` overlays and inline `unstablePkgs`.
 3. `sweet16` — nixos-hardware stack, `ddukes` HM.
-4. `petunia` — **unstable channel**, disko, rdna4, `home-manager-unstable`.
+4. `petunia` — **unstable channel**, disko, `home-manager-unstable`.
 5. Then the 3 standalone HM configs (`groot@dualie`, `groot@rk3588`,
    `groot@forge`).
 
@@ -94,8 +94,8 @@ Key moves:
 - **`petunia`** uses `inputs.nixpkgs-unstable.lib.nixosSystem` and
   `inputs.home-manager-unstable`. Preserve the unstable builder and unstable HM
   wiring as a distinct named module; do **not** unify it with the stable HM
-  module. The `rdna4-stack` and `disko` nixosModules stay as input-provided
-  modules in the list.
+  module. The `disko` nixosModule stays as an input-provided module in the
+  list. GPU/ROCm wiring is inlined in `modules/hardware/petunia/rdna4.nix`.
 - **`avina`** has the inline Matrix overlay pinning 7 packages
   (`matrix-synapse-unwrapped`, `matrix-authentication-service`, `livekit`,
   `lk-jwt-service`, `element-web`, `element-call`, `postgresql_16`) from

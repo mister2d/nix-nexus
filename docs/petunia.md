@@ -60,11 +60,13 @@ journalctl -b | grep -i 'cryptsetup\|tpm'
 
 ## Dual R9700 GPU Setup
 
-Petunia has two physically identical RDNA4 R9700 GPUs. Both are wired into ROCm/HIP via
-`rdna4.dualGpu.enable = true` in `modules/hardware/petunia/rdna4.nix`, which is activated
-by the `rdna4-dual` module imported at the flake level in `modules/flake/nixos-petunia.nix`.
+Petunia has two physically identical RDNA4 R9700 GPUs. Both are wired into ROCm/HIP by
+`modules/hardware/petunia/rdna4.nix`, which holds the full graphics + compute config
+(amdgpu KMS, kernel params, ROCm runtime, `/opt/rocm` symlink, LACT, diagnostics).
+The HIP/Vulkan build toolchain is not in the system closure; inference projects consume
+`github:tenarches/nix-rdna4` devShells (`llama-rocm` / `llama-vulkan`) directly.
 
-Key environment variables set by `rdna4-dual`:
+Key settings in `rdna4.nix`:
 - `ROCR_VISIBLE_DEVICES=0,1`
 - `HCC_AMDGPU_TARGET=gfx1201,gfx1201`
 - `pcie_bus_config=performance` kernel param (maximises inter-GPU DMA throughput on X570 x8/x8)

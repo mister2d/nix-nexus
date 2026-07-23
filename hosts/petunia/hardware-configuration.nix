@@ -20,7 +20,7 @@ _: {
           efi.canTouchEfiVariables = true;
         };
         # Kernel Modules (from hardware scan + X570 specifics)
-        # Early amdgpu KMS is handled by hardware.amdgpu.initrd.enable in rdna4-base.
+        # Early amdgpu KMS is handled by hardware.amdgpu.initrd.enable in modules/hardware/petunia/rdna4.nix.
         # Kernel selection is handled by hardware.cachyosKernel in petunia-default.
       };
 

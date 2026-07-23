@@ -358,27 +358,6 @@
         "type": "github"
       }
     },
-    "flake-parts_6": {
-      "inputs": {
-        "nixpkgs-lib": [
-          "rdna4-stack",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1778716662,
-        "narHash": "sha256-m1Yf0wZ8j1OHjTc2UwHwyQRSnNeSgLJOd7q5Y45hzi4=",
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "rev": "f7c1a2d347e4c52d5fb8d10cb4d94b5884e546fb",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "flake-parts",
-        "type": "github"
-      }
-    },
     "ghostty": {
       "flake": false,
       "locked": {
@@ -1481,27 +1460,6 @@
         "type": "github"
       }
     },
-    "rdna4-stack": {
-      "inputs": {
-        "flake-parts": "flake-parts_6",
-        "nixpkgs": [
-          "nixpkgs-unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1779800903,
-        "narHash": "sha256-B7AsYeGDWT22WBnPb4wy3XD28sztIcyqCqN/NMGWchw=",
-        "owner": "tenarches",
-        "repo": "nix-rdna4",
-        "rev": "3f78e85d26a41fe49dfe116b19e88322fd53f732",
-        "type": "github"
-      },
-      "original": {
-        "owner": "tenarches",
-        "repo": "nix-rdna4",
-        "type": "github"
-      }
-    },
     "root": {
       "inputs": {
         "devenv": "devenv",
@@ -1532,8 +1490,7 @@
         "pkgs-terraform": "pkgs-terraform",
         "pkgs-vivaldi": "pkgs-vivaldi",
         "pkgs-vlc": "pkgs-vlc",
-        "pre-commit-hooks": "pre-commit-hooks_2",
-        "rdna4-stack": "rdna4-stack"
+        "pre-commit-hooks": "pre-commit-hooks_2"
       }
     },
     "rust-overlay": {

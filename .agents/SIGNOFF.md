@@ -921,3 +921,13 @@ of `llm-agents` through the shared `user-dev-home` module (default
 `enableLlmAgents = true`), which the commit message did not call out.
 `avina` correctly shows zero drift (not a consumer), and `groot@rk3588` is
 `N/A` on x86_64 per convention.
+
+## Baseline: unknown (2026-07-23T16:18:20Z)
+
+| Host | Derivation |
+|---|---|
+| sweet16 (NixOS) | `/nix/store/s5wvw3bw76ik9ffjfwrki71gz0yz0y18-nixos-system-sweet16-26.05.20260717.293d6ab.drv` |
+| petunia (NixOS) | `/nix/store/7qpq4bf47vsr6754ff9dij50wzxkr99s-nixos-system-petunia-26.11.20260714.18b9261.drv` |
+| avina (NixOS) | `/nix/store/i2hk8dl2zsrbl2nibgnn934r9syvjgh2-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` |
+| hermes (NixOS) | `/nix/store/701q0flnbr44g50sbrbyz4nmcwl2yi48-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` |
+| groot@dualie (HM) | `/nix/store/gkfzdppll6mb15rm6h7z3hxlsqdwn6xk-home-manager-generation.drv` |
