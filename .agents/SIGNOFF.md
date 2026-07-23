@@ -931,3 +931,74 @@ of `llm-agents` through the shared `user-dev-home` module (default
 | avina (NixOS) | `/nix/store/i2hk8dl2zsrbl2nibgnn934r9syvjgh2-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` |
 | hermes (NixOS) | `/nix/store/701q0flnbr44g50sbrbyz4nmcwl2yi48-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` |
 | groot@dualie (HM) | `/nix/store/gkfzdppll6mb15rm6h7z3hxlsqdwn6xk-home-manager-generation.drv` |
+| groot@forge (HM) | `/nix/store/jv3hfb44bk576phg80mpz047vsfl07n1-home-manager-generation.drv` |
+| groot@rk3588 (HM) | `N/A` |
+
+Git commit at baseline: 5ba9b2d80b9f09711fd3cac71556b1c9347922b4
+
+## Validation: 3985f0f — refactor(petunia): remove rdna4-stack input, inline GPU/ROCm wiring
+
+`lock-diff.sh 5ba9b2d 3985f0f` result (exit 10, nodes changed): the
+`rdna4-stack` node is removed from `flake.lock` entirely (`3f78e85… → null`),
+along with its transitive `flake-parts_6` follow node (`f7c1a2d… → null`).
+No other input moved.
+
+`consumers.sh rdna4-stack` at the pre-removal tree
+(`hosts/AGENTS.md`/`modules/flake/nixos-petunia.nix`, worktree at 5ba9b2d)
+returns no output — a known script limitation: `nixos-petunia.nix` consumes
+`inputs.rdna4-stack.nixosModules.{rdna4-dual,rdna4-full}` directly inside a
+`flake.nixosConfigurations.petunia` assembly rather than registering under a
+`flake.modules.nixos.*` key, so the script's recursive registry-key walk has
+no host file to terminate on. Manual grep confirms the only two references
+to `rdna4-stack` anywhere under `modules/`, `hosts/`, `profiles/` are both in
+`modules/flake/nixos-petunia.nix` — petunia is the sole consumer.
+Expected-drift set: `{petunia}`; all other hosts and HM configs zero drift.
+
+`verify-drift.sh HEAD~1 HEAD` (5ba9b2d → 3985f0f) result (exit 10, drift
+found):
+
+| Config | 5ba9b2d | 3985f0f | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `s5wvw3bw76...` | `s5wvw3bw76...` | none |
+| petunia (NixOS) | `7qpq4bf47v...` | `z54m792qz2...` | DRIFT |
+| avina (NixOS) | `i2hk8dl2zs...` | `i2hk8dl2zs...` | none |
+| hermes (NixOS) | `701q0flnbr...` | `701q0flnbr...` | none |
+| groot@dualie (HM) | `gkfzdppll6...` | `gkfzdppll6...` | none |
+| groot@forge (HM) | `jv3hfb44bk...` | `jv3hfb44bk...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set is exactly `{petunia}` — matches the expected set from the
+manual consumer trace with zero surprises.
+
+Content-level confirmation on petunia: diffed both toplevel `.drv`s with
+`nix derivation show | python3 -m json.tool`. The diff is confined to the
+expected structural shift (new `etc.drv`/`activate.drv`/`system-path.drv`
+hashes, `boot.json` content-address change, and `kernelParams` list-order
+churn with all values, including `amdgpu.gpu_recovery=1`,
+`amdgpu.lockup_timeout=10000`, and `iommu=pt`, still present — reordered by
+list-merge position only, no values added or removed). Diffing the two
+`system-path.drv`s' `inputDrvs` sets (168 → 153 entries) shows exactly the
+build-toolchain packages the commit intended to drop from the closure:
+`vulkan-loader`, `vulkan-headers`, `vulkan-validation-layers`, `shaderc`,
+`glslang`, `cmake`, `ninja`, `pkg-config-wrapper`, `ccache`, `openssl`,
+`clr` (rocm clang), `rocm-toolchain`, `rocblas`, `hipblas`, `rocwmma` — with
+`rocminfo` and `rocm-smi` (runtime, not build-toolchain) untouched in both.
+Diffed `modules/hardware/petunia/rdna4.nix` at both revs: the new file
+(112 lines, up from 16) contains the `pkgs.symlinkJoin { name =
+"rocm-combined-gfx1201"; ... }` block, `boot.kernelParams` with
+`amdgpu.initrd.enable`/`amdgpu.overdrive.enable`, `hardware.graphics` with
+`pkgs.rocmPackages.clr.icd` + `pkgs.libva` (+ `pkgsi686Linux.libva` for
+`extraPackages32`), the `udev.extraRules` render/kfd rules, and session vars
+`ROCR_VISIBLE_DEVICES = "0,1"`, `HCC_AMDGPU_TARGET = "gfx1201,gfx1201"`,
+`LIBVA_DRIVER_NAME`/`VDPAU_DRIVER = "radeonsi"` — all inlined verbatim as
+the commit describes, none dropped.
+
+**Verdict: SIGNED OFF.** Actual drift (`{petunia}`) equals expected drift.
+The closure shrinkage on petunia is confined to the build-toolchain packages
+and session vars the commit intentionally removed; every runtime-facing
+piece of GPU/ROCm wiring (kernel params, `/opt/rocm` symlinkJoin, hardware.graphics,
+udev rules, LACT/overdrive, initrd KMS, LIBVA/VDPAU vars) is present
+unchanged in the new inlined module. `sweet16`, `avina`, `hermes`,
+`groot@dualie`, `groot@forge` show zero drift as expected (none consumed
+`rdna4-stack`), and `groot@rk3588` is `N/A` on x86_64 per convention.
+
