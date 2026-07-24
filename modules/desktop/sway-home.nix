@@ -263,7 +263,7 @@ _: {
               "exec env DRI_PRIME=1 google-chrome-stable --ozone-platform-hint=auto --enable-features=WebRTCPipeWireCapturer --disable-features=ExtensionManifestV2Unsupported";
             "${mod}+Shift+d" = "exec wdisplays";
             "${mod}+Alt+e" =
-              "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00AAAA' --hf '#000000' --tb '#00AAAA' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -c";
+              "exec BEMOJI_PICKER_CMD=\"bemenu -W 0.3 --center -l 15 -H 32 --fn 'JetBrainsMono Nerd Font 12' --nb '#000000' --nf '#FFFFFF' --hb '#00AAAA' --hf '#000000' --tb '#00AAAA' --tf '#000000'\" ${pkgs.bemoji}/bin/bemoji -n -c";
             "${mod}+Shift+e" = "exec swaynag -t warning -m 'Exit sway?' -b 'Yes' 'swaymsg exit'";
             "${mod}+Escape" = "exec swaylock -f -c 000000";
 

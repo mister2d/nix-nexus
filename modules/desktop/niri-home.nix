@@ -188,7 +188,7 @@ _: {
               "Mod+Alt+E".action.spawn = [
                 "${pkgs.bash}/bin/bash"
                 "-c"
-                "BEMOJI_PICKER_CMD=\"${pkgs.fuzzel}/bin/fuzzel --dmenu --width 40 --lines 10\" ${pkgs.bemoji}/bin/bemoji -c"
+                "BEMOJI_PICKER_CMD=\"${pkgs.fuzzel}/bin/fuzzel --dmenu --width 40 --lines 10\" ${pkgs.bemoji}/bin/bemoji -n -c"
               ];
               "Mod+Shift+V".action.spawn = [
                 "${vivaldi}/bin/vivaldi"
