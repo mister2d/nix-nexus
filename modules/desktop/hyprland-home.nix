@@ -268,7 +268,7 @@ _: {
             "$mod SHIFT, D, exec, ${pkgs.wdisplays}/bin/wdisplays"
             "$mod SHIFT, A, exec, audio-selector sink"
             "$mod SHIFT, M, exec, audio-selector source"
-            "$mod ALT, E, exec, ${pkgs.bash}/bin/bash -c 'BEMOJI_PICKER_CMD=\"${pkgs.fuzzel}/bin/fuzzel --dmenu --width 40 --lines 10\" ${pkgs.bemoji}/bin/bemoji -t -c'"
+            "$mod ALT, E, exec, ${pkgs.bash}/bin/bash -c 'BEMOJI_PICKER_CMD=\"${pkgs.fuzzel}/bin/fuzzel --dmenu --width 40 --lines 10\" ${pkgs.bemoji}/bin/bemoji -c'"
             "$mod SHIFT, V, exec, ${vivaldi}/bin/vivaldi --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported"
 
             # ── Window management ──
