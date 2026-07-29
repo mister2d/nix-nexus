@@ -18,12 +18,6 @@ _: {
       # Vault — that would be circular. sops-nix renders into /run/secrets.
       bootstrapDir = "/run/secrets";
 
-      # Former home of the AppRole seed: hand-placed files, outside declarative
-      # control. Retained as the documented recovery path — if avina's SSH host
-      # key is ever regenerated, sops cannot decrypt and reverting the seed to
-      # these files is what gets vault-agent authenticating again.
-      persistentSecretDir = "/var/lib/secrets";
-
       # ── Vault KV-v2 Hierarchy ───────────────────────────────────────────────
       # The configuration is structured into three distinct tiers of truth:
       # 1. Config Tier (/config):  Global structural metadata (domains, names).
@@ -339,7 +333,6 @@ _: {
         tmpfiles.rules = [
           "d ${certDir} 0755 root root -"
           "d ${secretDir} 0750 root matrix-secrets -"
-          "d ${persistentSecretDir} 0700 root root -"
         ];
 
         services = {
@@ -370,7 +363,6 @@ _: {
                 certDir
                 "/run"
               ];
-              ReadOnlyPaths = [ persistentSecretDir ];
             };
           };
 
@@ -397,7 +389,6 @@ _: {
                 certDir
                 "/run"
               ];
-              ReadOnlyPaths = [ persistentSecretDir ];
             };
           };
 

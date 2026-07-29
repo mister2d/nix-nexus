@@ -83,10 +83,11 @@ cd /etc/nixos
 cp hosts/avina/site-config.nix.example hosts/avina/site-config.nix
 $EDITOR hosts/avina/site-config.nix
 
-# Place Vault AppRole credentials (see "Vault Authentication" below)
-install -dm 0700 /var/lib/secrets
-printf '%s' '<role-id-uuid>'   | install -m 0600 /dev/stdin /var/lib/secrets/vault-role-id
-printf '%s' '<secret-id-uuid>' | install -m 0600 /dev/stdin /var/lib/secrets/vault-secret-id
+# The Vault AppRole seed comes from sops (see "Vault Authentication" below).
+# On a NEW host, add its age recipient before the first rebuild — sops cannot
+# decrypt for a host it has never been encrypted to:
+#   ssh-keyscan -t ed25519 avina.home.lan | cut -d' ' -f2- | ssh-to-age
+# Add that to .sops.yaml, then: sops updatekeys secrets/avina.yaml
 
 # Apply the configuration
 nixos-rebuild switch --flake .#avina --impure
@@ -97,15 +98,21 @@ nixos-rebuild switch --flake .#avina --impure
 ## Vault Authentication
 
 vault-agent authenticates to Vault using **AppRole**, not an admin token or a
-static `VAULT_TOKEN`. Two files must exist in `/var/lib/secrets/` before the
-first boot:
+static `VAULT_TOKEN`. The AppRole seed is **sops-encrypted in
+`secrets/avina.yaml`** and rendered by sops-nix at activation:
 
-| File | Content | Notes |
+| sops key | Rendered to | Content |
 |---|---|---|
-| `vault-role-id` | AppRole `role_id` UUID | Not a secret per se, but restrict read access |
-| `vault-secret-id` | AppRole `secret_id` UUID | **Treat as a secret** — rotate if exposed |
+| `vault-role-id` | `/run/secrets/vault-role-id` | AppRole `role_id` UUID |
+| `vault-secret-id` | `/run/secrets/vault-secret-id` | AppRole `secret_id` UUID |
 
-Obtain them from Vault (as admin, from your workstation):
+This is the one credential that cannot come from Vault — it is what
+authenticates *to* Vault. sops-nix needs no bootstrap credential of its own,
+decrypting with an age key derived from the host's SSH host key, which breaks
+the cycle. Both files are `0400 root:root` on tmpfs; nothing is persisted to
+disk.
+
+Obtain the values from Vault (as admin, from your workstation):
 
 ```bash
 # Read the role-id (static per role)
@@ -114,6 +121,27 @@ vault read auth/approle/role/avina/role-id
 # Generate a new secret-id
 vault write -f auth/approle/role/avina/secret-id
 ```
+
+Then store them (never commit plaintext):
+
+```bash
+sops secrets/avina.yaml
+```
+
+Both values carry a **trailing newline** and use YAML block scalars — the
+rendered files must be 37 bytes (36-char UUID + `\n`). A plain scalar yields 36
+bytes and AppRole authentication fails. After editing, verify against the live
+host before deploying:
+
+```bash
+sops decrypt --extract '["vault-role-id"]' secrets/avina.yaml | sha256sum
+ssh root@avina.home.lan sha256sum < /run/secrets/vault-role-id
+```
+
+**Rotation.** `secret_id` is designed to be reissued: mint a new one with the
+`vault write -f` command above, update it in sops, and redeploy. No plaintext
+copy is kept anywhere on the host, so there is no second location to keep in
+sync.
 
 **On the 96h token TTL**: this is `token_ttl` on the AppRole definition in
 Vault, not a value placed in any file. vault-agent automatically renews the
@@ -141,8 +169,8 @@ Do **not** place an admin token here. The AppRole policy (`avina`) must have
 
 | Secret | Path | Consumer |
 |---|---|---|
-| AppRole role-id | `/var/lib/secrets/vault-role-id` | vault-agent bootstrap (persistent) |
-| AppRole secret-id | `/var/lib/secrets/vault-secret-id` | vault-agent bootstrap (persistent) |
+| AppRole role-id | `/run/secrets/vault-role-id` | vault-agent bootstrap (sops-nix, tmpfs) |
+| AppRole secret-id | `/run/secrets/vault-secret-id` | vault-agent bootstrap (sops-nix, tmpfs) |
 | TLS cert (HAProxy) | `/run/certs/haproxy.pem` | HAProxy — fullchain + key combined |
 | TLS cert (LiveKit TURN) | `/run/certs/turn-fullchain.pem` | LiveKit built-in TURN TLS |
 | TLS key (LiveKit TURN) | `/run/certs/turn.key` | LiveKit built-in TURN TLS |
@@ -312,10 +340,14 @@ Access to `/run/vault-secrets/` is gated by the `matrix-secrets` group (director
 `0750`). Each service that needs secrets is given `matrix-secrets` as a supplementary
 group via the vault-secrets module. Individual secret files are mode `0640`.
 
-vault-agent authenticates to Vault using AppRole. The `secret_id` on disk
-(`/var/lib/secrets/vault-secret-id`) has `secret_id_ttl=0` so it survives reboots
-without manual intervention. The live Vault token has a 96-hour TTL and is
-automatically renewed by vault-agent before expiry.
+vault-agent authenticates to Vault using AppRole. The `secret_id`
+(`/run/secrets/vault-secret-id`, decrypted from sops at activation) has
+`secret_id_ttl=0` so it stays valid across reboots without manual intervention.
+The live Vault token has a 96-hour TTL and is automatically renewed by
+vault-agent before expiry.
+
+Note both AppRole files live on tmpfs and are re-created from `secrets/avina.yaml`
+on every boot — no plaintext credential is persisted to disk.
 
 ### LiveKit TURN SSRF Note
 
