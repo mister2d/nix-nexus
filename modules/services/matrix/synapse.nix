@@ -14,10 +14,10 @@ _: {
 
         # ── Zero-Secrets-in-Store ──────────────────────────────────────────────
         # Only structural/non-secret config is here. All identities (domains,
-        # keys, OIDC client secrets) are rendered from Vault to /run/secrets.
+        # keys, OIDC client secrets) are rendered from Vault to /run/vault-secrets.
         extraConfigFiles = [
-          "/run/secrets/synapse-secrets.yaml"
-          "/run/secrets/synapse-email.yaml"
+          "/run/vault-secrets/synapse-secrets.yaml"
+          "/run/vault-secrets/synapse-email.yaml"
         ];
 
         settings = {
@@ -34,7 +34,7 @@ _: {
             "turns:${rtcDomain}:5349?transport=tcp"
           ];
           # HMAC-SHA1 shared secret for generating time-limited credentials.
-          # turn_shared_secret: (rendered from Vault to /run/secrets/synapse-secrets.yaml)
+          # turn_shared_secret: (rendered from Vault to /run/vault-secrets/synapse-secrets.yaml)
           turn_user_lifetime = 86400000; # 1 day
 
           # Federation (Structural)

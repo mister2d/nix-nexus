@@ -3,7 +3,7 @@ _: {
     { pkgs, ... }:
     let
       stateDir = "/var/lib/matrix-authentication-service";
-      configFile = "/run/secrets/mas-config.yaml";
+      configFile = "/run/vault-secrets/mas-config.yaml";
     in
     {
       users.users.matrix-authentication-service = {

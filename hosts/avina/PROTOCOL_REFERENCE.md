@@ -126,7 +126,7 @@ makes Matrix a first-class participant in the OAuth 2.0 ecosystem.
 
 **How this deployment implements it.**
 
-Synapse is configured (via `/run/secrets/synapse-secrets.yaml`, rendered at boot by
+Synapse is configured (via `/run/vault-secrets/synapse-secrets.yaml`, rendered at boot by
 vault-agent) with:
 
 ```yaml
@@ -348,16 +348,16 @@ cryptographic properties of this guarantee. MAS uses two algorithms:
 - Computationally more expensive than ES384; kept solely for spec compliance.
 
 **Implementation.** Both keys are stored in Vault KV-v2
-(`kv-v2/infrastructure/matrix/avina/mas`) and rendered to `/run/secrets/` by
+(`kv-v2/infrastructure/matrix/avina/mas`) and rendered to `/run/vault-secrets/` by
 vault-agent at boot. MAS reads them via `key_file:` entries in its config:
 
 ```yaml
 secrets:
   keys:
     - kid: "mas-rsa-01"
-      key_file: /run/secrets/mas-signing-rsa.key   # RSA-4096, PKCS#1 format
+      key_file: /run/vault-secrets/mas-signing-rsa.key   # RSA-4096, PKCS#1 format
     - kid: "mas-ec-01"
-      key_file: /run/secrets/mas-signing-ec.key    # P-384, SEC1 format
+      key_file: /run/vault-secrets/mas-signing-ec.key    # P-384, SEC1 format
 ```
 
 **Critical operational constraint: these keys must never be rotated after production
@@ -1051,7 +1051,7 @@ KV version increments. Signals the affected service (reload or restart) via
 
 ### File Permissions
 
-All rendered secrets land under `/run/secrets/` (mode `0750`, group
+All rendered secrets land under `/run/vault-secrets/` (mode `0750`, group
 `matrix-secrets`). Individual files are `0640`. Each service that needs secrets
 receives `matrix-secrets` as a supplementary group:
 

@@ -8,7 +8,7 @@ _: {
     }:
     let
       # Key rendered by Vault Agent from turn_shared_secret.
-      keyFile = "/run/secrets/livekit.key";
+      keyFile = "/run/vault-secrets/livekit.key";
     in
     {
       services.livekit = {
@@ -91,6 +91,11 @@ _: {
       };
 
       systemd.services.lk-jwt-service = {
+        # LoadCredential reads /run/vault-secrets/livekit.key at unit start, so
+        # the unit must not start before vault-agent has rendered it. livekit,
+        # synapse, and MAS already carry this ordering; this one did not.
+        after = [ "vault-agent-init.service" ];
+
         # Force use of modern bind syntax by unsetting the module-provided PORT
         # and explicitly providing BIND. This avoids the 'MUST NOT be set together' error.
         environment = {

@@ -8,7 +8,11 @@ _: {
     }:
     let
       certDir = "/run/certs";
-      secretDir = "/run/secrets";
+      # Not /run/secrets: sops-nix hardcodes that path as its symlink target and
+      # re-points it at a fresh generation directory on every activation, which
+      # removes vault-agent's rendered files until it re-renders. Consumers using
+      # LoadCredential= fail immediately when that happens.
+      secretDir = "/run/vault-secrets";
       persistentSecretDir = "/var/lib/secrets";
 
       # ── Vault KV-v2 Hierarchy ───────────────────────────────────────────────

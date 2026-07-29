@@ -146,11 +146,11 @@ Do **not** place an admin token here. The AppRole policy (`avina`) must have
 | TLS cert (HAProxy) | `/run/certs/haproxy.pem` | HAProxy — fullchain + key combined |
 | TLS cert (LiveKit TURN) | `/run/certs/turn-fullchain.pem` | LiveKit built-in TURN TLS |
 | TLS key (LiveKit TURN) | `/run/certs/turn.key` | LiveKit built-in TURN TLS |
-| Synapse secrets | `/run/secrets/synapse-secrets.yaml` | Synapse `extraConfigFiles` |
-| Synapse email | `/run/secrets/synapse-email.yaml` | Synapse `extraConfigFiles` |
-| MAS config | `/run/secrets/mas-config.yaml` | matrix-authentication-service |
-| MAS EC signing key | `/run/secrets/mas-signing-ec.key` | matrix-authentication-service |
-| MAS RSA signing key | `/run/secrets/mas-signing-rsa.key` | matrix-authentication-service |
+| Synapse secrets | `/run/vault-secrets/synapse-secrets.yaml` | Synapse `extraConfigFiles` |
+| Synapse email | `/run/vault-secrets/synapse-email.yaml` | Synapse `extraConfigFiles` |
+| MAS config | `/run/vault-secrets/mas-config.yaml` | matrix-authentication-service |
+| MAS EC signing key | `/run/vault-secrets/mas-signing-ec.key` | matrix-authentication-service |
+| MAS RSA signing key | `/run/vault-secrets/mas-signing-rsa.key` | matrix-authentication-service |
 
 All `/run/` paths are RAM-only and never persist across reboots. vault-agent
 re-renders them on every boot and re-renders in-place whenever the upstream
@@ -206,7 +206,7 @@ rm /dev/shm/ec_private_key.pem /dev/shm/rsa_private_key.pem
 > secret.
 
 Both keys are stored in Vault KV-v2 at
-`kv-v2/infrastructure/matrix/avina/mas` and rendered to `/run/secrets/` by
+`kv-v2/infrastructure/matrix/avina/mas` and rendered to `/run/vault-secrets/` by
 vault-agent on every boot. The rendered files are mode `0640`, group
 `matrix-secrets`. MAS reads them via `key_file:` entries in its config.
 
@@ -305,10 +305,10 @@ This architecture means:
 No secrets are baked into the NixOS configuration or the Nix store. All runtime
 secrets — TLS certificates, database credentials, OIDC client secrets, signing keys —
 are pulled from **Vault KV-v2** by `vault-agent` on each boot and rendered to
-**RAM-only paths** (`/run/secrets/`, `/run/certs/`). These paths are backed by tmpfs
+**RAM-only paths** (`/run/vault-secrets/`, `/run/certs/`). These paths are backed by tmpfs
 and are wiped on every reboot.
 
-Access to `/run/secrets/` is gated by the `matrix-secrets` group (directory mode
+Access to `/run/vault-secrets/` is gated by the `matrix-secrets` group (directory mode
 `0750`). Each service that needs secrets is given `matrix-secrets` as a supplementary
 group via the vault-secrets module. Individual secret files are mode `0640`.
 
