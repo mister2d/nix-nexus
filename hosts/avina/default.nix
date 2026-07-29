@@ -37,6 +37,19 @@ _: {
         nixosModules.services-matrix # Matrix 2.0 communications suite
       ];
 
+      # Encrypted secrets for this host. Decrypted at activation with an age key
+      # derived from /etc/ssh/ssh_host_ed25519_key.
+      nix-nexus.secrets.sops.hostFile = ../../secrets/avina.yaml;
+
+      # Canary: consumed by nothing. Proves the host can decrypt its own secrets
+      # before anything load-bearing depends on sops. Remove once the vault-agent
+      # AppRole seed has been migrated.
+      sops.secrets.canary = {
+        owner = "root";
+        group = "root";
+        mode = "0400";
+      };
+
       # Container Policy:
       # Unprivileged (privileged = false): root inside the container maps to an
       # unprivileged uid on the Proxmox host. Safer for a public-facing server —
