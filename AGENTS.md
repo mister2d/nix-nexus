@@ -539,7 +539,8 @@ docs/
 ├── non-nixos.md              ← standalone HM migration guide
 ├── devenv.md                 ← declarative dev environments
 ├── petunia.md                ← TPM2 auto-unlock, dual GPU, rebuild procedure
-└── petunia-sbom.md           ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
+├── petunia-sbom.md           ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
+└── secrets.md                ← sops-nix / secretspec / Vault layering, TPM2 posture per host
 .agents/
 ├── SIGNOFF.md                ← closure baseline and drift sign-offs
 ├── validation.md             ← script toolbox reference (current-state)
