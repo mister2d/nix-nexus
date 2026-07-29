@@ -1340,3 +1340,61 @@ belongs solely to sops-nix.
 **Verdict: SIGNED OFF — deployed and verified.** The sops-nix layer is proven
 end-to-end on avina: host-key decryption, no path contention, binding startup
 ordering. Cleared for the vault-agent AppRole seed migration.
+
+---
+
+## Validation: c5057cd — feat(avina): migrate vault-agent AppRole seed to sops
+
+Closes the bootstrap chicken-and-egg identified at the start of the secrets
+work: the AppRole role-id/secret-id were hand-placed in `/var/lib/secrets`,
+unlocking every other secret while being unmanaged themselves.
+
+**Pre-flight value verification** (before any wiring): decrypted each value from
+`secrets/avina.yaml` and compared against `sha256sum` of the live files on
+avina. Both 37 bytes, both SHA-256 matching (`d7921aa8…`, `46a108fb…`). The
+trailing newline (`lastbyte=0a`, 36-char UUID + `\n`) is significant, so both
+use YAML block scalars — a plain scalar would yield 36 bytes and break AppRole
+auth. Plaintext was never printed; comparison was done by piping
+`sops decrypt --extract` into `sha256sum`/`wc -c`.
+
+**Built-config verification** (`vault-agent.hcl` from the realised toplevel):
+
+```
+role_id_file_path   = "/run/secrets/vault-role-id"
+secret_id_file_path = "/run/secrets/vault-secret-id"
+path                = "/run/vault-secrets/vault-token"   # sink, unchanged
+```
+
+Zero `/var/lib/secrets` references remain in the generated agent config. The
+seed now comes from sops (`/run/secrets`, rendered at activation) while
+vault-agent's own output stays in `/run/vault-secrets` — the two systems remain
+in separate directories per the earlier collision fix.
+
+Deliberately not sourced from Vault: this is the credential that authenticates
+*to* Vault. sops-nix needs no bootstrap credential of its own, decrypting with
+an age key derived from the SSH host key avina already has.
+
+`sops.secrets` on avina is now `["canary","vault-role-id","vault-secret-id"]`.
+The canary is retained: it proves decryption independently of vault-agent
+health, which is more useful now that the seed shares that mechanism.
+
+`verify-drift.sh HEAD~1 HEAD`: `avina` only; sweet16, petunia, hermes,
+groot@dualie, groot@forge byte-identical; groot@rk3588 `N/A` (x86_64 host).
+
+**Verdict: SIGNED OFF for deploy to avina.**
+
+**Rollback path.** `/var/lib/secrets` is untouched on disk, still created by
+tmpfiles and still in both vault-agent units' `ReadOnlyPaths`. Reverting this
+commit points `auto_auth` back at those files and restores the prior working
+state with no data recovery needed.
+
+**New coupling introduced — accepted, documented.** vault-agent's ability to
+authenticate now depends on sops decryption, which depends on avina's SSH host
+key. If that key is regenerated (rebuild, restore from backup), vault-agent
+cannot authenticate and the whole Matrix stack stays down until the secrets are
+re-encrypted to the new recipient. `/var/lib/secrets` is the recovery path for
+exactly this case and must not be deleted.
+
+**Deploy verification required** — this changes a live credential path:
+`journalctl -u vault-agent-init` must show `authentication successful`, and all
+seven destinations must render under `/run/vault-secrets/`.
