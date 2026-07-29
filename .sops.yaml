@@ -1,0 +1,46 @@
+# SOPS recipients and creation rules.
+#
+# Nothing here is secret: age recipients are public keys. Host recipients are
+# derived from each host's public SSH host key, so onboarding a host needs no
+# key distribution:
+#
+#   ssh-keyscan -t ed25519 <host>.home.lan | cut -d' ' -f2- | ssh-to-age
+#
+# After changing recipients, re-encrypt affected files:
+#
+#   sops updatekeys secrets/<host>.yaml
+keys:
+  # Admin identity — ~/.config/sops/age/keys.txt
+  - &admin_ddukes age1syhzlaqpggxv3hl99pxkussmd55q0xnn0xs44n4cus4tsj862u6s6z0thm
+
+  # Host identities, derived from /etc/ssh/ssh_host_ed25519_key
+  - &host_avina age1yd0d9nvdn0klcgu6y8pjl60klnktdpcvsfyrhp9lf0ekfgckpfcqewv0wl
+  - &host_sweet16 age1hv7qaadazj3xalkrm0zpwrh7cj9d5utku8ny2l00hmtk7w2735cs4ty5tc
+  - &host_petunia age13fzk9sms7p09ll7d7w9u64df0avwj29xcge2ezjn28gufzdxug6s02qqpd
+  - &host_hermes age13t7zyrha0e25mrtvunqk0yeew9wwjhh4v05kj4g6v3r385lnucqsl2l62c
+
+creation_rules:
+  # Per-host files: readable by the admin and by that host alone.
+  - path_regex: secrets/avina\.yaml$
+    key_groups:
+      - age:
+          - *admin_ddukes
+          - *host_avina
+
+  - path_regex: secrets/sweet16\.yaml$
+    key_groups:
+      - age:
+          - *admin_ddukes
+          - *host_sweet16
+
+  - path_regex: secrets/petunia\.yaml$
+    key_groups:
+      - age:
+          - *admin_ddukes
+          - *host_petunia
+
+  - path_regex: secrets/hermes\.yaml$
+    key_groups:
+      - age:
+          - *admin_ddukes
+          - *host_hermes
