@@ -1398,3 +1398,30 @@ exactly this case and must not be deleted.
 **Deploy verification required** — this changes a live credential path:
 `journalctl -u vault-agent-init` must show `authentication successful`, and all
 seven destinations must render under `/run/vault-secrets/`.
+
+### c5057cd deploy verification — cold boot, full chain
+
+Verified on avina after a reboot, which is the strongest available test: `/run`
+is tmpfs, so nothing survives and every secret must be produced from scratch.
+`vault-agent-init` ran as PID 223, confirming a fresh boot rather than a switch.
+
+Chain executed end to end with no pre-existing state:
+
+1. sops-nix decrypted the AppRole seed during activation (activation script, not
+   a unit — `useSystemdActivation` is false here), keyed on
+   `/etc/ssh/ssh_host_ed25519_key`.
+2. `vault-agent-init` read `/run/secrets/vault-role-id` + `vault-secret-id` and
+   authenticated to Vault successfully.
+3. All nine templates rendered — six into `/run/vault-secrets/`, three into
+   `/run/certs/` — all timestamped at boot.
+4. `systemctl is-active` returns `active` for all seven units: vault-agent-init,
+   vault-agent, matrix-synapse, matrix-authentication-service, livekit,
+   lk-jwt-service, haproxy.
+
+`/run/secrets/` holds exactly the three sops secrets at `0400 root:root`, with
+the seed files at the verified 37 bytes. No CREDENTIALS failures; no failed
+units.
+
+This closes the bootstrap chicken-and-egg: the credential that unlocks every
+other secret is now itself declarative and reproducible from the repository,
+and the fleet can rebuild avina's secret chain from a bare boot.
