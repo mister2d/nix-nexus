@@ -14,6 +14,7 @@ in
     };
     modules = [
       nixos.overlays-global
+      inputs.sops-nix.nixosModules.sops
       nixos.avina-default
       nixos.matrix-pin-stable
       inputs.home-manager.nixosModules.home-manager

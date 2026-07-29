@@ -14,6 +14,7 @@ in
     };
     modules = [
       nixos.overlays-global
+      inputs.sops-nix.nixosModules.sops
       inputs.nixos-hardware.nixosModules.lenovo-thinkpad-z
       inputs.nixos-hardware.nixosModules.common-cpu-amd
       inputs.nixos-hardware.nixosModules.common-gpu-amd

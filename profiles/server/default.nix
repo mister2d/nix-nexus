@@ -14,6 +14,7 @@ _: {
     {
       imports = [
         nixosModules.core-security
+        nixosModules.core-sops
         nixosModules.core-sshd
         nixosModules.core-sysctl
         nixosModules.core-users

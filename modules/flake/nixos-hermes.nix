@@ -14,6 +14,7 @@ in
     };
     modules = [
       nixos.overlays-global
+      inputs.sops-nix.nixosModules.sops
       nixos.hermes-mcp-overlay
       nixos.hermes-default
       nixos.llm-agents-hermes
