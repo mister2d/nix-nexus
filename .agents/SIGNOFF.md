@@ -1002,3 +1002,296 @@ unchanged in the new inlined module. `sweet16`, `avina`, `hermes`,
 `groot@dualie`, `groot@forge` show zero drift as expected (none consumed
 `rdna4-stack`), and `groot@rk3588` is `N/A` on x86_64 per convention.
 
+## Validation: f58e074 — fix(desktop): stop typing emoji via wtype, use clipboard-only bemoji
+
+`lock-diff.sh f58e074^ f58e074` result (exit 0, no nodes changed): `flake.lock`
+is untouched — this is a pure in-tree source edit, no input moved.
+
+The commit changes the bemoji emoji-picker keybinding from `bemoji -t -c` to
+`bemoji -c` (dropping `-t`, the wtype-based typing mode; keeping `-c`,
+clipboard-only) in three compositor Home Manager modules:
+`modules/desktop/niri-home.nix` (`desktop-niri-home`),
+`modules/desktop/hyprland-home.nix` (`desktop-hyprland-home`), and
+`modules/desktop/sway-home.nix` (`desktop-sway-home`).
+
+`consumers.sh desktop-niri-home desktop-hyprland-home desktop-sway-home`
+returns `sweet16` and `petunia` (both via `homeManagerModules.desktop-hyprland-home`
+in their respective `hosts/*/home.nix`). A manual grep of
+`desktop-niri-home`/`desktop-hyprland-home`/`desktop-sway-home` across
+`hosts/` and `modules/` confirms no host currently wires in
+`desktop-niri-home` or `desktop-sway-home` — only `desktop-hyprland-home`,
+consumed by exactly these two hosts. Expected-drift set: `{sweet16, petunia}`;
+all other hosts and HM configs zero drift.
+
+`verify-drift.sh f58e074^ f58e074` (exit 10, drift found):
+
+| Config | f58e074^ | f58e074 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `s5wvw3bw76...` | `f16z5q87nm...` | DRIFT |
+| petunia (NixOS) | `z54m792qz2...` | `qp72gfdya5...` | DRIFT |
+| avina (NixOS) | `i2hk8dl2zs...` | `i2hk8dl2zs...` | none |
+| hermes (NixOS) | `701q0flnbr...` | `701q0flnbr...` | none |
+| groot@dualie (HM) | `gkfzdppll6...` | `gkfzdppll6...` | none |
+| groot@forge (HM) | `jv3hfb44bk...` | `jv3hfb44bk...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set is exactly `{sweet16, petunia}` — matches the expected set
+with zero surprises.
+
+Content-level confirmation: built
+`nixosConfigurations.sweet16.config.home-manager.users.ddukes.xdg.configFile."hypr/hyprland.conf".source`
+at both revs and diffed the two rendered `hyprland.conf` files directly. The
+diff is confined to a single line:
+
+```
+< bind=$mod ALT, E, exec, .../bash -c 'BEMOJI_PICKER_CMD="... fuzzel ..." .../bemoji -t -c'
+---
+> bind=$mod ALT, E, exec, .../bash -c 'BEMOJI_PICKER_CMD="... fuzzel ..." .../bemoji -c'
+```
+
+Exactly the intended `-t ` removal, nothing else — same fuzzel picker
+command, same bash wrapper, same store paths for every other input. `wtype`
+remains in the package set (unused by the new command, as the commit
+message describes) and is not the source of the closure hash change; the
+change is confined to the embedded command string.
+
+**Verdict: SIGNED OFF.** Actual drift (`{sweet16, petunia}`) equals expected
+drift. `avina`, `hermes`, `groot@dualie`, `groot@forge` show zero drift as
+expected (none consume `desktop-hyprland-home`, `desktop-niri-home`, or
+`desktop-sway-home`), and `groot@rk3588` is `N/A` on x86_64 per convention.
+
+## Validation: f9666f7 — fix(desktop): drop trailing newline from bemoji clipboard output
+
+`lock-diff.sh f9666f7^ f9666f7` result (exit 0, no nodes changed): `flake.lock`
+is untouched — this is a pure in-tree source edit, no input moved.
+
+The commit changes the bemoji emoji-picker keybinding from `bemoji -c` to
+`bemoji -n -c` (adding `-n`/`--noline` so bemoji does not append a trailing
+newline to the clipboard payload) in the same three compositor Home Manager
+modules as f58e074: `modules/desktop/niri-home.nix` (`desktop-niri-home`),
+`modules/desktop/hyprland-home.nix` (`desktop-hyprland-home`), and
+`modules/desktop/sway-home.nix` (`desktop-sway-home`). Direct follow-up to
+f58e074, same mechanism.
+
+`consumers.sh desktop-hyprland-home desktop-niri-home desktop-sway-home`
+returns `sweet16` and `petunia` (both via `homeManagerModules.desktop-hyprland-home`
+in their respective `hosts/*/home.nix`); `desktop-niri-home` and
+`desktop-sway-home` have no consumers. Expected-drift set: `{sweet16,
+petunia}`; all other hosts and HM configs zero drift.
+
+`verify-drift.sh f9666f7^ f9666f7` (exit 10, drift found):
+
+| Config | f9666f7^ | f9666f7 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `f16z5q87nm...` | `s5akq6cvv8...` | DRIFT |
+| petunia (NixOS) | `qp72gfdya5...` | `qizb52qrjg...` | DRIFT |
+| avina (NixOS) | `i2hk8dl2zs...` | `i2hk8dl2zs...` | none |
+| hermes (NixOS) | `701q0flnbr...` | `701q0flnbr...` | none |
+| groot@dualie (HM) | `gkfzdppll6...` | `gkfzdppll6...` | none |
+| groot@forge (HM) | `jv3hfb44bk...` | `jv3hfb44bk...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set is exactly `{sweet16, petunia}` — matches the expected set
+with zero surprises.
+
+Content-level confirmation: built
+`nixosConfigurations.sweet16.config.home-manager.users.ddukes.home.activationPackage`
+at both revs, resolved each to its rendered `home-files/.config/hypr/hyprland.conf`,
+and diffed them directly. The diff is confined to a single line:
+
+```
+< bind=$mod ALT, E, exec, .../bash -c 'BEMOJI_PICKER_CMD="... fuzzel ..." .../bemoji -c'
+---
+> bind=$mod ALT, E, exec, .../bash -c 'BEMOJI_PICKER_CMD="... fuzzel ..." .../bemoji -n -c'
+```
+
+A full-tree `diff -rq` of the two `home-files` outputs confirms no other file
+in the rendered tree differs. Exactly the intended `-n ` insertion, nothing
+else — same fuzzel picker command, same bash wrapper, same store paths for
+every other input.
+
+**Verdict: SIGNED OFF.** Actual drift (`{sweet16, petunia}`) equals expected
+drift. `avina`, `hermes`, `groot@dualie`, `groot@forge` show zero drift as
+expected (none consume `desktop-hyprland-home`, `desktop-niri-home`, or
+`desktop-sway-home`), and `groot@rk3588` is `N/A` on x86_64 per convention.
+
+## Validation: bc4af05 — chore(flake): bump llm-agents for updated claude-code CLI
+
+`lock-diff.sh bc4af05^ bc4af05` result (exit 10, nodes changed):
+
+```
+bun2nix 5a39d717029e94163ac223aee8d5c9946cafed1c → 0f2a1f0b6f42cebe3b149bf62d38754c5e0e9729
+llm-agents 2af0e0457cfbbcf21182737cd26b0be13282196d → e711100ae4b583e6a3d20243c639f8e86bd75a89
+```
+
+Pure `flake.lock` bump; `bun2nix` is a transitive input of `llm-agents`, no
+other nodes moved.
+
+`consumers.sh llm-agents bun2nix` returns every registry consumer of the
+shared `user-dev-home` module: `hermes` (via `hosts/hermes/llm-agents-overlay.nix`
++ `hosts/hermes/home.nix`), `forge`, `rk3588`, `dualie`, `sweet16`, `petunia`
+(all via their respective `home.nix` → `homeManagerModules.user-dev-home`).
+`avina` is absent — its `home.nix` only imports `user-bash` and
+`user-neovim-home`, never `user-dev-home`.
+
+This is the module-reachability set, not the runtime-consumption set:
+`modules/tools/dev/home.nix` gates the `agentPkgs.claude-code` /
+`antigravity-cli` / `opencode` / `pi` package list (the actual `llm-agents`
+input consumers) behind `programs.dev-home.enableLlmAgents`, which
+`hosts/dualie/home.nix` and `hosts/rk3588/home.nix` explicitly set to
+`false` ("Disabled MCP servers and LLM agents because they require modern
+CPU instructions... missing on Ivy Bridge Xeons" / aarch64 equivalent).
+`hosts/forge/home.nix` sets it `true`. Refined expected-drift set once
+runtime gating is accounted for: `{sweet16, petunia, hermes, forge}`; `dualie`
+and `rk3588` reach the module but the `llm-agents` package list is inert for
+them, so zero drift is correct, not a discrepancy.
+
+`verify-drift.sh bc4af05^ bc4af05` (exit 10, drift found):
+
+| Config | bc4af05^ | bc4af05 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `s5akq6cvv8...` | `9prppqhvv9...` | DRIFT |
+| petunia (NixOS) | `qizb52qrjg...` | `n3s679zyn9...` | DRIFT |
+| avina (NixOS) | `i2hk8dl2zs...` | `i2hk8dl2zs...` | none |
+| hermes (NixOS) | `701q0flnbr...` | `0prhzc1qar...` | DRIFT |
+| groot@dualie (HM) | `gkfzdppll6...` | `gkfzdppll6...` | none |
+| groot@forge (HM) | `jv3hfb44bk...` | `8p76zwdags...` | DRIFT |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set is exactly `{sweet16, petunia, hermes, groot@forge}` —
+matches the refined expected set with zero surprises once `enableLlmAgents`
+gating is taken into account. `avina` (not a `user-dev-home` consumer) and
+`groot@dualie` (`user-dev-home` consumer, but `enableLlmAgents = false`) both
+show zero drift as expected; `groot@rk3588` is `N/A` on x86_64 per
+convention (also `enableLlmAgents = false` there, consistent with the other
+three).
+
+**Verdict: SIGNED OFF.** Actual drift (`{sweet16, petunia, hermes,
+groot@forge}`) equals the runtime-gated expected drift set. `avina` and
+`groot@dualie` show zero drift as expected (no reachable `llm-agents`
+package in their closures), and `groot@rk3588` is `N/A` on x86_64 per
+convention. Deploy target for this commit is `sweet16` only.
+
+
+---
+
+## Validation: a319664 — feat(avina): add sops canary secret (range bc4af05..a319664, 5 commits)
+
+Range covers the full sops-nix rollout on `main`:
+`4c45a17` (sops-nix input + `core-sops` module, wired into both profiles and
+all four `nixos-*.nix` assemblies), `558f56d` (devshell tooling only, no
+flake-evaluated config), `824073d` (docs only), `fda47b2` (`.sops.yaml`, no
+Nix evaluated), `a319664` (avina canary secret).
+
+`lock-diff.sh bc4af05 a319664` (exit 10, nodes changed):
+
+```
+sops-nix null → f1406619a3884cd5c47992a70b8b35c9c0fcb4c9
+```
+
+Single new input node; nothing else in the lock moved across the range.
+
+`consumers.sh core-sops` reachable set: `{sweet16, petunia, avina, hermes}`.
+`consumers.sh sops-nix` returns nothing — the four `modules/flake/nixos-*.nix`
+assembly files attach `inputs.sops-nix.nixosModules.sops` directly (outside
+`flake.modules.nixos.*`), so the script's registry-recursion model dead-ends
+on them. Known script gap, not a false result; manual grep of the four
+assemblies confirms the same four-host set.
+
+Reachability is not the same as actual config contribution: `modules/core/sops.nix`
+gates all of `config` behind `lib.mkIf (cfg.hostFile != null)`, and
+`nix-nexus.secrets.sops.hostFile` defaults to `null`. Only `hosts/avina/default.nix`
+sets `hostFile` (`../../secrets/avina.yaml`) and declares `sops.secrets.canary`.
+Expected *actual*-drift set, once the `mkIf` gate is accounted for: `{avina}`
+only; `sweet16`, `petunia`, `hermes` reach the module but it stays inert.
+
+`verify-drift.sh bc4af05 a319664` (exit 10, drift found):
+
+| Config | bc4af05 | a319664 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `9prppqhvv9...` | `9prppqhvv9...` | none |
+| petunia (NixOS) | `n3s679zyn9...` | `n3s679zyn9...` | none |
+| avina (NixOS) | `i2hk8dl2zs...` | `44mdasy63q...` | DRIFT |
+| hermes (NixOS) | `0prhzc1qar...` | `0prhzc1qar...` | none |
+| groot@dualie (HM) | `gkfzdppll6...` | `gkfzdppll6...` | none |
+| groot@forge (HM) | `8p76zwdags...` | `8p76zwdags...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Independently re-split to isolate the mechanism claim: the four infra commits
+before the canary (`bc4af05`..`fda47b2`) are byte-identical on all seven
+configs (exit 0) — confirming the `hostFile == null` default genuinely
+produces zero closure impact on all four hosts touched by the module
+attachment, rather than an accidental match. The canary commit alone
+(`fda47b2`..`a319664`) reproduces the same single-host drift as the full range.
+
+Root-caused the `avina` drift with `nix derivation show | python3 -m json.tool`,
+diffing `toplevel` then the differing `activate.drv`: the entire diff is a new
+`#### Activation script snippet setupSecrets:` block invoking
+`sops-install-secrets` against a `manifest.json`, plus the two new `inputDrvs`
+(`sops-install-secrets-0.0.1.drv`, `manifest.json.drv`) that produce it. Every
+other activation-script line, package, and store-path input is byte-identical.
+Built and read the resulting `manifest.json`: exactly one secret —
+`{"name":"canary","path":"/run/secrets/canary","owner":"root","group":"root","mode":"0400","sopsFile":".../avina.yaml"}`
+— with no unrelated package or version churn.
+
+`groot@rk3588` `N/A`: confirmed in `.agents/scripts/lib.sh` (`is_na_config()`)
+this is a static `uname -m != aarch64` check, independent of the revs compared
+— pre-existing, not caused by this range.
+
+**Verdict: SIGNED OFF.** Actual-drift set (`{avina}`) equals the
+`mkIf`-refined expected-drift set. `sweet16`, `petunia`, `hermes` reach the
+newly-wired `core-sops`/`sops-nix` module but show zero drift, exactly as the
+inert-default mechanism predicts; `groot@dualie`/`groot@forge` never reach the
+changed profiles; `groot@rk3588` is `N/A` on x86_64 per convention. Deploy
+target for this range is `avina` only.
+
+---
+
+## Deploy incident + remediation: a319664 → HEAD (avina)
+
+`a319664` (sops canary) was signed off above and deployed to avina. The canary
+itself succeeded — `sops-install-secrets` imported
+`/etc/ssh/ssh_host_ed25519_key` as `age1yd0d9n…qewv0wl` (matching the recipient
+in `.sops.yaml`) and `/run/secrets/canary` landed as `-r-------- root root`,
+content intact. Host-key decryption is proven on real hardware.
+
+The same deploy failed `livekit.service` and `lk-jwt-service.service` with
+`status=243/CREDENTIALS`, and `nixos-rebuild` exited 4.
+
+**Root cause.** sops-nix and vault-agent both claimed `/run/secrets`
+(`vault-secrets.nix:11`, `secretDir`). sops-nix hardcodes `symlinkPath =
+"/run/secrets"` / `secretsMountPoint = "/run/secrets.d"` in
+`modules/sops/manifest-for.nix` — not options, with an upstream
+`# Does this need to be configurable?` comment — and re-points the symlink at a
+new generation directory on every activation. That removed vault-agent's
+rendered files mid-switch; both failing units read
+`LoadCredential=livekit-secrets:/run/secrets/livekit.key`, which systemd
+resolves at unit start, so they failed before vault-agent re-rendered. They
+recovered on the automatic restart, but the race recurs on every rebuild and
+reboot — this was a latent recurring fault, not a one-time activation artifact.
+
+**Two prior claims corrected.** (1) `sops-install-secrets.service` does not
+exist on avina: `useSystemdActivation` defaults to
+`systemd.sysusers.enable || services.userborn.enable`, both false here, so sops
+runs from the activation script. Ordering directives must not reference that
+unit. (2) sops-nix's paths are not relocatable on NixOS; `defaultSymlinkPath` /
+`defaultSecretsMountPoint` exist only in the Home Manager module.
+
+**Remediation** (`6d3b13f`): vault-agent moves to `/run/vault-secrets`.
+`secretDir` is a single binding feeding every template, destination, the
+tmpfiles rule and the token sink, so the change propagates — verified against
+the built `vault-agent.hcl`: all six secret destinations moved, zero
+`/run/secrets` references remain, and the `key_file:` paths *inside* the
+rendered `mas-config.ctmpl` moved with it. `/run/certs` was never contested and
+is unchanged. Also orders `lk-jwt-service` after `vault-agent-init.service`; it
+carried no such ordering while livekit, synapse and MAS all did — a
+pre-existing gap surfaced by this failure.
+
+`verify-drift.sh HEAD~1 HEAD`: `avina` only; sweet16, petunia, hermes,
+groot@dualie, groot@forge byte-identical; groot@rk3588 `N/A` (x86_64 host).
+
+**Verdict: SIGNED OFF for deploy to avina.** Note this deploy relocates live
+secret paths: vault-agent re-renders into `/run/vault-secrets` and the stale
+`/run/secrets/*` entries from the previous generation are abandoned. Verify
+after switch that all six destinations exist under the new path and that
+livekit, lk-jwt-service, synapse, MAS and haproxy are active.
