@@ -1425,3 +1425,45 @@ units.
 This closes the bootstrap chicken-and-egg: the credential that unlocks every
 other secret is now itself declarative and reproducible from the repository,
 and the fleet can rebuild avina's secret chain from a bare boot.
+
+---
+
+## Validation: 4f2a1c9 — refactor(avina): drop the /var/lib/secrets AppRole fallback
+
+**Supersedes the "Rollback path" and "New coupling" paragraphs of the c5057cd
+sign-off above, which recorded the wrong rationale.** That entry argued
+`/var/lib/secrets` should be retained as the recovery path if avina's SSH host
+key were regenerated. That reasoning does not hold:
+
+- Recovery is re-deriving the host's age recipient (`ssh-keyscan | ssh-to-age`),
+  `sops updatekeys secrets/avina.yaml`, and redeploying. **The repository plus
+  the admin age key is the backup.** Any situation in which `/var/lib/secrets`
+  could be read is one in which the file could equally be written from the repo,
+  so the on-host copy adds nothing.
+- An AppRole `secret_id` is *designed to be reissued* (`vault write -f
+  auth/approle/role/avina/secret-id`), unlike the MAS signing keys which must
+  never rotate. Its disaster-recovery value as a stored plaintext is near zero.
+
+Retaining it actively cost two things: a persistent cleartext copy on disk of
+the one credential that unlocks every other secret (defeating the move to
+tmpfs), and a second source of truth that nothing read — rotating the seed in
+sops would silently leave it stale.
+
+Removed: the `persistentSecretDir` binding, its tmpfiles rule, and the
+now-empty `ReadOnlyPaths` on both vault-agent units. Verified post-change,
+tmpfiles rules are exactly `/run/certs` and `/run/vault-secrets`;
+`ReadOnlyPaths` is absent from both units; no `/var/lib/secrets` reference
+remains in any `.nix` or `.md` outside this historical record.
+
+`hosts/avina/README.md` rewritten where it still instructed operators to
+hand-place the files: new-host bootstrap now adds the host's age recipient
+before the first rebuild, and rotation goes through sops with a documented
+byte-equality check (37 bytes, block scalars, trailing newline significant).
+
+`verify-drift.sh HEAD~1 HEAD`: `avina` only; all other configs byte-identical.
+
+**Verdict: SIGNED OFF for deploy to avina.** The stale files remain on the host
+and are removed out of band; this commit only stops anything recreating them.
+Precondition confirmed before proceeding: the admin age key
+(`~/.config/sops/age/keys.txt`) is backed up, since it is now the sole recovery
+mechanism for every secret in `secrets/*.yaml`.
