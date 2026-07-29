@@ -95,6 +95,7 @@ _: {
         # the unit must not start before vault-agent has rendered it. livekit,
         # synapse, and MAS already carry this ordering; this one did not.
         after = [ "vault-agent-init.service" ];
+        wants = [ "vault-agent-init.service" ];
 
         # Force use of modern bind syntax by unsetting the module-provided PORT
         # and explicitly providing BIND. This avoids the 'MUST NOT be set together' error.

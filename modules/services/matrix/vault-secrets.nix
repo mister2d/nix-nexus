@@ -349,6 +349,11 @@ _: {
             ];
             serviceConfig = {
               Type = "oneshot";
+              # Without this the unit is inactive the moment it finishes, so its
+              # active state cannot mean "secrets are rendered" and consumers have
+              # nothing to order against. It also keeps switch-to-configuration
+              # from skipping the unit as dead when its config changes.
+              RemainAfterExit = true;
               ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig} -exit-after-auth";
               Environment = [ "HOME=/tmp" ];
               ReadWritePaths = [
@@ -390,20 +395,31 @@ _: {
           # Service Dependencies:
           # All services that consume runtime secrets are sequenced after the
           # vault-agent-init one-shot to prevent race conditions during boot.
+          #
+          # `after` alone is not enough: it only orders units that are already in
+          # the same job transaction. Nothing here pulled vault-agent-init in, so
+          # on a switch these could start before it and read secrets that had not
+          # been rendered yet. `wants` pulls it into the transaction so the
+          # ordering has something to apply to; it is deliberately not `requires`,
+          # since that would propagate vault-agent-init's stop to every consumer.
           haproxy = {
             after = [ "vault-agent-init.service" ];
+            wants = [ "vault-agent-init.service" ];
             serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
           };
           matrix-synapse = {
             after = [ "vault-agent-init.service" ];
+            wants = [ "vault-agent-init.service" ];
             serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
           };
           matrix-authentication-service = {
             after = [ "vault-agent-init.service" ];
+            wants = [ "vault-agent-init.service" ];
             serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
           };
           livekit = {
             after = [ "vault-agent-init.service" ];
+            wants = [ "vault-agent-init.service" ];
             serviceConfig.SupplementaryGroups = [ "matrix-secrets" ];
           };
         };
