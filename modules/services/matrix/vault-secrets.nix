@@ -13,6 +13,15 @@ _: {
       # removes vault-agent's rendered files until it re-renders. Consumers using
       # LoadCredential= fail immediately when that happens.
       secretDir = "/run/vault-secrets";
+      # AppRole seed, decrypted by sops-nix at activation. This is the credential
+      # that unlocks every other secret, so it is deliberately not fetched from
+      # Vault — that would be circular. sops-nix renders into /run/secrets.
+      bootstrapDir = "/run/secrets";
+
+      # Former home of the AppRole seed: hand-placed files, outside declarative
+      # control. Retained as the documented recovery path — if avina's SSH host
+      # key is ever regenerated, sops cannot decrypt and reverting the seed to
+      # these files is what gets vault-agent authenticating again.
       persistentSecretDir = "/var/lib/secrets";
 
       # ── Vault KV-v2 Hierarchy ───────────────────────────────────────────────
@@ -239,8 +248,8 @@ _: {
         auto_auth {
           method "approle" {
             config = {
-              role_id_file_path   = "${persistentSecretDir}/vault-role-id"
-              secret_id_file_path = "${persistentSecretDir}/vault-secret-id"
+              role_id_file_path   = "${bootstrapDir}/vault-role-id"
+              secret_id_file_path = "${bootstrapDir}/vault-secret-id"
               remove_secret_id_file_after_reading = false
             }
           }
