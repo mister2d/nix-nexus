@@ -1295,3 +1295,48 @@ secret paths: vault-agent re-renders into `/run/vault-secrets` and the stale
 `/run/secrets/*` entries from the previous generation are abandoned. Verify
 after switch that all six destinations exist under the new path and that
 livekit, lk-jwt-service, synapse, MAS and haproxy are active.
+
+---
+
+## Validation: d8b0d2d — fix(matrix): make vault-agent-init ordering actually bind
+
+Follow-up to the incident above. `88b615a` resolved the `/run/secrets`
+collision but livekit still failed `243/CREDENTIALS` on the next switch.
+
+**Root cause, from the journal** (not inferred): `vault-agent-init` *did* run
+in that transaction, but livekit spawned as PID 3316 against the init unit's
+PID 3318 — the consumer started first despite declaring
+`after = [ "vault-agent-init.service" ]`. `After=` only constrains units
+already in the same job transaction; no consumer declared `wants` or
+`requires`, so nothing pulled the init unit in and the ordering had nothing to
+apply to. Compounding it, `Type=oneshot` with `RemainAfterExit` unset left the
+unit `inactive` the instant it finished (`systemctl show` confirmed
+`RemainAfterExit=no`, `ActiveState=inactive`), so its active state could never
+mean "secrets are rendered".
+
+Pre-existing latent bug, not introduced by the sops work. It stayed invisible
+because vault-agent's rendered files persisted in tmpfs across switches, so the
+guarantee was never needed until sops-nix cleaned up the files it had adopted
+during the collision. The `livekit.key` template's
+`systemctl restart --no-block livekit.service lk-jwt-service.service` command
+is what recovered the service on both failing deploys.
+
+**Fix:** `RemainAfterExit = true` on `vault-agent-init`; `wants` added
+alongside the existing `after` on all five consumers (haproxy, matrix-synapse,
+matrix-authentication-service, livekit, lk-jwt-service). Deliberately `wants`
+rather than `requires` — `requires` would propagate the init unit's stop to
+every consumer, a worse failure mode than the one being fixed.
+
+`verify-drift.sh HEAD~1 HEAD`: `avina` only; all other configs byte-identical.
+
+**Deploy confirmed green** (avina, third switch): `nixos-rebuild` exited 0 with
+no failed units; `systemctl show vault-agent-init` reports
+`ActiveState=active`, `RemainAfterExit=yes`;
+`journalctl -u livekit --since "-5 min" | grep -c CREDENTIALS` returns `0`.
+All seven vault-agent destinations render under `/run/vault-secrets/`
+(`0640 root:matrix-secrets`, token `0640 root:root`), and `/run/secrets/`
+belongs solely to sops-nix.
+
+**Verdict: SIGNED OFF — deployed and verified.** The sops-nix layer is proven
+end-to-end on avina: host-key decryption, no path contention, binding startup
+ordering. Cleared for the vault-agent AppRole seed migration.
