@@ -3,7 +3,12 @@
   imports = [ inputs.devenv.flakeModule ];
 
   perSystem =
-    { config, pkgs, ... }:
+    {
+      config,
+      pkgs,
+      system,
+      ...
+    }:
     {
       # Development Environment
       # Usage: 'nix develop' to enter environment and install hooks
@@ -11,6 +16,15 @@
         packages = [
           # JS/TS runtime for the context-mode plugin's execution sandbox.
           pkgs.bun
+
+          # Secrets tooling. sops/age edit and encrypt the files consumed by
+          # core-sops; ssh-to-age derives a host's age recipient from its SSH
+          # host key. secretspec comes from nixpkgs-unstable because the stable
+          # channel lags (0.10.1 vs 0.13.0).
+          pkgs.sops
+          pkgs.age
+          pkgs.ssh-to-age
+          inputs.nixpkgs-unstable.legacyPackages.${system}.secretspec
 
           # langfuse is not packaged in nixpkgs; vendored from PyPI, pinned to
           # satisfy the Claude Code Stop hook's >=4.0,<5 constraint.
