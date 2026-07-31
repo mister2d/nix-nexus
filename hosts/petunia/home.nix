@@ -10,6 +10,7 @@ _: {
         homeManagerModules.desktop-noctalia-home
         homeManagerModules.hardware-petunia-hypr-home
         homeManagerModules.desktop-hyprland-home
+        homeManagerModules.desktop-theme-home
       ];
 
       # Resource Monitor (amdgpu_top provides detailed AMD metrics; btop for process view)

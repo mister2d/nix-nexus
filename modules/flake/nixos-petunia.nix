@@ -21,6 +21,7 @@ in
       inputs.nixos-hardware.nixosModules.common-pc-ssd
       nixos.petunia-default
       inputs.home-manager-unstable.nixosModules.home-manager
+      inputs.stylix-unstable.nixosModules.stylix
       nixos.hm-ddukes-petunia
     ];
   };
