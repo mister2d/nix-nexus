@@ -1556,3 +1556,52 @@ Corrected from earlier notes: the hook reads `LANGFUSE_BASE_URL`, not
 `LANGFUSE_HOST`, defaulting to `https://us.cloud.langfuse.com`.
 
 **Verdict: SIGNED OFF.** Zero host drift; nothing to deploy.
+
+---
+
+## Validation: refactor(tpm2) — promote to core-tpm2, enable on sweet16
+
+`modules/hardware/petunia/tpm2.nix` registered into the merged
+`hardware-petunia` key, so TPM2 support was reachable only by importing
+petunia's whole hardware bundle. It moves to `modules/core/tpm2.nix` under its
+own `core-tpm2` key, opted into per host.
+
+`verify-drift.sh HEAD~1 HEAD`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | **none** |
+| avina | none |
+| hermes | none |
+| groot@dualie / groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+petunia byte-identical is the load-bearing result: this is a pure module move
+for that host — same options, same values, reached by a different name. Note
+petunia's `default.nix` *had* to change: the config left the `hardware-petunia`
+key, so importing `core-tpm2` is what preserves the status quo. Adding
+`core-tpm2` to sweet16 alone would have silently stripped TPM2 from petunia on
+its next rebuild, leaving an initrd that could not unseal.
+
+sweet16 drift is the intended change: it has the hardware, ZFS-on-LUKS
+(`hosts/sweet16/hardware-configuration.nix:40`) and `boot.initrd.systemd.enable`
+already, but carried no TPM2 module. Verified post-change: `security.tpm2.enable`
+is now true on both sweet16 and petunia, and false on avina and hermes (Proxmox
+LXC, no TPM), which do not import the key.
+
+**Verdict: SIGNED OFF.** Deploy target: sweet16 only (petunia has no drift and
+needs no rebuild for this).
+
+**Enrollment is a separate manual step and is NOT done by this commit.** The Nix
+side is identical for both hosts because the PIN lives in the enrollment
+command, not the configuration. sweet16's only sanctioned form:
+
+```bash
+systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0 --tpm2-with-pin=yes <device>
+```
+
+Confirm the device with `lsblk -o NAME,PARTLABEL` first — sweet16 was not
+installed via disko, so `by-partlabel/DISK_LUKS` should resolve, unlike petunia
+which requires `/dev/nvme0n1p2`. Keyslot 0 remains a passphrase fallback, so a
+failed enrollment does not lock the machine.
