@@ -10,11 +10,11 @@ _: {
     }:
     let
       inherit (config.lib.stylix.colors.withHashtag)
-        base00
         base01
         base05
         base0D
         ;
+      trueBlack = "#000000";
     in
     {
       stylix.targets =
@@ -46,19 +46,29 @@ _: {
           # panel runs pure #000000 today and that preference is deliberate. Scoped to
           # the terminals — a global stylix.override.base00 would also move noctalia
           # surfaces, GTK/Qt backgrounds and btop.
-          kitty.colors.override.base00 = "000000";
+          #
+          # Ghostty reads colors.base00 directly when building its theme, so this
+          # override genuinely reaches the rendered config. Kitty has no equivalent
+          # override — see programs.kitty.extraConfig below for why.
           ghostty.colors.override.base00 = "000000";
         };
 
-      # Tab-bar colours have no stylix equivalent. active_tab_foreground uses
-      # the global base00 (not the pure-black terminal override above) so the
-      # tab bar stays legible against the base0D accent without wiring the
-      # OLED override into a second location.
-      programs.kitty.settings = {
-        active_tab_foreground = base00;
-        active_tab_background = base0D;
-        inactive_tab_foreground = base05;
-        inactive_tab_background = base01;
-      };
+      # Kitty renders its palette by calling the base16 scheme object as a
+      # functor (`colors { templateRepo; target; }`); mkTarget's
+      # colors.override only patches the outer attrset's field access, which
+      # that functor closure never reads, so stylix.targets.kitty.colors.override
+      # cannot reach the generated theme. Home Manager also emits
+      # programs.kitty.settings before the target's `include <theme>` line, so
+      # any background/tab-bar keys set in settings are silently discarded by
+      # kitty's last-directive-wins config parsing. Both are worked around
+      # here: kitty parses top-to-bottom, and lib.mkAfter places this block
+      # after that include, making it the effective config.
+      programs.kitty.extraConfig = lib.mkAfter ''
+        background ${trueBlack}
+        active_tab_foreground ${trueBlack}
+        active_tab_background ${base0D}
+        inactive_tab_foreground ${base05}
+        inactive_tab_background ${base01}
+      '';
     };
 }
