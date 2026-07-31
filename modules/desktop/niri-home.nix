@@ -140,7 +140,7 @@ _: {
                 ]
                 ++ lib.strings.splitString " " cmd;
               vivaldi =
-                (import inputs.pkgs-vivaldi {
+                (import inputs.nixpkgs-unstable {
                   inherit (pkgs.stdenv.hostPlatform) system;
                   config.allowUnfree = true;
                 }).vivaldi.override

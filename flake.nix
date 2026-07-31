@@ -90,7 +90,6 @@
     pkgs-vlc.url = "github:nixos/nixpkgs/41965737c1797c1d83cfb0b644ed0840a6220bd1"; # vlc
     pkgs-apps.url = "github:nixos/nixpkgs/f665af0cdb70ed27e1bd8f9fdfecaf451260fc55"; # meld butane
     pkgs-ceph.url = "github:nixos/nixpkgs/d1c15b7d5806069da59e819999d70e1cec0760bf"; # ceph
-    pkgs-vivaldi.url = "github:nixos/nixpkgs/3b32825de172d0bc85664f495edb096b10862524"; # vivaldi with matched vivaldi-ffmpeg-codecs
   };
 
   outputs =

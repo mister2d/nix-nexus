@@ -87,14 +87,7 @@ _: {
 
           # Browsers
           unstable-pkgs.firefox
-          # Pin Vivaldi to a nixpkgs snapshot whose vivaldi-ffmpeg-codecs matches
-          (
-            (import inputs.pkgs-vivaldi {
-              inherit (pkgs.stdenv.hostPlatform) system;
-              config.allowUnfree = true;
-            }).vivaldi.override
-            { proprietaryCodecs = true; }
-          )
+          (unstable-pkgs.vivaldi.override { proprietaryCodecs = true; })
 
           # --- Environment Tools ---
           krita
