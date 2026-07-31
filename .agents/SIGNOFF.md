@@ -1467,3 +1467,50 @@ and are removed out of band; this commit only stops anything recreating them.
 Precondition confirmed before proceeding: the admin age key
 (`~/.config/sops/age/keys.txt`) is backed up, since it is now the sole recovery
 mechanism for every secret in `secrets/*.yaml`.
+
+---
+
+## Validation: 38a01f7..HEAD — working-tree cleanup (3 commits)
+
+Pre-existing uncommitted work, committed as three logical changes to clear the
+tree before deploying avina and pushing.
+
+- `38a01f7` docs: remove `hosts/AGENTS.md` and `modules/AGENTS.md`, the phase-2
+  and phase-3 working guides for the completed dendritic refactor. No config
+  evaluated. Verified nothing references them except one historical
+  `.agents/SIGNOFF.md` line, deliberately left intact; `AGENTS.md` §11's
+  document map never listed them.
+- `a658d7e` feat(terminal): Kitty and Ghostty 13pt → 14pt, plus
+  `term = "xterm-256color"` for Ghostty, which otherwise advertises
+  `xterm-ghostty` — terminfo absent on remote hosts, the same SSH breakage
+  `xterm-kitty` caused. nixfmt also normalized a trailing-whitespace line.
+- `bd54c8f` chore(flake): devenv `bd1c175d` → `81ab9b8f`. `ghostty` follows
+  (`e1d31dea` → `88b4cd04`) as a *transitive input of devenv* — confirmed via
+  the lock's input graph, it is not a direct input. The seven-node `nixpkgs_N`
+  shuffle is renumbering from an inserted node, not seven nixpkgs moves.
+
+`verify-drift.sh HEAD~3 HEAD`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | DRIFT |
+| avina | **none** |
+| hermes | DRIFT |
+| groot@dualie | DRIFT |
+| groot@forge | DRIFT |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Drift set equals the `user-terminal-home` consumer set. `avina` showing zero
+drift is correct, not a missed evaluation: `hosts/avina/ddukes-hm.nix` imports
+only `nixvim` and `avina-home`, never `user-home`, so it does not reach
+`user-terminal-home` and a terminal font change cannot affect it. The devenv
+bump touches only `perSystem` (devshell + checks) and so contributes no host
+closure drift; the docs deletion contributes none by construction.
+
+devenv bump verified post-change: `nix flake check` passes and `sops`, `age`,
+`ssh-to-age`, `secretspec`, `bun` all still resolve in the devshell.
+
+**Verdict: SIGNED OFF.** Deploy targets: sweet16, petunia, hermes for the
+terminal change (cosmetic, deferrable). avina is unaffected by these three
+commits but still needs the earlier `f7393b1` deployed — see below.
