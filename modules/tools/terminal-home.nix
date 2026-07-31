@@ -145,10 +145,19 @@ _: {
 
             window-padding-x = 10;
             window-padding-y = 10;
+            window-decoration = false;
+            gtk-tabs-location = "top";
 
             background-opacity = 1.0;
 
+            # Mouse behavior
             copy-on-select = "clipboard";
+            # Right-click pastes from the clipboard instead of opening a context menu
+            right-click-action = "paste";
+            # Shift always extends the selection, even while a program such as tmux
+            # has mouse reporting enabled
+            mouse-shift-capture = "never";
+            mouse-hide-while-typing = true;
           };
         };
 
@@ -201,8 +210,25 @@ _: {
             set -g pane-border-style fg='#333333'
             set -g pane-active-border-style fg='#00AAAA'
 
-            # Right-click to paste from tmux buffer (or clipboard if synced)
+            # Right-click to paste from the tmux buffer
             bind-key -n MouseDown3Pane paste-buffer
+
+            # Copies leave tmux over OSC 52, which also works across SSH.
+            # terminal-features matches the outer terminal's TERM, which kitty and
+            # ghostty both set to xterm-256color.
+            set -g set-clipboard on
+            set -as terminal-features ',xterm-256color:clipboard'
+
+            # Wheel scroll enters copy-mode, but passes through to full-screen
+            # mouse-aware programs (vim, less, htop). -e exits copy-mode on
+            # reaching the bottom.
+            bind -n WheelUpPane if -Ft= '#{mouse_any_flag}' 'send -M' \
+              "if -Ft= '#{pane_in_mode}' 'send -M' 'copy-mode -e'"
+
+            # Vi-style selection in copy-mode
+            bind -T copy-mode-vi v send -X begin-selection
+            bind -T copy-mode-vi y send -X copy-pipe-and-cancel
+            bind -T copy-mode-vi MouseDragEnd1Pane send -X copy-pipe-no-clear
           '';
         };
       };

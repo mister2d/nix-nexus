@@ -59,8 +59,12 @@ Copy mode allows you to scroll back through history and copy text without using 
 4. **Copy to Buffer**: Press `Enter` or `y`.
 5. **Paste**: Press `Prefix` + `]`.
 
-#### System Clipboard Integration
-When you copy text in Tmux's copy mode, it is automatically synchronized with your **system clipboard**, allowing you to paste it into other applications (like a browser or chat) immediately.
+#### Mouse & System Clipboard Integration
+The mouse is enabled: the scroll wheel or trackpad scrolls the pane's scrollback (entering copy mode automatically, and leaving it once you reach the bottom), and full-screen programs like `less` and `vim` still receive scroll events themselves. Right-click pastes the tmux buffer.
+
+Copies — whether from `y` in copy mode or a mouse drag-selection — are sent to your **system clipboard** via OSC 52, so the terminal emulator receives them even when tmux is running on a remote host over SSH.
+
+To bypass tmux and use the terminal emulator's own selection instead, hold `Shift` while dragging. This works in both Kitty and Ghostty.
 
 #### Saving History to a File
 If you need to capture a large amount of logs from a pane:
