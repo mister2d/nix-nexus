@@ -2,6 +2,7 @@ _: {
   flake.modules.nixos.hm-groot-hermes =
     {
       pkgs,
+      lib,
       inputs,
       homeManagerModules,
       ...
@@ -13,6 +14,7 @@ _: {
         config.allowUnfree = true;
         overlays = [ overlays.buildFixes ];
       };
+      context-mode-pkg = import ../../lib/context-mode.nix { inherit pkgs lib; };
     in
     {
       home-manager = {
@@ -38,6 +40,7 @@ _: {
             ripgrep
 
             # agentic use packages
+            context-mode-pkg
             context7-mcp
             github-mcp-server
             unstablePkgs.github-cli

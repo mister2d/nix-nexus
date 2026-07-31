@@ -169,6 +169,47 @@ systemctl --user restart hermes-gateway
 
 ---
 
+## context-mode plugin
+
+`context-mode-hermes` (a hermes-agent plugin) and `context-mode` (its
+companion Node CLI) are packaged in `hosts/hermes/llm-agents-overlay.nix` and
+`hosts/hermes/groot-hm.nix`. Nix only puts the plugin on `PYTHONPATH` and the
+CLI on `PATH` — activation is a manual edit to `/home/groot/.hermes/config.yaml`,
+which stays hand-owned for the same reason as the rest of that file (see
+"Runtime config" above).
+
+Add both of the following to `config.yaml`:
+
+```yaml
+plugins:
+  enabled:
+    - context-mode        # REQUIRED - entry-point plugins are opt-in
+mcp_servers:
+  context-mode:
+    command: context-mode
+```
+
+The `plugins.enabled` entry is required even though upstream's README does not
+mention it: `hermes_cli/plugins.py` treats an absent `plugins.enabled` key as
+"nothing enabled," and the `plugins.disabled` deny-list always wins over
+`plugins.enabled` when both list the same plugin.
+
+Then restart both gateway units so the new PYTHONPATH and config take effect:
+
+```bash
+systemctl --user restart hermes-gateway hermes-gateway-coding-local
+```
+
+### Runtime state
+
+The plugin creates state that Nix does not declare or manage:
+
+- `CONTEXT_MODE_DIR` (default `~/.local/share/hermes-context-mode`) — SQLite
+  FTS5 knowledge base.
+- Transient marker files under `$TMPDIR`.
+
+---
+
 ## Nix store paths
 
 | Component | Path |
