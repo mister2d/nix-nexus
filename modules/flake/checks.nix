@@ -85,9 +85,14 @@
               matcher = "^Bash$";
               command = ''bash "$CLAUDE_PROJECT_DIR"/.agents/scripts/hook-push-guard.sh'';
             };
+            # Credentials come from secretspec (secretspec.toml) rather than the
+            # shell environment, so they reach only this process. --reason is
+            # mandatory under 0.13's require_reason policy. Both `secretspec` and
+            # the vendored-langfuse `python3` are devshell-only, so this adds no
+            # dependency the hook did not already have.
             langfuse = {
               hookType = "Stop";
-              command = ''python3 "$CLAUDE_PROJECT_DIR"/.claude/hooks/langfuse_hook.py'';
+              command = ''secretspec run --reason "langfuse trace export" -- python3 "$CLAUDE_PROJECT_DIR"/.claude/hooks/langfuse_hook.py'';
             };
           };
 

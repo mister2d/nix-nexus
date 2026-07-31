@@ -122,6 +122,39 @@ devenv asserts `!(secretspec.enable && devenv.flakesIntegration)`, and nix-nexus
 `inputs.devenv.flakeModule`. Runtime loading is the only option, and is the upstream-recommended
 practice regardless.
 
+### What is wired today
+
+The Claude Code Stop hook (`.claude/hooks/langfuse_hook.py`, declared in
+`modules/flake/checks.nix`) runs under `secretspec run`, so its Langfuse credentials reach that
+process only and never enter the shell environment.
+
+All three of its secrets are declared **optional** and **keyring-only**, both deliberately:
+
+- *Optional* — the hook is elective telemetry. Marking them required would make `secretspec run`
+  exit non-zero and skip the hook on every turn for anyone who has not configured Langfuse.
+- *Keyring-only* — the hook fires on every Stop. A provider list falling back to Vault would mean a
+  network round-trip per turn whenever the keyring misses.
+
+### Storing a value
+
+```bash
+secretspec set LANGFUSE_SECRET_KEY                     # prompts, writes to the keyring
+secretspec check --reason "audit"                      # declaration status
+secretspec run --reason "why" -- env | grep LANGFUSE   # confirm resolution
+```
+
+`--reason` is mandatory: 0.13 enforces a `require_reason` policy (it defaults to `agents`; set
+`require_reason = false` under `[project]` to disable). It applies to `check` and `get` too, not just
+`run`.
+
+Note `secretspec check` reports optional secrets as `optional` **without probing whether they
+resolve** — "0 found, 0 missing, 3 optional" does not mean they are unset. Use `run` to test actual
+resolution.
+
+To use Vault instead of the keyring for a given secret — required on headless hosts, which have no
+Secret Service daemon — set `providers = ["home_vault"]` on that secret. Values land at
+`kv-v2/secretspec/{project}/{profile}/{key}` under field `value`.
+
 ## Layer 3 — TPM2 and disk encryption
 
 The sops age key is the SSH host key, which lives on the root filesystem. So **whatever protects the
