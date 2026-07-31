@@ -4,6 +4,7 @@ _: {
       pkgs,
       lib,
       inputs,
+      config,
       ...
     }:
     let
@@ -13,11 +14,7 @@ _: {
       # Hyprland's exec takes a plain string; niri's spawn takes listOf str.
       noc = cmd: "noctalia msg ${cmd}";
 
-      accentHex = "39BAE6";
-      inactiveHex = "333333";
-      urgentHex = "AA00AA";
-      bgHex = "000000";
-      fgHex = "FFFFFF";
+      inherit (config.lib.stylix.colors) base05;
 
       # Workspace switch + move binds for 1–10, generated to avoid repetition.
       # Workspace 10 uses key "0", matching sway's $mod+0 = workspace 10.
@@ -128,8 +125,6 @@ _: {
             gaps_in = 5;
             gaps_out = 10;
             border_size = 2;
-            "col.active_border" = "rgba(${accentHex}ee)";
-            "col.inactive_border" = "rgba(${inactiveHex}aa)";
             resize_on_border = true;
             allow_tearing = false;
             layout = "dwindle";
@@ -157,7 +152,6 @@ _: {
               enabled = false;
               range = 8;
               render_power = 3;
-              color = "rgba(00000066)";
               color_inactive = "rgba(00000033)";
             };
 
@@ -375,44 +369,34 @@ _: {
             grace = 0;
             no_fade_in = false;
           };
-          background = [
-            {
-              monitor = "";
-              color = "rgba(0, 0, 0, 1.0)";
-              blur_passes = 3;
-              blur_size = 8;
-              brightness = 0.5;
-            }
-          ];
-          input-field = [
-            {
-              monitor = "";
-              size = "300, 50";
-              outline_thickness = 2;
-              dots_size = 0.2;
-              dots_spacing = 0.15;
-              dots_center = true;
-              "col.outer_color" = "rgba(${accentHex}ff)";
-              "col.inner_color" = "rgba(${bgHex}ff)";
-              "col.font_color" = "rgba(${fgHex}ff)";
-              "col.fail_color" = "rgba(${urgentHex}ff)";
-              "col.check_color" = "rgba(${accentHex}88)";
-              placeholder_text = "<i>Password</i>";
-              fail_text = "<b>$FAIL ($ATTEMPTS)</b>";
-              fail_transition = 300;
-              rounding = 5;
-              position = "0, -80";
-              halign = "center";
-              valign = "center";
-            }
-          ];
+          background = {
+            monitor = "";
+            blur_passes = 3;
+            blur_size = 8;
+            brightness = 0.5;
+          };
+          input-field = {
+            monitor = "";
+            size = "300, 50";
+            outline_thickness = 2;
+            dots_size = 0.2;
+            dots_spacing = 0.15;
+            dots_center = true;
+            placeholder_text = "<i>Password</i>";
+            fail_text = "<b>$FAIL ($ATTEMPTS)</b>";
+            fail_transition = 300;
+            rounding = 5;
+            position = "0, -80";
+            halign = "center";
+            valign = "center";
+          };
           label = [
             {
               monitor = "";
               text = "cmd[update:1000] date +'%H:%M:%S'";
-              "color" = "rgba(${fgHex}cc)";
+              "color" = "rgba(${base05}cc)";
               font_size = 48;
-              font_family = "JetBrainsMono Nerd Font";
+              font_family = config.stylix.fonts.monospace.name;
               position = "0, 80";
               halign = "center";
               valign = "center";
@@ -420,9 +404,9 @@ _: {
             {
               monitor = "";
               text = "cmd[update:60000] date +'%A, %B %d %Y'";
-              "color" = "rgba(${fgHex}88)";
+              "color" = "rgba(${base05}88)";
               font_size = 18;
-              font_family = "JetBrainsMono Nerd Font";
+              font_family = config.stylix.fonts.monospace.name;
               position = "0, 160";
               halign = "center";
               valign = "center";
