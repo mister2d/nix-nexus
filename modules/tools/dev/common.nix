@@ -34,9 +34,6 @@ _: {
         dmenu
         input-leap
 
-        # Browsers
-        vivaldi
-
         # Security & Secret Management
         pass
         gnupg
