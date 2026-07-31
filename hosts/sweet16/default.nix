@@ -15,6 +15,11 @@ _: {
         # Machine-specific profiles (Quirks & Hardware)
         nixosModules.hardware-z16
 
+        # TPM2 for LUKS unlock. This is a laptop: enrollment MUST carry
+        # --tpm2-with-pin=yes. Plain auto-unseal means power-on equals unlocked
+        # disk, including the sops age key. See docs/secrets.md.
+        nixosModules.core-tpm2
+
         # CachyOS Optimized Kernel
         nixosModules.hardware-kernel-cachyos
 

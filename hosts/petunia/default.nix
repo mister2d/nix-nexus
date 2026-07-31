@@ -13,6 +13,11 @@ _: {
         # Machine-specific profiles (Quirks & Hardware)
         nixosModules.hardware-petunia
 
+        # TPM2 for LUKS auto-unlock. Enrolled against PCR 0 only (Secure Boot
+        # inactive, so PCR 7 is meaningless). Accepted risk on a
+        # physically-controlled desktop — see docs/secrets.md.
+        nixosModules.core-tpm2
+
         # Core System Profile (Every machine gets this)
         nixosModules.workstation-default
 
