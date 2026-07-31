@@ -2495,3 +2495,295 @@ did not move. `nix flake check --impure` passes clean on merged HEAD
 `home.pointerCursor` warning. `groot@rk3588` remains unverified (aarch64,
 `N/A` on this arch). Deploy targets for this range: `sweet16`, `petunia`
 only. No deploy was performed as part of this validation.
+
+## Validation: `4bc8b57..005b8b8` — C7: GTK + Qt handed to Stylix
+
+Baseline: `4bc8b57` ("merge: hand terminal and btop colors to stylix"), the
+C6 state, signed off at `f06867a`. Base gate: `git log --oneline -5` in this
+worktree showed a stale tip (`09e7279`, context-mode hermes drift sign-off);
+reset to `main` (`7faa626`, "merge: sign off C6 terminal drift") before
+validation, which resolves the requested HEAD exactly. Commit under review:
+`005b8b8` ("feat(desktop): hand gtk and qt theming to stylix"), reached from
+`4bc8b57` via the merge `e4c652f`.
+
+Only three files changed in the range — confirmed via
+`git diff 4bc8b57 005b8b8 --stat`:
+- `modules/desktop/theme-home.nix` (key `desktop-theme-home`): adds
+  `gtk.enable = true` and `qt.enable = true` to
+  `stylix.targets`.
+- `modules/tools/home.nix` (key `user-home`): deletes the
+  `gtk.theme`/`gtk.gtk4.theme` (`Graphite-teal-Dark` /
+  `graphite-gtk-theme.override`) block,
+  `qt.platformTheme.name = "gtk3"` / `qt.style.name = "breeze"`, the
+  `graphite-gtk-theme` package and the duplicate
+  `nerd-fonts.jetbrains-mono` from `home.packages`, and the now-unused
+  `config` function argument.
+- `modules/desktop/hyprland-home.nix` (key `desktop-hyprland-home`):
+  deletes the empty-valued `"QT_QPA_PLATFORMTHEME,"` entry from the
+  Hyprland `env` list.
+
+`lock-diff.sh 4bc8b57 005b8b8`: exit 0, no output — no `flake.lock` node
+moved. Directly answers (f): `git show 005b8b8:flake.lock | python3 -c
+"json.load(...)['nodes']['nixpkgs']['locked']"` is byte-identical to the
+four prior sign-offs (`rev: 80bdc1e5ce51f56b19791b52b2901187931f5353`, same
+`narHash`); `flake.lock` itself has zero diff in the range
+(`git diff --stat 4bc8b57 005b8b8 -- flake.lock` produced no output).
+
+`consumers.sh desktop-theme-home user-home desktop-hyprland-home` at
+`005b8b8`:
+
+```
+petunia: via hosts/petunia/home.nix
+sweet16: via hosts/sweet16/home.nix
+```
+
+Expected-drift set: `{sweet16, petunia}` only.
+
+`verify-drift.sh 4bc8b57 005b8b8` (exit 10, drift found):
+
+| Config | 4bc8b57 | 005b8b8 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `/nix/store/6sm7b4hf800y7smlxpghlgvrs2gf983q-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | `/nix/store/0fvqnainc4qdzbbii699g67s5y6sz864-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | DRIFT |
+| petunia (NixOS) | `/nix/store/5b0hb70k4l2mfxclpgb5ckrjqnnqb75p-nixos-system-petunia-26.11.20260729.0954f7e.drv` | `/nix/store/rchmsn33apfbzpddy0y1pp0xs007zxff-nixos-system-petunia-26.11.20260729.0954f7e.drv` | DRIFT |
+| avina (NixOS) | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| hermes (NixOS) | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| groot@dualie (HM) | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | none |
+| groot@forge (HM) | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{sweet16, petunia}`) matches expected-drift set exactly.
+**Verdict: PASS (drift matches expected hosts).**
+
+#### (a) Quantify the delta
+
+`nix build` the toplevels/HM generations at both revs and ran
+`nix store diff-closures`.
+
+sweet16 toplevel: `/nix/store/mj71k21pv8gqj9ym6g08nvaiz07514j3-nixos-system-sweet16-*`
+(base) → `/nix/store/ghgfvl112j2jlxg8kvy395f4c4279w8l-nixos-system-sweet16-*`
+(new). Diff:
+
+- **Removed entirely:** `graphite-gtk-theme` (confirmed gone), plus the
+  full KDE-Frameworks chain that `qt.style.name = "breeze"` had been
+  pulling in: `breeze`, `breeze-icons` (-71.9 MiB), `attica`, `karchive`,
+  `kauth`, `kbookmarks`, `kcodecs`, `kcompletion`, `kconfig`,
+  `kconfigwidgets`, `kcoreaddons`, `kcrash`, `kdbusaddons`, `kdoctools`,
+  `kglobalaccel`, `kguiaddons`, `ki18n` (-17.1 MiB), `kiconthemes`, `kio`
+  (-26.4 MiB), `kirigami2`, `kitemviews`, `kjobwidgets`, `knewstuff`,
+  `knotifications`, `kpackage`, `kservice`, `ktextwidgets`, `kwallet`,
+  `kwidgetsaddons` (-7.4 MiB), `kwindowsystem`, `kxmlgui`,
+  `libdbusmenu-qt5`, `media-player-info`, `polkit-qt`, `qca` (-3.5 MiB),
+  `qtgraphicaleffects`, `qtquickcontrols2` (-9.7 MiB), `solid`, `sonnet`,
+  `syndication`, plus their own build-time-only deps that also disappear
+  from the runtime closure (`bison`, `flex`, `docbook-xsl-ns` -17.7 MiB).
+- **Added:** `adw-gtk3` (2.1 MiB), `base16` (159.5 KiB, the base16
+  Python lib qt5ct/qt6ct's colour scheme reads from), `kvantum` (ε),
+  `qt5ct` (1.1 MiB), `qt6ct` (889.2 KiB),
+  `qtstyleplugin-kvantum`/`qtstyleplugin-kvantum5` (8.8 MiB + 1.2 MiB).
+  `home-manager` itself grew ~1.4 MiB (the new rendered config files).
+  Two internal HM derivation names swap (`gtk.css` appears, the old
+  `hm_gtk4.0gtk.css` name disappears) — a rename artifact of stylix's gtk
+  target owning the CSS file now, not a second unrelated file.
+
+Confirmed: `graphite-gtk-theme` is **GONE**; `adw-gtk3` and kvantum
+(`kvantum`, `qtstyleplugin-kvantum`, `qtstyleplugin-kvantum5`) are **IN**.
+Every other name in the diff traces directly to the qt engine swap
+(`qt.style.name = "breeze"` → stylix's kvantum-based qt target) — this is
+the entire KDE-Frameworks dependency chain that `breeze` alone was
+responsible for, not an unrelated cascade. This is indeed the largest
+delta of the series so far, exactly as flagged.
+
+petunia: full-toplevel `diff-closures` was not attempted — the petunia
+toplevel is not cache-substitutable once `cache.garnix.io` is excluded (it
+pulls the CachyOS custom kernel, which timed out building from source in
+this session at 30 minutes). Ran `diff-closures` on petunia's HM generation
+instead (`.config.home-manager.users.ddukes.home.activationPackage`,
+substituted cleanly from `cache.nixos.org`):
+`/nix/store/dd1ncr90lqfddilsnnx01dy875n8d89a-home-manager-generation` (base)
+→ `/nix/store/4nc9cd4sav24zbs5rj1ryk1syczh8j8m-home-manager-generation`
+(new). Signature is identical to sweet16's (same removed KDE-Frameworks
+chain, same `adw-gtk3`/kvantum/qt5ct/qt6ct additions), **plus one line not
+present on sweet16:** `noto-fonts: ∅ → 2026.07.01, +49.1 MiB`. This is not
+a new package on the deployed petunia system — `noto-fonts` is already
+pulled in fleet-wide at the system level by `modules/desktop/fonts.nix`
+(`fonts.packages`), which is why it produces **zero** diff-closures delta
+on sweet16's *full toplevel* comparison (present unchanged on both sides).
+The reason it appears "added" in petunia's *HM-generation-only* comparison
+is that stylix's HM `gtk` target now sets `gtk.font` directly from
+`config.stylix.fonts.sansSerif` (`pkgs.noto-fonts`, per
+`modules/desktop/theme.nix`), which gives the isolated HM closure its own
+first direct reference to a store path that was previously only reachable
+through the system profile's GC root. Net effect on the running system:
+zero new bytes fetched/installed (same store path, already present);
+net effect on the HM-only closure count: +1 direct reference, directly
+attributable to enabling `gtk.enable`, not an unrelated cascade.
+
+#### (b) No overlay cascade
+
+`nix eval` at `005b8b8` on both hosts:
+
+| Host | `stylix.autoEnable` | `stylix.overlays.enable` | `nixpkgs.overlays` length |
+|---|---|---|---|
+| sweet16 | `false` | `false` | `3` |
+| petunia | `false` | `false` | `3` |
+
+Unchanged from every prior sign-off in this series. No overlay cascade.
+
+#### (c) Verified from BUILT files, not option values
+
+Built `.#nixosConfigurations.sweet16.config.home-manager.users.ddukes.home.activationPackage`
+→ `/nix/store/kqnd3z0rng0bvgvm54dygzxv4gygq1y6-home-manager-generation`,
+resolved to `home-files` at
+`/nix/store/x2zjiqhipvzq7nlgn29dzayry1hnfp4m-home-manager-files`.
+
+`.config/gtk-3.0/settings.ini` and `.config/gtk-4.0/settings.ini` (identical):
+
+```
+[Settings]
+gtk-cursor-theme-name=Adwaita
+gtk-cursor-theme-size=24
+gtk-font-name=Noto Sans 12
+gtk-icon-theme-name=Adwaita
+gtk-theme-name=adw-gtk3
+```
+
+`.gtkrc-2.0`:
+
+```
+gtk-cursor-theme-name = "Adwaita"
+gtk-cursor-theme-size = 24
+gtk-font-name = "Noto Sans 12"
+gtk-icon-theme-name = "Adwaita"
+gtk-theme-name = "adw-gtk3"
+```
+
+`gtk-theme-name` reads `adw-gtk3` in all three files, **not**
+`Graphite-teal-Dark`. The C5 cursor lines (`gtk-cursor-theme-name=Adwaita`,
+`gtk-cursor-theme-size=24`) are **still present** in all three — no
+regression. `gtk-icon-theme-name=Adwaita` confirms `gtk.iconTheme` is
+**still `Adwaita`** — stylix did not touch it (`stylix.icons.enable`
+defaults `false`, as expected).
+
+`.config/gtk-3.0/gtk.css` and `.config/gtk-4.0/gtk.css` both exist (89
+lines each) with ayu-dark tokens, e.g.:
+
+```
+@define-color accent_color #39bae6;
+@define-color accent_bg_color #39bae6;
+@define-color accent_fg_color #0b0e14;
+@define-color destructive_color #f07178;
+@define-color destructive_bg_color #f07178;
+```
+
+`#39bae6` matches `theme.nix`'s `override.base0D`; `#0b0e14` is ayu-dark's
+`base00`.
+
+`.config/qt5ct/qt5ct.conf` and `.config/qt6ct/qt6ct.conf` both exist
+(identical):
+
+```
+[Appearance]
+custom_palette=true
+standard_dialogs=default
+style=kvantum
+
+[Fonts]
+fixed="JetBrainsMono Nerd Font,12"
+general="Noto Sans,12"
+```
+
+`.config/Kvantum/` contains `kvantum.kvconfig` (`theme=Base16Kvantum`) and
+`Base16Kvantum/Base16Kvantum.{kvconfig,svg}` — the theme files are in the
+closure. All (c) assertions hold.
+
+#### (d) The `QT_QPA_PLATFORMTHEME` runtime trap
+
+Generated `.config/hypr/hyprland.conf`: `grep -n -i QT_QPA` returns only
+`env=QT_QPA_PLATFORM,wayland;xcb` (line 122) — the deleted empty
+`QT_QPA_PLATFORMTHEME,` assignment does **not** appear, and no replacement
+empty assignment was introduced. It is absent from `hyprland.conf`
+entirely, but that is **sufficient**: HM's own `qt.enable = true` target
+generates `.config/environment.d/10-home-manager.conf`, which sets it
+independently and correctly:
+
+```
+QT_QPA_PLATFORMTHEME=qt5ct
+QT_STYLE_OVERRIDE=kvantum
+QT_PLUGIN_PATH=/etc/profiles/per-user/ddukes/lib/qt-5.15.19/plugins:/etc/profiles/per-user/ddukes/lib/qt-6/plugins
+```
+
+`environment.d` is read by the systemd user session at login (before
+Hyprland's `env=` directives even apply), so this is the authoritative
+source — not a gap. `QT_STYLE_OVERRIDE=kvantum` additionally forces the
+kvantum style regardless of platform-theme resolution. No uncertainty:
+the deleted Hyprland line was genuinely dead/harmful (empty value would
+have shadowed nothing at runtime since Hyprland's `env=` only sets missing
+vars, but its presence as an empty string is exactly the kind of trap the
+task flagged — removing it is strictly correct, and qt5ct/qt6ct pickup is
+independently guaranteed by HM's own environment.d file).
+
+#### (e) Target scope
+
+`nix eval` on `stylix.targets` (`.enable` for every target) on sweet16 at
+`005b8b8`: only `btop`, `ghostty`, `gtk`, `kitty`, `qt` are `true`. Every
+other target — including `hyprland`, `hyprlock`, `hyprpaper`, `nixvim`,
+`tmux`, `noctalia-shell` — is `false`. Scope matches exactly what C7 was
+supposed to touch; C8's hyprland/hyprlock work has not started.
+
+#### (f) Lock and `nixpkgs` node
+
+`nixpkgs` node at `005b8b8`: `rev = 80bdc1e5ce51f56b19791b52b2901187931f5353`,
+same `narHash` as every prior sign-off in this series. `flake.lock` has
+zero diff across the range (`git diff --stat 4bc8b57 005b8b8 -- flake.lock`
+produced no output) — untouched by this commit, consistent with
+`lock-diff.sh` reporting no node changes.
+
+#### (g) `nix flake check --impure` on `005b8b8`
+
+Ran against `git+file:$PWD?rev=005b8b8` (no working-tree checkout
+required). Exit 0, "all checks passed!". Evaluates all four
+`nixosConfigurations` (petunia, avina, hermes, sweet16), `checks`,
+`devShells`, `packages`, `overlays`, `homeConfigurations`. Warnings
+present: the known petunia `home.pointerCursor` deprecation notice, and
+the two known pre-existing `devenv-up`/`devenv-test` package-deprecation
+warnings, plus the informational `unknown flake output 'modules'` and
+`aarch64-linux` omission notices. **No new warnings** — in particular, no
+stylix qt-target-style-mismatch warning appeared, consistent with the
+implementer's report of `warnings == []` for the qt target specifically
+(stylix's own qt-style recommendation warning did not fire, since
+`qt.style.name` is no longer set at all in `modules/tools/home.nix` — it
+now takes stylix's own kvantum default rather than overriding it with
+`"breeze"`).
+
+#### (h) `groot@rk3588`
+
+Reports `N/A` on this x86_64 worktree (`verify-drift.sh` table above, via
+`lib.sh`'s `is_na_config`). Recorded as **unverified — not claimed as
+zero-drift.**
+
+**Verdict: SIGNED OFF.** The actual-drift set (`{sweet16, petunia}`)
+matches the expected-drift set from
+`consumers.sh desktop-theme-home user-home desktop-hyprland-home` exactly;
+`avina`, `hermes`, `groot@dualie`, `groot@forge` are confirmed
+byte-identical .drv paths. The delta is the largest of the series, as
+flagged, but every added/removed name traces directly to the qt
+theme-engine swap (`breeze`'s KDE-Frameworks chain out, kvantum +
+qt5ct/qt6ct + adw-gtk3 in) — no unrelated package moved. The one
+petunia-only line (`noto-fonts`) is a closure-reference artifact of
+comparing an isolated HM generation, not a new package on the deployed
+system; it is directly attributable to `gtk.enable` wiring
+`gtk.font` from `stylix.fonts.sansSerif`, already fleet-wide via
+`fonts.packages`. `stylix.autoEnable`/`stylix.overlays.enable` stayed
+`false` and the overlay list stayed length-3 on both hosts — no cascade.
+BUILT-file verification confirms `adw-gtk3` theming, intact C5 cursor
+config, intact `Adwaita` icon theme, ayu-dark `gtk.css` tokens, and
+kvantum/qt5ct/qt6ct wiring on sweet16. The `QT_QPA_PLATFORMTHEME` trap is
+resolved: the empty Hyprland assignment is gone and HM's own
+`environment.d` file sets it correctly (`qt5ct` + `QT_STYLE_OVERRIDE=kvantum`).
+Only `kitty`/`ghostty`/`btop`/`gtk`/`qt` are enabled on sweet16 — no other
+target (hyprland, hyprlock, hyprpaper, nixvim, tmux, noctalia-shell)
+activated. The top-level `nixpkgs` node did not move and `flake.lock` is
+untouched. `nix flake check --impure` passes clean on `005b8b8` with no
+new warnings. `groot@rk3588` remains unverified (aarch64, `N/A` on this
+arch). Deploy targets for this range: `sweet16`, `petunia` only. No deploy
+was performed as part of this validation.
