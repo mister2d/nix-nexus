@@ -1850,3 +1850,190 @@ expected-drift set exactly; `sweet16`, `petunia`, `avina`, `groot@dualie`,
 `groot@forge` are byte-identical; `groot@rk3588` is `N/A` on x86_64 per
 convention. Deploy target for this range is `hermes` only. No deploy was
 performed as part of this validation.
+
+---
+
+## Validation: 09e7279..1f4ac0b — Stylix adoption, first 4 commits (3 sub-ranges)
+
+Baseline: `09e7279` (pre-existing main, "merge: context-mode hermes drift
+sign-off"). HEAD verified as `1f4ac0b` ("merge: bump hyprland to v0.56.1 and
+pin noctalia to v5.0.0-beta.7") per the base gate; the working branch had
+drifted to a stale tip and was reset to `main` (`1f4ac0b`) before validation.
+Three sub-ranges judged independently, matching the three logical commits in
+the range; results not collapsed.
+
+### C0: `09e7279` → `095ad95` — remove 7 orphaned theming modules
+
+Deletes `modules/desktop/{waybar-home,sway-home,sway,notifications,niri-home,niri,noctalia}.nix`
+(-1105 lines; registry keys `desktop-waybar-home`, `desktop-sway-home`,
+`desktop-sway`, `desktop-notifications`, `desktop-niri-home`,
+`desktop-niri`, `desktop-noctalia`).
+
+`lock-diff.sh 09e7279 095ad95`: exit 0, no output — no `flake.lock` node moved.
+
+`consumers.sh` run against all 7 keys at the pre-deletion revision (`09e7279`,
+checked out detached to grep the tree as it existed before the files were
+removed, then restored to `1f4ac0b`): zero output for all 7 keys — no
+consumer found anywhere in `modules/`, `hosts/`, `profiles/`. Expected-drift
+set: `{}` (empty).
+
+`verify-drift.sh 09e7279 095ad95` (exit 0, no drift):
+
+| Config | 09e7279 | 095ad95 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `icbnhchnxhv...` | `icbnhchnxhv...` | none |
+| petunia (NixOS) | `6bdw5xm8l2w...` | `6bdw5xm8l2w...` | none |
+| avina (NixOS) | `rnwf3z5cj9y...` | `rnwf3z5cj9y...` | none |
+| hermes (NixOS) | `175q2rw24y3...` | `175q2rw24y3...` | none |
+| groot@dualie (HM) | `0g2hs1ysskh...` | `0g2hs1ysskh...` | none |
+| groot@forge (HM) | `lixapp625v3...` | `lixapp625v3...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{}`) matches expected-drift set (`{}`) exactly. **C0
+verdict: PASS.**
+
+### C1: `095ad95` → `44874f9` — split OLED palette out of terminal module
+
+Structural move: `programs.kitty`/`programs.ghostty` OLED colour attrsets
+move from `modules/tools/terminal-home.nix` into new
+`modules/tools/terminal-oled-home.nix` (key `user-terminal-oled-home`),
+imported by all 5 previous consumers of `user-terminal-home`. The four
+`programs.tmux.extraConfig` colour lines (`status-style`,
+`window-status-current-style`, `pane-border-style`,
+`pane-active-border-style`) were deliberately left in place — `extraConfig`
+is `types.lines`, and splitting that string would reorder the generated
+`tmux.conf` and change its hash, unlike the kitty/ghostty attrsets which
+render by sorted key regardless of which file defines which keys.
+
+`lock-diff.sh 095ad95 44874f9`: exit 0, no output — no `flake.lock` node moved.
+
+`verify-drift.sh 095ad95 44874f9` (exit 0, no drift) — independently
+re-run, not taken on the implementer's claim:
+
+| Config | 095ad95 | 44874f9 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `icbnhchnxhv...` | `icbnhchnxhv...` | none |
+| petunia (NixOS) | `6bdw5xm8l2w...` | `6bdw5xm8l2w...` | none |
+| avina (NixOS) | `rnwf3z5cj9y...` | `rnwf3z5cj9y...` | none |
+| hermes (NixOS) | `175q2rw24y3...` | `175q2rw24y3...` | none |
+| groot@dualie (HM) | `0g2hs1ysskh...` | `0g2hs1ysskh...` | none |
+| groot@forge (HM) | `lixapp625v3...` | `lixapp625v3...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Byte-identical derivation hashes on all 5 previously-drv-comparable
+consumers confirm the tmux-line-retention reasoning holds against the actual
+drvs: the split changed which file declares which attribute, not the
+rendered output. **C1 verdict: PASS** — implementer's zero-drift claim
+independently verified, not assumed.
+
+### C2+C3: `44874f9` → `1f4ac0b` — hyprland v0.56.1, noctalia v5.0.0-beta.7
+
+`lock-diff.sh 44874f9 1f4ac0b` (exit 10, nodes changed):
+
+```
+aquamarine 06669631175b4db2383b94e7f8c13f45a9d28757 → 9b5f14d9483445e766294eb8fbe0b8f370269ed0
+gitignore 637db329424fd7e46cf4185293b9cc8c88c95394 → null
+hyprgraphics 68d064434787cf1ed4a2fe257c03c5f52f33cf84 → c6e7b9f673f4360bc813d3dc75028f75ee88d3f8
+hyprland a0136d8c04687bb36eb8a28eb9d1ff92aea99704 → 5c9377c15f85c50648f35ca5a213754f95b93ca0
+hyprland-guiutils a968d211048e3ed538e47b84cb3649299578f19d → a6ccb6cb112ed5a244c0191fb972347ecfa893e0
+hyprtoolkit 9af245a69fa6b286b88ddfc340afd288e00a6998 → bdba25ced39ea39ab004a8f31593ba0b0ff1ca35
+hyprutils 40ede2e7bdec80ba5d4c443160d905e9f841ae5f → 5f03477ab3a005ff27c527486f551883535aea2f
+nixpkgs_7 0bb7ec54c8483066ec9d7720e780a5caa71f8612 → e2587caef70cea85dd97d7daab492899902dbf5d
+noctalia 8b5b1381d5a2ea94b787da11abe4f2411b89b196 → c366a35ffc30b011d03fcd122bbe7d22f932fc57
+pre-commit-hooks 61ab0e80d9c7ab14c256b5b453d8b3fb0189ba0a → 43b3c1ab9d40fb1dbb008f451988a91e375825e9
+xdph 4a170c0ba96fd37374f93d8f91c9ed91814828ac → 08d99f727944dd15e4740090305e31c5fb92a50a
+```
+
+`hyprland` moved to `5c9377c1…` (tag `v0.56.1`); `noctalia` moved to
+`c366a35f…` (tag `v5.0.0-beta.7`) and its `original` field also changed from
+a branch ref (`github:noctalia-dev/noctalia`) to a tag ref
+(`.../v5.0.0-beta.7`) — expected and intentional, part of the same commit.
+`aquamarine`, `hyprgraphics`, `hyprland-guiutils`, `hyprtoolkit`,
+`hyprutils`, `xdph` are hyprland's own flake-input closure and moved as
+transitive follows; `gitignore` was removed (no longer referenced);
+`pre-commit-hooks` moved as a transitive of the hyprland ecosystem;
+`nixpkgs_7` (noctalia's *nested*, non-followed nixpkgs — noctalia
+deliberately has no `nixpkgs.follows`, required to keep it on its own
+Cachix cache) moved as a side effect of the noctalia bump. The top-level
+`nixpkgs` node is untouched by this range (verified separately below).
+
+`consumers.sh hyprland noctalia` at HEAD:
+
+```
+petunia: via hosts/petunia/home.nix
+sweet16: via hosts/sweet16/home.nix
+sweet16: via hosts/sweet16/default.nix
+petunia: via hosts/petunia/default.nix
+```
+
+Expected-drift set: `{sweet16, petunia}` only.
+
+`verify-drift.sh 44874f9 1f4ac0b` (exit 10, drift found):
+
+| Config | 44874f9 | 1f4ac0b | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `icbnhchnxhvn84ka2drcnchvldka8cyx...` | `ahflzgdwwfc17yfxcms0i3dwm9056kas...` | DRIFT |
+| petunia (NixOS) | `6bdw5xm8l2w6bfqs8567hxlcb3fp7gdn...` | `2jpk842wr7bs4vqfjrvpajnsgsq82hx6...` | DRIFT |
+| avina (NixOS) | `rnwf3z5cj9y...` | `rnwf3z5cj9y...` | none |
+| hermes (NixOS) | `175q2rw24y3...` | `175q2rw24y3...` | none |
+| groot@dualie (HM) | `0g2hs1ysskh...` | `0g2hs1ysskh...` | none |
+| groot@forge (HM) | `lixapp625v3...` | `lixapp625v3...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{sweet16, petunia}`) matches expected-drift set exactly.
+
+Root-caused both drifting hosts with `nix-store -q --tree` against each
+`nixos-system-*.drv`, filtering for `hyprland`/`noctalia` store-path names:
+
+- **sweet16**: closure gains `hyprland-0.56.1+date=2026-07-27_5c9377c.drv`
+  (was `hyprland-0.55.4+date=2026-06-11_a0136d8.drv`),
+  `xdg-desktop-portal-hyprland-1.4.0+date=2026-07-18_08d99f7.drv` (was
+  `-1.3.12.drv`), `hyprland-guiutils-0.2.1+date=2026-07-16_a6ccb6c.drv` (was
+  `...a968d21.drv`), and a rebuilt `noctalia-5.0.0.drv` whose content hash
+  changed (`sj5097yaak0...` → `ih6dkrl3j8n9...`) even though the version
+  string is unchanged — consistent with the noctalia input pin moving from
+  a branch ref to the `v5.0.0-beta.7` tag ref while the package's
+  `version` attribute stayed `"5.0.0"`.
+- **petunia**: identical mechanism — closure gains
+  `hyprland-0.56.1+date=2026-07-27_5c9377c.drv` (was `...a0136d8.drv`),
+  `hyprland-guiutils-0.2.1+date=2026-07-16_a6ccb6c.drv` (was
+  `...a968d21.drv`), and the same rebuilt `noctalia-5.0.0.drv`
+  (`ih6dkrl3j8n9...`, same content hash as sweet16's, confirming both hosts
+  consume the identical rebuilt noctalia derivation via
+  `hosts/{sweet16,petunia}/{default,home}.nix`).
+
+`avina`, `hermes`, `groot@dualie`, `groot@forge` are byte-identical — none
+of them reference `nixosModules`/`homeManagerModules` that pull in
+`inputs.hyprland` or `inputs.noctalia`, consistent with `consumers.sh`.
+`groot@rk3588` is `N/A` (aarch64, `uname -m` check in `lib.sh`) — recorded
+as unverified, not claimed as zero-drift. **C2+C3 verdict: PASS.**
+
+### Additional checks
+
+**`flake.lock`'s top-level `nixpkgs` node**: compared directly
+(`git show 09e7279:flake.lock | jq .nodes.nixpkgs` vs.
+`git show 1f4ac0b:flake.lock | jq .nodes.nixpkgs`) — byte-identical
+(`rev: 80bdc1e5ce51f56b19791b52b2901187931f5353`, `original.ref:
+nixos-unstable`, same `narHash`). None of the three commits in this range
+re-locked `nixpkgs`; the pre-existing staleness (locked `ref: nixos-unstable`
+vs. `flake.nix`'s declared `nixos-26.05`) is unchanged and was NOT widened
+by this range. Confirms `lock-diff.sh`'s node list above, which also does
+not mention `nixpkgs`.
+
+**`nix flake check --impure` on merged HEAD `1f4ac0b`**: exit 0, "all
+checks passed!" — evaluates all four `nixosConfigurations`
+(petunia, avina, hermes, sweet16), `devShells`, `checks`, `packages`,
+`homeConfigurations`, `overlays`. Only pre-existing warnings (`unknown flake
+output 'modules'`, `aarch64-linux` omitted without `--all-systems`) —
+neither new nor errors. The individually-passing sub-branches were not
+previously checked in their merged state; this closes that gap.
+
+**Verdict: SIGNED OFF (all three sub-ranges).** C0 and C1 are zero-drift as
+expected (C1's zero-drift claim independently re-verified rather than taken
+on trust). C2+C3's actual-drift set (`{sweet16, petunia}`) matches its
+expected-drift set exactly, with each host's drift traced to the specific
+input (`hyprland` → v0.56.1, `noctalia` → v5.0.0-beta.7) and the concrete
+rebuilt store paths it feeds. The top-level `nixpkgs` node did not move
+across the full range. `nix flake check --impure` passes on merged HEAD.
+Deploy targets for this range: `sweet16`, `petunia` only. No deploy was
+performed as part of this validation.
