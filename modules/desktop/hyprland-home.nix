@@ -54,7 +54,7 @@ _: {
     in
     {
       imports = [
-        # Sets wayland.windowManager.hyprland.package to upstream v0.55.3.
+        # Sets wayland.windowManager.hyprland.package to upstream v0.56.1.
         inputs.hyprland.homeManagerModules.default
       ];
 
