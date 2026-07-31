@@ -1642,3 +1642,61 @@ confirms it reaches none of the changed lines.
 **Verdict: SIGNED OFF.** Deploy targets: sweet16, petunia, hermes (NixOS
 configs); groot@dualie and groot@forge (standalone HM). avina needs no
 rebuild for this change.
+
+---
+
+## Validation: 925c5ca..937a330 — feat/fix(vivaldi): source from nixpkgs-unstable, drop duplicate stable entry
+
+Two commits reviewed together: 925c5ca removes the pinned `pkgs-vivaldi`
+input entirely and repoints the three vivaldi call sites
+(`modules/tools/home.nix`, `modules/desktop/hyprland-home.nix`,
+`modules/desktop/niri-home.nix`) at `inputs.nixpkgs-unstable` for
+8.1.4087.58; 937a330 drops the now-duplicate bare `vivaldi` entry from
+`environment.systemPackages` in `modules/tools/dev/common.nix` (registry key
+`development-default`).
+
+`lock-diff.sh 48e7e91 937a330`:
+
+```
+nixpkgs-unstable 18b9261cb3294b6d2a06d03f96872827b8fe2698 → 0954f7ee2f6bb3dc7d4e3d0d8bcb8fd4bde4cfc5
+pkgs-vivaldi 3b32825de172d0bc85664f495edb096b10862524 → null
+```
+
+`consumers.sh nixpkgs-unstable development-default pkgs-vivaldi`: the
+`nixpkgs-unstable` input resolves recursively (via `user-home`,
+`desktop-hyprland-home`, and pre-existing `user-dev-home` consumption of
+unstable for `mcp-nixos`/`opencode-desktop`/`opencode-claude-auth`) to
+hermes, dualie, forge, rk3588, sweet16, petunia. `development-default`
+resolves to sweet16, petunia only. `pkgs-vivaldi` has zero consumers in the
+current tree (expected — the input no longer exists at HEAD). avina appears
+in neither list.
+
+Expected-drift set: sweet16, petunia, hermes, groot@dualie, groot@forge
+(groot@rk3588 excluded, x86_64 host N/A). avina expected clean.
+
+`verify-drift.sh 48e7e91 937a330`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | DRIFT |
+| avina | none |
+| hermes | DRIFT |
+| groot@dualie | DRIFT |
+| groot@forge | DRIFT |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Actual drift set (sweet16, petunia, hermes, groot@dualie, groot@forge)
+matches the expected-drift set exactly. avina byte-identical confirms it: it
+imports neither `development-default` nor any `nixpkgs-unstable`-consuming
+home key, so the input bump and the systemPackages removal both leave it
+untouched. hermes and groot@forge drifting despite not calling vivaldi
+directly is not a discrepancy — both already pull `nixpkgs-unstable` through
+`user-dev-home` (mcp-nixos, opencode-desktop, opencode-claude-auth) and
+hermes additionally through its own `unstablePkgs` binding in
+`hosts/hermes/default.nix` / `groot-hm.nix`; the input-version bump alone
+would have drifted them with or without the vivaldi change.
+
+**Verdict: SIGNED OFF.** Deploy targets: sweet16, petunia, hermes (NixOS
+configs); groot@dualie and groot@forge (standalone HM). avina needs no
+rebuild for this change.
