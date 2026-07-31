@@ -54,6 +54,7 @@ _: {
             inputs.nixvim.homeModules.nixvim
             homeManagerModules.user-bash
             homeManagerModules.user-terminal-home
+            homeManagerModules.user-terminal-oled-home
             homeManagerModules.user-neovim-home
             homeManagerModules.user-television-home
             homeManagerModules.hermes-home
