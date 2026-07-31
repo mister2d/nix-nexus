@@ -41,10 +41,10 @@ _: {
           enable = true;
           font = {
             name = "JetBrainsMono Nerd Font";
-            size = 13;
+            size = 14;
           };
           settings = {
-            # Standard terminfo for broad compatibility (fixes 'xterm-kitty' missing on remote hosts)
+            # Standard terminfo for broad compatibility
             term = "xterm-256color";
 
             # Mouse behavior
@@ -109,8 +109,9 @@ _: {
         ghostty = {
           enable = true;
           settings = {
+            term = "xterm-256color";
             font-family = "JetBrainsMono Nerd Font";
-            font-size = 13;
+            font-size = 14;
 
             inherit (colors) background foreground;
             cursor-color = colors.cursor;
@@ -158,7 +159,7 @@ _: {
           terminal = "tmux-256color";
           historyLimit = 100000;
           keyMode = "vi";
-          mouse = false;
+          mouse = true;
           baseIndex = 1;
           escapeTime = 0; # Fix for Neovim lag
 
