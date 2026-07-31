@@ -75,7 +75,6 @@ _: {
         homeManagerModules.user-bash
         homeManagerModules.user-neovim-home
         homeManagerModules.user-terminal-home
-        homeManagerModules.user-terminal-oled-home
         homeManagerModules.user-television-home
         homeManagerModules.user-ceph-mount
         homeManagerModules.user-audio-effects
@@ -183,7 +182,6 @@ _: {
         # Default to generic package. Hosts override with rocmSupport/cudaSupport.
         package = lib.mkDefault pkgs.btop;
         settings = {
-          color_theme = "TTY";
           theme_background = false;
           show_gpu_info = true;
         };
