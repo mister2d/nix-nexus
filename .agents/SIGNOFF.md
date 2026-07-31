@@ -1514,3 +1514,45 @@ devenv bump verified post-change: `nix flake check` passes and `sops`, `age`,
 **Verdict: SIGNED OFF.** Deploy targets: sweet16, petunia, hermes for the
 terminal change (cosmetic, deferrable). avina is unaffected by these three
 commits but still needs the earlier `f7393b1` deployed — see below.
+
+---
+
+## Validation: secretspec declaration + langfuse hook routing
+
+Adds `secretspec.toml` and routes the Claude Code Stop hook through
+`secretspec run` (`modules/flake/checks.nix`).
+
+`verify-drift.sh HEAD~1 HEAD`: **zero drift on every config** — all four NixOS
+hosts and both evaluable HM configs byte-identical; `groot@rk3588` `N/A`
+(x86_64 host). Correct by construction: the change touches only `perSystem`
+(devshell packages and the generated `.claude/settings.json`) plus repo-root
+files, none of which enter a host closure. **No deploy required.**
+
+Verified end to end rather than by inspection: the exact command emitted into
+`.claude/settings.json` —
+`secretspec run --reason "langfuse trace export" -- python3 "$CLAUDE_PROJECT_DIR"/.claude/hooks/langfuse_hook.py`
+— resolves all three Langfuse values from the keyring and exits 0 on empty
+stdin, producing no output. Values were confirmed by length only, not printed.
+
+Design notes, both deliberate and documented in `docs/secrets.md`:
+
+- **Optional, not required.** The hook is elective telemetry. Required secrets
+  would make `secretspec run` exit non-zero and skip the hook every turn for
+  anyone without Langfuse configured.
+- **Keyring-only, no Vault fallback.** The hook fires on every Stop; a fallback
+  route would add a network round-trip per turn whenever the keyring misses.
+  `home_vault` is declared as an alias for secrets that want it, and is the only
+  option on headless hosts (no Secret Service daemon).
+
+Constraints measured against the pinned 0.13.0 binary, not the 0.17 docs:
+`keyring`/`vault`/`dotenv`/`env` compiled in; `sops`, `age`,
+`systemd-credential` and `[scopes]` absent and unreachable until nixpkgs ships
+0.17 (cachix/secretspec publishes no `flake.nix`). The `require_reason` policy
+covers `check` and `get`, not only `run`. Also noted: `secretspec check`
+reports optional secrets without probing resolution, so its
+"0 found, 0 missing, 3 optional" summary is not evidence they are unset.
+
+Corrected from earlier notes: the hook reads `LANGFUSE_BASE_URL`, not
+`LANGFUSE_HOST`, defaulting to `https://us.cloud.langfuse.com`.
+
+**Verdict: SIGNED OFF.** Zero host drift; nothing to deploy.
