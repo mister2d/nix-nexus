@@ -14,6 +14,7 @@ _: {
         homeManagerModules.desktop-noctalia-home
         homeManagerModules.hardware-z16-hypr-home
         homeManagerModules.desktop-hyprland-home
+        homeManagerModules.desktop-theme-home
       ];
 
       programs.btop.package = pkgs.btop.override { rocmSupport = true; };

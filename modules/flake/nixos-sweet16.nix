@@ -21,6 +21,7 @@ in
       inputs.nixos-hardware.nixosModules.common-pc-ssd
       nixos.sweet16-default
       inputs.home-manager.nixosModules.home-manager
+      inputs.stylix.nixosModules.stylix
       nixos.hm-ddukes-sweet16
     ];
   };

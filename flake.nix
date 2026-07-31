@@ -47,6 +47,19 @@
     # See: https://docs.noctalia.dev/v5/getting-started/nixos/#binary-cache
     noctalia.url = "github:noctalia-dev/noctalia/v5.0.0-beta.7";
 
+    # ── Theming ─────────────────────────────────────────────────────────────
+    # Two branches, mirroring the home-manager/home-manager-unstable dual-track
+    # idiom above: sweet16 pins nixpkgs 26.05 + home-manager release-26.05;
+    # petunia tracks nixpkgs-unstable + home-manager master.
+    stylix = {
+      url = "github:nix-community/stylix/release-26.05";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    stylix-unstable = {
+      url = "github:nix-community/stylix"; # master
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # ── System ──────────────────────────────────────────────────────────────
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
     disko = {
