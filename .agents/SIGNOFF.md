@@ -1700,3 +1700,62 @@ would have drifted them with or without the vivaldi change.
 **Verdict: SIGNED OFF.** Deploy targets: sweet16, petunia, hermes (NixOS
 configs); groot@dualie and groot@forge (standalone HM). avina needs no
 rebuild for this change.
+
+---
+
+## Validation: 19059d3..364ccd3 — fix(vivaldi): pin ffmpeg codecs to a build that starts
+
+Corrective commit for the vivaldi migration signed off in the
+`925c5ca..937a330` entry above (not rewritten — cross-referenced here). That
+entry validated a configuration that evaluated cleanly but produced a
+non-starting binary: nixos-unstable pairs vivaldi 8.1.4087.58 with
+`chromium-codecs-ffmpeg-extra` 123075, which does not export
+`av_dynamic_hdr_smpte2094_app5_to_t35`; `vivaldi-bin` lists `libffmpeg.so` as
+a NEEDED entry, so `vivaldi --version` aborted with a symbol lookup error at
+runtime — a defect closure comparison alone cannot catch. 364ccd3 adds a new
+flake input `pkgs-vivaldi-codecs` (`github:nixos/nixpkgs/3b32825de172d0bc85664f495edb096b10862524`)
+used solely to override `vivaldi-ffmpeg-codecs`; vivaldi itself still comes
+from `nixpkgs-unstable`. Call sites updated: `modules/tools/home.nix`,
+`modules/desktop/hyprland-home.nix`, `modules/desktop/niri-home.nix`.
+
+`lock-diff.sh 19059d3 364ccd3`:
+
+```
+pkgs-vivaldi-codecs null → 3b32825de172d0bc85664f495edb096b10862524
+```
+
+`consumers.sh pkgs-vivaldi-codecs`:
+
+```
+sweet16: via hosts/sweet16/home.nix
+petunia: via hosts/petunia/home.nix
+```
+
+Expected-drift set: sweet16, petunia only. hermes, avina, groot@dualie,
+groot@forge do not install vivaldi and have no path to the new input.
+groot@rk3588 excluded (x86_64 host, N/A).
+
+`verify-drift.sh 19059d3 364ccd3`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | DRIFT |
+| avina | none |
+| hermes | none |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Actual drift set (sweet16, petunia) matches the expected-drift set exactly.
+Confirmed the fix landed as intended, not just that the closure moved:
+`nix-store -qR` on both hosts' `system.build.toplevel` drvs resolves to the
+same `vivaldi-8.1.4087.58.drv`, whose realized output is
+`/nix/store/sv2nk8p35b3i5m2wbs623falbm6yg3di-vivaldi-8.1.4087.58` — matching
+the path already built and empirically verified (`vivaldi --version` prints
+the version instead of aborting) per the commit message.
+
+**Verdict: SIGNED OFF.** Deploy targets: sweet16, petunia only. hermes,
+avina, groot@dualie, groot@forge need no rebuild for this change. Once
+nixos-unstable's `vivaldi-ffmpeg-codecs` catches up to the 2026-05-18 source
+build, `pkgs-vivaldi-codecs` should be dropped (noted in the commit message).
