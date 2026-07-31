@@ -1605,3 +1605,40 @@ Confirm the device with `lsblk -o NAME,PARTLABEL` first — sweet16 was not
 installed via disko, so `by-partlabel/DISK_LUKS` should resolve, unlike petunia
 which requires `/dev/nvme0n1p2`. Keyslot 0 remains a passphrase fallback, so a
 failed enrollment does not lock the machine.
+
+---
+
+## Validation: 7c75a61 — feat(terminal): tmux mouse scrollback and ghostty/kitty parity
+
+Single module file touched, `modules/tools/terminal-home.nix` (registry key
+`user-terminal-home`), plus `docs/terminal.md` (docs only, no eval impact).
+tmux gained `mouse on`, `set-clipboard on`, a `terminal-features` clipboard
+override, a WheelUpPane conditional into `copy-mode -e`, and three
+copy-mode-vi bindings; kitty/ghostty font bumped 13→14 and ghostty gained
+`term = "xterm-256color"` plus five window/mouse-behavior settings for parity
+with kitty.
+
+`consumers.sh user-terminal-home`: hermes, forge, rk3588, dualie, sweet16,
+petunia — six consumers. avina does not import this key.
+
+`verify-drift.sh 75b582d 7c75a61`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | DRIFT |
+| avina | none |
+| hermes | DRIFT |
+| groot@dualie | DRIFT |
+| groot@forge | DRIFT |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Actual drift set (sweet16, petunia, hermes, groot@dualie, groot@forge) matches
+the expected-drift set from `consumers.sh` exactly, modulo groot@rk3588 which
+is excluded from comparison per protocol. avina byte-identical is the
+load-bearing result: it does not consume `user-terminal-home`, and the diff
+confirms it reaches none of the changed lines.
+
+**Verdict: SIGNED OFF.** Deploy targets: sweet16, petunia, hermes (NixOS
+configs); groot@dualie and groot@forge (standalone HM). avina needs no
+rebuild for this change.
