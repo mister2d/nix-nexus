@@ -2266,3 +2266,232 @@ change the derivation-drift verdict, since all three default to disabled
 under `autoEnable = false`. `groot@rk3588` remains unverified (aarch64,
 `N/A` on this arch). Deploy targets for this range: `sweet16`, `petunia`
 only. No deploy was performed as part of this validation.
+
+## Validation: `8f4d47f..4bc8b57` — C6: terminals + btop handed to Stylix
+
+Baseline: `8f4d47f` ("merge: sign off C4-C5 stylix foundation drift"), the
+previously signed-off state. HEAD verified as `4bc8b57` ("merge: hand
+terminal and btop colors to stylix") per the base gate; the working branch
+had drifted to a stale tip (`09e7279`) and was reset to `main` (`4bc8b57`)
+before validation. Two commits in range, judged as one logical unit (the
+second is a fix to the first, never independently shipped):
+
+- `b8616da` — enables `stylix.targets.{kitty,ghostty,btop}`; adds
+  `ghostty.colors.override.base00 = "000000"`; drops the
+  `user-terminal-oled-home` import from `modules/tools/home.nix` (key
+  `development-default`); removes `programs.btop.settings.color_theme =
+  "TTY"`.
+- `3eb949a` — fixes the ineffective `kitty.colors.override.base00`
+  (unreachable through kitty's base16-scheme functor); moves the tab-bar
+  keys out of `programs.kitty.settings` (discarded by kitty's
+  last-directive-wins parsing, since HM emits `settings` before the
+  target's `include`); appends `background #000000` plus the four
+  `active_tab_*`/`inactive_tab_*` keys via
+  `programs.kitty.extraConfig = lib.mkAfter`, placed after the include so
+  it wins.
+
+Only `modules/desktop/theme-home.nix` (key `desktop-theme-home`) and
+`modules/tools/home.nix` (key `development-default`) changed in this range
+— confirmed via `git diff 8f4d47f 4bc8b57 --stat`.
+
+`lock-diff.sh 8f4d47f 4bc8b57`: exit 0, no output — no `flake.lock` node
+moved. Directly answers (f): `git show <rev>:flake.lock | jq
+'.nodes.nixpkgs.locked'` is byte-identical at both revs (`rev:
+80bdc1e5ce51f56b19791b52b2901187931f5353`, same `narHash`), and
+`.nodes.nixpkgs.original.ref` is still the stale `nixos-unstable` at HEAD.
+Unmoved across this range, consistent with the three prior sign-offs.
+
+`consumers.sh desktop-theme-home` at `4bc8b57`:
+
+```
+petunia: via hosts/petunia/home.nix
+sweet16: via hosts/sweet16/home.nix
+```
+
+Expected-drift set: `{sweet16, petunia}` only.
+
+`verify-drift.sh 8f4d47f 4bc8b57` (exit 10, drift found):
+
+| Config | 8f4d47f | 4bc8b57 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `/nix/store/zizyvwdr674x8rlpzxg6qlzvmdmycfn9-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | `/nix/store/6sm7b4hf800y7smlxpghlgvrs2gf983q-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | DRIFT |
+| petunia (NixOS) | `/nix/store/6r67qdk0s5g4rc3bhxz1hn4m92sd82ni-nixos-system-petunia-26.11.20260729.0954f7e.drv` | `/nix/store/5b0hb70k4l2mfxclpgb5ckrjqnnqb75p-nixos-system-petunia-26.11.20260729.0954f7e.drv` | DRIFT |
+| avina (NixOS) | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| hermes (NixOS) | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| groot@dualie (HM) | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | none |
+| groot@forge (HM) | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{sweet16, petunia}`) matches expected-drift set exactly.
+**Verdict: PASS (drift matches expected hosts).**
+
+#### (a) Are avina/hermes/groot@dualie/groot@forge byte-identical, and did the C1 split hold?
+
+Yes — `.drv` paths above are byte-identical across the range for all four.
+None of them import `desktop-theme-home` or reference
+`stylix.targets.{kitty,ghostty,btop}`; all four still consume
+`user-terminal-oled-home` directly (`modules/tools/home.nix`'s
+`nix-nexus-terminal`/`hardware-*` bundles for those hosts were untouched by
+this diff — only `development-default`'s import list lost the
+`user-terminal-oled-home` entry, which is the sweet16/petunia-only bundle).
+`modules/tools/terminal-oled-home.nix` (key `user-terminal-oled-home`) has
+zero diff in this range. Confirmed at the built-output level:
+`groot@dualie`'s kitty config still derives its `background = "#000000"`
+from `colors.background` in `terminal-oled-home.nix` (a plain
+`programs.kitty.settings.background` value, not a stylix
+target/`extraConfig` override) — the split held.
+
+#### (b) Does the kitty fix work in the BUILT output, not just at the option level?
+
+Built `.#nixosConfigurations.sweet16.config.home-manager.users.ddukes.home.activationPackage`
+→ `/nix/store/gwa14y2l5ghrdfxghxydzxpakn866vfc-home-manager-generation`.
+Resolved `home-files/.config/kitty/kitty.conf` →
+`/nix/store/20zl4is12wrpqmvz2apxscf27svkc2h3-hm_kittykitty.conf`. Tail of
+the file:
+
+```
+include /nix/store/70a4j7rnh2yhm0mzq2pl1vmyd8msbyb1-base16-ayu-dark.conf
+
+background #000000
+active_tab_foreground #000000
+active_tab_background #39bae6
+inactive_tab_foreground #e6e1cf
+inactive_tab_background #131721
+```
+
+`grep -n "background\|active_tab\|inactive_tab"` over the full file shows
+exactly one `background <hex>` line (line 26, after the `include` on line
+24) and exactly one occurrence each of the four tab-bar keys (lines 27-30)
+— no dead earlier copies from `programs.kitty.settings` survive, because
+`3eb949a` moved them out of `settings` entirely. **All three assertions
+hold.** Rebuilt the identical check on petunia's HM generation
+(`/nix/store/dd1ncr90lqfddilsnnx01dy875n8d89a-home-manager-generation` →
+`/nix/store/ra3r21bci6izjfl6w51l1v4k9lgvlh90-hm_kittykitty.conf`): same
+structure, `include` on line 24, `background #000000` on line 26, tab-bar
+keys on lines 27-30, single occurrence each.
+
+#### (c) Does ghostty's override genuinely work, and is btop's theme `stylix`?
+
+sweet16: `home-files/.config/ghostty/themes/stylix` resolves to
+`/nix/store/js80fngq2fvw5zin5nhpr55w9zd77s37-ghostty-stylix-theme`, which
+contains `background = 000000` (and `selection-background = 202229`).
+`home-files/.config/ghostty/config` contains `theme = stylix`. sweet16's
+`home-files/.config/btop/btop.conf` (resolved:
+`/nix/store/c5nvn4i88n2ra7qp3wjn0wf1qhsrsp8a-hm_btopbtop.conf`) contains
+`color_theme = "stylix"`. Petunia: identical shape —
+`ghostty-stylix-theme` at `/nix/store/a4canjvj8qwcrad0nn0ly5lk8ybrdid7`
+contains `background = 000000`; btop.conf contains `color_theme =
+"stylix"`. Ghostty's target reads `colors.base00` directly (not through
+kitty's functor indirection), so `override.base00 = "000000"` in
+`theme-home.nix` reaches the rendered theme file on both hosts, as the task
+predicted.
+
+#### (d) Is the drift small and confined, or did it cascade?
+
+`nix eval config.nixpkgs.overlays` on sweet16: length `3`, unchanged.
+`nix eval config.stylix.overlays.enable`: `false` on both sweet16 and
+petunia (still gated by `stylix.autoEnable = false`, untouched by this
+range). `nix store diff-closures` between the old/new sweet16 toplevel
+outputs (`/nix/store/n7plc5b9q18zihcpr80x7mljajsymaa5-...` →
+`/nix/store/mj71k21pv8gqj9ym6g08nvaiz07514j3-...`) reports exactly three
+newly-added derivation names: `base16-ayu-dark.conf`, `btop-theme.theme`,
+`ghostty-stylix`. `nix-store -qR` set-diff of the full closures (4942 →
+4945 paths) shows 29 total differing lines: the 3 new theme derivations
+plus 13 name-pairs whose content (hash) changed —
+`hm_kittykitty.conf`, `hm_btopbtop.conf`, `ghostty-config`,
+`ghostty-stylix-theme`, `base16-ayu-dark.conf`, plus pure propagation
+wrappers (`home-manager-files`, `home-manager-path`,
+`home-manager-generation`, `etc`, `system-units`,
+`unit-home-manager-ddukes.service`, `user-environment`,
+`nixos-system-sweet16-*`) that reference the changed store-path hashes but
+carry no independent content change. Two entries needed closer inspection
+because they weren't obviously terminal/btop-scoped:
+`hm_fontconfigconf.d10hmfonts.conf` and
+`hm_systemduserappcom.mitchellh.ghostty.service.doverrides.conf`. Diffed
+both: the fontconfig file only changed because it embeds the
+`home-manager-path` store-path hash in `<include>`/`<dir>`/`<cachedir>`
+lines (no font itself changed); the ghostty systemd unit override only
+gained the new `ghostty-stylix-theme` path in its
+`X-Reload-Triggers=` line, so the unit restarts when the new theme file
+changes. Petunia's `nix store diff-closures` on the HM-generation pair
+(`/nix/store/1c0r6537jskxk7kcdadbiir808764h0z-...` →
+`/nix/store/dd1ncr90lqfddilsnnx01dy875n8d89a-...`) shows the identical
+three-line signature (`base16-ayu-dark.conf`, `btop-theme.theme`,
+`ghostty-stylix`), confirming the same confined shape on both hosts (the
+petunia full-system closure diff was not completed — the toplevel rebuild
+was too costly to finish in this session; the HM-generation diff plus the
+matching `.drv`-level DRIFT/no-DRIFT table above is the evidence for
+petunia). **No cascade: the drift is confined to the three new stylix
+theme-target derivations and their direct consumers/wrappers; no
+unrelated package rebuilt, and `stylix.overlays.enable` never activated.**
+
+#### (e) Did any other target activate?
+
+`nix eval` on `stylix.targets.<name>.enable` for both hosts:
+
+| Target | sweet16 | petunia |
+|---|---|---|
+| kitty | true | true |
+| ghostty | true | true |
+| btop | true | true |
+| gtk | false | false |
+| qt | false | false |
+| hyprland | false | false |
+| hyprlock | false | false |
+| hyprpaper | false | false |
+| noctalia-shell | false | false |
+| nixvim | false | false |
+| tmux | false | false |
+
+Only `kitty`, `ghostty`, `btop` are enabled on either host. `gtk`/`qt`
+remain off, so no conflict with the still-present `gtk.theme`/`qt.style`
+in `modules/tools/home.nix` — C7's job, untouched here.
+
+#### (f) Did the top-level `nixpkgs` node move?
+
+No — see the `lock-diff.sh` result above: byte-identical `rev` and
+`narHash` at `8f4d47f` and `4bc8b57`; `original.ref` is still the stale
+`nixos-unstable`. Confirmed independently via `git show
+<rev>:flake.lock | jq '.nodes.nixpkgs.locked'`.
+
+#### (g) `nix flake check --impure` on merged HEAD `4bc8b57`
+
+Exit 0, "all checks passed!". Evaluates all four `nixosConfigurations`
+(petunia, avina, hermes, sweet16), `checks`, `devShells`, `packages`,
+`overlays`, `homeConfigurations`. Only pre-existing warnings persist: the
+`home.pointerCursor` deprecation notice on the petunia HM profile (known,
+benign, tracked since the C4/C5 sign-off — unrelated to this range's
+`stylix.cursor` config, which is untouched here), `unknown flake output
+'modules'`, and the `aarch64-linux` system omission without
+`--all-systems`. No new warnings or errors.
+
+#### (h) `groot@rk3588`
+
+Reports `N/A` on this x86_64 worktree (per `lib.sh`'s `is_na_config`,
+`uname -m` check) in the `verify-drift.sh` table above. Recorded as
+**unverified — not claimed as zero-drift.**
+
+**Verdict: SIGNED OFF.** The actual-drift set (`{sweet16, petunia}`)
+matches the expected-drift set from `consumers.sh desktop-theme-home`
+exactly; `avina`, `hermes`, `groot@dualie`, `groot@forge` are confirmed
+byte-identical, and the C1 terminal split holds — `groot@dualie`'s kitty
+background still comes from the untouched `terminal-oled-home.nix`, not
+stylix. The kitty rendering fix in `3eb949a` was independently verified in
+the BUILT `kitty.conf` on both sweet16 and petunia: the `include` line
+precedes the appended block, `background #000000` is the sole/last
+background directive, and the four tab-bar keys appear exactly once, last.
+Ghostty's `override.base00` reaches the rendered theme file
+(`background = 000000`) on both hosts, and btop's built config reads
+`color_theme = "stylix"`. The drift is small (29 differing store-path
+names in sweet16's full closure) and did not cascade — confined to the
+three new stylix theme-target derivations (`base16-ayu-dark.conf`,
+`btop-theme.theme`, `ghostty-stylix`) and their direct
+propagation-wrapper consumers; `stylix.overlays.enable` stayed `false` and
+the overlay list stayed length-3 throughout. No target other than
+kitty/ghostty/btop activated on either host — gtk/qt remain `false`,
+un-conflicted with C7's still-pending work. The top-level `nixpkgs` node
+did not move. `nix flake check --impure` passes clean on merged HEAD
+`4bc8b57` with only the pre-existing, unrelated petunia
+`home.pointerCursor` warning. `groot@rk3588` remains unverified (aarch64,
+`N/A` on this arch). Deploy targets for this range: `sweet16`, `petunia`
+only. No deploy was performed as part of this validation.
