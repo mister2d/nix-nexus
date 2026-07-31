@@ -1759,3 +1759,94 @@ the version instead of aborting) per the commit message.
 avina, groot@dualie, groot@forge need no rebuild for this change. Once
 nixos-unstable's `vivaldi-ffmpeg-codecs` catches up to the 2026-05-18 source
 build, `pkgs-vivaldi-codecs` should be dropped (noted in the commit message).
+
+---
+
+## Validation: 342572a..c1afb50 — context-mode hermes enablement
+
+Four functional commits behind three merges: `3b28b69` (new `lib/context-mode.nix`,
+`buildNpmPackage` of npm `context-mode` 1.0.169, Elastic-2.0/unfree), `d0ecabf`
+(new `lib/context-mode-hermes.nix`, `buildPythonPackage` plugin from
+`christopher-s/context-mode-hermes`, zero runtime deps), `c8a099e`
+(`hosts/hermes/llm-agents-overlay.nix` prepends the plugin to hermes-agent's
+`propagatedBuildInputs`; `hosts/hermes/groot-hm.nix` adds the `context-mode`
+CLI to groot's `home.packages`), `e7d24ba` (docs only, inert).
+
+`lock-diff.sh 342572a c1afb50`: exit 0, no output — no `flake.lock` node
+moved. Consistent with the change being new `lib/*.nix` derivations plus
+host-file wiring, not a new flake input.
+
+`consumers.sh llm-agents-hermes hm-groot-hermes`: no output. Known script
+gap, same class as the `sops-nix` gap documented above — the sole reference
+to both keys is `modules/flake/nixos-hermes.nix` (`nixos.llm-agents-hermes`,
+`nixos.hm-groot-hermes`), which sets `flake.nixosConfigurations.hermes`
+directly rather than registering under `flake.modules.nixos.*`, so the
+script's registry-recursion dead-ends there instead of resolving to a
+`hosts/` file. Manual grep confirms `lib/context-mode.nix` and
+`lib/context-mode-hermes.nix` are imported only from `hosts/hermes/groot-hm.nix`
+and `hosts/hermes/llm-agents-overlay.nix` respectively, and
+`modules/flake/nixos-hermes.nix` wires both keys only into
+`nixosConfigurations.hermes`. Expected-drift set: `{hermes}` only.
+`lib/*.nix` files are not auto-discovered (AGENTS.md §3.5), so they cannot
+leak into any other host's registry composition.
+
+`verify-drift.sh 342572a c1afb50` (exit 10, drift found):
+
+| Config | 342572a | c1afb50 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `icbnhchnxhv...` | `icbnhchnxhv...` | none |
+| petunia (NixOS) | `6bdw5xm8l2w...` | `6bdw5xm8l2w...` | none |
+| avina (NixOS) | `rnwf3z5cj9y...` | `rnwf3z5cj9y...` | none |
+| hermes (NixOS) | `bsj7i2qy5my...` | `175q2rw24y3...` | DRIFT |
+| groot@dualie (HM) | `0g2hs1ysskh...` | `0g2hs1ysskh...` | none |
+| groot@forge (HM) | `lixapp625v3...` | `lixapp625v3...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{hermes}`) matches the expected-drift set exactly.
+
+Beyond the raw hash comparison, five specific risks were checked against a
+real build of `c1afb50`'s `nixosConfigurations.hermes.config.system.build.toplevel`:
+
+1. **Interpreter-last invariant.** Built `pkgs.llm-agents.hermes-agent`'s
+   wrapper (`/nix/store/1wc7hmn1sbvnfc4d1dkr3shii3jsxq15-hermes-agent-2026.7.20/bin/hermes-agent`)
+   and read its `--set PYTHONPATH` value directly: first entry is
+   `python3.13-context-mode-hermes-1.3.0`, last entry is
+   `python3-3.13.14` (the interpreter). Prepending preserved the
+   `elemAt deps (length deps - 1)` invariant both overlay files rely on.
+2. **Evaluation cycle.** `nix flake check --impure` passes green for all
+   four `nixosConfigurations` (sweet16, petunia, avina, hermes) plus
+   `devShells`/`checks`/`packages`/`homeConfigurations` — no infinite
+   recursion. `hosts/hermes/llm-agents-overlay.nix` hoists
+   `deps`/`hermesPython` from `agentPkgs.hermes-agent.propagatedBuildInputs`
+   (pre-override) rather than from inside `overridePythonAttrs`, avoiding
+   the `isMismatchedPython` re-entrancy the implementer hit during
+   development.
+3. **Dual PYTHONPATH paths.** Built `home-manager-files` for the
+   `hm-groot-hermes` composition and read both rendered drop-ins:
+   `.config/systemd/user/hermes-gateway.service.d/nix-deps.conf` and
+   `.config/systemd/user/hermes-gateway-coding-local.service.d/nix-deps.conf`
+   render byte-identical `PYTHONPATH=<hermes-agent-2026.7.20>/site-packages:<python3-3.13.14-env>/site-packages`.
+   Confirmed on disk that `<python3-3.13.14-env>/lib/python3.13/site-packages/`
+   contains `context_mode_hermes/` and `context_mode_hermes-1.3.0.dist-info/`
+   — the plugin reaches both consumers off the one `allDeps` list in
+   `hosts/hermes/home.nix`.
+4. **No collision regression.** The `pythonEnv` buildEnv derivation built
+   successfully (a real collision would have failed the build, not just
+   warned). Inspected site-packages directly: exactly one `aiosqlite`
+   (0.22.1, the override) and one `olm`/`python_olm` (3.2.16, the
+   vuln-allowed override) — no duplicate entries from the newly-prepended
+   plugin.
+5. **Unfree.** `context-mode` (Elastic-2.0) is covered by the pre-existing
+   fleet-wide `nixos.overlays-global` (`nixpkgs.config.allowUnfree = true`),
+   wired identically into all four `nixos-<host>.nix` assemblies before this
+   change. Since `sweet16`/`petunia`/`avina` show zero drift, no new unfree
+   requirement leaked to them.
+
+`groot@rk3588` `N/A`: static `uname -m != aarch64` check in
+`.agents/scripts/lib.sh`, independent of the revs compared.
+
+**Verdict: SIGNED OFF.** Actual-drift set (`{hermes}`) matches the
+expected-drift set exactly; `sweet16`, `petunia`, `avina`, `groot@dualie`,
+`groot@forge` are byte-identical; `groot@rk3588` is `N/A` on x86_64 per
+convention. Deploy target for this range is `hermes` only. No deploy was
+performed as part of this validation.
