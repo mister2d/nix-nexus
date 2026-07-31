@@ -3,7 +3,6 @@ _: {
     {
       pkgs,
       lib,
-      config,
       inputs,
       homeManagerModules,
       ...
@@ -149,13 +148,11 @@ _: {
           libfido2 # Authentication library for FIDO2 devices
 
           # Appearance & Themes
-          graphite-gtk-theme # OLED-optimized dark theme
           adwaita-icon-theme # Core theme engine/icons (fixes GTK module errors)
           gnome-themes-extra # Provides Adwaita theme engine
           gtk-engine-murrine # Murrine engine for various GTK themes
 
           # Fonts
-          nerd-fonts.jetbrains-mono
           font-awesome
         ];
 
@@ -191,30 +188,16 @@ _: {
       dconf.enable = true;
 
       # Appearance (GTK/Theming)
-      # Optimized for OLED displays to improve visibility and reduce power consumption.
       gtk = {
         enable = true;
-        theme = {
-          name = "Graphite-teal-Dark";
-          package = pkgs.graphite-gtk-theme.override {
-            themeVariants = [ "teal" ];
-            colorVariants = [ "dark" ];
-          };
-        };
         iconTheme = {
           name = "Adwaita";
           package = pkgs.adwaita-icon-theme;
         };
-        gtk4.theme = config.gtk.theme;
       };
 
       # Qt Integration
-      # Ensures Qt applications match the system's GTK theme for a consistent UI.
-      qt = {
-        enable = true;
-        platformTheme.name = "gtk3";
-        style.name = "breeze";
-      };
+      qt.enable = true;
 
       # User Services
       services.syncthing.enable = false;

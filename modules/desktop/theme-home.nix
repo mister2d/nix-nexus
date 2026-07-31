@@ -41,6 +41,8 @@ _: {
           kitty.enable = true;
           ghostty.enable = true;
           btop.enable = true;
+          gtk.enable = true;
+          qt.enable = true;
 
           # OLED: keep terminals true black. ayu-dark's base00 is #0b0e14, but this
           # panel runs pure #000000 today and that preference is deliberate. Scoped to

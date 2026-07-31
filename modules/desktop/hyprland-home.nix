@@ -92,7 +92,6 @@ _: {
           env = [
             "GDK_BACKEND,wayland"
             "QT_QPA_PLATFORM,wayland;xcb"
-            "QT_QPA_PLATFORMTHEME,"
             "QT_WAYLAND_DISABLE_WINDOWDECORATION,1"
             "ELECTRON_OZONE_PLATFORM_HINT,wayland"
             "NIXOS_OZONE_WL,1"
