@@ -2037,3 +2037,232 @@ rebuilt store paths it feeds. The top-level `nixpkgs` node did not move
 across the full range. `nix flake check --impure` passes on merged HEAD.
 Deploy targets for this range: `sweet16`, `petunia` only. No deploy was
 performed as part of this validation.
+
+## Validation: `c434a64..d39174e` — Stylix foundation (C4, C5)
+
+Baseline: `c434a64` ("merge: sign off C0-C3 closure drift"), the previously
+signed-off state. HEAD verified as `d39174e` ("merge: stylix inputs and
+theme policy foundation") per the base gate; the working branch had drifted
+to a stale tip (`09e7279`) and was reset to `main` (`d39174e`) before
+validation. Two sub-ranges judged independently, matching the two logical
+commits in the range.
+
+### C4: `c434a64` → `e300471` — add `stylix`/`stylix-unstable` inputs, unreferenced
+
+Adds two flake inputs: `stylix` (`release-26.05`, following `nixpkgs`) and
+`stylix-unstable` (`master`, following `nixpkgs-unstable`). No module or host
+file references either input at this commit.
+
+`lock-diff.sh c434a64 e300471` (exit 10, nodes changed) — 30 nodes changed,
+all newly-added (`(absent) → <hash>`): `stylix`, `stylix-unstable`, and their
+transitive input closures (`base16*`, `firefox-gnome-theme*`, `flake-parts_6/7`,
+`fromYaml*`, `gnome-shell*`, `nur*`, `systems_4/5`, `tinted-*`). No existing
+node (including `nixpkgs`) was re-locked; every changed line is `null →
+<hash>`.
+
+`consumers.sh stylix stylix-unstable` at `e300471`: zero output — no
+consumer found anywhere in `modules/`, `hosts/`, `profiles/`. Expected-drift
+set: `{}` (empty).
+
+`verify-drift.sh c434a64 e300471` (exit 0, no drift):
+
+| Config | c434a64 | e300471 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `ahflzgdwwfc17yfxcms0i3dwm9056kas...` | `ahflzgdwwfc17yfxcms0i3dwm9056kas...` | none |
+| petunia (NixOS) | `2jpk842wr7bs4vqfjrvpajnsgsq82hx6...` | `2jpk842wr7bs4vqfjrvpajnsgsq82hx6...` | none |
+| avina (NixOS) | `rnwf3z5cj9y...` | `rnwf3z5cj9y...` | none |
+| hermes (NixOS) | `175q2rw24y3...` | `175q2rw24y3...` | none |
+| groot@dualie (HM) | `0g2hs1ysskh...` | `0g2hs1ysskh...` | none |
+| groot@forge (HM) | `lixapp625v3...` | `lixapp625v3...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{}`) matches expected-drift set (`{}`) exactly —
+byte-identical toplevel `.drv` paths on all 6 drv-comparable configs.
+**C4 verdict: PASS.**
+
+### C5: `e300471` → `0a08d74` — wire stylix module + theme policy, all targets off
+
+`modules/flake/nixos-sweet16.nix` imports `inputs.stylix.nixosModules.stylix`;
+`modules/flake/nixos-petunia.nix` imports
+`inputs.stylix-unstable.nixosModules.stylix`; `modules/desktop/theme.nix`
+(key `desktop-default`) replaces its prior stub with `stylix.enable = true`,
+`stylix.autoEnable = false`, `image = null`, `polarity = "dark"`,
+`base16Scheme = ayu-dark.yaml`, `override.base0D = "39BAE6"`, fonts, and
+`stylix.cursor = { package = pkgs.adwaita-icon-theme; name = "Adwaita"; size
+= 24; }`; new `modules/desktop/theme-home.nix` (key `desktop-theme-home`)
+disables `hyprland.hyprpaper`, `nixvim`, `tmux` HM targets and
+conditionally disables `noctalia` (guarded by `lib.optionalAttrs (options.stylix.targets
+? noctalia)`), imported by `hosts/{sweet16,petunia}/home.nix`.
+
+`lock-diff.sh e300471 0a08d74`: exit 0, no output — no `flake.lock` node
+moved in this sub-range (directly answers (c) for this half; see the
+full-range nixpkgs check below for the complete range).
+
+`consumers.sh stylix stylix-unstable` at `0a08d74`:
+
+```
+sweet16: via hosts/sweet16/home.nix
+petunia: via hosts/petunia/home.nix
+```
+
+Expected-drift set: `{sweet16, petunia}` only (the NixOS-side
+`inputs.stylix(-unstable).nixosModules.stylix` imports in
+`modules/flake/nixos-{sweet16,petunia}.nix` are direct `inputs.*` references
+inside the flake-assembly files, not registry-key lookups, so `consumers.sh`
+resolves the same two hosts via their `home.nix` consumption of
+`desktop-theme-home` instead — same expected set, confirmed by direct
+knowledge of the diff).
+
+`verify-drift.sh e300471 0a08d74` (exit 10, drift found):
+
+| Config | e300471 | 0a08d74 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `/nix/store/ahflzgdwwfc17yfxcms0i3dwm9056kas-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | `/nix/store/zizyvwdr674x8rlpzxg6qlzvmdmycfn9-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | DRIFT |
+| petunia (NixOS) | `/nix/store/2jpk842wr7bs4vqfjrvpajnsgsq82hx6-nixos-system-petunia-26.11.20260729.0954f7e.drv` | `/nix/store/6r67qdk0s5g4rc3bhxz1hn4m92sd82ni-nixos-system-petunia-26.11.20260729.0954f7e.drv` | DRIFT |
+| avina (NixOS) | `rnwf3z5cj9y...` | `rnwf3z5cj9y...` | none |
+| hermes (NixOS) | `175q2rw24y3...` | `175q2rw24y3...` | none |
+| groot@dualie (HM) | `0g2hs1ysskh...` | `0g2hs1ysskh...` | none |
+| groot@forge (HM) | `lixapp625v3...` | `lixapp625v3...` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{sweet16, petunia}`) matches expected-drift set exactly.
+`avina`, `hermes`, `groot@dualie`, `groot@forge` are byte-identical — none
+of them import the stylix NixOS module or `desktop-theme-home`.
+**C5 verdict: PASS (drift matches expected hosts).**
+
+#### (a) Is the C5 drift small, and did it cascade?
+
+`nix eval config.nixpkgs.overlays` on sweet16: length `3` at both `e300471`
+and `0a08d74` — **unchanged**, byte-for-byte. `nix eval
+config.stylix.overlays.enable` at `0a08d74`: `false`. Root cause: stylix's
+`mkEnableTarget name true` resolves to `default = cfg.autoEnable &&
+autoEnable-arg`; with `stylix.autoEnable = false` set in `theme.nix`, every
+`mkEnableTarget`-derived option (including `stylix.overlays.enable` and all
+`stylix.targets.*.enable`, e.g. `gtksourceview`, `nixos-icons`) defaults to
+`false`. **The overlay-cascade risk described in the task did not
+materialize in this range** — the task's premise that "`stylix.overlays.enable`
+defaults true on the NixOS side" does not hold once `autoEnable = false` is
+set; contradicts assumption, reported plainly rather than forced to fit.
+
+`nix-store -q --tree` diff (deduplicated by drv basename, hash stripped) on
+both sweet16 and petunia's `nixos-system-*.drv` shows an identical set of
+32 new / 20 changed-hash-but-same-name derivations on each host (petunia's
+list is byte-identical except for a pre-existing `xrdb-1.2.2` vs `xrdb-1.2.3`
+per-host version difference, unrelated to stylix). The new leaf packages are:
+`ayu-dark.yaml`, `base16-ayu-dark.{html,json}` (the base16 scheme source and
+its two rendered artifacts), `mustache-go-1.4.0`/`mustache-go-1.4.0-go-modules`/`mcpp-2.7.2.3`/3×`source.drv`
+(new Rust/Go build tooling, traced via `nix-store -q --tree` context to the
+`mustache-go` toolchain used to render stylix's own
+`stylix/palette.{html,json}.mustache` templates — confirmed against
+`stylix/palette.nix` in the `stylix` flake source, which unconditionally
+(not gated by `autoEnable` or any target) produces
+`stylix.generated.fileTree` entries `stylix/generated.json`,
+`stylix/palette.json`, `stylix/palette.html` — exactly the
+`environment.etc."stylix/palette.{json,html}"` files anticipated by the
+task), plus `hm_homeddukes.Xresources`/`xrdb-1.2.2` and cursor-theme lines
+added to `hm_gtk3.0settings.ini`/`hm_gtk4.0settings.ini` (see (b) below). No
+package outside stylix's own etc-file generation and cursor plumbing
+changed. `nix eval config.environment.etc` attrNames on sweet16 at `0a08d74`
+confirms exactly `stylix/generated.json`, `stylix/palette.html`,
+`stylix/palette.json` were added. **Verdict: the drift is small and
+confined to stylix's own generated files plus cursor propagation — it did
+NOT cascade into unrelated packages.** No mitigation (`stylix.overlays.enable
+= false`) is needed because overlays never activated in the first place.
+
+#### (b) Did `autoEnable = false` take effect?
+
+Yes, for every per-app **target** (`stylix.targets.*`) — confirmed by (a):
+all target-gated options (including `gtksourceview`, `nixos-icons`)
+default to `false`. No kitty, ghostty, qt, btop, hyprland-config, or
+noctalia-config derivation appears anywhere in the new/changed-name diff for
+either host — the name-diff sets contain zero entries for those
+applications' rendered config files.
+
+One derivation family **did** change: `hm_gtk3.0settings.ini.drv` /
+`hm_gtk4.0settings.ini.drv` gained two new lines
+(`gtk-cursor-theme-name=Adwaita`, `gtk-cursor-theme-size=24`, confirmed by
+`nix derivation show | python3 -m json.tool` diff of the `text` field —
+pre-existing `gtk-theme-name=Graphite-teal-Dark` and
+`gtk-icon-theme-name=Adwaita` lines are untouched). Root-caused to
+`stylix/hm/cursor.nix` in the `stylix` flake source: `home.pointerCursor` is
+set whenever `config.stylix.enable && config.stylix.cursor != null`, gated
+by neither `autoEnable` nor the target-enable machinery — cursor is core
+stylix infrastructure, not a per-app target. `theme.nix` at `0a08d74`
+deliberately sets `stylix.cursor = { package = pkgs.adwaita-icon-theme; name
+= "Adwaita"; size = 24; }`, so this propagation is the direct, intended
+consequence of that explicit config block, not a leak through
+`autoEnable`. **Verdict: `autoEnable = false` correctly suppressed every
+target; the one config change that did occur (cursor) is by design,
+unrelated to the target/autoEnable machinery, and not a STOP condition.**
+
+`nix flake check --impure` on `0a08d74`/`d39174e` also surfaces a new,
+non-fatal warning tied to this same mechanism: "ddukes profile: Relying on
+`home.pointerCursor` to enable cursor config generation is deprecated.
+Please update your configuration to explicitly set: `home.pointerCursor.enable
+= true;`" — a home-manager deprecation notice, not an error; noted for
+awareness, does not block sign-off.
+
+#### (c) Did the top-level `nixpkgs` node move?
+
+`git show c434a64:flake.lock | jq '.nodes.nixpkgs'` vs. `git show
+d39174e:flake.lock | jq '.nodes.nixpkgs'`: byte-identical. Both report `rev:
+80bdc1e5ce51f56b19791b52b2901187931f5353`, `original.ref: nixos-unstable`,
+same `narHash`. **The pre-existing staleness is unchanged and was NOT
+widened by adding the stylix inputs** — confirmed independently of
+`lock-diff.sh`'s node list (which also never mentions `nixpkgs` across
+either sub-range).
+
+#### (d) The branch-asymmetry guard (`theme-home.nix`)
+
+Evaluates cleanly on both hosts with no error:
+`config.home-manager.users.ddukes.stylix.targets` resolves to 106 keys on
+sweet16 (`release-26.05`) and 108 keys on petunia (`master`). **The
+resulting `stylix.targets` attrsets do NOT differ in exactly one key as the
+task described** — set-diffing the two key lists directly shows petunia has
+three keys sweet16 lacks: `noctalia`, `aerc`, `wayle`. The comment in
+`theme-home.nix` (and the task framing) accounts only for `noctalia`; `aerc`
+and `wayle` are two additional app targets that exist on stylix master but
+not on stylix release-26.05, unrelated to the noctalia guard. Reported
+plainly rather than reconciled to fit the "one key" expectation. This
+discrepancy does **not** affect the derivation-drift verdict: all three
+extra keys resolve through the same `mkEnableTarget`-based default
+(`cfg.autoEnable && argDefault`), so with `stylix.autoEnable = false` they
+default to `enable = false` regardless, and none of the three appear in
+either host's new/changed derivation-name diff in (a). The guard's actual
+purpose — preventing petunia's stylix-master `noctalia.customPalettes` from
+conflicting with the repo's own palette wiring — is unaffected by this
+finding.
+
+#### (e) `nix flake check --impure` on merged HEAD `d39174e`
+
+Exit 0, "all checks passed!". Evaluates all four `nixosConfigurations`
+(petunia, avina, hermes, sweet16), `devShells`, `checks`, `packages`,
+`overlays`, `homeConfigurations`. Only pre-existing warnings (`unknown flake
+output 'modules'`, `aarch64-linux` omitted without `--all-systems`) plus the
+one new, non-fatal `home.pointerCursor` deprecation warning noted in (b) —
+no errors. This closes the gap the task flagged: the merged state (C4+C5
+together) had not previously been checked as a unit.
+
+#### (f) `groot@rk3588`
+
+Reports `N/A` on this x86_64 worktree (per `lib.sh`'s `is_na_config`,
+`uname -m` check) in both `verify-drift.sh` tables above. Recorded as
+**unverified — not claimed as zero-drift.**
+
+**Verdict: SIGNED OFF (both sub-ranges).** C4 is zero-drift as expected —
+two unreferenced flake inputs changed nothing. C5's actual-drift set
+(`{sweet16, petunia}`) matches its expected-drift set exactly; the drift is
+small, confined to stylix's own `palette.{json,html}` etc-files plus the
+deliberately-configured cursor propagation (not an overlay cascade —
+`stylix.overlays.enable` defaults to `false` under `autoEnable = false`,
+contrary to the task's premise, and the overlay list is byte-identical
+before/after); `autoEnable = false` correctly suppressed every per-app
+theming target; the top-level `nixpkgs` node did not move across the full
+range; and `nix flake check --impure` passes on merged HEAD `d39174e`. The
+one factual discrepancy versus the task's framing — the `stylix.targets`
+attrset differs between sweet16 and petunia in three keys
+(`noctalia`, `aerc`, `wayle`), not one — is reported as found and does not
+change the derivation-drift verdict, since all three default to disabled
+under `autoEnable = false`. `groot@rk3588` remains unverified (aarch64,
+`N/A` on this arch). Deploy targets for this range: `sweet16`, `petunia`
+only. No deploy was performed as part of this validation.
