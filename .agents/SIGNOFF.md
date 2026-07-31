@@ -2787,3 +2787,292 @@ untouched. `nix flake check --impure` passes clean on `005b8b8` with no
 new warnings. `groot@rk3588` remains unverified (aarch64, `N/A` on this
 arch). Deploy targets for this range: `sweet16`, `petunia` only. No deploy
 was performed as part of this validation.
+
+## Validation: `e4c652f..2252655` — C8: Hyprland/hyprlock + noctalia handed to Stylix (final implementation commit)
+
+Baseline: `e4c652f` ("merge: hand gtk and qt theming to stylix", C7's
+merge commit — the prior sub-range in this migration; no standalone C7
+sign-off entry exists in this file, but `e4c652f` is the correct
+pre-image per task instructions). HEAD verified as `2252655` ("merge:
+hand hyprland, hyprlock and noctalia to stylix") per the base gate; the
+worktree had drifted to a stale tip (`09e7279`) and was reset to `main`
+(`2252655`) before validation. Two commits in range:
+
+- `6278a8b` — enables `stylix.targets.{hyprland,hyprlock}`; deletes the
+  bare-hex `let` bindings and `general."col.active_border"`/
+  `"col.inactive_border"`, `decoration.shadow.color` from
+  `hyprland-home.nix`; deletes all `"col.*"`-prefixed hyprlock keys;
+  converts hyprlock `background` and `input-field` from single-element
+  lists to bare attrsets (stylix writes them as attrsets — this was a
+  whole-stanza type conflict that failed eval until fixed); rewrites
+  label colours/font from `config.lib.stylix.colors` /
+  `config.stylix.fonts.monospace.name`.
+- `b0bf846` — new `modules/desktop/noctalia-stylix-home.nix` (registers
+  to the existing `desktop-noctalia-home` key) mapping stylix colours
+  onto `customPalettes.stylix` with both dark and light variants;
+  deletes the ~76-hex `customPalettes."ayu-blue"` block and
+  `theme.{mode,source,custom_palette}` from `noctalia-home.nix`; keeps
+  `pure_black_dark = true`.
+
+Only `modules/desktop/hyprland-home.nix`, `modules/desktop/theme-home.nix`,
+`modules/desktop/noctalia-home.nix` and new file
+`modules/desktop/noctalia-stylix-home.nix` changed in this range —
+confirmed via `git diff e4c652f 2252655 --stat`. `git status` was clean
+throughout (no untracked fragments — the C8 implementation-time gotcha
+about an untracked new `.nix` file being silently excluded from `nix
+build` did not recur here; `noctalia-stylix-home.nix` is committed at
+`2252655`).
+
+`lock-diff.sh e4c652f 2252655`: exit 0, no output — no `flake.lock` node
+moved. Directly answers (g): `git diff e4c652f 2252655 -- flake.lock` is
+empty, and `git show 2252655:flake.lock | jq '.nodes.nixpkgs.locked'`
+shows `rev: 80bdc1e5ce51f56b19791b52b2901187931f5353` (same `narHash`),
+unmoved — consistent with the five prior sign-offs in this migration.
+
+`consumers.sh desktop-hyprland-home desktop-theme-home
+desktop-noctalia-home` at `2252655`, resolved recursively (all three keys
+independently, each returning the same two hosts):
+
+```
+petunia: via hosts/petunia/home.nix
+sweet16: via hosts/sweet16/home.nix
+```
+
+Expected-drift set: `{sweet16, petunia}` only.
+
+`verify-drift.sh e4c652f 2252655` (exit 10, drift found):
+
+| Config | e4c652f | 2252655 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `/nix/store/0fvqnainc4qdzbbii699g67s5y6sz864-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | `/nix/store/dsqnmxfcs6v0aplimg1mfi4im7fjw56f-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | DRIFT |
+| petunia (NixOS) | `/nix/store/rchmsn33apfbzpddy0y1pp0xs007zxff-nixos-system-petunia-26.11.20260729.0954f7e.drv` | `/nix/store/p15czl3wicyb9qjr3q541z3i8px490q2-nixos-system-petunia-26.11.20260729.0954f7e.drv` | DRIFT |
+| avina (NixOS) | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| hermes (NixOS) | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| groot@dualie (HM) | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | none |
+| groot@forge (HM) | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set (`{sweet16, petunia}`) matches expected-drift set
+exactly. **Verdict: PASS (drift matches expected hosts).**
+
+#### (a) The `col.` hyprlock trap — built-output verification
+
+Built `.#nixosConfigurations.{sweet16,petunia}.config.home-manager.users.ddukes.home.activationPackage`
+and inspected the generated `home-files/.config/hypr/hyprlock.conf` on
+both hosts. Sweet16
+(`/nix/store/8nkr7qjg70ijpqr8dpybqgd1dmvnm5ix-home-manager-generation`):
+
+```
+background {
+  monitor=
+  blur_passes=3
+  blur_size=8
+  brightness=0.500000
+  color=rgb(0b0e14)
+}
+...
+input-field {
+  monitor=
+  size=300, 50
+  check_color=rgb(ffb454)
+  ...
+  fail_color=rgb(f07178)
+  ...
+  font_color=rgb(e6e1cf)
+  ...
+  inner_color=rgb(0b0e14)
+  outer_color=rgb(3e4b59)
+  ...
+}
+```
+
+`grep -c` on that file: `outer_color`→1, `inner_color`→1, `font_color`→1,
+`fail_color`→1, `check_color`→1, `col\.`→**0**. `grep -n '^\s*color='`
+shows exactly one standalone `color=` under the `background` block (line
+6, `rgb(0b0e14)`) — the other two matches are the clock/date `label`
+blocks' text colour, unrelated to the trap. Petunia
+(`/nix/store/dsqjzpbp8gck2aaz16wfdrsqg75h1g9x-home-manager-generation`)
+is byte-identical in content (same theme, same host user `ddukes`):
+identical five counts (each exactly 1), `col\.`→0, one standalone
+background `color=` line. The trap did not fire on either host — stylix's
+attrset-shaped `outer_color`/`inner_color`/etc. are the sole surviving
+keys, and no dead `"col.*"`-prefixed key coexists to create an undefined
+choice.
+
+#### (b) Hyprland borders — built-output verification
+
+Sweet16 `home-files/.config/hypr/hyprland.conf`: `col.active_border=rgb(39bae6)`
+(line 142, count 1) and `col.inactive_border=rgb(3e4b59)` (line 143,
+count 1) — active is the accent `rgb(39bae6)`, matching noctalia's
+`mPrimary`. `decoration.shadow.color_inactive=rgba(00000033)` survives
+(line 104) and `misc.disable_hyprland_logo=true` survives (line 200).
+Petunia is identical in shape: `col.active_border=rgb(39bae6)` (line
+143), `col.inactive_border=rgb(3e4b59)` (line 144), `color_inactive`
+(line 104), `disable_hyprland_logo=true` (line 201) — both kept.
+
+#### (c) noctalia palette
+
+Sweet16 `home-files/.config/noctalia/palettes/`: exactly one file,
+`stylix.json` — no `ayu-blue.json`. `mPrimary` under `.dark` is
+`"#39bae6"`. `config.toml`: `custom_palette = "stylix"`, `source =
+"custom"`, `pure_black_dark = true`, `mode = "dark"`. Petunia: identical
+shape — one file (`palettes/stylix.json`), same four `config.toml`
+values, `mPrimary` (dark) `"#39bae6"`.
+
+Petunia is the important case because stylix master ships an upstream v5
+`noctalia` target (`options.stylix.targets ? noctalia` is `true` there,
+`false` on sweet16, which pins `release-26.05`). Verified the guard held
+by evaluating the option directly:
+`nixosConfigurations.petunia.config.home-manager.users.ddukes.stylix.targets.noctalia.enable`
+→ `false`. Combined with the built-output check above (exactly one
+`palettes/*.json` file on petunia, `stylix.json`, no second
+upstream-generated palette file), this confirms `lib.optionalAttrs
+(options.stylix.targets ? noctalia) { noctalia.enable = false; }` in
+`theme-home.nix` genuinely disabled the conflicting upstream target on
+petunia, leaving only the hand-written `customPalettes.stylix` mapping
+from `noctalia-stylix-home.nix` in effect. Sweet16 has no `noctalia`
+key in `stylix.targets` at all (confirmed via `builtins.hasAttr
+"noctalia"` on the evaluated target set), so the guard correctly no-ops
+there.
+
+#### (d) The light variant
+
+`modules/desktop/noctalia-stylix-home.nix` hardcodes 13 ayu-light hex
+literals (`base00`–`base0E`, skipping `base06`, which the role mapping
+never reads). Compared against
+`${pkgs.base16-schemes}/share/themes/ayu-light.yaml`
+(built at `/nix/store/s45n1r5nv8cyi8209ggjy45gw2sz94vv-base16-schemes-.../share/themes/ayu-light.yaml`):
+all 13 values match exactly, including the mixed-case `base04 =
+"#8A9199"`. No literal in the light block diverges from upstream
+ayu-light.
+
+Light is inert by default: `modules/desktop/theme.nix` sets
+`stylix.polarity = "dark"`, and the built `config.toml` on both hosts
+reads `mode = "dark"` (verified above in (c)) — `customPalettes.stylix.light`
+is present in the emitted `palettes/stylix.json` (both `dark` and
+`light` keys populated) but noctalia's runtime only resolves `mode =
+"dark"` at startup, so the light values are shipped but not the active
+rendering path today.
+
+#### (e) Delta quantification
+
+`nix store diff-closures` on sweet16's full toplevel closure
+(`/nix/store/ghgfvl112j2jlxg8kvy395f4c4279w8l-...` →
+`/nix/store/5dkda11yxabl6m3kvx1j54n5w92cqkc6-...`):
+
+```
+ayu-blue-palette.json: ε → ∅
+stylix-palette.json: ∅ → ε
+```
+
+One net new store-path *name* (`stylix-palette.json` replacing
+`ayu-blue-palette.json` — the noctalia palette file, following the same
+"new theme-target derivation" pattern as C6's 3 new derivations, except
+here it's a rename/replace of one file, not an addition). `nix-store -qR`
+set-diff of the full closure shows 20 differing lines total: the
+toplevel/`home-manager-generation` self-references, plus name-pairs
+whose content changed — `hm_hyprhyprland.conf`, `hm_hyprhyprlock.conf`,
+`noctalia-config`, `home-manager-files`, `etc`, `system-units`,
+`unit-home-manager-ddukes.service` — pure propagation wrappers that
+reference the changed store-path hashes but carry no independent content
+change of their own, plus the `ayu-blue-palette.json`/
+`stylix-palette.json` swap. No unrelated package rebuilt.
+
+Petunia's full-system `toplevel` rebuild was still running after 35+
+minutes in this session (consistent with the prior C6 sign-off's note
+that petunia's ROCm-stack toplevel is too costly to finish locally; it
+also competed with an unrelated concurrent build from another worktree
+on this machine) and was **not completed** — matching the C6 precedent,
+the full closure diff for petunia is not claimed. Substitute evidence:
+`nix store diff-closures` on the HM-generation pair
+(`/nix/store/4nc9cd4sav24zbs5rj1ryk1syczh8j8m-home-manager-generation` →
+`/nix/store/dsqjzpbp8gck2aaz16wfdrsqg75h1g9x-home-manager-generation`)
+shows the **identical two-line signature** (`ayu-blue-palette.json: ε →
+∅`, `stylix-palette.json: ∅ → ε`), and `nix-store -qR` set-diff on that
+pair shows the same 12-line confined shape (`hm_hyprhyprland.conf`,
+`hm_hyprhyprlock.conf`, `noctalia-config`, `home-manager-files`, the two
+palette files, plus the generation self-references) — no unrelated
+package. Combined with the matching DRIFT/none `.drv`-level table above,
+this is treated as sufficient evidence of a confined, config-file-only
+drift on petunia; **no cascade, no new package** on either host.
+
+#### (f) Target scope
+
+`nix eval` on `stylix.targets` (all keys) for both hosts' HM profile:
+enabled set is exactly `{btop, ghostty, gtk, hyprland, hyprlock, kitty,
+qt}` on both sweet16 and petunia — matching the expected seven. Still
+off: `hyprpaper` (false), `nixvim` (false), `tmux` (false),
+`noctalia-shell` (false), and on petunia specifically the upstream
+`noctalia` key (false, per (c)). `stylix.autoEnable` is `false` and
+`stylix.overlays.enable` is `false` on both hosts;
+`config.nixpkgs.overlays` has length `3` on both — no cascade.
+
+#### (g) `flake.lock`
+
+Confirmed unmoved — see the `lock-diff.sh` result above (exit 0, no
+node changed) and the direct `jq` check on `.nodes.nixpkgs.locked`
+(`rev: 80bdc1e5ce51f56b19791b52b2901187931f5353`, byte-identical
+`narHash` at both revs).
+
+#### (h) `nix flake check --impure` on `2252655`
+
+Exit 0, "all checks passed!". Evaluates all four `nixosConfigurations`
+(petunia, avina, hermes, sweet16), `checks`, `devShells`, `packages`,
+`overlays`, `homeConfigurations`. Only known-benign warnings persist:
+the petunia `home.pointerCursor` deprecation notice, the
+`devenv-up`/`devenv-test` deprecation notices, `unknown flake output
+'modules'`, and the `aarch64-linux` system omission without
+`--all-systems`. No new warnings or errors.
+
+#### (i) `groot@rk3588`
+
+Reports `N/A` on this x86_64 worktree (per `lib.sh`'s `is_na_config`,
+`uname -m` check) in the `verify-drift.sh` table above. Recorded as
+**unverified — not claimed as zero-drift.**
+
+#### (j) Migration completeness sanity check
+
+`grep -rlnE '#[0-9a-fA-F]{6}' modules/` returns exactly four files, all
+intentional and matching the known list: `modules/tools/terminal-oled-home.nix`
+(the OLED palette serving the four non-stylix hosts, unchanged in this
+range), `modules/desktop/theme-home.nix` (`trueBlack = "#000000"`, the
+deliberate OLED override for kitty, unchanged in this range),
+`modules/tools/terminal-home.nix` (two `set -g pane-border-style`/
+`pane-active-border-style` tmux lines, deferred/`extraConfig`, unchanged
+in this range), and `modules/desktop/noctalia-stylix-home.nix` (the 13
+ayu-light literals verified in (d), new in this range). Nothing else
+found.
+
+**Verdict: SIGNED OFF.** The actual-drift set (`{sweet16, petunia}`)
+matches the expected-drift set from `consumers.sh
+desktop-hyprland-home desktop-theme-home desktop-noctalia-home` exactly;
+`avina`, `hermes`, `groot@dualie`, `groot@forge` are confirmed
+byte-identical .drv paths. The highest-risk item — the hyprlock `col.`
+naming trap — was verified from the BUILT `hyprlock.conf` on both hosts:
+each of `outer_color`/`inner_color`/`font_color`/`fail_color`/
+`check_color` appears exactly once, zero `col.`-prefixed keys survive,
+and the single `background` colour is unambiguous. Hyprland's
+`col.active_border`/`col.inactive_border` each appear exactly once
+(active = accent `rgb(39bae6)`), and `decoration.shadow.color_inactive`
+plus `misc.disable_hyprland_logo` both survived the refactor. Noctalia
+emits exactly one palette file (`stylix.json`) on both hosts — critically
+on petunia, where the upstream stylix-master v5 `noctalia` target exists
+in the option tree, the `lib.optionalAttrs` guard was confirmed to
+genuinely disable it (`stylix.targets.noctalia.enable` evaluates to
+`false`), leaving only the hand-written mapping active. The light
+variant's 13 hex literals match `ayu-light.yaml` exactly and are inert by
+default (`polarity = "dark"`, rendered `mode = "dark"`). Drift is
+config-file-only: one palette-file rename/replace
+(`ayu-blue-palette.json` → `stylix-palette.json`) plus direct
+propagation wrappers, confirmed identically on sweet16 (full closure,
+20-line set-diff) and petunia (HM-generation closure, 12-line set-diff,
+full toplevel diff not completed — too costly locally, per the C6
+precedent — substituted with the matching HM-generation-level evidence).
+No unrelated package moved, `stylix.autoEnable`/`stylix.overlays.enable`
+stayed `false`, and the overlay count stayed `3` throughout. Target scope
+is exactly the expected seven (`kitty, ghostty, btop, gtk, qt, hyprland,
+hyprlock`) on both hosts. The top-level `nixpkgs` node did not move.
+`nix flake check --impure` passes clean on `2252655` with only
+pre-existing, unrelated warnings. `groot@rk3588` remains unverified
+(aarch64, `N/A` on this arch). Deploy targets for this range: `sweet16`,
+`petunia` only. No deploy was performed as part of this validation.
