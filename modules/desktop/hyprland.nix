@@ -9,7 +9,7 @@ _: {
     {
       imports = [
         # Override programs.hyprland.{package,portalPackage} defaults to the
-        # upstream flake outputs (v0.55.3). nixpkgs module still provides all
+        # upstream flake outputs (v0.56.1). nixpkgs module still provides all
         # option declarations, session entry, polkit, portal, systemd PATH.
         inputs.hyprland.nixosModules.default
       ];
