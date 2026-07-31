@@ -48,6 +48,19 @@ _: {
         config.allowUnfree = true;
       };
 
+      # Vivaldi from unstable, paired with the codecs build that exports
+      # av_dynamic_hdr_smpte2094_app5_to_t35
+      vivaldi = unstable-pkgs.vivaldi.override {
+        proprietaryCodecs = true;
+        inherit
+          (import inputs.pkgs-vivaldi-codecs {
+            inherit (pkgs.stdenv.hostPlatform) system;
+            config.allowUnfree = true;
+          })
+          vivaldi-ffmpeg-codecs
+          ;
+      };
+
       # Handle slicer conflicts by joining them with symlinkJoin
       slicers = pkgs.symlinkJoin {
         name = "slicers";
@@ -87,7 +100,7 @@ _: {
 
           # Browsers
           unstable-pkgs.firefox
-          (unstable-pkgs.vivaldi.override { proprietaryCodecs = true; })
+          vivaldi
 
           # --- Environment Tools ---
           krita

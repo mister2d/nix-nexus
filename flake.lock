@@ -1397,6 +1397,22 @@
         "type": "github"
       }
     },
+    "pkgs-vivaldi-codecs": {
+      "locked": {
+        "lastModified": 1783816212,
+        "narHash": "sha256-2aZisVTVGSFEk3MYcOiWQp3zvwyzbqpktB69Rcfp150=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "3b32825de172d0bc85664f495edb096b10862524",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "3b32825de172d0bc85664f495edb096b10862524",
+        "type": "github"
+      }
+    },
     "pkgs-vlc": {
       "locked": {
         "lastModified": 1770141374,
@@ -1485,6 +1501,7 @@
         "pkgs-stable": "pkgs-stable",
         "pkgs-talos": "pkgs-talos",
         "pkgs-terraform": "pkgs-terraform",
+        "pkgs-vivaldi-codecs": "pkgs-vivaldi-codecs",
         "pkgs-vlc": "pkgs-vlc",
         "pre-commit-hooks": "pre-commit-hooks_2",
         "sops-nix": "sops-nix"

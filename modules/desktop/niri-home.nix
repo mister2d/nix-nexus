@@ -139,12 +139,23 @@ _: {
                   "msg"
                 ]
                 ++ lib.strings.splitString " " cmd;
+              # Vivaldi from unstable, paired with the codecs build that exports
+              # av_dynamic_hdr_smpte2094_app5_to_t35
               vivaldi =
                 (import inputs.nixpkgs-unstable {
                   inherit (pkgs.stdenv.hostPlatform) system;
                   config.allowUnfree = true;
                 }).vivaldi.override
-                  { proprietaryCodecs = true; };
+                  {
+                    proprietaryCodecs = true;
+                    inherit
+                      (import inputs.pkgs-vivaldi-codecs {
+                        inherit (pkgs.stdenv.hostPlatform) system;
+                        config.allowUnfree = true;
+                      })
+                      vivaldi-ffmpeg-codecs
+                      ;
+                  };
             in
             {
               # Noctalia panels
