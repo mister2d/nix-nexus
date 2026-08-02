@@ -17,6 +17,12 @@ _: {
       trueBlack = "#000000";
     in
     {
+      # stylix's cursor module (stylix/hm/cursor.nix) sets home.pointerCursor's
+      # name/package/size/x11.enable/gtk.enable but never .enable itself, and
+      # Home Manager has deprecated inferring enablement from a non-null config.
+      # Set it explicitly so cursor config generation keeps working without warning.
+      home.pointerCursor.enable = true;
+
       stylix.targets =
         # The stylix v5 noctalia target (customPalettes) only exists on the
         # stylix master branch (petunia); sweet16 pins release-26.05, which
