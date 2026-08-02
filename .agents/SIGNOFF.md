@@ -3076,3 +3076,221 @@ hyprlock`) on both hosts. The top-level `nixpkgs` node did not move.
 pre-existing, unrelated warnings. `groot@rk3588` remains unverified
 (aarch64, `N/A` on this arch). Deploy targets for this range: `sweet16`,
 `petunia` only. No deploy was performed as part of this validation.
+
+## Validation: `d6d6616..701e0c1` (c75cfc9) — fix `home.pointerCursor.enable` explicitly
+
+Baseline: `d6d6616` ("docs(signoff): record C8 hyprland/noctalia drift
+validation"). HEAD verified as `c75cfc9` ("merge: set
+home.pointerCursor.enable explicitly") per the base gate; the worktree
+had drifted to a stale tip (`09e7279`) and was reset to `main`
+(`c75cfc9`) before validation. One implementation commit in range,
+`701e0c1` ("fix(desktop): set home.pointerCursor.enable explicitly"):
+six lines added to `modules/desktop/theme-home.nix` —
+`home.pointerCursor.enable = true;` plus a rationale comment. This is
+the **claim-under-test range**: the implementer asserted byte-identical
+`.drv` paths on all seven configs (zero drift), reasoning that
+`home.pointerCursor.enable` was already implicitly `true`, so only the
+eval-time deprecation warning changes, not the derivation graph.
+
+`modules/desktop/theme-home.nix` is imported only by
+`hosts/petunia/home.nix` and `hosts/sweet16/home.nix` (confirmed via
+`grep -rl theme-home modules hosts profiles` and `git show 701e0c1 --
+modules/desktop/theme-home.nix`).
+
+`lock-diff.sh d6d6616 701e0c1`: exit 0, no output — no `flake.lock` node
+moved. Directly answers (f): `git diff d6d6616 c75cfc9 -- flake.lock` is
+a 0-line diff, and `git show c75cfc9:flake.lock`'s `.nodes.nixpkgs.locked`
+still shows `rev: 80bdc1e5ce51f56b19791b52b2901187931f5353` (same
+`narHash: sha256-QKyJ0QGWBn6r0invrMAK8dmJoBYWoOWy7lN+UHzW1jc=`) —
+unmoved, consistent with all six prior sign-offs in this SIGNOFF.md.
+
+`consumers.sh desktop-theme-home` at `701e0c1`:
+
+```
+petunia: via hosts/petunia/home.nix
+sweet16: via hosts/sweet16/home.nix
+```
+
+Expected-drift set: `{sweet16, petunia}` — but the implementer's specific
+claim is that even these two show **zero** drift, since the option value
+reaching the config was already `true` by inference before this commit.
+
+`verify-drift.sh d6d6616 701e0c1` (exit 0, no drift found):
+
+| Config | d6d6616 | 701e0c1 | Drift |
+|---|---|---|---|
+| sweet16 (NixOS) | `/nix/store/dsqnmxfcs6v0aplimg1mfi4im7fjw56f-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | `/nix/store/dsqnmxfcs6v0aplimg1mfi4im7fjw56f-nixos-system-sweet16-26.05.20260717.293d6ab.drv` | none |
+| petunia (NixOS) | `/nix/store/p15czl3wicyb9qjr3q541z3i8px490q2-nixos-system-petunia-26.11.20260729.0954f7e.drv` | `/nix/store/p15czl3wicyb9qjr3q541z3i8px490q2-nixos-system-petunia-26.11.20260729.0954f7e.drv` | none |
+| avina (NixOS) | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/rnwf3z5cj9ymjsivj4rlfvh233wrks5k-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| hermes (NixOS) | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | `/nix/store/175q2rw24y3fvvf80nbhclnk82snivpb-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv` | none |
+| groot@dualie (HM) | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | `/nix/store/0g2hs1ysskhxs1ng76qc48phfgsjnlaa-home-manager-generation.drv` | none |
+| groot@forge (HM) | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | `/nix/store/lixapp625v39ihyhamr0c7iy66bynwc7-home-manager-generation.drv` | none |
+| groot@rk3588 (HM) | `N/A` | `N/A` | N/A |
+
+Actual-drift set: `{}` (empty). This is **zero drift on all seven
+configs**, including sweet16 and petunia — matching the implementer's
+claim exactly, both against the actual expected-drift set (which allowed
+for drift on sweet16/petunia) and against the stronger zero-drift claim
+under test. **Verdict: PASS.**
+
+#### (b) Deployed/staged toplevel confirmation — no redeploy needed
+
+Because sweet16 and petunia's `.drv` paths didn't move, their built
+output paths at `701e0c1` were checked directly against the operationally
+relevant already-staged/deployed store paths named in the task:
+
+- sweet16: `nix path-info --derivation` for
+  `nixosConfigurations.sweet16.config.system.build.toplevel` at
+  `701e0c1` resolves (via `nix-store -q --outputs` on the `.drv`) to
+  output `/nix/store/5dkda11yxabl6m3kvx1j54n5w92cqkc6-nixos-system-sweet16-26.05.20260717.293d6ab`
+  — **byte-identical** to the staged generation 350 store path quoted in
+  the task.
+- petunia: the equivalent resolves to
+  `/nix/store/26kdhxgqybmmclkq0br8yzilzfgmjb8p-nixos-system-petunia-26.11.20260729.0954f7e`
+  — **byte-identical** to the deployed generation 36 store path quoted in
+  the task.
+
+**No redeploy is required for this commit on either host.** Both
+generations already evaluate identically to `701e0c1`/`c75cfc9`.
+
+#### (c) The deprecation warning — demonstrated gone, cleanly
+
+Nix's flake eval-cache (`~/.cache/nix/eval-cache-v6`) suppresses
+re-emission of eval warnings on repeat evaluations of the same
+input+attribute pair, which would defeat a naive before/after using
+default settings (confirmed: `nix eval`/`nix path-info` calls made
+earlier in this session against both revs, under default settings,
+printed no warning at either rev — an artifact of the cache, not
+evidence of absence). The shared cache was **not** cleared, per
+instruction. Instead, `--option eval-cache false` was used per-invocation
+to force a genuinely fresh evaluation without touching the shared cache
+file:
+
+```
+nix eval --option eval-cache false --raw \
+  "git+file:$PWD?rev=<d6d6616-full-sha>#nixosConfigurations.petunia.config.system.build.toplevel.drvPath"
+→ evaluation warning: ddukes profile: Relying on `home.pointerCursor` to enable
+  cursor config generation is deprecated. Please update your configuration to
+  explicitly set:  home.pointerCursor.enable = true;
+  /nix/store/p15czl3wicyb9qjr3q541z3i8px490q2-nixos-system-petunia-26.11.20260729.0954f7e.drv
+
+nix eval --option eval-cache false --raw \
+  "git+file:$PWD?rev=701e0c15c581c6b7539862ee50442a90f65ab328#nixosConfigurations.petunia.config.system.build.toplevel.drvPath"
+→ /nix/store/p15czl3wicyb9qjr3q541z3i8px490q2-nixos-system-petunia-26.11.20260729.0954f7e.drv
+  (no warning)
+```
+
+Warning present at `d6d6616`, absent at `701e0c1`, **identical `.drv`
+path both times** — a clean, cache-independent before/after that
+confirms both halves of the claim simultaneously: the warning is gone
+and the derivation graph is unchanged. Traced the mechanism to confirm
+this isn't coincidental: the warning text format (`"<user> profile:
+<warning>"`) comes from home-manager's NixOS integration
+(`home-manager/nixos/common.nix`), which flattens each user's
+`config.warnings` into the top-level `config.warnings`; NixOS's
+`system.build.toplevel` wraps the base system in
+`lib.asserts.checkAssertWarn config.assertions config.warnings
+baseSystem` (`nixpkgs/nixos/modules/system/activation/top-level.nix`),
+which `builtins.trace`s each warning when the toplevel attrset is forced
+to WHNF (`nixpkgs/lib/asserts.nix`). The warning itself originates in
+home-manager's `modules/config/home-cursor.nix`:
+`warnings = optional (pointerCursorDefined && !enableDefined) "..."` —
+exactly matched by explicitly setting `enable`, which flips
+`enableDefined` to `true` and empties that list entry.
+
+#### (d) No stylix conflict — verified against both pinned sources
+
+Petunia uses `inputs.stylix-unstable` (master), sweet16 uses
+`inputs.stylix` (release-26.05) — confirmed via `modules/flake/nixos-{petunia,sweet16}.nix`.
+Read `stylix/hm/cursor.nix` from both pinned flake input sources
+directly (not from memory): **byte-identical** on both branches —
+
+```nix
+config = lib.mkIf (config.stylix.enable && config.stylix.cursor != null && pkgs.stdenv.hostPlatform.isLinux) {
+  home.pointerCursor = {
+    inherit (cfg) name package;
+    size = builtins.floor (cfg.size + 0.5);
+    x11.enable = true;
+    gtk.enable = true;
+  };
+};
+```
+
+Neither branch's stylix ever sets `home.pointerCursor.enable`. The new
+plain (non-`mkDefault`) definition in `theme-home.nix` sets a disjoint
+key (`enable`) from what stylix sets (`name`, `package`, `size`,
+`x11.enable`, `gtk.enable`) — the module system merges the two
+attrsets with no collision, on either host.
+
+#### (e) Cursor config generation still works — verified from BUILT files
+
+Built `.#nixosConfigurations.{sweet16,petunia}.config.home-manager.users.ddukes.home.activationPackage`
+at `701e0c1` (both succeeded) and inspected the resulting `home-files`:
+
+- sweet16 (`home-files/.config/gtk-3.0/settings.ini`):
+  `gtk-cursor-theme-name=Adwaita`, `gtk-cursor-theme-size=24`.
+  `home-files/.icons/default/index.theme`: `Inherits=Adwaita`.
+- petunia (`home-files/.config/gtk-3.0/settings.ini`): identical values
+  (`gtk-cursor-theme-name=Adwaita`, `gtk-cursor-theme-size=24`).
+  `home-files/.icons/default/index.theme`: `Inherits=Adwaita`.
+
+Cursor config generation is intact and unchanged in output on both
+hosts — matching the pre-existing implicit-`true` behaviour exactly, as
+the zero-drift claim requires.
+
+#### (f) `flake.lock`
+
+Confirmed unmoved — see the `lock-diff.sh` result above (exit 0, no
+node changed) and the direct `git diff`/`jq` check on
+`.nodes.nixpkgs.locked` (`rev: 80bdc1e5ce51f56b19791b52b2901187931f5353`,
+byte-identical `narHash`), unmoved — consistent with all six prior
+sign-offs in this file.
+
+#### (g) `nix flake check --impure` on `c75cfc9`
+
+Exit clean, "all checks passed!". Evaluates all four
+`nixosConfigurations` (petunia, avina, hermes, sweet16), `checks`,
+`devShells`, `packages`, `overlays`, `homeConfigurations`. The petunia
+`home.pointerCursor` deprecation warning that appeared in prior sign-offs'
+known-benign-warnings lists (C7, C8) is **absent** from this run's
+output (`grep -c pointerCursor` on the full log: `0`) — consistent with
+(c)'s direct demonstration that it is gone at this rev. Remaining
+warnings are the same pre-existing, known-benign set: `devenv-up`/
+`devenv-test` deprecation notices, `unknown flake output 'modules'`, and
+the `aarch64-linux` system omission without `--all-systems`. No new
+warnings or errors.
+
+#### (h) `groot@rk3588`
+
+Reports `N/A` on this x86_64 worktree (per `lib.sh`'s `is_na_config`,
+`uname -m` check) in the `verify-drift.sh` table above. Recorded as
+**unverified — not claimed as zero-drift**, consistent with prior
+sign-offs' treatment of this config.
+
+**Verdict: SIGNED OFF.** The implementer's zero-drift claim is confirmed
+independently: `verify-drift.sh d6d6616 701e0c1` shows byte-identical
+`.drv` paths on all six evaluable configs (`sweet16`, `petunia`, `avina`,
+`hermes`, `groot@dualie`, `groot@forge`); `groot@rk3588` is unverified
+(`N/A`, aarch64). This is a stronger result than the expected-drift set
+computed from `consumers.sh desktop-theme-home` (`{sweet16, petunia}`)
+would have permitted — the actual-drift set (`{}`) is a proper subset,
+i.e. **no drift at all**, not merely drift confined to the expected two
+hosts. The operationally significant corollary was verified explicitly:
+sweet16's already-staged generation 350
+(`/nix/store/5dkda11yxabl6m3kvx1j54n5w92cqkc6-...`) and petunia's already-
+deployed generation 36 (`/nix/store/26kdhxgqybmmclkq0br8yzilzfgmjb8p-...`)
+both resolve to the exact same store paths computed at `701e0c1` —
+**no redeploy is needed for this commit on either host.** The warning
+this commit exists to silence was demonstrated gone via a cache-bypassing
+fresh eval (`--option eval-cache false`) that also re-confirmed the
+identical `.drv` path in the same invocation, and traced to its exact
+mechanism in home-manager's NixOS integration and `lib.asserts.checkAssertWarn`.
+No conflict with stylix was found on either pinned source branch
+(release-26.05 for sweet16, master for petunia) — stylix's cursor module
+never sets `.enable` on either. Built cursor config output
+(`gtk-3.0/settings.ini`, `~/.icons/default/index.theme`) is unchanged and
+correct on both hosts. `flake.lock`'s `nixpkgs` node did not move.
+`nix flake check --impure` passes clean on `c75cfc9` with the target
+warning confirmed absent and only pre-existing, unrelated warnings
+remaining. `groot@rk3588` remains unverified (aarch64, `N/A` on this
+arch). No deploy was performed as part of this validation.
