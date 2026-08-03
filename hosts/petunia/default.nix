@@ -36,10 +36,17 @@ _: {
 
         # CachyOS server kernel (EEVDF + 300Hz + no preemption + x86_64-v3)
         nixosModules.hardware-kernel-cachyos
+
+        # Unprivileged OpenRGB SDK server
+        nixosModules.services-openrgb
       ];
 
       # Machine-specific overrides
       networking.hostName = "petunia";
+
+      # Grants ddukes direct OpenRGB device access (group-scoped udev rules
+      # from services-openrgb); list-merges with core-users.
+      users.users.ddukes.extraGroups = [ "openrgb" ];
 
       # CachyOS server kernel: EEVDF scheduler, 300Hz timer, no preemption, x86_64-v3 ISA.
       # processorOpt requires a local build (~45 min on the 5600X); ZFS wired via zfs-cachyos.
