@@ -3294,3 +3294,41 @@ correct on both hosts. `flake.lock`'s `nixpkgs` node did not move.
 warning confirmed absent and only pre-existing, unrelated warnings
 remaining. `groot@rk3588` remains unverified (aarch64, `N/A` on this
 arch). No deploy was performed as part of this validation.
+
+---
+
+## Validation: a0577d8 — feat(services): add unprivileged openrgb service module; enable on petunia
+
+New globally-registered module `modules/services/openrgb/default.nix`
+(registry key `services-openrgb`): enables `services.hardware.openrgb`, adds
+a rewritten group-scoped udev rules derivation (replacing the shipped
+`uaccess`-only rules with a scoped `openrgb` group grant), an unprivileged
+`openrgb` system user, and a `User=`/`Group=` override on the systemd unit.
+`hosts/petunia/default.nix` imports `nixosModules.services-openrgb` and adds
+`ddukes` to the `openrgb` group. No other host imports the new key.
+
+`lock-diff.sh a0577d8^ a0577d8`: exit 0, no nodes changed — module-only
+commit, `flake.lock` untouched.
+
+`consumers.sh services-openrgb`: petunia only (`via hosts/petunia/default.nix`).
+
+Expected-drift set: petunia only (groot@rk3588 excluded, x86_64 host N/A).
+
+`verify-drift.sh a0577d8^ a0577d8`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | none |
+| petunia | DRIFT |
+| avina | none |
+| hermes | none |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Actual drift set (petunia) matches the expected-drift set exactly. sweet16,
+avina, hermes, groot@dualie, and groot@forge are all byte-identical,
+confirming none of them consume `services-openrgb`.
+
+**Verdict: SIGNED OFF.** Deploy target: petunia only. No other host needs a
+rebuild for this change.
