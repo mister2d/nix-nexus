@@ -37,6 +37,10 @@ _: {
       systemd.services.openrgb.serviceConfig = {
         User = "openrgb";
         Group = "openrgb";
+        # OpenRGB derives its config directory from $HOME. The openrgb
+        # system user's default home is /var/empty, which is unwritable, so
+        # HOME must be pointed at the service's StateDirectory instead.
+        Environment = "HOME=/var/lib/OpenRGB";
       };
     };
 }
