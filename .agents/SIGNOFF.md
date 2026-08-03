@@ -3332,3 +3332,40 @@ confirming none of them consume `services-openrgb`.
 
 **Verdict: SIGNED OFF.** Deploy target: petunia only. No other host needs a
 rebuild for this change.
+
+---
+
+## Validation: f7e2639 — fix(services): point openrgb HOME at its state directory
+
+One-line follow-up to `a0577d8`: adds `Environment = "HOME=/var/lib/OpenRGB"`
+to `systemd.services.openrgb.serviceConfig` in
+`modules/services/openrgb/default.nix`. Fixes a crash-loop observed on
+petunia — OpenRGB derives its config path from `$HOME`, and the unprivileged
+`openrgb` system user's default home is the unwritable `/var/empty`. Same
+registry key (`services-openrgb`), same sole importer.
+
+`lock-diff.sh f7e2639^ f7e2639`: exit 0, no nodes changed — module-only
+commit, `flake.lock` untouched.
+
+`consumers.sh services-openrgb`: petunia only (`via hosts/petunia/default.nix`).
+
+Expected-drift set: petunia only (groot@rk3588 excluded, x86_64 host N/A).
+
+`verify-drift.sh f7e2639^ f7e2639`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | none |
+| petunia | DRIFT |
+| avina | none |
+| hermes | none |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Actual drift set (petunia) matches the expected-drift set exactly. sweet16,
+avina, hermes, groot@dualie, and groot@forge are all byte-identical,
+confirming none of them consume `services-openrgb`.
+
+**Verdict: SIGNED OFF.** Deploy target: petunia only. No other host needs a
+rebuild for this change.
