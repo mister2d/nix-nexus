@@ -42,15 +42,6 @@ _: {
       nix-nexus.secrets.sops.hostFile = ../../secrets/avina.yaml;
 
       sops.secrets = {
-        # Consumed by nothing. Proves the host can decrypt its own secrets
-        # independently of whether vault-agent is healthy, which keeps it useful
-        # as a diagnostic now that the AppRole seed depends on the same mechanism.
-        canary = {
-          owner = "root";
-          group = "root";
-          mode = "0400";
-        };
-
         # vault-agent's AppRole seed. Previously hand-placed in /var/lib/secrets
         # and the one credential in the fleet that unlocked all the others while
         # being unmanaged itself. Both vault-agent units run as root.
