@@ -3639,3 +3639,42 @@ against this flake from a checkout, which no longer offer the two caches.
 Fleet hosts are unaffected because they get both from `nix.settings`.
 
 **Verdict: SIGNED OFF.** No deploy target — zero drift.
+
+---
+
+## hermes dead EnvironmentFile drop-ins removed (`ae0a788`)
+
+Both hermes gateway units carried `EnvironmentFile=-%h/.env` in their
+Home Manager systemd drop-ins. `%h` in a *user* unit expands to the user's
+home, so this resolved to `/home/groot/.env` — not `~/.hermes/.env` or
+`~/.hermes/profiles/coding-local/.env`, the files the agent actually uses.
+No such file exists, and the leading `-` marks it optional, so both units
+silently loaded nothing from it.
+
+Confirmed against the locked `llm-agents` source: `hermes_cli/env_loader.py`
+`load_hermes_dotenv()` reads `$HERMES_HOME/.env` itself with
+`override=True`, and `HERMES_HOME` is profile-aware. The agent's own dotenv
+load therefore outranks any systemd-injected environment regardless — which
+is why the drop-in path was both wrong and moot.
+
+`verify-drift.sh 8e136eb ae0a788`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | none |
+| petunia | none |
+| avina | none |
+| hermes | DRIFT |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Expected-drift set is hermes alone — the drop-ins are declared in
+`hosts/hermes/home.nix`, reachable from no other config. Actual drift
+matches. Drift cause is two removed lines in two user-unit drop-in files;
+no package content changes.
+
+**Verdict: SIGNED OFF.** Deploy target: hermes. Deliberately held rather
+than deployed immediately, so it lands together with the sops-nix env
+rendering (`hosts/hermes/secrets.nix`, pending `secrets/hermes.yaml`) and
+the gateway units restart once instead of twice.
