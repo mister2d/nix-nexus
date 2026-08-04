@@ -31,8 +31,8 @@ via a systemd drop-in at
 | Component | Location | Notes |
 |---|---|---|
 | Bot account | `@bottymouth:matrix.novuscotia.com` | MAS/SSO homeserver; no password login |
-| Access token | `~/.env` as `MATRIX_ACCESS_TOKEN` | Bound to a specific device ID |
-| Device ID | `~/.env` as `MATRIX_DEVICE_ID` | Currently `753fyy1CAT` |
+| Access token | `~/.env` as `MATRIX_ACCESS_TOKEN` | Bound to a specific device ID; both live in `secrets/hermes.yaml` |
+| Device ID | `~/.env` as `MATRIX_DEVICE_ID` | Regenerated on every token rotation |
 | E2EE crypto store | `~/.hermes/platforms/matrix/store/crypto.db` | OLM account, Megolm sessions |
 
 The homeserver uses Matrix Authentication Service (MAS) with SSO-only login.
@@ -67,8 +67,19 @@ systemd-run \
   --wait --collect --pipe \
   /nix/store/<mas-version>/bin/mas-cli \
   --config /run/vault-secrets/mas-config.yaml manage issue-compatibility-token \
-  bottymouth 753fyy1CAT
+  bottymouth
 ```
+
+**Do not pass a device ID.** Omitting it makes MAS generate a fresh one and
+print it alongside the token; both values are needed.
+
+Reusing a device ID is what breaks E2EE. Matrix device keys are **immutable
+per device ID**: once uploaded, the homeserver's copy can never be replaced.
+Wiping the crypto store creates a new OLM account, but the server keeps
+advertising the old identity keys, so senders encrypt to keys the bot no
+longer holds. The symptom is `No one-time keys nor device keys got when
+trying to share keys` plus unending `Failed to decrypt megolm event`, and it
+is unrecoverable for that device ID.
 
 Get the current MAS store path from the running unit rather than hardcoding it:
 
@@ -92,7 +103,9 @@ journalctl -t mas-cli --since "5 minutes ago"
 After issuing a new token on the matrix host:
 
 ```bash
-# 1. Update MATRIX_ACCESS_TOKEN in ~/.env with the new token
+# 1. Update BOTH gateway/matrix-access-token and gateway/matrix-device-id
+#    in secrets/hermes.yaml (sops secrets/hermes.yaml), then redeploy hermes.
+#    The env files are rendered by sops-nix — do not edit ~/.hermes/.env.
 
 # 2. Wipe the crypto store — the old OLM account is now orphaned
 rm ~/.hermes/platforms/matrix/store/crypto.db{,-shm,-wal}
