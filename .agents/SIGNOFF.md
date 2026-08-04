@@ -3603,3 +3603,39 @@ locally by default, and petunia's `linux-cachyos-server` at `x86_64-v3` is
 not in sweet16's store, so a `--target-host` deploy would compile that
 kernel on the wrong machine (~99 min). petunia already has it, making a
 local rebuild there a few minutes.
+
+---
+
+## flake nixConfig block removed (`9c16210`)
+
+Follow-up to `1fd704e`. With the noctalia and hyprland caches declared in
+`nix.settings`, the `nixConfig` block was redundant. It was also inert on
+every deploy: a flake's `nixConfig` applies only after interactive per-user
+acceptance, which a non-interactive ssh session cannot obtain, so each
+deploy emitted four `ignoring untrusted flake configuration setting`
+warnings and dropped the entries.
+
+Comments in `modules/desktop/hyprland.nix` and `modules/desktop/noctalia.nix`
+updated to describe the current mechanism rather than referencing the
+removed block.
+
+`verify-drift.sh 5aada38 9c16210`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | none |
+| petunia | none |
+| avina | none |
+| hermes | none |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Zero drift across all seven configs — every derivation path byte-identical.
+Expected: `nixConfig` is client-side flake metadata consumed by the nix CLI,
+never part of NixOS/HM config evaluation, so removing it cannot alter a
+closure. The only observable change is to interactive `nix` invocations
+against this flake from a checkout, which no longer offer the two caches.
+Fleet hosts are unaffected because they get both from `nix.settings`.
+
+**Verdict: SIGNED OFF.** No deploy target — zero drift.
