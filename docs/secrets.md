@@ -192,9 +192,19 @@ Keyslot 0 remains a passphrase fallback.
 which Lenovo ships frequently via fwupd, and the re-enroll is hand-typed. The failure mode is copying
 petunia's command and silently dropping `--tpm2-with-pin=yes`.
 
-Before enrolling, confirm the device path with `lsblk -o NAME,PARTLABEL`. petunia must use
-`/dev/nvme0n1p2` because disko labels its partition `disk-main-DISK_LUKS`, so `by-partlabel/DISK_LUKS`
-does not resolve there; sweet16 was not installed via disko and should resolve normally.
+Device paths differ between the two hosts. sweet16 uses `/dev/disk/by-partlabel/DISK_LUKS`. petunia
+must use `/dev/nvme0n1p2` because disko labels its partition `disk-main-DISK_LUKS`, so
+`by-partlabel/DISK_LUKS` does not resolve there. Confirm with `lsblk -o NAME,PARTLABEL` before
+enrolling.
+
+Verify an enrollment carries the PIN:
+
+```bash
+cryptsetup token export --token-id 0 /dev/disk/by-partlabel/DISK_LUKS
+```
+
+`"tpm2-pin": true` and `"tpm2-pcrs": [0]` are the fields that matter. A token without `tpm2-pin`
+auto-unseals on power-on and must be removed with `systemd-cryptenroll --wipe-slot=tpm2` and redone.
 
 ### Hosts without a TPM
 

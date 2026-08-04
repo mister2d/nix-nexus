@@ -3474,3 +3474,35 @@ Actual drift set (`hermes` only) matches the expected-drift set exactly.
 **Verdict: SIGNED OFF.** Deploy target: `hermes` only. Drift is expected
 from the vendored `hermes-agent` 2026.8.3 build replacing the flake-input
 `hermes-agent` (2026.7.30) plus the 96-manifest plugin.yaml graft.
+
+---
+
+## sweet16 TPM2 enrollment verified (`ce7afc1`, doc follow-up)
+
+Operational record, not a closure change. `ce7afc1` (promote `core-tpm2`,
+opt sweet16 in) was signed off separately and has since been deployed;
+sweet16 rebooted onto it.
+
+Live verification on sweet16 after reboot:
+
+| Check | Result |
+|---|---|
+| TPM device | `/dev/tpm0`, `/dev/tpmrm0` present (AMD fTPM) |
+| `security.tpm2.pkcs11` | active — `tpm2daemon`, `tpm2_ptool` in system path |
+| `boot.initrd.systemd.tpm2.enable` | `true` |
+| LUKS device | `/dev/disk/by-partlabel/DISK_LUKS` resolves (unlike petunia) |
+| Enrolled token | token 0 `systemd-tpm2`, keyslot 1 |
+| `tpm2-pin` | `true` |
+| `tpm2-pcrs` | `[0]` |
+
+Keyslot 0 remains the passphrase fallback; enrollment added keyslot 1 and
+did not modify keyslot 0.
+
+The `--tpm2-with-pin=yes` constraint from `docs/secrets.md` is satisfied.
+Plain auto-unseal is prohibited on sweet16 on theft-risk grounds; any
+future re-enrollment (PCR 0 breaks on each firmware update) must carry the
+flag. `docs/secrets.md` now records both host device paths and the
+`cryptsetup token export` verification command.
+
+**Verdict: SIGNED OFF.** No deploy target — this is host state plus a
+doc-only commit.
