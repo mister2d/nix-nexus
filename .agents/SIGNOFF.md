@@ -3506,3 +3506,47 @@ flag. `docs/secrets.md` now records both host device paths and the
 
 **Verdict: SIGNED OFF.** No deploy target — this is host state plus a
 doc-only commit.
+
+---
+
+## garnix substituter removal (`9d4a074`)
+
+`cache.garnix.io` is deprecated and now returns HTTP 502 on every narinfo
+lookup. This is worse than an ordinary cache miss: nix escalates the final
+502 to a hard `error:`, so `nix flake check` fails outright. Three prior
+entries in this file record working around it with a `NIX_CONFIG`
+substituter override — this commit removes the cause.
+
+Upstream `nix-cachyos-kernel` publishes exactly one binary cache,
+`https://attic.xuyh0120.win/lantian`, fed by the same Hydra CI that builds
+both the kernels and the ABI-paired `zfs_cachyos`
+(https://github.com/xddxdd/nix-cachyos-kernel#binary-cache). garnix appears
+nowhere in upstream guidance, so removing it costs no coverage. Upstream
+also lists a third-party mirror (`https://cache.xinux.uz`) under an explicit
+no-guarantee disclaimer; deliberately not adopted.
+
+`nix flake check --impure` with garnix excluded: all checks passed.
+
+`verify-drift.sh 9ac6bef 9d4a074`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | DRIFT |
+| avina | none |
+| hermes | none |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Expected-drift set is the consumers of `hardware-kernel-cachyos` — sweet16
+and petunia. The substituter block sits outside `mkIf cfg.enable` but still
+inside that module, so avina and hermes (which never import it) and the
+standalone HM configs are untouched. Actual drift matches exactly.
+
+Drift cause is `/etc/nix/nix.conf` losing one substituter and one
+trusted-public-key. No package or kernel content changes.
+
+**Verdict: SIGNED OFF.** Deploy targets: sweet16 and petunia. Until a host
+rebuilds, its running `nix.conf` still lists garnix and local evaluation
+there keeps 502-ing — the fix only takes effect after deploy.
