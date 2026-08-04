@@ -3428,3 +3428,49 @@ absence of `user-dev-home` entirely) fully accounts for their exclusion.
 `groot@forge`. Note for future `llm-agents` bumps: the expected-drift set is
 not "hermes only" — it is every config with `programs.dev-home.enableLlmAgents
 = true`, which spans most of the fleet.
+
+---
+
+## Validation: 5d2060f — merge: vendor hermes-agent 2026.8.3 with plugin manifest graft
+
+Merge of `7fd966a` (`fix(hermes): vendor hermes-agent 2026.8.3 with plugin
+manifest graft`) onto `main`, compared against first parent `4b4abe8`.
+Vendors `hermes-agent` 2026.8.3 (upstream v0.20.0) in `lib/hermes-agent/`
+and wires it via `hosts/hermes/llm-agents-overlay.nix`, overlaying
+`llm-agents.hermes-agent` for the hermes host only (upstream `llm-agents.nix`
+has not packaged 2026.8.3 yet). Also grafts the 96 `plugin.yaml` manifests
+that upstream's pyproject regression dropped, fixing the matrix adapter
+outage on hermes.
+
+`lock-diff.sh 4b4abe8 5d2060f`: exit 0, no flake.lock nodes changed — this
+is an in-tree vendor/overlay change, not an input bump.
+
+`consumers.sh llm-agents-hermes`: registry key `llm-agents-hermes` (defined
+in `hosts/hermes/llm-agents-overlay.nix`) has exactly one consumer,
+`modules/flake/nixos-hermes.nix` — the hermes flake assembly. No other host
+or profile file references it. Expected-drift set: `hermes` only. All other
+`llm-agents.*` consumers (`user-dev-home`'s `claude-code`,
+`antigravity-cli`, `opencode`, `pi`) come from the untouched
+`inputs.llm-agents.packages.${system}` attrs; the overlay only rebinds the
+`hermes-agent` attr, so sweet16/petunia/groot@forge (which consume
+`user-dev-home` but not `hermes-agent`) are unaffected.
+
+`NIX_CONFIG="substituters = https://cache.nixos.org" verify-drift.sh 4b4abe8 5d2060f`
+(garnix.io was returning 502s this session; overridden to cache.nixos.org
+only):
+
+| Config | Drift |
+|---|---|
+| sweet16 | none |
+| petunia | none |
+| avina | none |
+| hermes | DRIFT |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Actual drift set (`hermes` only) matches the expected-drift set exactly.
+
+**Verdict: SIGNED OFF.** Deploy target: `hermes` only. Drift is expected
+from the vendored `hermes-agent` 2026.8.3 build replacing the flake-input
+`hermes-agent` (2026.7.30) plus the 96-manifest plugin.yaml graft.
