@@ -54,7 +54,7 @@ systemd-run \
   --property=WorkingDirectory=/var/lib/matrix-authentication-service \
   --wait --collect --pipe \
   /nix/store/<mas-version>/bin/mas-cli \
-  --config /run/secrets/mas-config.yaml manage kill-sessions \
+  --config /run/vault-secrets/mas-config.yaml manage kill-sessions \
   bottymouth
 
 # Step 2 — issue a new compat token for the same device ID
@@ -66,12 +66,22 @@ systemd-run \
   --property=WorkingDirectory=/var/lib/matrix-authentication-service \
   --wait --collect --pipe \
   /nix/store/<mas-version>/bin/mas-cli \
-  --config /run/secrets/mas-config.yaml manage issue-compatibility-token \
+  --config /run/vault-secrets/mas-config.yaml manage issue-compatibility-token \
   bottymouth 753fyy1CAT
 ```
 
-Replace `<mas-version>` with the current MAS store path. If the token output
-does not appear on the terminal, check the journal:
+Get the current MAS store path from the running unit rather than hardcoding it:
+
+```bash
+systemctl show matrix-authentication-service -p ExecStart --value \
+  | grep -oE '/nix/store/[^ ]*/bin/mas-cli'
+```
+
+The config lives at `/run/vault-secrets/mas-config.yaml`, rendered by
+vault-agent. It is `0640 root:matrix-secrets`, which is why the CLI has to run
+under that identity. Do not confuse it with `/run/secrets`, which sops-nix owns.
+
+If the token output does not appear on the terminal, check the journal:
 
 ```bash
 journalctl -t mas-cli --since "5 minutes ago"
