@@ -155,6 +155,44 @@ To use Vault instead of the keyring for a given secret — required on headless 
 Secret Service daemon — set `providers = ["home_vault"]` on that secret. Values land at
 `kv-v2/secretspec/{project}/{profile}/{key}` under field `value`.
 
+### Verifying a rendered secret without exposing it
+
+Never `cat` a rendered secret or a decrypted sops value to check it. Error
+paths leak too: `sops decrypt` prints the offending plaintext scalar when a
+value fails to parse, so route stderr away or test the exit status alone.
+
+To confirm a rendered file matches its source, compare hashes on both ends:
+
+```bash
+# on the host
+grep -m1 '^VAR=' file | cut -d= -f2- | tr -d '\n' | sha256sum | cut -c1-12
+# locally
+sops decrypt --extract '["section"]["key"]' secrets/<host>.yaml | tr -d '\n' | sha256sum | cut -c1-12
+```
+
+Counting variables or checking file permissions verifies *structure*, not
+*content* — a wrong value passes both. Only the hash comparison proves the
+rendered value is correct.
+
+### hermes gateway env files
+
+`sops.templates` renders `~/.hermes/.env` and
+`~/.hermes/profiles/coding-local/.env`, because hermes-agent loads
+`$HERMES_HOME/.env` itself with `override=True` and outranks anything
+systemd injects. Only sensitive values are encrypted; endpoints and toggles
+stay readable in `hosts/hermes/secrets.nix`.
+
+Both gateways are **user** units, so `restartUnits` (system units only) does
+not reach them. After rotating any of these secrets:
+
+```bash
+systemctl --user restart hermes-gateway hermes-gateway-coding-local
+```
+
+Rotating `MATRIX_ACCESS_TOKEN` additionally requires wiping the crypto store
+— see `docs/hermes.md`. Historical E2EE messages become permanently
+undecryptable; that is inherent to `kill-sessions`, not a fault.
+
 ## Layer 3 — TPM2 and disk encryption
 
 The sops age key is the SSH host key, which lives on the root filesystem. So **whatever protects the
