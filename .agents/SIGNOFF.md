@@ -3369,3 +3369,62 @@ confirming none of them consume `services-openrgb`.
 
 **Verdict: SIGNED OFF.** Deploy target: petunia only. No other host needs a
 rebuild for this change.
+
+---
+
+## Validation: b3f32c7 — chore(inputs): bump llm-agents to 71c0eaf (hermes-agent 2026.7.20 -> 2026.7.30)
+
+Lock-only bump of the `llm-agents` flake input
+(`github:numtide/llm-agents.nix` `e711100` -> `71c0eaf`).
+
+`lock-diff.sh 729ca3a b3f32c7`: exit 10, three nodes changed —
+`llm-agents` (`e711100` -> `71c0eaf`), plus its transitive dependency
+closure `flake-parts_3` and `treefmt-nix_2`. Both transitive nodes are
+build/formatter tooling for `llm-agents.nix` itself, not referenced by
+name anywhere in `modules/`, `hosts/`, or `profiles/`.
+
+`consumers.sh llm-agents flake-parts_3 treefmt-nix_2`: `flake-parts_3` and
+`treefmt-nix_2` have zero direct consumers (not referenced as `inputs.*`
+anywhere in the tree — expected, they're internal to the `llm-agents.nix`
+flake's own build). `llm-agents` itself is referenced in two places:
+`hosts/hermes/llm-agents-overlay.nix` / `hosts/hermes/home.nix`, and
+`modules/tools/dev/home.nix` (registry key `user-dev-home`,
+`inputs.llm-agents.packages.${system}.{claude-code,antigravity-cli,opencode,pi}`
+gated behind `programs.dev-home.enableLlmAgents`). `user-dev-home` is
+imported by every host's `home.nix` except `avina` (no dev-home import at
+all — server host, no HM dev profile).
+
+Naive expected-drift set (import-graph only) is therefore the whole fleet
+except `avina`. But `enableLlmAgents` is a per-host override, not just an
+import: `hosts/dualie/home.nix` explicitly sets
+`programs.dev-home.enableLlmAgents = false` (Ivy Bridge Xeon, no AVX2), so
+`inputs.llm-agents.packages` is never evaluated into `dualie`'s closure
+despite importing `user-dev-home`. Corrected expected-drift set: `sweet16`,
+`petunia`, `hermes`, `groot@forge` (all default/explicit
+`enableLlmAgents = true`); `avina` and `groot@dualie` excluded;
+`groot@rk3588` excluded (aarch64, `N/A` on this arch, though it also sets
+`enableLlmAgents = false`).
+
+`NIX_CONFIG="substituters = https://cache.nixos.org" verify-drift.sh 729ca3a b3f32c7`
+(garnix.io was returning 502s this session; overridden to cache.nixos.org
+only, per the implementer's workaround):
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | DRIFT |
+| avina | none |
+| hermes | DRIFT |
+| groot@dualie | none |
+| groot@forge | DRIFT |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Actual drift set (`sweet16`, `petunia`, `hermes`, `groot@forge`) matches the
+corrected expected-drift set exactly. `avina` and `groot@dualie` are
+byte-identical, confirming the `enableLlmAgents` gate (and, for `avina`, the
+absence of `user-dev-home` entirely) fully accounts for their exclusion.
+
+**Verdict: SIGNED OFF.** Deploy targets: `sweet16`, `petunia`, `hermes`,
+`groot@forge`. Note for future `llm-agents` bumps: the expected-drift set is
+not "hermes only" — it is every config with `programs.dev-home.enableLlmAgents
+= true`, which spans most of the fleet.
