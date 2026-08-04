@@ -3550,3 +3550,56 @@ trusted-public-key. No package or kernel content changes.
 **Verdict: SIGNED OFF.** Deploy targets: sweet16 and petunia. Until a host
 rebuilds, its running `nix.conf` still lists garnix and local evaluation
 there keeps 502-ing — the fix only takes effect after deploy.
+
+---
+
+## hyprland/noctalia caches declared in nix.settings (`1fd704e`)
+
+Both workstations logged `ignoring untrusted flake configuration setting
+'extra-substituters'` on deploy, silently dropping the noctalia and
+hyprland caches declared in `flake.nix` `nixConfig`.
+
+Root cause is not `trusted-users` — root is already listed there. A flake's
+`nixConfig` is gated separately: nix prompts for acceptance and caches the
+answer per-user in `~/.local/share/nix/trusted-settings.json`. A deploy over
+ssh is non-interactive, so nix cannot prompt and drops the setting. The
+caches therefore worked only for ddukes' interactive shell on sweet16, where
+that acceptance file exists, and nowhere else. Consequence: every Hyprland
+or noctalia bump compiled from source on the host.
+
+Fix follows the `hardware-kernel-cachyos` precedent — declare the caches in
+`nix.settings`, where flake-config trust is not involved. Each cache lives
+with the module that needs it: hyprland cachix in `desktop-hyprland`,
+noctalia cachix in a new `modules/desktop/noctalia.nix` contributing to the
+existing `desktop-default` key (deferredModule merge, not an aggregator).
+
+`flake.nix` `nixConfig` is left in place; it still serves interactive
+`nix build` from a clean checkout.
+
+`verify-drift.sh 41a92ba 1fd704e`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | DRIFT |
+| petunia | DRIFT |
+| avina | none |
+| hermes | none |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Expected-drift set is the hosts importing `desktop-hyprland` and
+`desktop-default` — sweet16 and petunia. avina and hermes are headless and
+import neither. Actual drift matches exactly.
+
+Post-change substituter count: 4 cachix entries on the workstations, 2 on
+the servers. Drift cause is `/etc/nix/nix.conf` gaining one substituter and
+one trusted-public-key per cache. No package content changes.
+
+**Verdict: SIGNED OFF.** Deploy targets: sweet16 and petunia.
+
+Note: petunia must build on petunia. `nixos-rebuild --target-host` builds
+locally by default, and petunia's `linux-cachyos-server` at `x86_64-v3` is
+not in sweet16's store, so a `--target-host` deploy would compile that
+kernel on the wrong machine (~99 min). petunia already has it, making a
+local rebuild there a few minutes.
