@@ -235,19 +235,21 @@ _: {
         })
 
         # -------------------------------------------------------------------------
-        # Binary cache substituters (unconditional).
-        # Outside the mkIf block so the caches are configured before the kernel is
+        # Binary cache substituter (unconditional).
+        # Outside the mkIf block so the cache is configured before the kernel is
         # enabled — first nixos-rebuild always hits the cache regardless of enable state.
+        #
+        # Upstream publishes exactly one cache, fed by the same Hydra CI that builds
+        # the kernels and the ABI-paired zfs_cachyos:
+        # https://github.com/xddxdd/nix-cachyos-kernel#binary-cache
         # -------------------------------------------------------------------------
         {
           nix.settings = {
             substituters = lib.mkAfter [
               "https://attic.xuyh0120.win/lantian"
-              "https://cache.garnix.io"
             ];
             trusted-public-keys = lib.mkAfter [
               "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
-              "cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g="
             ];
           };
         }

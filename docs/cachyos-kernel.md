@@ -158,7 +158,7 @@ $ cat /sys/kernel/mm/transparent_hugepage/enabled
 
 **Why it matters:**
 - Standard NixOS ZFS (`zfs`) is built against vanilla nixpkgs kernel headers. A kernel ABI mismatch causes ZFS module load failure at boot.
-- `zfs_cachyos` is built by the same upstream Hydra CI that builds the kernel, guaranteeing ABI pairing. Binary cache hit from `cache.garnix.io`.
+- `zfs_cachyos` is built by the same upstream Hydra CI that builds the kernel, guaranteeing ABI pairing. Binary cache hit from `https://attic.xuyh0120.win/lantian`.
 - The CachyOS ZFS build includes the same `CACHY` config flag, enabling any ZFS code paths that interact with CachyOS-specific kernel internals (primarily the ADIOS I/O scheduler hooks).
 
 **ZFS tuning active on sweet16:**
@@ -451,12 +451,13 @@ pool: petunia  state: ONLINE  errors: No known data errors
 
 # Binary Cache and Build Notes
 
-The `hardware-kernel-cachyos` module adds two substituters unconditionally (outside `mkIf cfg.enable`) so the caches are active before the kernel is enabled. This supports a two-phase deployment: Phase 1 activates the cache; Phase 2 enables the kernel and downloads rather than builds.
+The `hardware-kernel-cachyos` module adds one substituter unconditionally (outside `mkIf cfg.enable`) so the cache is active before the kernel is enabled. This supports a two-phase deployment: Phase 1 activates the cache; Phase 2 enables the kernel and downloads rather than builds.
 
 | Cache | Purpose |
 |-------|---------|
-| `https://attic.xuyh0120.win/lantian` | Primary cache for CachyOS kernel and ZFS closures |
-| `https://cache.garnix.io` | Secondary; also hosts ZFS and module package closures |
+| `https://attic.xuyh0120.win/lantian` | Upstream cache for CachyOS kernel and ZFS closures |
+
+This is the only cache the upstream project publishes ([README](https://github.com/xddxdd/nix-cachyos-kernel#binary-cache)); it is fed by the Hydra CI that builds both the kernels and `zfs_cachyos`. Upstream also lists a third-party mirror, `https://cache.xinux.uz`, under an explicit no-guarantee disclaimer — not configured here.
 
 **sweet16 (bore, x86_64-v3):** Pre-built by upstream Hydra CI. `overlays.pinned` locks the store hash to the cache entry — always a binary download, no local build required.
 
