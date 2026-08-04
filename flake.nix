@@ -1,17 +1,6 @@
 {
   description = "nix-nexus — fleet configuration for NixOS workstations, servers, and standalone Home Manager hosts";
 
-  nixConfig = {
-    extra-substituters = [
-      "https://noctalia.cachix.org"
-      "https://hyprland.cachix.org"
-    ];
-    extra-trusted-public-keys = [
-      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
-      "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-    ];
-  };
-
   inputs = {
     # ── Core ────────────────────────────────────────────────────────────────
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";

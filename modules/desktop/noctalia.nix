@@ -4,10 +4,10 @@ _: {
   flake.modules.nixos.desktop-default =
     { lib, ... }:
     {
-      # Declared here rather than relying on the flake's nixConfig. A flake's
-      # nixConfig needs interactive per-user acceptance (cached in
-      # ~/.local/share/nix/trusted-settings.json), so a non-interactive deploy
-      # over ssh silently drops it and rebuilds noctalia from source.
+      # Upstream noctalia binary cache. Declared in nix.settings so it applies
+      # to non-interactive deploys; a flake nixConfig entry would require
+      # per-user acceptance that ssh sessions cannot prompt for, and noctalia
+      # would build from source on the host.
       # The noctalia input deliberately does not follow nixpkgs, which is what
       # keeps these cache entries valid — see flake.nix.
       nix.settings = {
