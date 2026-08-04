@@ -3738,3 +3738,48 @@ Operational notes:
 
 **Verdict: SIGNED OFF.** Deploy target: hermes. Carries `ae0a788` (dead
 EnvironmentFile drop-in removal) with it, so the gateways restart once.
+
+---
+
+## avina canary retired (`1a4c640`)
+
+The canary proved a host could decrypt its own secrets before anything real
+depended on sops. The AppRole seed now exercises that path on every boot, so
+it was redundant.
+
+Removed from `hosts/avina/default.nix` and from `secrets/avina.yaml` via
+`sops unset`. Surviving secrets verified byte-identical across the edit by
+hash:
+
+| Key | Before | After |
+|---|---|---|
+| `vault-role-id` | `d7921aa8af6f` | `d7921aa8af6f` |
+| `vault-secret-id` | `46a108fb7aa3` | `46a108fb7aa3` |
+
+Both still match the hashes reported at the original AppRole migration.
+
+Note: the first comparison returned `e3b0c44298fc` for both "before" values
+— the sha256 of the empty string. sops infers format from the file
+extension, and the backup was named `.pre-canary-removal`, so it was treated
+as binary and extraction silently produced nothing. Re-run with
+`--input-type yaml`. Same empty-hash trap already recorded for the baseline
+scripts; treat `e3b0c44298fc` as a sentinel for "extraction failed", never
+as a value.
+
+`verify-drift.sh 3005a86 1a4c640`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | none |
+| petunia | none |
+| avina | DRIFT |
+| hermes | none |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Expected-drift set is avina alone. Actual drift matches. Drift cause is one
+fewer entry in the sops manifest; nothing consumed the canary, so no unit
+changes.
+
+**Verdict: SIGNED OFF.** Deploy target: avina.
