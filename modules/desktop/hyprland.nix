@@ -14,6 +14,17 @@ _: {
         inputs.hyprland.nixosModules.default
       ];
 
+      # Declared here rather than relying on the flake's nixConfig. A flake's
+      # nixConfig needs interactive per-user acceptance (cached in
+      # ~/.local/share/nix/trusted-settings.json), so a non-interactive deploy
+      # over ssh silently drops it and rebuilds Hyprland from source.
+      nix.settings = {
+        substituters = lib.mkAfter [ "https://hyprland.cachix.org" ];
+        trusted-public-keys = lib.mkAfter [
+          "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
+        ];
+      };
+
       programs.hyprland = {
         enable = true;
         withUWSM = false;
