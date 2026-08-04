@@ -49,7 +49,6 @@ _: {
     {
       xdg.configFile."systemd/user/hermes-gateway.service.d/nix-deps.conf".text = ''
         [Service]
-        EnvironmentFile=-%h/.env
         Environment="PYTHONPATH=${hermesPkg}/${hermesPython.sitePackages}:${pythonEnv}/${hermesPython.sitePackages}"
         Environment="PATH=/etc/profiles/per-user/groot/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin"
         Environment="MATRIX_E2EE_MODE=optional"
@@ -58,7 +57,6 @@ _: {
       '';
       xdg.configFile."systemd/user/hermes-gateway-coding-local.service.d/nix-deps.conf".text = ''
         [Service]
-        EnvironmentFile=-%h/.env
         Environment="PYTHONPATH=${hermesPkg}/${hermesPython.sitePackages}:${pythonEnv}/${hermesPython.sitePackages}"
         Environment="PATH=/etc/profiles/per-user/groot/bin:/run/current-system/sw/bin:/nix/var/nix/profiles/default/bin:/usr/bin:/bin"
         Environment="AGENT_BROWSER_EXECUTABLE_PATH=/etc/profiles/per-user/groot/bin/chromium"
