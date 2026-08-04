@@ -1,0 +1,43 @@
+From 3b1d01a2a0cb3e06295cb7c507af8cfb5278949c Mon Sep 17 00:00:00 2001
+From: mulatta <67085791+mulatta@users.noreply.github.com>
+Date: Sun, 2 Aug 2026 21:15:31 +0900
+Subject: [PATCH] fix slash worker Python environment
+
+Dashboard slash workers re-exec the bare sys.executable, which can neither
+import Hermes modules nor its dependencies under Nix. Use wrapper-provided
+interpreter and source root instead.
+
+Upstream: https://github.com/NousResearch/hermes-agent/pull/51277
+---
+ tui_gateway/server.py | 11 ++++++++++-
+ 1 file changed, 10 insertions(+), 1 deletion(-)
+
+diff --git a/tui_gateway/server.py b/tui_gateway/server.py
+index ca5876a..36e672a 100644
+--- a/tui_gateway/server.py
++++ b/tui_gateway/server.py
+@@ -328,7 +328,7 @@ class _SlashWorker:
+         self.stdout_queue: queue.Queue[dict | None] = queue.Queue()
+ 
+         argv = [
+-            sys.executable,
++            os.environ.get("HERMES_PYTHON", sys.executable),
+             "-m",
+             "tui_gateway.slash_worker",
+             "--session-key",
+@@ -354,6 +354,15 @@ class _SlashWorker:
+             inherit_profile_home=False,  # base already carries the HOME contract
+             extra={"HERMES_HOME": str(profile_home)} if profile_home else None,
+         )
++        if os.environ.get("HERMES_PYTHON_SRC_ROOT"):
++            env["PYTHONPATH"] = os.pathsep.join(
++                p
++                for p in (
++                    os.environ["HERMES_PYTHON_SRC_ROOT"],
++                    env.get("PYTHONPATH"),
++                )
++                if p
++            )
+ 
+         # start_new_session=True detaches the slash worker into its own
+         # process group / session. Without this, the worker inherits the
