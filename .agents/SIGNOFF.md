@@ -3678,3 +3678,63 @@ no package content changes.
 than deployed immediately, so it lands together with the sops-nix env
 rendering (`hosts/hermes/secrets.nix`, pending `secrets/hermes.yaml`) and
 the gateway units restart once instead of twice.
+
+---
+
+## hermes gateway env files rendered by sops-nix (`08681f0`)
+
+Closes the last hand-placed secrets in the fleet. Both hermes gateway
+profiles read their credentials from `.env` files that were previously
+copied onto the host by hand and tracked nowhere.
+
+Design is forced by the application. `hermes_cli/env_loader.py`
+`load_hermes_dotenv()` reads `$HERMES_HOME/.env` with `override=True`, and
+`HERMES_HOME` is profile-aware. Anything the app finds there outranks
+systemd-injected environment, so `EnvironmentFile=` and a `secretspec run`
+wrapper are both dead ends — the only workable approach is to render files
+at the paths it already reads.
+
+`sops.templates` rather than whole-file encryption: only the 11 sensitive
+values are ciphertext. Endpoints, ports, user IDs and toggles stay readable
+in `hosts/hermes/secrets.nix` so they remain reviewable and diffable.
+
+Rendered paths (verified by eval):
+
+| Template | Path | Owner | Mode |
+|---|---|---|---|
+| `hermes-gateway-env` | `/home/groot/.hermes/.env` | groot | 0400 |
+| `hermes-coding-local-env` | `/home/groot/.hermes/profiles/coding-local/.env` | groot | 0400 |
+
+All 11 declared secrets resolve. Rendered content lands under
+`/run/secrets.d/<gen>/rendered/` (tmpfs) with the target path as a symlink,
+so hermes holds no plaintext credentials at rest — an improvement over the
+previous on-disk files.
+
+`verify-drift.sh 5ca9559 08681f0`:
+
+| Config | Drift |
+|---|---|
+| sweet16 | none |
+| petunia | none |
+| avina | none |
+| hermes | DRIFT |
+| groot@dualie | none |
+| groot@forge | none |
+| groot@rk3588 | N/A (x86_64 host) |
+
+Expected-drift set is hermes alone — `hosts/hermes/secrets.nix` registers to
+`hermes-default`, reachable from no other config. `core-sops` was already in
+hermes' closure via `server-default`; this commit is the first to set
+`nix-nexus.secrets.sops.hostFile` for the host, activating it. Actual drift
+matches.
+
+Operational notes:
+- `restartUnits` drives system units only. Both gateways are *user* units, so
+  a future secret rotation needs a manual `systemctl --user restart`.
+- The Matrix access token was rotated before this commit (prior token was
+  exposed in a session transcript). Rotation confirmed by hash comparison.
+  Per `docs/hermes.md`, `kill-sessions` orphans the OLM account, so the
+  crypto store must be wiped on first deploy.
+
+**Verdict: SIGNED OFF.** Deploy target: hermes. Carries `ae0a788` (dead
+EnvironmentFile drop-in removal) with it, so the gateways restart once.
