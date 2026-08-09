@@ -53,6 +53,7 @@ _: {
           imports = [
             inputs.nixvim.homeModules.nixvim
             homeManagerModules.user-bash
+            homeManagerModules.user-fish
             homeManagerModules.user-terminal-home
             homeManagerModules.user-terminal-oled-home
             homeManagerModules.user-neovim-home

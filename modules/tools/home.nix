@@ -72,6 +72,7 @@ _: {
     {
       imports = [
         homeManagerModules.user-bash
+        homeManagerModules.user-fish
         homeManagerModules.user-neovim-home
         homeManagerModules.user-terminal-home
         homeManagerModules.user-television-home

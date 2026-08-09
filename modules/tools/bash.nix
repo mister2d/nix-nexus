@@ -10,6 +10,10 @@ _: {
           bc # Basic Calculator
           calc # Arbitrary precision calculator
           util-linux # Provides 'cal', 'pciutils', 'usbutils', etc.
+          eza
+          yazi
+          fzf
+          wikiman
         ];
 
         # Session Path Configuration
@@ -38,18 +42,37 @@ _: {
 
         # Standard shell aliases
         shellAliases = {
+          # Navigation
           ".." = "cd ..";
           "..." = "cd ../..";
-          "ll" = "ls -ltr";
-          "lrt" = "ls -ltr";
+          "2.." = "cd ../..";
+          "3.." = "cd ../../..";
+          "4.." = "cd ../../../..";
+          "5.." = "cd ../../../../..";
+          h = "cd ~";
+
+          # Listing (eza-based)
+          la = "eza --long --all --group";
+          ll = "eza -la --icons --octal-permissions --group-directories-first";
+          ls = "eza -1 --icons --group-directories-first";
+          lrt = "ls -ltr";
+
+          # Tools
+          yz = "yazi";
+          df = "df -h -x tmpfs";
+          du = "du -h --max-depth=1 2> /dev/null | sort -h -r | head -n20";
+          wiki = "wikiman -q";
+
+          # History
+          list = "history 0 | fzf";
 
           # Tailscale
-          "tup" = "sudo tailscale up";
-          "tdown" = "sudo tailscale down";
-          "tstatus" = "tailscale status";
+          tup = "sudo tailscale up";
+          tdown = "sudo tailscale down";
+          tstatus = "tailscale status";
 
           # Modern CLI Tooling Shorthand
-          "tv" = "tv";
+          tv = "tv";
         };
 
         # History Control (Nix way)
@@ -127,7 +150,7 @@ _: {
           # HashiCorp Completions (Dynamic Nix Paths)
           # These are only enabled if the packages are available in the current profile.
           # We use 'command -v' to find the actual location in the Nix store.
-          for cmd in vault boundary consul nomad waypoint; do
+          for cmd in vault consul nomad ; do
             if command -v "$cmd" >/dev/null 2>&1; then
               complete -C "$(command -v "$cmd")" "$cmd"
             fi

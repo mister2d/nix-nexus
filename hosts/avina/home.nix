@@ -4,6 +4,7 @@ _: {
     {
       imports = [
         homeManagerModules.user-bash
+        homeManagerModules.user-fish
         homeManagerModules.user-neovim-home
       ];
 
