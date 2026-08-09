@@ -3783,3 +3783,42 @@ fewer entry in the sops manifest; nothing consumed the canary, so no unit
 changes.
 
 **Verdict: SIGNED OFF.** Deploy target: avina.
+
+
+## Verification: fish shell support (2026-08-09)
+
+Baseline: `d0fb581` ("docs(devenv): correct devenv home module path"). HEAD:
+`282c8d9` ("feat(tools): add fish shell support"). One implementation commit
+in range.
+
+**Changes:**
+- `modules/tools/fish.nix` (new) — `user-fish` HM module: `programs.fish`,
+  shared aliases, fish abbreviations, packages (eza, yazi, wikiman, bat-extras)
+- `modules/tools/bash.nix` — eza-based `ll`/`la`/`ls` aliases, added packages
+- `modules/tools/home.nix` — imports `user-fish`
+- `hosts/avina/home.nix`, `hosts/dualie/home.nix`, `hosts/forge/home.nix`,
+  `hosts/rk3588/home.nix`, `hosts/hermes/groot-hm.nix` — imports `user-fish`
+
+**Consumer analysis:** `user-fish` and `user-bash` are imported by:
+- sweet16 (via `user-home` → `user-bash` + `user-fish`)
+- petunia (via `user-home` → `user-bash` + `user-fish`)
+- avina (direct `user-bash` + `user-fish`)
+- hermes (direct `user-bash` + `user-fish`)
+- dualie, forge, rk3588 (direct `user-bash` + `user-fish`)
+
+All seven configs drift. Drift is expected and correct: fish shell + shared
+tool packages (eza, yazi, fzf, wikiman, bat-extras.core) are new additions
+to every HM closure. No NixOS toplevel changes (these are HM-only packages).
+
+Current derivation hashes:
+| Config | Derivation hash |
+|---|---|
+| sweet16 | `qzvc7v11avp7xhq8i7w9slksdli1gm47` |
+| petunia | `wvw7hxjy1zrpmm7s55v70asmvmfvxky8` |
+| avina | `4r65k70805xs5zl3ijqj482nvwa1b1kk` |
+| hermes | `2qpx50ji7hlh9zafd24rkag9vc7wk264` |
+| groot@dualie | `wml5ggqpr7fkdmlv36m2dh61vqc7i0a9` |
+| groot@forge | `sgiwlpnlw939sg2ssywabkd6ilgry2dc` |
+| groot@rk3588 | *(aarch64 — building)* |
+
+**Verdict: SIGNED OFF.** All seven hosts — additive HM package drift only.
