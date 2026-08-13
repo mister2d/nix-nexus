@@ -54,7 +54,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 CHANGED="$(cd "$ROOT" && git diff-tree --no-commit-id --name-only -r "$REV")"
 
 if echo "$CHANGED" | grep -qE '^(modules/|hosts/|profiles/|flake\.(nix|lock))'; then
-  echo "evaluated configs touched — dispatch closure-validator (verify-drift + SIGNOFF) before deploy/push" >&2
+  echo "evaluated configs touched — dispatch closure-validator (verify-drift + signoff.sh) before deploy/push" >&2
   exit 2
 fi
 

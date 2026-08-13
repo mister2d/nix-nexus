@@ -285,8 +285,9 @@ Follow these on every task, every commit:
    This evaluates the full module tree for all hosts. Must pass green.
 
 6. **No store-path drift without written justification.** If a closure baseline
-   exists in `.agents/SIGNOFF.md` and you observe hash changes, investigate and
-   document before proceeding. "It changed" is not a justification.
+   is recorded in `.agents/baseline.json` and you observe hash changes,
+   investigate and document before proceeding. "It changed" is not a
+   justification.
 
 7. **Honest uncertainty.** If you cannot confirm a change is behavior-preserving,
    stop and report. A blocked task accurately described is better than a silently
@@ -555,7 +556,7 @@ docs/
 .agents/
 ├── baseline.json             ← current per-config drv state + signed_off_through
 ├── signoff/                  ← one immutable generated entry per sign-off
-├── SIGNOFF.md                ← closure baseline and drift sign-offs
+├── signoff-archive.md        ← historical: hand-authored sign-offs, 2026-06→08
 ├── validation.md             ← script toolbox reference (current-state)
 ├── phase-A.md                ← historical: dendritic refactor phase A record
 ├── phase-B.md                ← historical: dendritic refactor phase B record
@@ -572,7 +573,7 @@ docs/
     ├── deploy-host.sh          ← cert-check → ssh probe → nixos-rebuild → verify
     ├── verify-generation.sh    ← remote system profile check
     ├── hook-commit-reminder.sh ← PostToolUse(Bash) hook: nudge validation after a commit
-    └── hook-push-guard.sh      ← PreToolUse(Bash) hook: block push without a SIGNOFF entry
+    └── hook-push-guard.sh      ← PreToolUse(Bash) hook: block push without a sign-off record
 modules/flake/
 └── checks.nix                  ← devenv.shells.default: devshell, git-hooks, claude.code wiring
 .envrc                           ← direnv entry (`use flake --impure`); tracked
@@ -642,7 +643,7 @@ orchestrating session to dispatch the right judgment agent.
 | Hook | Event | Enforces |
 |---|---|---|
 | `hook-commit-reminder.sh` | `PostToolUse(Bash)` | after a `git commit` whose files match `^(modules\|hosts\|profiles\|flake\.(nix\|lock))`, exits 2 with a stderr reminder to dispatch `closure-validator` before deploy/push |
-| `hook-push-guard.sh` | `PreToolUse(Bash)` | before a `git push`, if the outgoing range touches evaluated config without a `.agents/SIGNOFF.md` entry in the same range, exits 2 and blocks the push |
+| `hook-push-guard.sh` | `PreToolUse(Bash)` | before a `git push`, if the outgoing range touches evaluated config without a `.agents/` sign-off record (`baseline.json` or `signoff/`) in the same range, exits 2 and blocks the push |
 
 Both fail open: `hook-commit-reminder.sh` only fires on an actual `git commit`
 match and can't block (`PostToolUse` exit 2 is non-blocking — the commit

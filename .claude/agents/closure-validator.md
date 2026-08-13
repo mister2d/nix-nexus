@@ -2,7 +2,7 @@
 name: closure-validator
 description: >
   Judge whether a set of nix-nexus commits produced expected closure drift,
-  and sign off in .agents/SIGNOFF.md when they do. Use after nix-implementer
+  and sign off via .agents/scripts/signoff.sh when they do. Use after nix-implementer
   commits are done and before fleet-deployer runs, whenever a change could
   affect an evaluated host/HM config (module edits, flake.lock changes,
   option renames). Skip for trivial doc-only edits. Never used for writing

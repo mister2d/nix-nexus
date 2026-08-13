@@ -1,3 +1,32 @@
+# Sign-off archive (retired 2026-08-13)
+
+Closed record of the 44 sign-off entries written between 2026-06-02 and
+2026-08-13, when sign-offs were hand-authored into a single append-only file.
+Superseded by `.agents/baseline.json` (current state) and `.agents/signoff/`
+(one generated entry per sign-off). Nothing appends here anymore.
+
+Entry conventions drifted four times over the file's life — the format was
+defined by imitating whichever prior entry the author happened to read. Text
+below is left exactly as written, including two references to the file's old
+path `.agents/SIGNOFF.md` (lines 1510 and 3134); editing historical prose to
+match the current layout would falsify the record. Same treatment as
+`phase-A.md` / `phase-B.md` / `phase-C.md`.
+
+The eight entries below carry the investigative detail worth re-reading; the
+other 36 are routine template.
+
+| Line | Lines | Entry |
+|---|---|---|
+| 476 | 478 | Baseline: unknown (2026-07-18) — pre-toolbox full-fleet capture |
+| 2528 | 292 | C7: GTK + Qt handed to Stylix |
+| 2820 | 289 | C8: Hyprland/hyprlock + noctalia |
+| 2070 | 229 | Stylix foundation (C4, C5) |
+| 2299 | 229 | C6: terminals + btop handed to Stylix |
+| 3109 | 220 | `home.pointerCursor.enable` fix |
+| 1885 | 185 | Stylix adoption, first 4 commits |
+| 272 | 116 | NixOS 25.11 → 26.05 "Yarara" — sweet16 canary |
+
+---
 
 ## Baseline: phase-A (2026-06-02T03:49:07Z)
 

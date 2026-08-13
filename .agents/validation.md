@@ -73,10 +73,17 @@ judging anything themselves.
 | Script | Event | Args | Exit codes |
 |---|---|---|---|
 | `hook-commit-reminder.sh` | `PostToolUse(Bash)` | stdin: PostToolUse hook JSON (`.tool_input.command`); or `--test <command-string> [--test-rev <rev>]` | 0 not a commit / no evaluated-config files; 2 commit touches `^(modules/\|hosts/\|profiles/\|flake\.(nix\|lock))` (non-blocking on `PostToolUse` — stderr reminder only) |
-| `hook-push-guard.sh` | `PreToolUse(Bash)` | stdin: PreToolUse hook JSON (`.tool_input.command`); or `--test <command-string> [--test-range <A..B>]` | 0 not a push, unresolvable range, no evaluated-config drift, or a git probing error (fail-open); 2 evaluated-config commits outgoing without a `.agents/` sign-off record (`baseline.json`, `signoff/`, or the legacy `SIGNOFF.md`) in range (blocking on `PreToolUse`) |
+| `hook-push-guard.sh` | `PreToolUse(Bash)` | stdin: PreToolUse hook JSON (`.tool_input.command`); or `--test <command-string> [--test-range <A..B>]` | 0 not a push, unresolvable range, no evaluated-config drift, or a git probing error (fail-open); 2 evaluated-config commits outgoing without a `.agents/` sign-off record (`baseline.json` or `signoff/`) in range (blocking on `PreToolUse`) |
 
 ## Historical phase records
 
 `.agents/phase-A.md`, `.agents/phase-B.md`, `.agents/phase-C.md` are records
 of the completed dendritic-pattern refactor. They are historical and are not
 part of the current validation method.
+
+`.agents/signoff-archive.md` (formerly `SIGNOFF.md`) holds the 44 sign-off
+entries hand-authored between 2026-06-02 and 2026-08-13. Closed on 2026-08-13;
+nothing appends to it. Its header indexes the eight entries carrying real
+investigative detail. Text is preserved verbatim, including references to the
+file's old path — as with the phase records, historical prose is not edited to
+match the current layout.
