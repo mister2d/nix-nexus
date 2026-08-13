@@ -1,0 +1,45 @@
+{
+  "configs": {
+    "avina": {
+      "drv": "/nix/store/8rv3mav150v1xifha7ljv496p20r24cl-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "kind": "nixos",
+      "status": "ok"
+    },
+    "groot@dualie": {
+      "drv": "/nix/store/aw24zz68f88f2hi7k3ab9a67mfx3k3l2-home-manager-generation.drv",
+      "kind": "hm",
+      "status": "ok"
+    },
+    "groot@forge": {
+      "drv": "/nix/store/y9q1r7hy1wzccfp9m8f80pf9dcb9d58f-home-manager-generation.drv",
+      "kind": "hm",
+      "status": "ok"
+    },
+    "groot@rk3588": {
+      "drv": null,
+      "kind": "hm",
+      "reason": "not evaluable on x86_64",
+      "status": "na"
+    },
+    "hermes": {
+      "drv": "/nix/store/sbw70p77z904bj12rwx5kh692pwlbq40-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "kind": "nixos",
+      "status": "ok"
+    },
+    "petunia": {
+      "drv": "/nix/store/i2pga7dib6dbcss420pzfzr0db34pm3n-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "kind": "nixos",
+      "status": "ok"
+    },
+    "sweet16": {
+      "drv": "/nix/store/gzb2pw7g9wz3rzk0zm8jhn4v8ym4jfy0-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "kind": "nixos",
+      "status": "ok"
+    }
+  },
+  "recorded": "2026-08-13T11:29:59Z",
+  "recorded_on": "x86_64",
+  "schema": 1,
+  "signed_off_through": "8ce92250d4451d6d7d3434da6ab3dc93b921f2a0",
+  "signoff": null
+}

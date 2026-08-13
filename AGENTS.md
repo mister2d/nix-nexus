@@ -367,10 +367,21 @@ diff <(nix show-derivation /nix/store/...-A.drv | python3 -m json.tool) \
 ### Step 5 — Sign off
 
 For significant changes (new hosts, structural refactors, registry type changes),
-append a sign-off block to `.agents/SIGNOFF.md` documenting:
-- What changed
-- Pre/post hashes for each host
-- Explanation for any drift
+run the writer and supply judgment on stdin:
+
+```bash
+.agents/scripts/signoff.sh --slug <kebab-slug> <<'EOF'
+### Expected-drift set
+...
+### Actual vs expected
+...
+EOF
+```
+
+It writes an immutable entry under `.agents/signoff/` and replaces
+`.agents/baseline.json` with the new per-config state. Never hand-write a
+store hash or hand-author an entry — the script generates every fact, you
+supply only the judgment.
 
 ---
 
@@ -542,6 +553,8 @@ docs/
 ├── petunia-sbom.md           ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
 └── secrets.md                ← sops-nix / secretspec / Vault layering, TPM2 posture per host
 .agents/
+├── baseline.json             ← current per-config drv state + signed_off_through
+├── signoff/                  ← one immutable generated entry per sign-off
 ├── SIGNOFF.md                ← closure baseline and drift sign-offs
 ├── validation.md             ← script toolbox reference (current-state)
 ├── phase-A.md                ← historical: dendritic refactor phase A record
@@ -549,7 +562,7 @@ docs/
 ├── phase-C.md                ← historical: dendritic refactor phase C record
 └── scripts/
     ├── lib.sh                 ← fleet lists + clean per-rev drv eval helper
-    ├── capture-baseline.sh    ← records drv paths at a rev into SIGNOFF.md
+    ├── signoff.sh             ← the only sign-off writer: entry + baseline.json
     ├── verify-drift.sh        ← per-config drv diff between two revs
     ├── consumers.sh           ← recursive registry-key/input consumer lookup
     ├── lock-diff.sh            ← node-by-node flake.lock diff via jq
@@ -568,7 +581,7 @@ modules/flake/
 └── agents/
     ├── upstream-scout.md       ← verifies upstream facts (haiku)
     ├── nix-implementer.md      ← writes and commits module/host changes (sonnet)
-    ├── closure-validator.md    ← judges drift, signs off in SIGNOFF.md (sonnet)
+    ├── closure-validator.md    ← judges drift, signs off via signoff.sh (sonnet)
     └── fleet-deployer.md       ← deploys validated commits to the fleet (sonnet)
 ```
 
@@ -589,7 +602,7 @@ spent on judgment, not on restating deterministic process in every prompt.
 |---|---|---|
 | `upstream-scout` | scout | a package attr, NixOS/HM option, or flake input schema needs verifying and isn't already established this session |
 | `nix-implementer` | implement | facts are in hand; a module/host file needs writing and committing |
-| `closure-validator` | validate | a commit could affect an evaluated host/HM config; judges actual vs. expected drift and signs off in `SIGNOFF.md` |
+| `closure-validator` | validate | a commit could affect an evaluated host/HM config; judges actual vs. expected drift and signs off via `signoff.sh` |
 | `fleet-deployer` | deploy | a validated commit needs to reach one or more live hosts |
 
 ### Standard pipeline
@@ -608,7 +621,7 @@ output format, exit codes). Summary:
 | Script | Purpose |
 |---|---|
 | `lib.sh` | fleet host/HM lists, clean per-rev eval helper (sourced only) |
-| `capture-baseline.sh` | records per-config drv paths at a rev into `SIGNOFF.md` |
+| `signoff.sh` | the only sign-off writer: generates an entry under `.agents/signoff/` and replaces `.agents/baseline.json` |
 | `verify-drift.sh` | per-config drv comparison between two revs |
 | `consumers.sh` | recursively resolves which hosts reach a registry key or flake input |
 | `lock-diff.sh` | node-by-node `flake.lock` diff |

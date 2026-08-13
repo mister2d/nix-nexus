@@ -14,7 +14,8 @@
 # outgoing commit range (@{push}..HEAD, falling back to @{u}..HEAD, falling
 # back to origin/main..HEAD; if none resolvable, exit 0 fail-open). If any
 # commit in range touches ^(modules/|hosts/|profiles/|flake\.(nix|lock)) AND
-# no commit in range touches .agents/SIGNOFF.md, exit 2 with a stderr message.
+# no commit in range touches a .agents/ sign-off record (baseline.json,
+# signoff/, or the legacy SIGNOFF.md), exit 2 with a stderr message.
 # Any git failure while probing the range fails open (exit 0) — this hook
 # never blocks a push due to its own error.
 #
@@ -86,7 +87,7 @@ if [[ "$TOUCHES_CONFIG" -eq 0 ]]; then
 fi
 
 HAS_SIGNOFF=0
-if echo "$CHANGED" | grep -qE '^\.agents/SIGNOFF\.md$'; then
+if echo "$CHANGED" | grep -qE '^\.agents/(SIGNOFF\.md|baseline\.json|signoff/)'; then
   HAS_SIGNOFF=1
 fi
 
