@@ -3819,6 +3819,66 @@ Current derivation hashes:
 | hermes | `2qpx50ji7hlh9zafd24rkag9vc7wk264` |
 | groot@dualie | `wml5ggqpr7fkdmlv36m2dh61vqc7i0a9` |
 | groot@forge | `sgiwlpnlw939sg2ssywabkd6ilgry2dc` |
-| groot@rk3588 | *(aarch64 — building)* |
+| groot@rk3588 | *(not evaluated — aarch64, platform mismatch on x86_64)* |
 
 **Verdict: SIGNED OFF.** All seven hosts — additive HM package drift only.
+
+
+## Verification: lrt alias correction (2026-08-13)
+
+Baseline: `49d772b` ("docs(signoff): record fish shell support closure
+drift"). HEAD: `8af2830` ("fix(tools): make lrt match ls -ltr ordering").
+Two commits in range, `6c83f42` and `8af2830`; the first was a wrong fix
+and the second corrected it, so the **net** diff over the range is two
+alias lines:
+
+```
+modules/tools/bash.nix: lrt = "ls -ltr"
+                     -> lrt = "eza -l --icons --octal-permissions --sort newest"
+modules/tools/fish.nix: + lrt = "eza -l --icons --octal-permissions --sort newest"
+```
+
+`git diff 49d772b..8af2830 --stat`: 2 files changed, 2 insertions(+),
+1 deletion(-). No package list, option, or `flake.lock` change in range.
+
+**Why the first fix was wrong:** eza's `--sort oldest` lists newest
+*first*, the reverse of `ls -ltr`. Verified empirically against real
+`ls -ltr` output on a fixture with known mtimes rather than trusting the
+flag name or eza's own error-message suggestion. `--sort newest` is the
+match. `-a` and `--group-directories-first` were also dropped: `ls -ltr`
+does not show hidden files, and grouping directories first defeats a
+time sort.
+
+**Consumer analysis:** `user-bash` and `user-fish` are imported by all
+seven configs, so all seven drift. Expected-drift set is all seven;
+actual drift is all seven.
+
+| Config | Baseline drv (`49d772b`) | HEAD drv (`8af2830`) | Result |
+|---|---|---|---|
+| sweet16 | `qzvc7v11avp7xhq8i7w9slksdli1gm47` | `gzb2pw7g9wz3rzk0zm8jhn4v8ym4jfy0` | DRIFT (expected) |
+| petunia | `wvw7hxjy1zrpmm7s55v70asmvmfvxky8` | `i2pga7dib6dbcss420pzfzr0db34pm3n` | DRIFT (expected) |
+| avina | `4r65k70805xs5zl3ijqj482nvwa1b1kk` | `8rv3mav150v1xifha7ljv496p20r24cl` | DRIFT (expected) |
+| hermes | `2qpx50ji7hlh9zafd24rkag9vc7wk264` | `sbw70p77z904bj12rwx5kh692pwlbq40` | DRIFT (expected) |
+| groot@dualie | `wml5ggqpr7fkdmlv36m2dh61vqc7i0a9` | `aw24zz68f88f2hi7k3ab9a67mfx3k3l2` | DRIFT (expected) |
+| groot@forge | `sgiwlpnlw939sg2ssywabkd6ilgry2dc` | `y9q1r7hy1wzccfp9m8f80pf9dcb9d58f` | DRIFT (expected) |
+| groot@rk3588 | *(not evaluated)* | *(not evaluated)* | aarch64 — platform mismatch on x86_64 |
+
+**Drift is confined to the alias chain.** The petunia deploy built exactly
+nine derivations, and the set is the expected cascade from two changed
+alias strings with no package movement:
+
+```
+config.fish, bashrc, home-manager-files, home-manager-generation,
+unit-home-manager-ddukes.service, system-units, etc, activate, toplevel
+```
+
+No store paths were substituted or rebuilt below that layer — `nixos-rebuild`
+copied 9 `.drv` files and built 9, so the package closure is unchanged.
+
+**Deployed:** sweet16 (gen 355), petunia (gen 42, built on petunia via
+`--build-host`), avina (gen 91), hermes (gen 99). The three standalone HM
+hosts (dualie, forge, rk3588) self-manage and still need `home-manager
+switch`; rk3588 additionally was never evaluated here, so its first switch
+is the first real check of this change on aarch64.
+
+**Verdict: SIGNED OFF.** All drift traces to the two alias lines.
