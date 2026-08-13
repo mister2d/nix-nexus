@@ -73,7 +73,7 @@ judging anything themselves.
 | Script | Event | Args | Exit codes |
 |---|---|---|---|
 | `hook-commit-reminder.sh` | `PostToolUse(Bash)` | stdin: PostToolUse hook JSON (`.tool_input.command`); or `--test <command-string> [--test-rev <rev>]` | 0 not a commit / no evaluated-config files; 2 commit touches `^(modules/\|hosts/\|profiles/\|flake\.(nix\|lock))` (non-blocking on `PostToolUse` — stderr reminder only) |
-| `hook-push-guard.sh` | `PreToolUse(Bash)` | stdin: PreToolUse hook JSON (`.tool_input.command`); or `--test <command-string> [--test-range <A..B>]` | 0 not a push, unresolvable range, no evaluated-config drift, or a git probing error (fail-open); 2 evaluated-config commits outgoing without a `.agents/` sign-off record (`baseline.json` or `signoff/`) in range (blocking on `PreToolUse`) |
+| `hook-push-guard.sh` | `PreToolUse(Bash)` | stdin: PreToolUse hook JSON (`.tool_input.command`); or `--test <command-string> [--test-range <A..B>] [--test-through <sha>]` | 0 not a push, unresolvable/empty range, no config commits outgoing, or any git/jq error (fail-open); 2 `baseline.json` absent or malformed at HEAD, or ≥1 outgoing config commit not an ancestor of `.signed_off_through`; 3 bad arguments |
 
 ## Historical phase records
 

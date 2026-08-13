@@ -643,11 +643,19 @@ orchestrating session to dispatch the right judgment agent.
 | Hook | Event | Enforces |
 |---|---|---|
 | `hook-commit-reminder.sh` | `PostToolUse(Bash)` | after a `git commit` whose files match `^(modules\|hosts\|profiles\|flake\.(nix\|lock))`, exits 2 with a stderr reminder to dispatch `closure-validator` before deploy/push |
-| `hook-push-guard.sh` | `PreToolUse(Bash)` | before a `git push`, if the outgoing range touches evaluated config without a `.agents/` sign-off record (`baseline.json` or `signoff/`) in the same range, exits 2 and blocks the push |
+| `hook-push-guard.sh` | `PreToolUse(Bash)` | before a `git push`, requires every outgoing commit touching evaluated config to be an ancestor of `.signed_off_through` in `.agents/baseline.json` (read as committed at HEAD); exits 2 and blocks otherwise |
 
-Both fail open: `hook-commit-reminder.sh` only fires on an actual `git commit`
-match and can't block (`PostToolUse` exit 2 is non-blocking — the commit
-already happened). `hook-push-guard.sh` exits 0 on any git probing failure or
-an unresolvable outgoing range, so it never blocks a push due to its own
-error. Neither hook re-implements judgment already owned by
-`closure-validator` — they only detect the precondition for dispatching it.
+`hook-commit-reminder.sh` only fires on an actual `git commit` match and can't
+block (`PostToolUse` exit 2 is non-blocking — the commit already happened).
+
+`hook-push-guard.sh` fails open on its own errors: a missing `jq`, any git
+probing failure, an unresolvable or empty range, or a `signed_off_through`
+naming a sha not in the repo all exit 0. It blocks in exactly two cases — a
+config commit provably not covered by the sign-off, and `baseline.json` absent
+or malformed at HEAD. The second blocks by deliberate choice rather than
+failing open: absence of the record is precisely the gated condition, so
+failing open there would make the gate defeatable with `rm`.
+
+Neither hook re-implements judgment already owned by `closure-validator` —
+they only detect the precondition for dispatching it. Note the guard binds the
+agent, not the human: a push from a plain terminal bypasses it entirely.
