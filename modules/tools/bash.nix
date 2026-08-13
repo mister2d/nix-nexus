@@ -55,7 +55,7 @@ _: {
           la = "eza --long --all --group";
           ll = "eza -la --icons --octal-permissions --group-directories-first";
           ls = "eza -1 --icons --group-directories-first";
-          lrt = "eza -la --sort oldest --group-directories-first";
+          lrt = "eza -l --icons --octal-permissions --sort newest";
 
           # Tools
           yz = "yazi";
