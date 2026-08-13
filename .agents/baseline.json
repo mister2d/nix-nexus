@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-08-13T11:29:59Z",
+  "recorded": "2026-08-13T11:41:29Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "8ce92250d4451d6d7d3434da6ab3dc93b921f2a0",
-  "signoff": null
+  "signed_off_through": "2e92d0164521a4ec375186e02f621f4c858c24d2",
+  "signoff": ".agents/signoff/2026-08-13-signoff-mechanism-rearchitecture.md"
 }
