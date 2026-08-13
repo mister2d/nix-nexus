@@ -45,6 +45,8 @@ file. No aggregator file, no central import list, no wiring in `flake.nix`.
 **Read these before making non-trivial changes:**
 - `docs/architecture.md` — how the pattern works end-to-end
 - `docs/cookbook.md` — step-by-step recipes for the most common tasks
+- `docs/workflow.md` — the human-facing day-to-day loop (shell, lint, drift,
+  sign-off, deploy); lighter than this document and safe to point newcomers at
 
 ---
 
@@ -273,10 +275,13 @@ Follow these on every task, every commit:
 
 4. **Lint before committing:**
    ```bash
-   nix develop --command pre-commit run --files <space-separated changed files>
+   .agents/scripts/preflight.sh <space-separated changed files>
    ```
    All three hooks must pass: `nixfmt` (formatting, RFC 166 style), `deadnix`
-   (unused bindings), `statix` (Nix anti-patterns).
+   (unused bindings), `statix` (Nix anti-patterns). The runner is `prek`, not
+   `pre-commit` — `pre-commit` is not installed. `preflight.sh` also runs
+   `nix flake check --impure`; `--impure` is mandatory for every `nix develop`
+   and `nix flake check` in this repo.
 
 5. **Evaluate after committing:**
    ```bash
@@ -324,11 +329,12 @@ Save this output. You will compare it after your changes.
 ### Step 2 — Pre-commit lint
 
 ```bash
-# Run on every file you changed:
-nix develop --command pre-commit run --files modules/foo/bar.nix hosts/sweet16/default.nix
+# Run on every file you changed (lint + full flake evaluation):
+.agents/scripts/preflight.sh modules/foo/bar.nix hosts/sweet16/default.nix
 
-# Or run on all tracked changes:
-nix develop --command pre-commit run
+# Lint only, inside an already-entered devshell:
+prek run --files modules/foo/bar.nix
+prek run   # all staged files
 ```
 
 Fix all failures before proceeding. Common failures:
@@ -543,6 +549,7 @@ AGENTS.md                     ← you are here (maintenance authority)
 docs/
 ├── architecture.md           ← how the dendritic pattern works end-to-end
 ├── cookbook.md               ← step-by-step recipes for common tasks
+├── workflow.md               ← human-facing day-to-day dev loop (start here)
 ├── hardware.md               ← OLED, AMD P-State, hybrid GPU
 ├── cachyos-kernel.md         ← CachyOS kernel, ZFS, BBR3
 ├── packages.md               ← pinned DevOps tool and driver versions

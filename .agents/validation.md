@@ -35,7 +35,7 @@ the old `SIGNOFF.md` to accumulate four incompatible formats.
 | `verify-drift.sh <base-rev> [new-rev]` | per-config drv comparison between two revs; markdown table on stdout | 0 no drift, 10 drift found |
 | `consumers.sh <name>...` | recursively resolves which hosts reach a registry key or flake input; derives the expected-drift set | 0 |
 | `lock-diff.sh <old-rev> <new-rev>` | node-by-node `flake.lock` diff via `jq` | 0 no change, 10 nodes changed |
-| `preflight.sh <files>...` | `pre-commit run --files` then `nix flake check` | 0 pass, 1 pre-commit fail, 2 flake check fail |
+| `preflight.sh <files>...` | `nix develop --impure --command prek run --files` then `nix flake check --impure` (the runner is `prek`; `pre-commit` is not installed) | 0 pass, 1 lint fail, 2 flake check fail, 3 arg error |
 | `cert-check.sh [--min-minutes N]` | validates the ephemeral Vault SSH cert (principal `root`, remaining TTL) | 0 OK, 20 expiring, 21 wrong principal |
 | `build-host.sh <host>` | timed local build with substituted-vs-built cache stats | 0 success, 1 build failed |
 | `deploy-host.sh <host> [--build-host <h>] [--boot\|--test] [--check-only]` | cert-check → ssh probe → `nixos-rebuild --target-host` → generation verify | 0 success, 1 cert, 2 ssh, 3 rebuild, 4 verify |

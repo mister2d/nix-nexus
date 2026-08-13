@@ -751,8 +751,11 @@ nix eval --json .#nixosModules | nix run nixpkgs#jq -- 'keys'
 Run linters on the specific file before committing:
 
 ```bash
-nix develop --command pre-commit run --files modules/services/mystack/backend.nix
+.agents/scripts/preflight.sh modules/services/mystack/backend.nix
 ```
+
+(The runner is `prek`, not `pre-commit`. See
+[workflow.md](./workflow.md#step-3--lint).)
 
 The three linters are: `nixfmt-rfc-style` (formatting), `deadnix` (unused
 bindings), `statix` (anti-patterns). Fix all failures before committing — the

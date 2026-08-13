@@ -93,9 +93,16 @@ nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
 ---
 
 ## 🛠️ Development Workflow
+
+**New here? Start with the [Development Workflow guide](./docs/workflow.md)** —
+it walks through the whole loop (find → edit → lint → validate → sign off →
+deploy) and assumes no Nix knowledge.
+
 ### Standardized Environment
-- **Activate:** `nix develop` (installs git hooks automatically).
-- **Validate:** `nix flake check` (evaluates tree-wide integrity).
+- **Activate:** `direnv allow`, or `nix develop --impure` (installs git hooks
+  automatically). `--impure` is required — see the workflow guide.
+- **Validate:** `.agents/scripts/preflight.sh <changed files>` (lint +
+  `nix flake check --impure`).
 
 ### Isolated AI/LLM Projects
 While the global environment is managed by Nix-Nexus, project-level AI toolchains utilize the **`llm-init`** script to bridge host GPU drivers to isolated Nix shells.
@@ -110,6 +117,7 @@ direnv allow
 ## 📚 Technical Documentation
 
 ### Architecture & Contributing
+- [**Development Workflow**](./docs/workflow.md): Start here. The day-to-day loop — entering the shell, making a change, linting, checking blast radius, signing off, deploying, and what to do when something breaks.
 - [**Architecture Guide**](./docs/architecture.md): How the dendritic pattern works — registries, fragments, host assembly, naming conventions.
 - [**Cookbook**](./docs/cookbook.md): Step-by-step recipes for adding modules, users, application stacks, and new hosts.
 
