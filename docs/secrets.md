@@ -244,6 +244,40 @@ cryptsetup token export --token-id 0 /dev/disk/by-partlabel/DISK_LUKS
 `"tpm2-pin": true` and `"tpm2-pcrs": [0]` are the fields that matter. A token without `tpm2-pin`
 auto-unseals on power-on and must be removed with `systemd-cryptenroll --wipe-slot=tpm2` and redone.
 
+### Dictionary-attack lockout
+
+The TPM rate-limits authValue guesses with a global counter shared by **every** TPM consumer on
+the host — the LUKS PIN, `ssh-tpm-agent` key PINs, and the `tpm2-pkcs11` token PIN all draw on
+it. Measured with `tpm2_getcap -T device:/dev/tpmrm0 properties-variable`:
+
+| Property | sweet16 | petunia |
+|---|---|---|
+| `TPM2_PT_MAX_AUTH_FAIL` | 32 | **3** |
+| `TPM2_PT_LOCKOUT_INTERVAL` (counter decays 1 per) | 7200s (2h) | 1000s (~17m) |
+| `lockoutAuthSet` | 1 | 0 |
+
+`LOCKOUT_INTERVAL` is what governs ordinary recovery — one failure is forgiven per interval.
+`TPM2_PT_LOCKOUT_RECOVERY` is narrower: it gates re-use of `lockoutAuth` after that specific
+auth fails, not general DA recovery.
+
+petunia locks after three wrong PINs. That is survivable only because agent PINs are entered
+once per agent lifetime rather than per use — anything that prompts per operation would make a
+3-strike counter untenable. sweet16 tolerates 32 attempts but has `lockoutAuth` set, so
+`tpm2_dictionarylockout --clear-lockout` needs a password that may not be recorded anywhere;
+wait out the interval instead.
+
+**A TPM lockout cannot lock you out of the disk.** LUKS2 keyslots are independent and the
+systemd-tpm2 token targets only its own slot:
+
+```
+Keyslot 0: argon2id   <- passphrase, no TPM involvement
+Keyslot 1: pbkdf2     <- systemd-tpm2 token ("keyslots":["1"])
+```
+
+`systemd-cryptsetup` falls through to the passphrase prompt whenever the TPM path fails. On
+petunia the question does not arise at all: its keyslot is PCR-0 only with no PIN, and a
+policy session carrying no authValue does not feed the DA counter.
+
 ### Hosts without a TPM
 
 avina and hermes are Proxmox LXC; dualie, forge, and rk3588 are non-NixOS. They lose nothing
