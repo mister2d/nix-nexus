@@ -7,6 +7,10 @@ _: {
         # ── Shared user profile ─────────────────────────────────────────
         homeManagerModules.user-home
 
+        # ── TPM-sealed SSH keys ────────────────────────────────────────
+        # Host-gated: requires a TPM and membership in nix-nexus.tpm2.users.
+        homeManagerModules.user-ssh-tpm-agent
+
         # ── Hyprland + Noctalia v5 stack ───────────────────────────────
         # desktop-noctalia-home: compositor-agnostic shell (bar, launcher,
         # notifications, wallpaper, polkit, OSD, screenshots, session).
