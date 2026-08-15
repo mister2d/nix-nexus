@@ -58,6 +58,9 @@ _: {
         enableCustomBuild = true;
       };
 
+      # Userspace TPM access for ssh-tpm-agent and tpm2-pkcs11.
+      nix-nexus.tpm2.users = [ "ddukes" ];
+
       # ZFS Inference Tuning
       nix-nexus.zfs = {
         # 64GB RAM; ARC kept small to maximise KV-cache / CPU-offload headroom.
