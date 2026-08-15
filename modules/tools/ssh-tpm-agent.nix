@@ -9,9 +9,26 @@
 #   permafrost-agent  ~/.ssh/agents   forwarded to permafrost-* guests only
 #
 # Each instance loads only .tpm files from its directory, so plain keys left
-# alongside them are ignored. Passphrases are held in a kernel session keyring
-# for the lifetime of the agent process with no expiry, which is what makes a
-# PIN cost one prompt per login rather than one per connection.
+# alongside them are ignored.
+#
+# The keys carry no PIN. Two constraints force that, and both are load-bearing:
+#
+#   * The agent is a daemon with no tty, so any PIN must come from an askpass.
+#     ssh-tpm-agent only probes FHS paths (/usr/lib/ssh/gnome-ssh-askpass,
+#     /usr/bin/ksshaskpass, ...) which do not exist here, and these hosts are
+#     driven headless, so no GUI prompt can be answered anyway.
+#   * Caching needs the kernel keyctl helpers. /sbin/request-key is absent, and
+#     the agent logs "kernel is missing the keyctl executable helpers" and
+#     caches nothing — so a PIN would be demanded on every signature, not once
+#     per login.
+#
+# Security rests on the TPM instead: the private half never leaves the chip, so
+# a key cannot be copied off the host. Reintroducing a PIN means solving both
+# points above first.
+#
+# Group membership is granted by nix-nexus.tpm2.users, but the systemd user
+# manager only picks it up when it restarts — a full logout or reboot. Until
+# then these units fail with "open /dev/tpmrm0: permission denied".
 _: {
   flake.modules.homeManager.user-ssh-tpm-agent =
     {
@@ -23,14 +40,6 @@ _: {
 
     let
       bin = lib.getExe' pkgs.ssh-tpm-agent "ssh-tpm-agent";
-
-      # ssh-tpm-agent probes a fixed list of FHS askpass paths
-      # (/usr/lib/ssh/gnome-ssh-askpass, /usr/bin/ksshaskpass, ...), none of
-      # which exist here, and then refuses every signature with "system does
-      # not have an askpass program". SSH_ASKPASS is the only way to reach a
-      # prompt from a unit with no tty. Qt rather than the x11-ssh-askpass
-      # NixOS otherwise defaults to, since these are Wayland sessions.
-      askpass = lib.getExe' pkgs.lxqt.lxqt-openssh-askpass "lxqt-openssh-askpass";
 
       instances = {
         ssh-tpm-agent = {
@@ -71,11 +80,7 @@ _: {
           # fresh host is the state before any key has been generated.
           ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}";
           ExecStart = "${bin} --key-dir ${inst.keyDir}";
-          Environment = [
-            "SSH_TPM_AUTH_SOCK=%t/${name}.sock"
-            "SSH_ASKPASS=${askpass}"
-            "SSH_ASKPASS_REQUIRE=force"
-          ];
+          Environment = [ "SSH_TPM_AUTH_SOCK=%t/${name}.sock" ];
           SuccessExitStatus = 2;
         };
       }) instances;
