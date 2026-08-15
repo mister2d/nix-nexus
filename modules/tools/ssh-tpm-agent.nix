@@ -24,6 +24,14 @@ _: {
     let
       bin = lib.getExe' pkgs.ssh-tpm-agent "ssh-tpm-agent";
 
+      # ssh-tpm-agent probes a fixed list of FHS askpass paths
+      # (/usr/lib/ssh/gnome-ssh-askpass, /usr/bin/ksshaskpass, ...), none of
+      # which exist here, and then refuses every signature with "system does
+      # not have an askpass program". SSH_ASKPASS is the only way to reach a
+      # prompt from a unit with no tty. Qt rather than the x11-ssh-askpass
+      # NixOS otherwise defaults to, since these are Wayland sessions.
+      askpass = lib.getExe' pkgs.lxqt.lxqt-openssh-askpass "lxqt-openssh-askpass";
+
       instances = {
         ssh-tpm-agent = {
           keyDir = "${config.home.homeDirectory}/.ssh/tpm";
@@ -37,7 +45,10 @@ _: {
     in
 
     {
-      home.packages = [ pkgs.ssh-tpm-agent ];
+      home.packages = [
+        pkgs.ssh-tpm-agent
+        pkgs.lxqt.lxqt-openssh-askpass
+      ];
 
       systemd.user.sockets = lib.mapAttrs (name: inst: {
         Unit.Description = "${inst.description} socket";
@@ -60,7 +71,11 @@ _: {
           # fresh host is the state before any key has been generated.
           ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}";
           ExecStart = "${bin} --key-dir ${inst.keyDir}";
-          Environment = [ "SSH_TPM_AUTH_SOCK=%t/${name}.sock" ];
+          Environment = [
+            "SSH_TPM_AUTH_SOCK=%t/${name}.sock"
+            "SSH_ASKPASS=${askpass}"
+            "SSH_ASKPASS_REQUIRE=force"
+          ];
           SuccessExitStatus = 2;
         };
       }) instances;
