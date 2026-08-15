@@ -56,6 +56,9 @@ _: {
         };
         Service = {
           Type = "simple";
+          # The agent exits non-zero if its key directory is absent, which on a
+          # fresh host is the state before any key has been generated.
+          ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}";
           ExecStart = "${bin} --key-dir ${inst.keyDir}";
           Environment = [ "SSH_TPM_AUTH_SOCK=%t/${name}.sock" ];
           SuccessExitStatus = 2;
