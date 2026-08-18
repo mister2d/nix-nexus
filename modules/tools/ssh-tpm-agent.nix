@@ -54,10 +54,10 @@ _: {
     in
 
     {
-      home.packages = [
-        pkgs.ssh-tpm-agent
-        pkgs.lxqt.lxqt-openssh-askpass
-      ];
+      home.packages = [ pkgs.ssh-tpm-agent ];
+
+      # gpg-agent no longer serves SSH, so nothing else sets this.
+      home.sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
 
       systemd.user.sockets = lib.mapAttrs (name: inst: {
         Unit.Description = "${inst.description} socket";

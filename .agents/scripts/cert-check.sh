@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
 # cert-check.sh — verify the ephemeral Vault-issued SSH cert is usable for deploys.
 #
-# Usage: cert-check.sh [--min-minutes N]
+# Usage: cert-check.sh [--min-minutes N] [--cert PATH]
 #   --min-minutes N   required remaining validity in minutes (default: 30)
+#   --cert PATH       certificate to inspect; also settable via $SSH_CERT.
+#                     Defaults to the TPM-sealed key's cert.
 #
-# Parses `ssh-keygen -L -f ~/.ssh/id_ed25519-cert.pub`:
+# Renew with:
+#   vault write -field=signed_key ssh-client-signer/sign/adminrole \
+#     public_key=@~/.ssh/tpm/id_ecdsa_personal.pub valid_principals=root \
+#     ttl=8h > ~/.ssh/tpm/id_ecdsa_personal-cert.pub
+#
+# ssh-tpm-agent picks the cert up from the key directory on restart; it is
+# offered as a separate ECDSA-CERT identity alongside the bare key.
+#
+# Parses `ssh-keygen -L -f "$CERT"`:
 #   - Principals must include "root" (this fleet deploys as root@<host>).
 #   - The certificate's "Valid" window must have more than N minutes remaining.
 #
@@ -16,7 +26,7 @@
 
 set -euo pipefail
 
-CERT="${HOME}/.ssh/id_ed25519-cert.pub"
+CERT="${SSH_CERT:-${HOME}/.ssh/tpm/id_ecdsa_personal-cert.pub}"
 MIN_MINUTES=30
 
 while [[ $# -gt 0 ]]; do
@@ -25,8 +35,12 @@ while [[ $# -gt 0 ]]; do
       MIN_MINUTES="$2"
       shift 2
       ;;
+    --cert)
+      CERT="$2"
+      shift 2
+      ;;
     *)
-      echo "Usage: cert-check.sh [--min-minutes N]" >&2
+      echo "Usage: cert-check.sh [--min-minutes N] [--cert PATH]" >&2
       exit 22
       ;;
   esac
