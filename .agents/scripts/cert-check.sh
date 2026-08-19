@@ -9,10 +9,13 @@
 # Renew with:
 #   vault write -field=signed_key ssh-client-signer/sign/adminrole \
 #     public_key=@~/.ssh/tpm/id_ecdsa_personal.pub valid_principals=root \
-#     ttl=8h > ~/.ssh/tpm/id_ecdsa_personal-cert.pub
+#     ttl=8h > ~/.ssh/id_ecdsa-cert.pub
+#   systemctl --user restart ssh-tpm-agent.service
 #
-# ssh-tpm-agent picks the cert up from the key directory on restart; it is
-# offered as a separate ECDSA-CERT identity alongside the bare key.
+# ssh-tpm-agent only reads certificates from its own --key-dir, so
+# ~/.ssh/tpm/id_ecdsa_personal-cert.pub is a symlink to the path above. The
+# cert is then offered as a separate ECDSA-CERT identity beside the bare key.
+# The restart matters: the key directory is scanned once at startup.
 #
 # Parses `ssh-keygen -L -f "$CERT"`:
 #   - Principals must include "root" (this fleet deploys as root@<host>).
@@ -26,7 +29,7 @@
 
 set -euo pipefail
 
-CERT="${SSH_CERT:-${HOME}/.ssh/tpm/id_ecdsa_personal-cert.pub}"
+CERT="${SSH_CERT:-${HOME}/.ssh/id_ecdsa-cert.pub}"
 MIN_MINUTES=30
 
 while [[ $# -gt 0 ]]; do
@@ -75,8 +78,11 @@ if [[ -z "$VALID_TO" ]]; then
   exit 22
 fi
 
-NOW_EPOCH="$(date -u +%s)"
-VALID_TO_EPOCH="$(date -u -d "$VALID_TO" +%s 2>/dev/null || true)"
+NOW_EPOCH="$(date +%s)"
+# ssh-keygen -L prints the validity window in LOCAL time. Parsing it with
+# `date -u -d` treated it as UTC and understated the remaining validity by the
+# UTC offset — four hours during EDT — reporting a live cert as expired.
+VALID_TO_EPOCH="$(date -d "$VALID_TO" +%s 2>/dev/null || true)"
 
 if [[ -z "$VALID_TO_EPOCH" ]]; then
   echo "cert-check: could not convert '${VALID_TO}' to epoch" >&2
