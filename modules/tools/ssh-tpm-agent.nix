@@ -54,14 +54,37 @@ _: {
     in
 
     {
-      home.packages = [ pkgs.ssh-tpm-agent ];
+      home = {
+        packages = [ pkgs.ssh-tpm-agent ];
 
-      # gpg-agent no longer serves SSH, so nothing else sets this.
-      #
-      # Both are needed and reach different places: home.sessionVariables is
-      # sourced by login shells, while graphical terminals inherit from the
-      # systemd user manager, which only reads environment.d.
-      home.sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
+        # gpg-agent no longer serves SSH, so nothing else sets this. Both are
+        # needed and reach different places: home.sessionVariables is sourced
+        # by login shells, while graphical terminals inherit from the systemd
+        # user manager, which only reads environment.d.
+        sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
+
+        # Both targets are generated at runtime on each host and cannot live in
+        # the store, hence mkOutOfStoreSymlink. Each host resolves to its own
+        # key, since a TPM key cannot be shared.
+        file = {
+          # ~/.ssh/id_ecdsa is in ssh's default identity list, so naming the
+          # public half canonically means the key is found with no client
+          # config at all — including under IdentitiesOnly, which lists exactly
+          # those default paths and would otherwise offer nothing. It pairs
+          # with the already-canonical ~/.ssh/id_ecdsa-cert.pub.
+          #
+          # Only the public half moves. The sealed key stays in its own
+          # directory: --key-dir recurses, so a key-dir of ~/.ssh would pull in
+          # ~/.ssh/agents too and collapse the two agents into one.
+          ".ssh/id_ecdsa.pub".source =
+            config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ssh/tpm/id_ecdsa_personal.pub";
+
+          # ssh-tpm-agent reads certificates only from its own --key-dir, while
+          # renewals are written to the canonical path.
+          ".ssh/tpm/id_ecdsa_personal-cert.pub".source =
+            config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ssh/id_ecdsa-cert.pub";
+        };
+      };
 
       systemd.user = {
         sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
