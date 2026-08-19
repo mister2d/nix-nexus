@@ -57,32 +57,40 @@ _: {
       home.packages = [ pkgs.ssh-tpm-agent ];
 
       # gpg-agent no longer serves SSH, so nothing else sets this.
+      #
+      # Both are needed and reach different places: home.sessionVariables is
+      # sourced by login shells, while graphical terminals inherit from the
+      # systemd user manager, which only reads environment.d.
       home.sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
 
-      systemd.user.sockets = lib.mapAttrs (name: inst: {
-        Unit.Description = "${inst.description} socket";
-        Socket = {
-          ListenStream = "%t/${name}.sock";
-          SocketMode = "0600";
-          Service = "${name}.service";
-        };
-        Install.WantedBy = [ "sockets.target" ];
-      }) instances;
+      systemd.user = {
+        sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
 
-      systemd.user.services = lib.mapAttrs (name: inst: {
-        Unit = {
-          Description = inst.description;
-          Requires = [ "${name}.socket" ];
-        };
-        Service = {
-          Type = "simple";
-          # The agent exits non-zero if its key directory is absent, which on a
-          # fresh host is the state before any key has been generated.
-          ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}";
-          ExecStart = "${bin} --key-dir ${inst.keyDir}";
-          Environment = [ "SSH_TPM_AUTH_SOCK=%t/${name}.sock" ];
-          SuccessExitStatus = 2;
-        };
-      }) instances;
+        sockets = lib.mapAttrs (name: inst: {
+          Unit.Description = "${inst.description} socket";
+          Socket = {
+            ListenStream = "%t/${name}.sock";
+            SocketMode = "0600";
+            Service = "${name}.service";
+          };
+          Install.WantedBy = [ "sockets.target" ];
+        }) instances;
+
+        services = lib.mapAttrs (name: inst: {
+          Unit = {
+            Description = inst.description;
+            Requires = [ "${name}.socket" ];
+          };
+          Service = {
+            Type = "simple";
+            # The agent exits non-zero if its key directory is absent, which on
+            # a fresh host is the state before any key has been generated.
+            ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}";
+            ExecStart = "${bin} --key-dir ${inst.keyDir}";
+            Environment = [ "SSH_TPM_AUTH_SOCK=%t/${name}.sock" ];
+            SuccessExitStatus = 2;
+          };
+        }) instances;
+      };
     };
 }
