@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/7vraq1ddbbsc31qjdxdrz20dhhsr7l3b-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/8wi2ysiyaimvfkic9y47sb6i8pm7k0b1-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/aw24zz68f88f2hi7k3ab9a67mfx3k3l2-home-manager-generation.drv",
+      "drv": "/nix/store/sa9bzcl7myfgayhmp1wdzp68nag0j9f6-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/y9q1r7hy1wzccfp9m8f80pf9dcb9d58f-home-manager-generation.drv",
+      "drv": "/nix/store/27mh3zrg4293mjss8jj5dkxbn7spn32c-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/axwk9ypn9h3yg2dkvnz3cj85i9scxsgi-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/vh8mvn2bzji10pw8kg4pfwqsgp0rv0p9-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/rzqqxybspv8pzvhi3scqbzmjh051swcs-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/wivawakk06nh8kzh7yrnwf62jkxijq4v-nixos-system-petunia-26.11.20260729.0954f7e.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/vlack0rhwg6c46h6s1ls40hg1hb22zgr-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/9akcw6v0hwqkacq1gr7z30fqnhkb4vwl-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-08-19T02:54:13Z",
+  "recorded": "2026-08-23T19:45:17Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "7bd67f5e2377b1581b2f0f9fa4872e77e4d44d12",
-  "signoff": ".agents/signoff/2026-08-19-tpm-canonical-key-name.md"
+  "signed_off_through": "ed7e52fb917425f9acbc2d59e3f181b4bb7625fe",
+  "signoff": ".agents/signoff/2026-08-23-herdr-adoption.md"
 }
