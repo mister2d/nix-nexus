@@ -97,6 +97,17 @@ _: {
       };
     in
     lib.mkIf claudeEnabled {
+      # `herdr integration status` reads HERDR_INTEGRATION_VERSION out of the
+      # file at this exact path, so it has to be the raw script rather than the
+      # wrapper — the wrapper carries no marker and reports "outdated". Nix
+      # owning the path means `herdr integration install claude` can no longer
+      # write here, which is the intent: a herdr version bump moves the symlink
+      # and the reported version follows.
+      home.file.".claude/hooks/herdr-agent-state.sh".source =
+        "${herdrClaudeHook}/libexec/herdr-agent-state.sh";
+
+      # settings.json still calls the wrapper: same script, but with python3
+      # and coreutils pinned onto PATH.
       home.activation.herdrClaudeIntegration = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
         run ${lib.getExe mergeSettings}
       '';
