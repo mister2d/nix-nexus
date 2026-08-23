@@ -1,7 +1,10 @@
 _: {
   flake.modules.homeManager.user-terminal-home =
-    { pkgs, ... }:
+    { pkgs, lib, ... }:
 
+    let
+      keymap = import ../../lib/keymap.nix { inherit lib; };
+    in
     {
       programs = {
         kitty = {
@@ -76,7 +79,7 @@ _: {
           escapeTime = 0; # Fix for Neovim lag
 
           # Approachable Screen-like bindings while learning Tmux
-          shortcut = "a";
+          shortcut = keymap.prefix.tmux;
 
           extraConfig = ''
             # Fix mangled PATH on non-NixOS hosts (e.g. dualie/Debian)
@@ -93,21 +96,10 @@ _: {
             set -g window-status-current-style bg=cyan,fg=black,bold
             set -g window-status-current-format " #I:#W "
 
-            # Easy splits
-            bind | split-window -h -c "#{pane_current_path}"
-            bind - split-window -v -c "#{pane_current_path}"
+            ${keymap.renderTmux keymap.multiplexer}
+
             unbind '"'
             unbind %
-
-            # Vim-style pane selection
-            bind h select-pane -L
-            bind j select-pane -D
-            bind k select-pane -U
-            bind l select-pane -R
-
-            # Shift-arrow to switch windows
-            bind -n S-Left  previous-window
-            bind -n S-Right next-window
 
             # Smart pane switching with awareness of Vim splits.
             set -g pane-border-style fg='#333333'
