@@ -316,6 +316,8 @@ Files under `lib/` are plain Nix expressions, not flake-parts fragments. They ar
 imported explicitly with a relative path where needed, not auto-discovered:
 
 - `lib/custom-scripts.nix` — returns `{ pkgs }: { battery-alert = ...; system-stats = ...; }` 
+- `lib/keymap.nix` — canonical multiplexer keymap plus `renderTmux` / `renderHerdr`;
+  the single source both `programs.tmux` and herdr resolve their bindings from
 - `lib/openclaude.nix` — npm package derivation
 - `lib/avina/site-config.nix` — pure data attrset for avina domain constants
 

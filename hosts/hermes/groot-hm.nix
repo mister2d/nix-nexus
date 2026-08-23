@@ -59,6 +59,7 @@ _: {
             homeManagerModules.user-neovim-home
             homeManagerModules.user-television-home
             homeManagerModules.hermes-home
+            homeManagerModules.user-herdr-home
           ];
         };
       };

@@ -81,6 +81,7 @@ _: {
         homeManagerModules.user-audio-effects
         homeManagerModules.user-audio-routing
         homeManagerModules.user-dev-home
+        homeManagerModules.user-herdr-home
       ];
 
       # Development Home Profile

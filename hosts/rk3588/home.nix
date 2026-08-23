@@ -15,6 +15,7 @@ _: {
         homeManagerModules.user-terminal-oled-home
         homeManagerModules.user-television-home
         homeManagerModules.user-dev-home
+        homeManagerModules.user-herdr-home
       ];
 
       # Home Configuration
