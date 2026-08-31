@@ -14,8 +14,13 @@
 #                        (modules/desktop/theme-home.nix) applies; false when
 #                        the theme's own background is part of its identity
 #                        (a tint, not near-black)
+#   wallpapers         — linkFarm of the theme's wallpaper pack
+#                        (lib/themes/wallpapers.nix), or null when the theme
+#                        has no pack
 { pkgs }:
 let
+  wallpaperPacks = import ./wallpapers.nix { inherit pkgs; };
+
   # Classic base16-schemes: no bespoke override, no light variant, and OLED
   # true-black deepening left off since these track their upstream author's
   # intended dark background rather than a near-black one.
@@ -25,6 +30,7 @@ let
     override = { };
     trueBlackTerminal = false;
     lightPalette = null;
+    wallpapers = null;
   };
 in
 {
@@ -35,6 +41,7 @@ in
       base0D = "39BAE6";
     };
     trueBlackTerminal = true;
+    wallpapers = null;
     lightPalette = {
       base00 = "#f8f9fa";
       base01 = "#edeff1";
@@ -58,6 +65,7 @@ in
     override = { };
     trueBlackTerminal = true;
     lightPalette = null;
+    wallpapers = wallpaperPacks.matte-black;
   };
 
   # Green-tinted background is the theme's identity; OLED deepening would
@@ -68,6 +76,7 @@ in
     override = { };
     trueBlackTerminal = false;
     lightPalette = null;
+    wallpapers = wallpaperPacks.osaka-jade;
   };
 
   ristretto = {
@@ -76,6 +85,7 @@ in
     override = { };
     trueBlackTerminal = false;
     lightPalette = null;
+    wallpapers = wallpaperPacks.ristretto;
   };
 
   tokyo-night = mkClassic "tokyo-night-dark.yaml";

@@ -33,8 +33,10 @@ _: {
           };
 
           # https://docs.noctalia.dev/v5/desktop/wallpaper/
-          # wallpaper.default.path is left unset; configure per-host or at
-          # runtime via the wallpaper panel (persisted to settings.toml).
+          # wallpaper.directory is left unset here; the active theme's default
+          # (desktop-theme-home, modules/desktop/theme-wallpapers-home.nix)
+          # supplies it via mkDefault, and runtime picks persist separately
+          # to settings.toml and win over both.
           wallpaper = {
             enabled = true;
             fill_mode = "crop";
