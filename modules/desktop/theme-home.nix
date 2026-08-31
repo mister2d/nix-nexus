@@ -10,9 +10,13 @@ _: {
     }:
     let
       inherit (config.lib.stylix.colors.withHashtag)
+        base00
         base01
+        base02
         base05
+        base0C
         base0D
+        base0E
         ;
       trueBlack = "#000000";
     in
@@ -40,8 +44,8 @@ _: {
           # without drifting five of them.
           nixvim.enable = false;
           # programs.tmux.extraConfig is types.lines, so its colour lines
-          # can't be split out without reordering the generated tmux.conf
-          # and drifting four hosts.
+          # can't be split out cleanly; they're overridden below instead via
+          # a mkAfter block, the same last-directive-wins mechanism kitty uses.
           tmux.enable = false;
 
           kitty.enable = true;
@@ -79,6 +83,20 @@ _: {
         active_tab_background ${base0D}
         inactive_tab_foreground ${base05}
         inactive_tab_background ${base01}
+      '';
+
+      # terminal-home's tmux extraConfig carries the non-stylix fallback
+      # colors. stylix's tmux target stays disabled above because
+      # extraConfig is types.lines, so this mkAfter block restates only the
+      # color-bearing directives — tmux parses top-to-bottom and the last
+      # directive wins, the same mechanism the kitty workaround above uses.
+      programs.tmux.extraConfig = lib.mkAfter ''
+        set -g status-style bg=${base00},fg=${base05}
+        set -g status-left "#[fg=${base0D},bold] #S #[default]| "
+        set -g status-right "#[fg=${base0E}] %Y-%m-%d #[fg=${base0C}]%H:%M:%S "
+        set -g window-status-current-style bg=${base0D},fg=${base00},bold
+        set -g pane-border-style fg='${base02}'
+        set -g pane-active-border-style fg='${base0C}'
       '';
     };
 }
