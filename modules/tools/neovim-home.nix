@@ -1,6 +1,6 @@
 _: {
   flake.modules.homeManager.user-neovim-home =
-    { pkgs, ... }:
+    { pkgs, lib, ... }:
 
     {
       programs.nixvim = {
@@ -38,7 +38,7 @@ _: {
 
         # --- Keymaps (The Nix Way) ---
         colorschemes.nightfox = {
-          enable = true;
+          enable = lib.mkDefault true;
           flavor = "carbonfox";
         };
 
