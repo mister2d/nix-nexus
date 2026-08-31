@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/bsm6hhrl0z660gilnk9jqivynlp9l2sz-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/crp117mv6bk05mkdhrvscz3zcsv9svsy-nixos-system-petunia-26.11.20260729.0954f7e.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/rxgfd691ngfda3mxlyk9r1i9j3rz3wpf-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/ddi5ln41gpq234l7lfwf5ls3w354gwrw-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-08-31T06:05:54Z",
+  "recorded": "2026-08-31T06:40:39Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "eb7592b35f79fd43fd118de9b514dcac7f3b30ce",
-  "signoff": ".agents/signoff/2026-08-31-theme-registry-option.md"
+  "signed_off_through": "0eeeddad862d8bfaa38514d2062c94c27a5af370",
+  "signoff": ".agents/signoff/2026-08-31-theme-tmux-nixvim.md"
 }
