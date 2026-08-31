@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-08-24T03:58:26Z",
+  "recorded": "2026-08-31T06:05:54Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "5b46571d3aca1ebbf094b862879aa212b9515c5f",
-  "signoff": ".agents/signoff/2026-08-24-sony-tpm-key-portable-ed25519-removal.md"
+  "signed_off_through": "eb7592b35f79fd43fd118de9b514dcac7f3b30ce",
+  "signoff": ".agents/signoff/2026-08-31-theme-registry-option.md"
 }
