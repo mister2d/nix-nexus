@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-08-31T06:40:39Z",
+  "recorded": "2026-08-31T07:25:35Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "0eeeddad862d8bfaa38514d2062c94c27a5af370",
-  "signoff": ".agents/signoff/2026-08-31-theme-tmux-nixvim.md"
+  "signed_off_through": "8fea7f4a36872ff50edc0985c6e7811b48937fdb",
+  "signoff": ".agents/signoff/2026-08-31-theme-omarchy-schemes.md"
 }
