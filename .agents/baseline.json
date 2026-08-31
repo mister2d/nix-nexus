@@ -32,14 +32,14 @@
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/ddi5ln41gpq234l7lfwf5ls3w354gwrw-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/99ghh8mj1xsgc2vkb07by0qfym3vpms5-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-08-31T07:56:44Z",
+  "recorded": "2026-08-31T08:10:57Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "0bc680285aec6d08d448fb3cbe9853fbbe340374",
-  "signoff": ".agents/signoff/2026-08-31-theme-wallpaper-packs.md"
+  "signed_off_through": "93bc9cb722eec626a7c62d6671046023e7de4fd1",
+  "signoff": ".agents/signoff/2026-08-31-sweet16-matte-black.md"
 }
