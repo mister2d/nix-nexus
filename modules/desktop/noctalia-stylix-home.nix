@@ -2,33 +2,23 @@
 # palette. Mirrors upstream stylix/modules/noctalia/hm.nix's role mapping for
 # the dark variant, sourced live from config.lib.stylix.colors.
 #
-# The light variant is not covered by upstream (it only ships dark); it is
-# derived here against the ayu-light base16 palette using the same role
-# mapping, so noctalia's runtime light-mode toggle still resolves the
-# "stylix" palette instead of falling back to an undefined one.
+# The light variant is not covered by upstream (it only ships dark); it comes
+# from the active theme's lightPalette in the theme registry (lib/themes),
+# mapped through the same roles as upstream's dark variant. Themes without a
+# light palette fall back to the dark palette instead of an undefined one.
 _: {
   flake.modules.homeManager.desktop-noctalia-home =
-    { config, ... }:
+    {
+      config,
+      osConfig,
+      pkgs,
+      ...
+    }:
     let
       c = config.lib.stylix.colors.withHashtag;
 
-      # ayu-light base16 hex values (base16-schemes' ayu-light.yaml), mapped
-      # through the same roles as upstream's dark variant.
-      light = {
-        base00 = "#f8f9fa";
-        base01 = "#edeff1";
-        base02 = "#d2d4d8";
-        base03 = "#a0a6ac";
-        base04 = "#8A9199";
-        base05 = "#5c6166";
-        base07 = "#404447";
-        base08 = "#f07171";
-        base0A = "#f2ae49";
-        base0B = "#6cbf49";
-        base0C = "#4cbf99";
-        base0D = "#399ee6";
-        base0E = "#a37acc";
-      };
+      theme = (import ../../lib/themes { inherit pkgs; }).${osConfig.nix-nexus.theme.name};
+      light = if theme.lightPalette != null then theme.lightPalette else c;
 
       mkPalette = p: {
         mPrimary = p.base0D;
