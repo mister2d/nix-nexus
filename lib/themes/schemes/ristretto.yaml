@@ -1,0 +1,30 @@
+# Converted from omacom/omarchy themes/ristretto/colors.toml at rev
+# b686ed892d9c3020c3336203f6d34cc75b544e2b.
+# Author: Omarchy (omacom/omarchy); base16 mapping: nix-nexus.
+#
+# base03 reuses upstream muted == dark_foreground. base04 uses upstream
+# light_foreground (dark_foreground would duplicate muted). base06 reuses
+# base05 (upstream bright_foreground == foreground; documented reuse).
+# base07 is the only synthesized hex: foreground lightened 30% toward white,
+# since upstream has no brighter neutral beyond bright_foreground.
+system: "base16"
+name: "Ristretto"
+author: "Omarchy (omacom/omarchy); base16 mapping: nix-nexus"
+variant: "dark"
+palette:
+  base00: "#2c2525"
+  base01: "#3d2f2a"
+  base02: "#403e41"
+  base03: "#72696a"
+  base04: "#c3b7b8"
+  base05: "#e6d9db"
+  base06: "#e6d9db"
+  base07: "#eee4e6"
+  base08: "#fd6883"
+  base09: "#fb9a77"
+  base0A: "#f9cc6c"
+  base0B: "#adda78"
+  base0C: "#85dacc"
+  base0D: "#f38d70"
+  base0E: "#a8a9eb"
+  base0F: "#7d4d3b"

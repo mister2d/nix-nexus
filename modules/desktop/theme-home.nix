@@ -6,6 +6,8 @@ _: {
       lib,
       options,
       config,
+      osConfig,
+      pkgs,
       ...
     }:
     let
@@ -19,6 +21,7 @@ _: {
         base0E
         ;
       trueBlack = "#000000";
+      theme = (import ../../lib/themes { inherit pkgs; }).${osConfig.nix-nexus.theme.name};
     in
     {
       # stylix's cursor module (stylix/hm/cursor.nix) sets home.pointerCursor's
@@ -56,15 +59,15 @@ _: {
           hyprland.enable = true;
           hyprlock.enable = true;
 
-          # OLED: keep terminals true black. ayu-dark's base00 is #0b0e14, but this
-          # panel runs pure #000000 today and that preference is deliberate. Scoped to
-          # the terminals — a global stylix.override.base00 would also move noctalia
-          # surfaces, GTK/Qt backgrounds and btop.
+          # OLED: keep terminals true black on themes that opt in via the registry's
+          # trueBlackTerminal flag (lib/themes). Scoped to the terminals — a global
+          # stylix.override.base00 would also move noctalia surfaces, GTK/Qt
+          # backgrounds and btop.
           #
           # Ghostty reads colors.base00 directly when building its theme, so this
           # override genuinely reaches the rendered config. Kitty has no equivalent
           # override — see programs.kitty.extraConfig below for why.
-          ghostty.colors.override.base00 = "000000";
+          ghostty.colors.override = lib.optionalAttrs theme.trueBlackTerminal { base00 = "000000"; };
         };
 
       programs = {
@@ -83,7 +86,7 @@ _: {
         # here: kitty parses top-to-bottom, and lib.mkAfter places this block
         # after that include, making it the effective config.
         kitty.extraConfig = lib.mkAfter ''
-          background ${trueBlack}
+          ${lib.optionalString theme.trueBlackTerminal "background ${trueBlack}"}
           active_tab_foreground ${trueBlack}
           active_tab_background ${base0D}
           inactive_tab_foreground ${base05}

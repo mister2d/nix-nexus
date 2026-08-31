@@ -1,0 +1,27 @@
+# Converted from omacom/omarchy themes/osaka-jade/colors.toml at rev
+# b686ed892d9c3020c3336203f6d34cc75b544e2b.
+# Author: Omarchy (omacom/omarchy); base16 mapping: nix-nexus.
+#
+# The yellow slot is jade-green, not literal yellow — this is the theme's
+# identity; Omarchy's true yellow (#e5c736, bright_yellow) is not used here.
+system: "base16"
+name: "Osaka Jade"
+author: "Omarchy (omacom/omarchy); base16 mapping: nix-nexus"
+variant: "dark"
+palette:
+  base00: "#111c18"
+  base01: "#23372b"
+  base02: "#32473b"
+  base03: "#53685b"
+  base04: "#81b8a8"
+  base05: "#c1c497"
+  base06: "#d6d5bc"
+  base07: "#f7e8b2"
+  base08: "#ff5345"
+  base09: "#a2734b"
+  base0A: "#459451"
+  base0B: "#549e6a"
+  base0C: "#2dd5b7"
+  base0D: "#509475"
+  base0E: "#d2689c"
+  base0F: "#513925"
