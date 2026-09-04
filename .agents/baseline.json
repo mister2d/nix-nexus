@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-09-04T12:52:23Z",
+  "recorded": "2026-09-04T15:53:07Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "718f263fb28a98f92fe3deca06e0d3f7bcca50cb",
-  "signoff": ".agents/signoff/2026-09-04-catppuccin-true-black.md"
+  "signed_off_through": "3ae0dd18e693878e47061b69e5e682500ee44721",
+  "signoff": ".agents/signoff/2026-09-04-layout-and-dead-code.md"
 }
