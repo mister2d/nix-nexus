@@ -129,9 +129,9 @@ _: {
         # Wayland Session Environment
         # These variables optimize application behavior for the Wayland desktop.
         sessionVariables = {
-          MOZ_ENABLE_WAYLAND = lib.mkForce "1";
-          SDL_VIDEODRIVER = lib.mkForce "wayland";
-          NIXOS_OZONE_WL = lib.mkForce "1";
+          MOZ_ENABLE_WAYLAND = "1";
+          SDL_VIDEODRIVER = "wayland";
+          NIXOS_OZONE_WL = "1";
 
           # Editor Configuration
           # nixvim sets EDITOR and VISUAL to nvim at normal priority under
