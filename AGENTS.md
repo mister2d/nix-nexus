@@ -136,7 +136,7 @@ use names from `nixosModules.*` or `homeManagerModules.*`. Never use `import
 imports = [
   nixosModules.hardware-z16
   nixosModules.workstation-default
-  nixosModules.desktop-sway
+  nixosModules.desktop-hyprland
 ];
 
 # WRONG — path import breaks the pattern
@@ -491,6 +491,11 @@ Current hosts and their assembly structure:
 | `nix-nexus.zfs.*` | `modules/core/zfs.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.networking.tailscale.homeSSIDs` | `modules/core/networking.nix` | `hosts/sweet16/default.nix` |
 | `nix-nexus.virtualization.microvm.*` | `modules/core/microvm-host.nix` | `hosts/sweet16/default.nix` |
+| `nix-nexus.secrets.sops.*` | `modules/core/sops.nix` | `hosts/avina/default.nix`, `hosts/hermes/secrets.nix` |
+| `nix-nexus.tpm2.users` | `modules/core/tpm2.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
+| `nix-nexus.theme.*` | `modules/desktop/theme.nix` | `hosts/sweet16/default.nix` |
+| `nix-nexus.kernel.cachyos.*` | `modules/hardware/kernel/cachyos.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
+| `nix-nexus.user.dev.*` (Home Manager) | `modules/user/dev-home.nix` | `modules/user/home.nix`, `hosts/dualie/home.nix`, `hosts/forge/home.nix`, `hosts/rk3588/home.nix` |
 
 ---
 
@@ -541,40 +546,80 @@ Trace the cascade from the differing drv upward to find what changed. Common
 causes: list-merge order changed (kernel params, package lists), evaluation
 order changed by `deferredModule` wrapping.
 
+### Expected `nix flake check` output
+
+A clean `nix flake check --impure` run always emits these four warning
+lines. None of them indicates a defect.
+
+1. `warning: unknown flake output 'modules'`. The `flake.modules.*` registry
+   is not a standard flake output. flake-parts populates it correctly, and
+   `nix flake check` does not recognise it.
+2. `warning: The check omitted these incompatible systems: aarch64-linux`.
+   `modules/flake/systems.nix` declares both `x86_64-linux` and
+   `aarch64-linux`. Without `--all-systems`, `nix flake check` evaluates only
+   the current system and reports the other one as omitted.
+3. `evaluation warning: The package 'devenv-up' is deprecated...`. The devenv
+   2.2.0 flake module emits this line unconditionally for its default package.
+4. `evaluation warning: The package 'devenv-test' is deprecated...`. Same
+   source as line 3.
+
+Treat any other warning as a defect and investigate it before you proceed.
+
 ---
 
 ## 11. Document map
 
 ```
-AGENTS.md                     ← you are here (maintenance authority)
+AGENTS.md                       ← you are here (maintenance authority)
+README.md                       ← project overview, fleet table, directory map, quick start
 docs/
-├── architecture.md           ← how the dendritic pattern works end-to-end
-├── cookbook.md               ← step-by-step recipes for common tasks
-├── workflow.md               ← human-facing day-to-day dev loop (start here)
-├── hardware.md               ← OLED, AMD P-State, hybrid GPU
-├── cachyos-kernel.md         ← CachyOS kernel, ZFS, BBR3
-├── packages.md               ← pinned DevOps tool and driver versions
-├── storage.md                ← CephFS and ZFS dataset strategies
-├── terminal.md               ← Kitty/Tmux config and Bash aliases
-├── non-nixos.md              ← standalone HM migration guide
-├── devenv.md                 ← declarative dev environments
-├── petunia.md                ← TPM2 auto-unlock, dual GPU, rebuild procedure
-├── petunia-sbom.md           ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
-├── secrets.md                ← sops-nix / secretspec / Vault layering, TPM2 posture per host
-└── permafrost-host.md        ← permafrost microvm host module: bridge, NAT, kvm policy, store settings
+├── architecture.md             ← how the dendritic pattern works end-to-end
+├── cookbook.md                 ← step-by-step recipes for common tasks
+├── workflow.md                 ← human-facing day-to-day dev loop (start here)
+├── hardware.md                 ← OLED, AMD P-State, hybrid GPU
+├── cachyos-kernel.md           ← CachyOS kernel, ZFS, BBR3
+├── packages.md                 ← pinned DevOps tool versions
+├── storage.md                  ← CephFS and ZFS dataset strategies
+├── terminal.md                 ← Kitty/Tmux config and Bash aliases
+├── non-nixos.md                ← standalone HM migration guide
+├── devenv.md                   ← declarative dev environments
+├── petunia.md                  ← TPM2 auto-unlock, dual GPU, rebuild procedure
+├── petunia-sbom.md             ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
+├── secrets.md                  ← sops-nix / secretspec / Vault layering, TPM2 posture per host
+├── permafrost-host.md          ← permafrost microvm host module: bridge, NAT, kvm policy, store settings
+├── hermes.md                   ← Hermes LXC host: hermes-agent gateway, Matrix, Petunia-backed LLM
+├── upgrading.md                ← routine updates, major release upgrades, rollback, auto-upgrades
+└── _archive/                   ← historical planning docs, not part of the doc index (superpowers/)
+hosts/avina/
+├── README.md                   ← avina LXC container overview and Matrix 2.0 stack summary
+└── PROTOCOL_REFERENCE.md       ← standards and security decisions behind the Matrix 2.0 stack
+lib/
+├── authorized-keys.nix         ← TPM-sealed SSH public keys, per host
+├── avina/site-config.nix       ← Avina domain constants
+├── context-mode.nix            ← context-mode npm package derivation
+├── context-mode-hermes.nix     ← hermes-agent Python plugin package for context-mode
+├── context-mode-lock.json      ← npm lockfile for context-mode.nix
+├── custom-scripts.nix          ← battery-alert, llm-init, and other helper scripts
+├── hermes-agent/               ← vendored hermes-agent package, patch, version-check hook
+├── keymap.nix                  ← shared tmux/fish multiplexer keymap actions
+├── openclaude.nix              ← Claude npm package derivation
+├── openclaude-lock.json        ← npm lockfile for openclaude.nix
+├── pinned-pkgs.nix             ← helper to instantiate a pinned nixpkgs flake input
+├── shell-aliases.nix           ← bash/fish shared shell aliases
+└── themes/                     ← theme registry: color schemes, wallpapers
 .agents/
-├── baseline.json             ← current per-config drv state + signed_off_through
-├── signoff/                  ← one immutable generated entry per sign-off
-├── signoff-archive.md        ← historical: hand-authored sign-offs, 2026-06→08
-├── validation.md             ← script toolbox reference (current-state)
-├── phase-A.md                ← historical: dendritic refactor phase A record
-├── phase-B.md                ← historical: dendritic refactor phase B record
-├── phase-C.md                ← historical: dendritic refactor phase C record
+├── baseline.json               ← current per-config drv state + signed_off_through
+├── signoff/                    ← one immutable generated entry per sign-off
+├── signoff-archive.md          ← historical: hand-authored sign-offs, 2026-06→08
+├── validation.md               ← script toolbox reference (current-state)
+├── phase-A.md                  ← historical: dendritic refactor phase A record
+├── phase-B.md                  ← historical: dendritic refactor phase B record
+├── phase-C.md                  ← historical: dendritic refactor phase C record
 └── scripts/
-    ├── lib.sh                 ← fleet lists + clean per-rev drv eval helper
-    ├── signoff.sh             ← the only sign-off writer: entry + baseline.json
-    ├── verify-drift.sh        ← per-config drv diff between two revs
-    ├── consumers.sh           ← recursive registry-key/input consumer lookup
+    ├── lib.sh                  ← fleet lists + clean per-rev drv eval helper
+    ├── signoff.sh              ← the only sign-off writer: entry + baseline.json
+    ├── verify-drift.sh         ← per-config drv diff between two revs
+    ├── consumers.sh            ← recursive registry-key/input consumer lookup
     ├── lock-diff.sh            ← node-by-node flake.lock diff via jq
     ├── preflight.sh            ← pre-commit + nix flake check gate
     ├── cert-check.sh           ← ephemeral Vault SSH cert validity check
@@ -585,7 +630,7 @@ docs/
     └── hook-push-guard.sh      ← PreToolUse(Bash) hook: block push without a sign-off record
 modules/flake/
 └── checks.nix                  ← devenv.shells.default: devshell, git-hooks, claude.code wiring
-.envrc                           ← direnv entry (`use flake --impure`); tracked
+.envrc                          ← direnv entry (`use flake --impure`); tracked
 .claude/
 ├── settings.json               ← generated by devenv (claude.code, modules/flake/checks.nix); untracked
 └── agents/

@@ -103,7 +103,7 @@ _: {
         nixosModules.workstation-default # core policies
         nixosModules.desktop-default     # desktop suite
         nixosModules.development-default # dev toolchain
-        nixosModules.desktop-sway        # compositor
+        nixosModules.desktop-hyprland    # compositor
       ];
       networking.hostName = "sweet16";
       # ...machine-specific overrides...
@@ -233,9 +233,9 @@ _: {
     {
       imports = [
         homeManagerModules.user-home
-        homeManagerModules.hardware-z16-sway-home
-        homeManagerModules.desktop-sway-home
-        homeManagerModules.desktop-waybar-home
+        homeManagerModules.hardware-z16-hypr-home
+        homeManagerModules.desktop-hyprland-home
+        homeManagerModules.desktop-noctalia-home
       ];
       programs.btop.package = pkgs.btop.override { rocmSupport = true; };
     };
@@ -246,29 +246,42 @@ _: {
 
 ## Standalone Home Manager (non-NixOS hosts)
 
-For machines that run a foreign Linux (Debian, Armbian, etc.), a standalone HM
-configuration is built in `modules/flake/hm-<user>-<hostname>.nix`:
+For machines that run a foreign Linux (Debian, Armbian, etc.), one flake-parts
+fragment maps every host for a given user. `modules/flake/hm-groot.nix` builds
+`groot@dualie`, `groot@forge`, and `groot@rk3588` from a single host-to-system
+table:
 
 ```nix
-{ inputs, config, ... }:
-let hm = config.flake.modules.homeManager; in
+{ inputs, config, lib, ... }:
+let
+  hm = config.flake.modules.homeManager;
+  hosts = {
+    dualie = "x86_64-linux";
+    forge = "x86_64-linux";
+    rk3588 = "aarch64-linux";
+  };
+in
 {
-  flake.homeConfigurations."groot@dualie" =
-    inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
-      modules = [ inputs.nixvim.homeModules.nixvim hm.dualie-home ];
-      extraSpecialArgs = {
-        inherit (inputs) self;
-        inherit inputs;
-        homeManagerModules = hm;
-      };
-    };
+  flake.homeConfigurations = lib.mapAttrs' (
+    host: system:
+    lib.nameValuePair "groot@${host}" (
+      inputs.home-manager.lib.homeManagerConfiguration {
+        pkgs = inputs.nixpkgs.legacyPackages.${system};
+        modules = [ inputs.nixvim.homeModules.nixvim hm."${host}-home" ];
+        extraSpecialArgs = {
+          inherit (inputs) self;
+          inherit inputs;
+          homeManagerModules = hm;
+        };
+      }
+    )
+  ) hosts;
 }
 ```
 
 Activated with:
 ```bash
-nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
+nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
 ```
 
 ---
@@ -280,10 +293,10 @@ nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
 | Core NixOS | `core-<subsystem>` | `core-networking`, `core-zfs` |
 | Profiles | `<role>-default` | `workstation-default`, `server-default`, `desktop-default` |
 | Hardware NixOS | `hardware-<platform>` | `hardware-z16`, `hardware-petunia` |
-| Hardware HM | `hardware-<platform>-<compositor>-home` | `hardware-z16-sway-home`, `hardware-z16-hypr-home` |
+| Hardware HM | `hardware-<platform>-<compositor>-home` | `hardware-z16-hypr-home`, `hardware-petunia-hypr-home` |
 | Services | `services-<stack>` | `services-matrix` |
-| Desktop NixOS | `desktop-<compositor>` | `desktop-sway`, `desktop-niri`, `desktop-hyprland` |
-| Desktop HM | `desktop-<compositor>-home` | `desktop-sway-home`, `desktop-niri-home`, `desktop-hyprland-home` |
+| Desktop NixOS | `desktop-<compositor>` | `desktop-hyprland` |
+| Desktop HM | `desktop-<compositor>-home` | `desktop-hyprland-home`, `desktop-noctalia-home` |
 | User HM | `user-<aspect>` | `user-home`, `user-bash`, `user-neovim-home` |
 | Host NixOS | `<hostname>-default` | `sweet16-default`, `hermes-default` |
 | Host HM | `<hostname>-home` | `sweet16-home`, `dualie-home` |

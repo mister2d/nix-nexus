@@ -23,7 +23,7 @@ The configuration follows a dendritic (self-registering) flake architecture buil
 Concerns are separated across three tiers:
 
 1. **Core** — foundational policies (timezone, ZFS, security, networking) applied globally via `modules/core/`.
-2. **Profiles** — hardware-agnostic functional suites (`profiles/server`, `profiles/workstation`, `profiles/desktop`, `profiles/development`).
+2. **Profiles** — hardware-agnostic functional suites (`profiles/server`, `profiles/workstation`, `profiles/desktop`).
 3. **Modules** — granular, opt-in aspects (`modules/hardware/`, `modules/services/`, `modules/user/`) composed by each host.
 
 ## 🚢 Fleet Composition
@@ -51,7 +51,7 @@ Concerns are separated across three tiers:
 │   ├── flake/              # Host assembly files and flake output wiring
 │   ├── core/               # System foundations (security, networking, ZFS)
 │   ├── hardware/           # GPU, kernel, and platform aspects
-│   ├── desktop/            # Sway, Waybar, theming, and HM companions
+│   ├── desktop/            # Hyprland, Noctalia, Wayland, and theme
 │   ├── programs/           # Dev toolchains, scripts, package sets
 │   ├── services/matrix/    # Matrix 2.0 stack (Synapse, MAS, LiveKit, HAProxy)
 │   └── user/               # Home Manager aspects (shell, editor, terminal)
@@ -63,7 +63,7 @@ Concerns are separated across three tiers:
 │   ├── dualie/             # Standalone HM — Debian x86_64
 │   ├── forge/              # Standalone HM — Linux x86_64
 │   └── rk3588/             # Standalone HM — Armbian aarch64
-├── profiles/               # Functional suites (server, workstation, desktop, development)
+├── profiles/               # Functional suites (server, workstation, desktop)
 └── docs/                   # Deep-dive technical guides
 ```
 
@@ -87,7 +87,7 @@ nixos-rebuild switch --flake .#sweet16
 
 ### Standalone Home Manager (Non-NixOS)
 ```bash
-nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
+nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
 ```
 
 ---
@@ -126,12 +126,16 @@ direnv allow
 - [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Specifications for the Matrix 2.0 stack and hybrid ingress architecture.
 - [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and hybrid GPU management.
 - [**CachyOS Kernel**](./docs/cachyos-kernel.md): CachyOS kernel setup, ZFS integration, and BBR3 tuning.
-- [**Package Inventory**](./docs/packages.md): Pinned DevOps tools and hardware driver versions (NVIDIA/CUDA).
+- [**Package Inventory**](./docs/packages.md): Pinned DevOps tool versions.
 - [**Storage Management**](./docs/storage.md): CephFS mounting and ZFS dataset strategies.
 - [**Terminal & Multiplexing**](./docs/terminal.md): Kitty/Tmux configuration and Bash aliases.
 - [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix on non-NixOS hosts.
 - [**Devenv 2.0 Workflows**](./docs/devenv.md): Declarative development environments replacing Docker Compose.
 - [**Permafrost Host Module**](./docs/permafrost-host.md): The microvm bridge, NAT, kvm policy, and store settings behind the permafrost sandbox on sweet16.
+- [**Hermes**](./docs/hermes.md): The AI agent gateway LXC host — hermes-agent, Matrix connection, Petunia-backed LLM.
+- [**Secrets Management**](./docs/secrets.md): sops-nix, secretspec, and Vault layering, and TPM2 posture per host.
+- [**Petunia**](./docs/petunia.md): Host-specific operations — TPM2 auto-unlock, dual GPU, rebuild procedure.
+- [**Petunia Inference SBOM**](./docs/petunia-sbom.md): ROCm, HIP, Vulkan, and Mesa version inventory for the inference stack.
 
 ---
 Enjoy your reproducible, structured environment.

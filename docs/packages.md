@@ -46,16 +46,6 @@ These tools are pinned to specific versions to ensure absolute reproducibility a
 | **Signal Desktop** | Encrypted communication. | Secure messaging and collaboration. |
 | **LibreOffice** | Productivity suite. | Document, spreadsheet, and presentation management. |
 
-## Desktop Utilities (Sway/Wayland)
-- **Wofi**: Application launcher and GPU selector backend.
-- **Waybar**: Highly customizable status bar for Wayland compositors.
-- **Kanshi**: Dynamic display profile manager for docking/undocking.
-- **EasyEffects**: System-wide audio processing and equalization.
-- **Grim/Slurp**: High-performance screenshot and region selection tools.
-- **Clipman**: History-persistent clipboard manager.
-- **Pamixer**: Command-line PulseAudio/PipeWire volume control.
-- **Battery-travel-mode**: Helper script for ThinkPad Z16 to temporarily override battery charging thresholds for long trips.
-
 ---
 
 ## Package Maintenance & Version Bumping
@@ -97,88 +87,7 @@ These packages follow the primary `nixpkgs` input but are protected by assertion
 3.  **Acknowledge & Bump:** Verify the new version is compatible, then update the constant in `modules/services/matrix/versions.nix` to match the new version string.
 4.  **Validate:** Re-run the evaluation; it should now pass.
 
-### 3. Hardware-Level Pinning (NVIDIA & CUDA)
-**Used for:** Servers like `petunia` and workstations requiring specific driver/CUDA compatibility.
-
-#### The Golden Rule of Pinning:
-*   **If it's in the `nix-env` list:** You **DO NOT** need hashes. Simply point your config to the attribute (e.g., `.beta` or `.legacy_535`).
-*   **If it's NOT in the list:** You **DO** need hashes and must use the `mkDriver` override.
-
-#### A. NVIDIA Driver Discovery (No Hashes Required)
-To see available driver branches already packaged in your current Nixpkgs channel:
-```bash
-nix-env -f '<nixpkgs>' -qaP -A linuxPackages.nvidiaPackages
-```
-*   **`.stable`**: The current production driver (Default).
-*   **`.beta`**: Latest features/Vulkan extensions.
-*   **`.legacy_470 / .legacy_535`**: Required for older hardware.
-*   **`.dc`**: Data Center/Tesla optimized drivers.
-
-**Pinning a Branch:**
-In your hardware module (e.g., `modules/hardware/petunia/nvidia.nix`):
-```nix
-# This uses the version pre-defined in Nixpkgs
-hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.beta;
-```
-
-#### B. CUDA Toolkit Discovery
-CUDA is managed via the `cudaPackages` scope. To see available toolkit versions:
-```bash
-nix eval --json nixpkgs#cudaPackages --apply "builtins.attrNames" | jq -r '.[] | select(test("^cudaPackages_[0-9]"))'
-```
-This will return specific versioned sets like `cudaPackages_11`, `cudaPackages_12_2`, etc.
-
-**Pinning a CUDA Version:**
-When defining a dev shell or service that requires a specific CUDA version:
-```nix
-# Example: Use CUDA 12.2 specifically
-let
-  pkgs-cuda = pkgs.cudaPackages_12_2;
-in {
-  environment.systemPackages = [
-    pkgs-cuda.cudatoolkit
-    pkgs-cuda.cudnn
-  ];
-}
-```
-
-#### C. Manual Overrides (mkDriver)
-Use this **only** if the specific version you need is missing from the `nix-env` list above.
-
-**The "Lazy Hash" Workflow:**
-You do not need to hunt for hashes on the internet. Nix can discover them for you:
-
-1.  **Set Fake Hashes:** Populate all hash fields in `mkDriver` with `lib.fakeSha256`.
-2.  **Satisfy Architectures:** Use `lib.fakeSha256` for `sha256_aarch64` even if you're on x86_64. Nix won't download the ARM version unless you're building on ARM, so the fake hash will never "fail."
-3.  **Build:** Run `nixos-rebuild build`.
-4.  **Extract the "Got" Hash:** The build will fail with a "hash mismatch" error.
-    *   **`specified`**: The fake hash you put in.
-    *   **`got`**: The **real** hash Nix found at the URL.
-5.  **Iterate:** Copy the `got` hash into your config and rebuild. Repeat this for each component (driver, settings, open-source module) as they fail one by one.
-
-**Example Configuration:**
-```nix
-hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.mkDriver {
-  version = "590.48.01";
-
-  sha256_64bit = "sha256-ueL4BpN4FDHMh/TNKRCeEz3Oy1ClDWto1LO/LWlr1ok=";
-  sha256_aarch64 = "sha256-FOz7f6pW1NGM2f74kbP6LbNijxKj5ZtZ08bm0aC+/YA=";
-  openSha256 = "sha256-hECHfguzwduEfPo5pCDjWE/MjtRDhINVr4b1awFdP44=";
-  settingsSha256 = "sha256-NWsqUciPa4f1ZX6f0By3yScz3pqKJV1ei9GvOF8qIEE=";
-  persistencedSha256 = "sha256-wsNeuw7IaY6Qc/i/AzT/4N82lPjkwfrhxidKWUtcwW8=";
-};
-
-```
-
-**Common Questions:**
-*   **"Do I have to set them all?"** Yes. The `mkDriver` function expects a complete set of attributes to evaluate.
-*   **"I don't have aarch64!"** That's fine. Providing a hash for `aarch64` satisfies the Nix evaluator's requirement for the argument; it doesn't mean Nix will try to download or build the ARM version unless you are actually on an ARM machine. You can safely use the `lib.fakeSha256` or the actual ARM hash from the error log.
-
-**Discovery & Verification:**
-*   **Current Version:** `nix eval --raw .#nixosConfigurations.<host>.config.hardware.nvidia.package.version`
-*   **Verify CUDA:** `nix eval --raw .#nixosConfigurations.<host>.pkgs.cudaPackages.cuda_nvcc.version`
-
-### 4. Rolling Updates (Standard Packages)
+### 3. Rolling Updates (Standard Packages)
 **Used for:** System utilities, terminal tools, and productivity apps.
 These are managed via the standard `nixpkgs` and `nixpkgs-unstable` inputs without extra pinning logic.
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # verify-drift.sh — per-config derivation comparison between two clean git revs.
-# Replaces the old verify-hosts.sh (deleted).
 #
 # Usage: verify-drift.sh <base-rev> [new-rev]
 #   base-rev   git rev to compare from (required)

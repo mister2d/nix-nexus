@@ -18,7 +18,7 @@ as fallback.
 - **Re-enrollment trigger:** Any UEFI firmware update changes PCR 0. Re-enroll after every
   BIOS update (see below).
 - **NixOS modules:** `security.tpm2.*` and `boot.initrd.systemd.tpm2.enable` in
-  `modules/hardware/petunia/tpm2.nix`.
+  `modules/core/tpm2.nix`.
 
 ### Device path note
 

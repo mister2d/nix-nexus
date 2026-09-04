@@ -14,14 +14,14 @@ NixOS follows a biannual release cycle, named by year and month:
 
 | Channel | Type | Use case |
 |---|---|---|
-| `nixos-25.11` | Stable | Conservative bug fixes and security patches only |
-| `nixos-26.05` | Stable (next) | Major release with updated package versions |
+| `nixos-26.05` | Stable | Conservative bug fixes and security patches only |
+| `nixos-25.11` | Stable (previous) | Previous stable release, still supported |
 | `nixos-unstable` | Rolling | Main development branch; bleeding edge |
-| `nixos-25.11-small` | Stable (server) | Same as stable with fewer pre-built binaries |
+| `nixos-25.11-small` | Stable (previous, server) | Same as the previous stable with fewer pre-built binaries |
 
 **Stable releases** receive only conservative bug fixes and minor package
 upgrades — not major version jumps in core software. This is what
-`nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11"` tracks.
+`nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05"` tracks.
 
 **Unstable** reflects the development branch and may have radical changes
 between updates. nix-nexus uses `nixpkgs-unstable` selectively (currently
@@ -37,8 +37,8 @@ and `nixos-rebuild switch --upgrade` fetches it. In this flake repository,
 URL, and `flake.lock` pins the exact commit:
 
 ```nix
-# This is the flake equivalent of subscribing to nixos-25.11:
-nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+# This is the flake equivalent of subscribing to nixos-26.05:
+nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 ```
 
 `nix flake update` is the flake equivalent of `nix-channel --update`.
@@ -57,10 +57,10 @@ together when upgrading to a new NixOS release:
 
 | Input | Current URL | Notes |
 |---|---|---|
-| `nixpkgs` | `github:nixos/nixpkgs/nixos-25.11` | Primary stable nixpkgs |
-| `pkgs-stable` | `github:nixos/nixpkgs/nixos-25.11` | Explicit stable alias (same branch) |
-| `home-manager` | `github:nix-community/home-manager/release-25.11` | HM must match nixpkgs release |
-| `nixvim` | `github:nix-community/nixvim/nixos-25.11` | nixvim must match nixpkgs release |
+| `nixpkgs` | `github:nixos/nixpkgs/nixos-26.05` | Primary stable nixpkgs |
+| `pkgs-stable` | `github:nixos/nixpkgs/nixos-25.11` | Pinned separately for the avina Matrix stack |
+| `home-manager` | `github:nix-community/home-manager/release-26.05` | HM must match nixpkgs release |
+| `nixvim` | `github:nix-community/nixvim/nixos-26.05` | nixvim must match nixpkgs release |
 
 ### Category 2 — Unstable-tracked inputs (update independently)
 
@@ -141,16 +141,16 @@ nixos-rebuild switch --flake .#avina --target-host root@avina
 nixos-rebuild switch --flake .#hermes --target-host root@hermes
 
 # Standalone Home Manager (non-NixOS):
-nix run home-manager/release-25.11 -- switch --flake .#groot@dualie -b bak
-nix run home-manager/release-25.11 -- switch --flake .#groot@forge -b bak
-nix run home-manager/release-25.11 -- switch --flake .#groot@rk3588 -b bak
+nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
+nix run home-manager/release-26.05 -- switch --flake .#groot@forge -b bak
+nix run home-manager/release-26.05 -- switch --flake .#groot@rk3588 -b bak
 ```
 
 ### 4. Commit the updated lock file
 
 ```bash
 git add flake.lock
-git commit -m "chore(flake): update inputs — nixos-25.11 $(date +%Y-%m-%d)"
+git commit -m "chore(flake): update inputs — nixos-26.05 $(date +%Y-%m-%d)"
 ```
 
 ---

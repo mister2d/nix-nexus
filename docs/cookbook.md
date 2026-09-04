@@ -130,8 +130,8 @@ _: {
     {
       imports = [
         homeManagerModules.user-home
-        homeManagerModules.hardware-z16-sway-home
-        homeManagerModules.desktop-sway-home
+        homeManagerModules.hardware-z16-hypr-home
+        homeManagerModules.desktop-hyprland-home
         homeManagerModules.user-starship-home    # ← add this line
       ];
     };
@@ -436,7 +436,7 @@ _: {
         nixosModules.workstation-default   # core policies
         nixosModules.desktop-default       # greetd, Wayland, fonts, theming
         nixosModules.development-default   # dev tools, Docker, scripts
-        nixosModules.desktop-sway          # compositor (or desktop-niri, desktop-hyprland)
+        nixosModules.desktop-hyprland      # compositor
       ];
 
       networking.hostName = "<hostname>";
@@ -457,8 +457,8 @@ _: {
     {
       imports = [
         homeManagerModules.user-home
-        homeManagerModules.desktop-sway-home
-        homeManagerModules.desktop-waybar-home
+        homeManagerModules.desktop-hyprland-home
+        homeManagerModules.desktop-noctalia-home
       ];
       home.stateVersion = "25.11";
     };
@@ -702,7 +702,7 @@ let
   };
 in
 {
-  # Usage: nix run home-manager/release-25.11 -- switch --flake .#alice@mydebian -b bak
+  # Usage: nix run home-manager/release-26.05 -- switch --flake .#alice@mydebian -b bak
   flake.homeConfigurations = lib.mapAttrs' (
     host: system:
     lib.nameValuePair "alice@${host}" (
@@ -727,7 +727,7 @@ Adding a second standalone host for the same user is then one more line in
 
 ```bash
 # First time (bootstraps home-manager itself):
-nix run home-manager/release-25.11 -- switch --flake .#alice@mydebian -b bak
+nix run home-manager/release-26.05 -- switch --flake .#alice@mydebian -b bak
 
 # Subsequent updates (once home-manager is on PATH):
 home-manager switch --flake .#alice@mydebian -b bak

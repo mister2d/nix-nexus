@@ -52,7 +52,7 @@ Create a `home.nix` for the host (e.g., `hosts/dualie/home.nix`) that imports yo
 Existing hosts usually have their own `.bashrc` or `.profile`. To prevent Home Manager from aborting due to "clobbering" errors, use the **backup flag** during your first activation:
 
 ```bash
-nix run home-manager/release-25.11 -- switch --flake .#user@hostname -b bak
+nix run home-manager/release-26.05 -- switch --flake .#user@hostname -b bak
 ```
 
 **What this does:**
