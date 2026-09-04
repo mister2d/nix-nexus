@@ -31,5 +31,9 @@ _: {
         max-jobs = 4;
         cores = 2;
       };
+
+      # System State Version
+      # Do not change this after the initial installation.
+      system.stateVersion = "25.11";
     };
 }

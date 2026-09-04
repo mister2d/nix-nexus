@@ -3,7 +3,6 @@ _: {
     {
       pkgs,
       inputs,
-      modulesPath,
       nixosModules,
       ...
     }:
@@ -14,43 +13,14 @@ _: {
     in
     {
       imports = [
-        (modulesPath + "/virtualisation/proxmox-lxc.nix")
+        nixosModules.hardware-proxmox-lxc
         nixosModules.server-default
         nixosModules.core-groot
       ];
 
-      proxmoxLXC = {
-        privileged = true;
-        manageNetwork = false;
-      };
-
-      networking = {
-        hostName = "hermes";
-        networkmanager.enable = false;
-        firewall.enable = false;
-      };
+      proxmoxLXC.privileged = true;
 
       security.sudo.enable = false;
-
-      systemd.network = {
-        enable = true;
-        networks."10-eth0" = {
-          matchConfig.Name = "eth0";
-          networkConfig.DHCP = "yes";
-        };
-      };
-
-      services = {
-        resolved = {
-          enable = true;
-          settings.Resolve = {
-            Cache = "yes";
-            CacheFromLocalhost = "yes";
-          };
-        };
-
-        fstrim.enable = false;
-      };
 
       programs = {
         nix-ld.enable = true;
@@ -76,7 +46,5 @@ _: {
           '';
         };
       };
-
-      system.stateVersion = "25.11";
     };
 }

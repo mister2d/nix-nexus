@@ -1,7 +1,6 @@
 _: {
   flake.modules.nixos.avina-default =
     {
-      modulesPath,
       nixosModules,
       ...
     }:
@@ -27,11 +26,7 @@ _: {
     in
     {
       imports = [
-        # Official NixOS Proxmox LXC module — sets boot.isContainer = true,
-        # exposes proxmoxLXC options, and correctly handles networking.useHostResolvConf
-        # (which is why services.resolved works here but fails when isContainer is set manually).
-        (modulesPath + "/virtualisation/proxmox-lxc.nix")
-
+        nixosModules.hardware-proxmox-lxc # Proxmox LXC base: container module, network, resolved
         nixosModules.server-default # Base: security, sysctl, users — no ZFS, no boot, no NM
         nixosModules.services-matrix # Matrix 2.0 communications suite
         nixosModules.core-groot
@@ -61,12 +56,7 @@ _: {
       # Unprivileged (privileged = false): root inside the container maps to an
       # unprivileged uid on the Proxmox host. Safer for a public-facing server —
       # a container escape cannot yield host root.
-      # manageNetwork = false: Proxmox manages the veth interface and IP assignment.
-      # NixOS still owns the firewall inside the container's network namespace.
-      proxmoxLXC = {
-        privileged = false;
-        manageNetwork = false;
-      };
+      proxmoxLXC.privileged = false;
 
       _module.args = {
         inherit
@@ -85,49 +75,10 @@ _: {
       # unprivileged LXC containers; lowering it to 443 permits binding to 443/8404.
       boot.kernel.sysctl."net.ipv4.ip_unprivileged_port_start" = 443;
 
-      networking = {
-        # Disable NetworkManager (fleet default) for server hosts.
-        # Use systemd-networkd for a lean, declarative server posture.
-        networkmanager.enable = false;
-
-        # Firewall Policy:
-        # Proxmox is configured wide-open at the hypervisor level; NixOS owns the
-        # firewall inside the container. Only the ports required by the Matrix stack
-        # and operator access are opened.
-        firewall.enable = false;
-      };
-
-      # Network Interface Configuration (LXC)
-      systemd.network = {
-        enable = true;
-        networks."10-eth0" = {
-          matchConfig.Name = "eth0";
-          networkConfig.DHCP = "yes";
-        };
-      };
-
       # Administrative user for server access.
       # avina is the only host that grants groot wheel access.
       users.users.groot = {
         extraGroups = [ "wheel" ];
-      };
-
-      services = {
-        # DNS Caching:
-        # proxmox-lxc.nix handles networking.useHostResolvConf correctly so
-        # resolved does not conflict with the container's host resolv.conf setup.
-        resolved = {
-          enable = true;
-          settings.Resolve = {
-            Cache = "yes";
-            CacheFromLocalhost = "yes";
-          };
-        };
-
-        # Disable fstrim — TRIM/discard is managed at the Proxmox storage layer,
-        # not from inside the container.
-        fstrim.enable = false;
-
       };
 
       # Session Multiplexer:
@@ -146,7 +97,5 @@ _: {
           bind - split-window -v -c "#{pane_current_path}"
         '';
       };
-
-      system.stateVersion = "25.11";
     };
 }
