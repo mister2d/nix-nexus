@@ -8,7 +8,7 @@ _: {
       ...
     }:
     let
-      cfg = config.hardware.cachyosKernel;
+      cfg = config.nix-nexus.kernel.cachyos;
 
       # Canonical attribute name map for BORE-scheduled variants.
       # Source: package tree in upstream README.
@@ -33,7 +33,7 @@ _: {
 
     in
     {
-      options.hardware.cachyosKernel = {
+      options.nix-nexus.kernel.cachyos = {
 
         enable = lib.mkEnableOption "CachyOS kernel (performance-optimized Linux with x86_64 microarch tuning)";
 
@@ -153,13 +153,13 @@ _: {
             {
               assertion = pkgs.stdenv.hostPlatform.isx86_64;
               message =
-                "hardware.cachyosKernel: CachyOS kernels are x86_64 only. "
+                "nix-nexus.kernel.cachyos: CachyOS kernels are x86_64 only. "
                 + "Do not import this module on rk3588 or other aarch64 hosts.";
             }
             {
               assertion = cfg.variant != "bore" || cfg.processorOpt != "x86_64-v2";
               message =
-                "hardware.cachyosKernel: x86_64-v2 has no binary cache for bore variant. "
+                "nix-nexus.kernel.cachyos: x86_64-v2 has no binary cache for bore variant. "
                 + "Use x86_64-v1 (generic) or x86_64-v3 (if CPU supports AVX2).";
             }
           ];

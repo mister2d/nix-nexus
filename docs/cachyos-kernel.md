@@ -16,7 +16,7 @@ Two hosts use the CachyOS kernel, each with a different variant tuned to its wor
 
 **Hardware:** AMD Ryzen 7 PRO 6850H (Rembrandt, Zen 3+), 32GB RAM  
 **Active kernel:** `7.0.10-cachyos` (`linux-cachyos-bore-x86_64-v3`)  
-**Config:** `hosts/sweet16/default.nix` → `hardware.cachyosKernel.variant = "bore"`
+**Config:** `hosts/sweet16/default.nix` → `nix-nexus.kernel.cachyos.variant = "bore"`
 
 ## Why This Kernel
 
@@ -259,7 +259,7 @@ Under `madvise`, hugepages are only allocated for ranges that call `madvise(MADV
 
 **Hardware:** AMD Ryzen 5 5600X (Vermeer, Zen 3), 64GB RAM, RDNA4 GPU (Navi 48)  
 **Active kernel:** `7.0.10-cachyos` (`linux-cachyos-server`, custom build with `processorOpt = "x86_64-v3"`)  
-**Config:** `hosts/petunia/default.nix` → `hardware.cachyosKernel.variant = "server"`
+**Config:** `hosts/petunia/default.nix` → `nix-nexus.kernel.cachyos.variant = "server"`
 
 ## Why This Kernel
 

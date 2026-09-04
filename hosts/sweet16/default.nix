@@ -69,7 +69,7 @@ _: {
       boot.kernelParams = [ "nvme_core.default_ps_max_latency_us=9000" ];
 
       # CachyOS Kernel Configuration
-      hardware.cachyosKernel = {
+      nix-nexus.kernel.cachyos = {
         enable = true;
         processorOpt = "x86_64-v3"; # Ryzen 6000 "Rembrandt" (Zen 3+)
         enableZfs = true;
