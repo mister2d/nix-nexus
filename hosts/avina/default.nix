@@ -80,22 +80,5 @@ _: {
       users.users.groot = {
         extraGroups = [ "wheel" ];
       };
-
-      # Session Multiplexer:
-      # Persistent sessions for long-running deploys and maintenance.
-      programs.tmux = {
-        enable = true;
-        shortcut = "a";
-        baseIndex = 1;
-        escapeTime = 0;
-        keyMode = "vi";
-        terminal = "tmux-256color";
-        extraConfig = ''
-          set -g status-style bg=black,fg=cyan
-          set -g status-left "#[fg=cyan,bold] #S #[default]| "
-          bind | split-window -h -c "#{pane_current_path}"
-          bind - split-window -v -c "#{pane_current_path}"
-        '';
-      };
     };
 }
