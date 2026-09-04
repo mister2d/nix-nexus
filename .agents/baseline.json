@@ -32,14 +32,14 @@
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/ns1wlmv6akjms4kxgf87nhzpycsjfzxh-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/4rmmcwhg8hdz802wxm5l78i72bnqmmyb-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-04T19:24:51Z",
+  "recorded": "2026-09-04T20:46:07Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "60b887a7c90ec827b655bbac04ee2ae365b8446f",
-  "signoff": ".agents/signoff/2026-09-04-fleet-reuse.md"
+  "signed_off_through": "2ec7b87eb42a31ce24fbccad32875b6c3e5c3858",
+  "signoff": ".agents/signoff/2026-09-04-microvm-host.md"
 }
