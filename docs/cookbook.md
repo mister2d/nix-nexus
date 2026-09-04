@@ -1,8 +1,8 @@
 # Cookbook: Common Operations
 
-Step-by-step recipes for the most frequent tasks. Each recipe shows the
-**minimum number of files** to create or edit, and gives a working example
-derived from the actual codebase.
+This document gives step-by-step recipes for the most frequent tasks. Each
+recipe shows the **minimum number of files** to create or edit. Each recipe
+gives a working example from the actual codebase.
 
 Read [architecture.md](./architecture.md) first if you are not yet familiar
 with how fragments, registries, and host assemblies relate to each other.
@@ -23,8 +23,8 @@ with how fragments, registries, and host assemblies relate to each other.
 
 ## 1. Add a NixOS system module
 
-**When to use:** You want to add a new system-level capability (a service,
-a kernel setting, a package group) that one or more hosts will opt into by name.
+**When to use:** Add a new system-level capability (a service, a kernel
+setting, a package group). One or more hosts opt into it by name.
 
 ### Step 1 — Create the fragment
 
@@ -38,7 +38,8 @@ Choose the right subdirectory under `modules/`:
 | User-facing programs and scripts | `modules/programs/` |
 | Long-running services | `modules/services/<stackname>/` |
 
-Pick a kebab-cased name following the [naming conventions](./architecture.md#naming-conventions).
+Pick a kebab-case name. Follow the
+[naming conventions](./architecture.md#naming-conventions).
 
 ```nix
 # modules/services/syncthing.nix
@@ -58,12 +59,12 @@ _: {
 }
 ```
 
-That is the entire file. import-tree discovers it automatically — no wiring in
-`flake.nix` or anywhere else.
+This is the entire file. import-tree discovers it automatically. Add no
+wiring in `flake.nix` or anywhere else.
 
 ### Step 2 — Import it in the host
 
-Open the relevant host module under `hosts/<hostname>/default.nix` and add the
+Open the relevant host module under `hosts/<hostname>/default.nix`. Add the
 name to the `imports` list:
 
 ```nix
@@ -93,8 +94,8 @@ nix build .#nixosConfigurations.sweet16.config.system.build.toplevel
 
 ## 2. Add a Home Manager module
 
-**When to use:** You want to add user-level configuration (dotfiles, packages,
-services) that one or more users can opt into by name.
+**When to use:** Add user-level configuration (dotfiles, packages, services).
+One or more users opt into it by name.
 
 ### Step 1 — Create the fragment
 
@@ -120,7 +121,8 @@ _: {
 
 ### Step 2 — Import it in a host HM profile
 
-Add the name to the `imports` list of the relevant `hosts/<hostname>/home.nix`:
+Add the name to the `imports` list of the relevant
+`hosts/<hostname>/home.nix`:
 
 ```nix
 # hosts/sweet16/home.nix (excerpt)
@@ -152,12 +154,13 @@ home-manager switch --flake .#groot@dualie -b bak
 
 ## 3. Add a new system user
 
-There are two layers: the **NixOS account** (the system user record) and the
-optional **Home Manager profile** (dotfiles and packages).
+There are two layers. The **NixOS account** is the system user record. The
+optional **Home Manager profile** holds dotfiles and packages.
 
 ### 3a — NixOS account only (simplest, host-specific)
 
-For a user that only appears on one host, declare it directly in the host module:
+For a user that appears on only one host, declare it directly in the host
+module:
 
 ```nix
 # hosts/myserver/default.nix
@@ -184,8 +187,8 @@ _: {
 
 ### 3b — Shared user across multiple hosts (module approach)
 
-For a user that spans several machines, create a dedicated module so the account
-is managed in one place:
+For a user that spans several machines, create a dedicated module. This keeps
+the account managed in one place:
 
 ```nix
 # modules/core/alice.nix
@@ -217,7 +220,7 @@ imports = [
 
 ### 3c — Add Home Manager for the new user (NixOS-managed)
 
-**File 1:** The NixOS wiring fragment (bridges HM into the NixOS system).
+**File 1:** The NixOS wiring fragment. It bridges HM into the NixOS system.
 
 ```nix
 # hosts/<hostname>/alice-hm.nix
@@ -296,10 +299,10 @@ in
 
 ## 4. Add an application stack
 
-**When to use:** A service that spans multiple concerns (versions pinning,
-core service, database, reverse proxy) and is best split across several files
-for readability. The `deferredModule` type means all files registering the same
-name are **merged** automatically — no aggregator file needed.
+**When to use:** A service spans multiple concerns (versions pinning, core
+service, database, reverse proxy). Split it across several files for
+readability. The `deferredModule` type **merges** all files that register
+the same name automatically. No aggregator file is needed.
 
 The `services-matrix` stack (nine files, one name) is the existing model.
 
@@ -357,9 +360,10 @@ _: {
 }
 ```
 
-All three files register `services-mystack`. The module system merges the three
-NixOS module functions so that a host importing `nixosModules.services-mystack`
-receives all of `versions.nix` + `backend.nix` + `database.nix` combined.
+All three files register `services-mystack`. The module system merges the
+three NixOS module functions. A host that imports
+`nixosModules.services-mystack` receives `versions.nix` + `backend.nix` +
+`database.nix` combined.
 
 ### Step 3 — Import the stack in the target host
 
@@ -373,8 +377,8 @@ imports = [
 
 ### Optional: keep one module standalone (not merged)
 
-If part of the stack is optional (an add-on bridge, a sidecar service), give it a
-**distinct name** so it stays independently selectable:
+A part of the stack can be optional (an add-on bridge, a sidecar service).
+Give it a **distinct name** so it stays independently selectable:
 
 ```nix
 # modules/services/mystack/whatsapp-bridge.nix
@@ -390,8 +394,8 @@ _: {
 
 ## 5. Add a new NixOS host (workstation)
 
-A workstation has: a hardware scan, hardware modules, a user, and optionally a
-desktop and Home Manager configuration.
+A workstation has a hardware scan, hardware modules, and a user. It can also
+have a desktop and a Home Manager configuration.
 
 ### Files to create
 
@@ -531,9 +535,10 @@ nixos-rebuild switch --flake .#<hostname>
 
 ## 6. Add a new NixOS host (server / LXC)
 
-Servers use `server-default` instead of `workstation-default`. LXC containers
-import `modulesPath + "/virtualisation/proxmox-lxc.nix"` and disable features
-that Proxmox manages externally (networking, hostname).
+Servers use `server-default` instead of `workstation-default`. LXC
+containers import `modulesPath + "/virtualisation/proxmox-lxc.nix"`. LXC
+containers disable features that Proxmox manages externally (networking,
+hostname).
 
 ### Files to create
 
@@ -542,8 +547,8 @@ hosts/<hostname>/default.nix
 modules/flake/nixos-<hostname>.nix
 ```
 
-No hardware scan is needed for LXC; the kernel and hardware are provided by the
-Proxmox host.
+No hardware scan is needed for LXC. The Proxmox host provides the kernel and
+hardware.
 
 ### `hosts/<hostname>/default.nix`
 
@@ -631,7 +636,7 @@ nixos-rebuild switch --flake .#<hostname> --target-host root@<lxc-ip>
 ## 7. Add a standalone Home Manager host (non-NixOS)
 
 **When to use:** The machine runs Debian, Ubuntu, Armbian, or any other Linux
-that is not managed by NixOS. Home Manager is the only Nix-managed layer.
+not managed by NixOS. Home Manager is the only Nix-managed layer.
 
 ### Files to create
 
@@ -640,9 +645,9 @@ hosts/<hostname>/home.nix             # HM profile
 modules/flake/hm-<user>.nix           # standalone HM config, one file per user
 ```
 
-If the user already has a standalone HM assembly file (for example
-`modules/flake/hm-groot.nix`, which maps `dualie`, `forge`, and `rk3588`),
-add the new host to that file's host-to-system attrset instead of creating a
+The user might already have a standalone HM assembly file (for example
+`modules/flake/hm-groot.nix`, which maps `dualie`, `forge`, and `rk3588`). If
+so, add the new host to that file's host-to-system attrset. Do not create a
 new file.
 
 ### `hosts/<hostname>/home.nix`
@@ -683,10 +688,10 @@ _: {
 
 ### `modules/flake/hm-alice.nix`
 
-One file per user maps every one of that user's standalone hosts, following
-the pattern in `modules/flake/hm-groot.nix` (which maps `dualie`, `forge`, and
-`rk3588`). `flake.homeConfigurations` is `lazyAttrsOf raw`, so one fragment
-may set several `"user@host"` keys with `lib.mapAttrs'`.
+One file per user maps every one of that user's standalone hosts. Follow the
+pattern in `modules/flake/hm-groot.nix` (which maps `dualie`, `forge`, and
+`rk3588`). `flake.homeConfigurations` is `lazyAttrsOf raw`. One fragment may
+set several `"user@host"` keys with `lib.mapAttrs'`.
 
 ```nix
 {
@@ -720,8 +725,8 @@ in
 }
 ```
 
-Adding a second standalone host for the same user is then one more line in
-`hosts`, not a new file.
+Adding a second standalone host for the same user is one more line in
+`hosts`. It is not a new file.
 
 ### Activate
 
@@ -733,10 +738,10 @@ nix run home-manager/release-26.05 -- switch --flake .#alice@mydebian -b bak
 home-manager switch --flake .#alice@mydebian -b bak
 ```
 
-> **Note on architecture:** `flake.homeConfigurations` uses `lib.types.raw`
-> (not `deferredModule`), so each `"user@host"` key must be set by exactly one
+> **Note on architecture:** `flake.homeConfigurations` uses `lib.types.raw`,
+> not `deferredModule`. Each `"user@host"` key must be set by exactly one
 > fragment. One fragment may set several keys, as `modules/flake/hm-groot.nix`
-> does, but a single key still cannot be split across multiple files.
+> does. A single key still cannot be split across multiple files.
 
 ---
 
@@ -759,12 +764,13 @@ home-manager switch --flake .#alice@mydebian -b bak
 
 ### "attribute 'my-module-name' missing" at evaluation
 
-The name you referenced in `nixosModules.my-module-name` does not exist in the
-registry. Possible causes:
+The name you referenced in `nixosModules.my-module-name` does not exist in
+the registry. Possible causes:
 
-1. **Typo in the name** — the key in `flake.modules.nixos.` must match exactly.
-2. **File not in a discovered tree** — the file must be under `modules/`, `hosts/`,
-   or `profiles/`. Files in `lib/` are not auto-discovered.
+1. **Typo in the name** — the key in `flake.modules.nixos.` must match
+   exactly.
+2. **File not in a discovered tree** — the file must be under `modules/`,
+   `hosts/`, or `profiles/`. import-tree does not discover files in `lib/`.
 3. **File has a `_` in its path** — import-tree skips paths containing `/_`.
 
 To list all currently registered names:
@@ -781,19 +787,20 @@ Run linters on the specific file before committing:
 .agents/scripts/preflight.sh modules/services/mystack/backend.nix
 ```
 
-(The runner is `prek`, not `pre-commit`. See
-[workflow.md](./workflow.md#step-3--lint).)
+The runner is `prek`, not `pre-commit`. See
+[workflow.md](./workflow.md#step-3--lint).
 
-The three linters are: `nixfmt-rfc-style` (formatting), `deadnix` (unused
-bindings), `statix` (anti-patterns). Fix all failures before committing — the
-CI gate requires all three to pass.
+The three linters are `nixfmt-rfc-style` (formatting), `deadnix` (unused
+bindings), and `statix` (anti-patterns). Fix all failures before committing.
+The CI gate requires all three to pass.
 
 ### "error: infinite recursion" when using `config.*` inside a module
 
-Within a flake-parts fragment, the outer `config` is the **flake-parts** config,
-not the NixOS config. Inside a NixOS module value (the function assigned to
-`flake.modules.nixos.<name>`), the NixOS-level `config` is only available if you
-include it in the NixOS module's argument set:
+Within a flake-parts fragment, the outer `config` is the **flake-parts**
+config, not the NixOS config. Inside a NixOS module value, the NixOS-level
+`config` is available only if you include it in the NixOS module's argument
+set. The NixOS module value is the function assigned to
+`flake.modules.nixos.<name>`:
 
 ```nix
 # WRONG — config here is flake-parts config
