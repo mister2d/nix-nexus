@@ -20,6 +20,10 @@ _: {
         # disk, including the sops age key. See docs/secrets.md.
         nixosModules.core-tpm2
 
+        # sweet16 runs the permafrost microvm guests. The bridge, NAT and
+        # kvm policy come from core-microvm-host.
+        nixosModules.core-microvm-host
+
         # CachyOS Optimized Kernel
         nixosModules.hardware-kernel-cachyos
 
@@ -63,6 +67,9 @@ _: {
 
         # Userspace TPM access for ssh-tpm-agent and tpm2-pkcs11.
         tpm2.users = [ "ddukes" ];
+
+        # Host side of the permafrost microvm sandbox.
+        virtualization.microvm.enable = true;
       };
 
       # Prevent NVMe from entering ps 4 (9500µs exit latency); caps at ps 3 (1200µs) for ZFS
