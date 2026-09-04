@@ -1,7 +1,8 @@
 # Secrets management
 
-nix-nexus manages secrets across three surfaces with three different tools. They are not
-alternatives to one another — each covers a case the others cannot.
+nix-nexus manages secrets across three surfaces. It uses three different
+tools. The tools are not alternatives to one another. Each tool covers a
+case the other tools cannot cover.
 
 | Surface | Tool | Decrypted where | Needs network? |
 |---|---|---|---|
@@ -17,30 +18,33 @@ alternatives to one another — each covers a case the others cannot.
    templates on avina.
 4. **Is it a user-level file under `$HOME` on a NixOS host?** → sops-nix Home Manager module.
 
-Vault deliberately stays narrow. Hosts must boot and run with Vault down, so nothing in the
-activation path depends on it. Vault's jobs are: the SSH CA for deploys, LE certificate
-distribution, and short-TTL renewal on avina.
+Vault stays narrow, by design. Hosts must boot and run when Vault is down.
+Nothing in the activation path depends on Vault. Vault has three jobs: it
+is the SSH CA for deploys, it distributes LE certificates, and it renews
+short-TTL credentials on avina.
 
 ## Layer 1 — sops-nix
 
-Secrets are decrypted at activation into `/run/secrets`, which is tmpfs, so nothing lands on disk.
-There is no daemon, no network call, and no bootstrap credential.
+sops-nix decrypts secrets at activation time into `/run/secrets`, which is
+tmpfs. Nothing lands on disk. sops-nix runs no daemon, makes no network
+call, and needs no bootstrap credential.
 
 **Host identity is the SSH host key.** `core-sops` sets
-`sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ]`, so each host decrypts with an age key
-derived from a key it already has. Onboarding a host means adding one recipient line, not
-distributing new key material.
+`sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ]`. Each host
+decrypts with an age key derived from a key it already has. To onboard a
+host, add one recipient line. Onboarding needs no new key material.
 
 ### Files
 
 - `.sops.yaml` — recipients and creation rules. Not secret.
-- `secrets/<hostname>.yaml` — encrypted, committed. Safe to commit; only the listed recipients can
-  decrypt it.
+- `secrets/<hostname>.yaml` — encrypted and committed. It is safe to commit. Only the listed
+  recipients can decrypt it.
 - `modules/core/sops.nix` — registry key `core-sops`. Declares
   `nix-nexus.secrets.sops.hostFile` and the fleet-wide sops policy.
 
-`hostFile` defaults to `null`, which leaves sops-nix completely inert. A host that declares no
-secrets is byte-identical to one without the module.
+`hostFile` defaults to `null`. This setting leaves sops-nix completely
+inert. A host that declares no secrets is byte-identical to a host without
+the module.
 
 ### Adding a secret to a host
 
@@ -63,18 +67,19 @@ sops secrets/<host>.yaml
 #      systemd.services.myservice.after = [ "sops-install-secrets.service" ];
 ```
 
-`sops-install-secrets.service` is a `oneshot` in `sysinit.target` with `RemainAfterExit = true`, so
-ordering after it is safe for the whole boot.
+`sops-install-secrets.service` is a `oneshot` in `sysinit.target` with
+`RemainAfterExit = true`. Ordering after it is safe for the whole boot.
 
 ### Onboarding a host
 
 ```bash
-# Derive the host's age recipient from its public SSH host key — no host access needed.
+# Derive the host's age recipient from its public SSH host key. No host access needed.
 ssh-keyscan -t ed25519 <host>.home.lan | cut -d' ' -f2- | ssh-to-age
 ```
 
-Add the result to `.sops.yaml` under `keys:` and reference it in a `creation_rules` entry. Then
-`sops updatekeys secrets/<host>.yaml` to re-encrypt existing files to the new recipient.
+Add the result to `.sops.yaml` under `keys:` and reference it in a
+`creation_rules` entry. Then run `sops updatekeys secrets/<host>.yaml`. This
+re-encrypts existing files for the new recipient.
 
 ### Rotating
 
@@ -85,8 +90,9 @@ Add the result to `.sops.yaml` under `keys:` and reference it in a `creation_rul
 
 ## Layer 2 — secretspec
 
-`secretspec.toml` at the repo root declares **what** secrets exist; the provider decides **where**
-they live. The same declaration serves a workstation (keyring), a headless host (Vault), and CI.
+`secretspec.toml` at the repo root declares **what** secrets exist. The
+provider decides **where** they live. The same declaration serves a
+workstation (keyring), a headless host (Vault), and CI.
 
 ### Version constraints — important
 
@@ -100,13 +106,14 @@ The devshell ships secretspec from `nixpkgs-unstable`. Measured against the buil
 | `[scopes]` | 0.17-only, unavailable |
 | `require_reason` policy | **active** — every read needs `--reason "<why>"` or `SECRETSPEC_REASON` |
 
-`github:cachix/secretspec` publishes no `flake.nix`, and no nixpkgs commit carries 0.17 yet, so 0.17
-features cannot be adopted without vendoring a Rust build. Revisit when nixpkgs catches up.
+`github:cachix/secretspec` publishes no `flake.nix`, and no nixpkgs commit
+carries 0.17 yet. Adopting 0.17 features needs vendoring a Rust build.
+Revisit this when nixpkgs catches up.
 
 ### Provider choice by host
 
-- **sweet16, petunia** — `keyring`. A Secret Service daemon is running (gnome-keyring, via
-  `modules/core/security.nix`).
+- **sweet16, petunia** — `keyring`. A Secret Service daemon runs on these hosts (gnome-keyring,
+  via `modules/core/security.nix`).
 - **hermes, forge, rk3588, CI** — `vault`. No keyring daemon on these.
 
 ### Usage
@@ -117,23 +124,27 @@ Load secrets at process launch, not into the shell environment:
 secretspec run --reason "why you need them" -- your-command
 ```
 
-Note that eval-time injection (`config.secretspec.secrets` in devenv) is **unavailable here**:
-devenv asserts `!(secretspec.enable && devenv.flakesIntegration)`, and nix-nexus consumes devenv via
-`inputs.devenv.flakeModule`. Runtime loading is the only option, and is the upstream-recommended
-practice regardless.
+Eval-time injection (`config.secretspec.secrets` in devenv) is
+**unavailable here**: devenv asserts
+`!(secretspec.enable && devenv.flakesIntegration)`, and nix-nexus consumes
+devenv via `inputs.devenv.flakeModule`. Runtime loading is the only option
+here. It is also the practice the upstream project recommends.
 
 ### What is wired today
 
-The Claude Code Stop hook (`.claude/hooks/langfuse_hook.py`, declared in
-`modules/flake/checks.nix`) runs under `secretspec run`, so its Langfuse credentials reach that
-process only and never enter the shell environment.
+The Claude Code Stop hook runs under `secretspec run`. The hook is
+`.claude/hooks/langfuse_hook.py`, declared in `modules/flake/checks.nix`.
+Its Langfuse credentials reach that process only and never enter the shell
+environment.
 
-All three of its secrets are declared **optional** and **keyring-only**, both deliberately:
+All three of its secrets are declared **optional** and **keyring-only**. Both choices are
+deliberate:
 
-- *Optional* — the hook is elective telemetry. Marking them required would make `secretspec run`
-  exit non-zero and skip the hook on every turn for anyone who has not configured Langfuse.
-- *Keyring-only* — the hook fires on every Stop. A provider list falling back to Vault would mean a
-  network round-trip per turn whenever the keyring misses.
+- *Optional* — the hook provides elective telemetry. Marking the secrets required would make
+  `secretspec run` exit non-zero. The hook would then skip on every turn for anyone who has not
+  configured Langfuse.
+- *Keyring-only* — the hook fires on every Stop event. A provider list that falls back to Vault
+  would add a network round-trip on every turn when the keyring misses.
 
 ### Storing a value
 
@@ -143,23 +154,25 @@ secretspec check --reason "audit"                      # declaration status
 secretspec run --reason "why" -- env | grep LANGFUSE   # confirm resolution
 ```
 
-`--reason` is mandatory: 0.13 enforces a `require_reason` policy (it defaults to `agents`; set
-`require_reason = false` under `[project]` to disable). It applies to `check` and `get` too, not just
-`run`.
+`--reason` is mandatory. Version 0.13 enforces a `require_reason` policy. It
+defaults to `agents`. Set `require_reason = false` under `[project]` to
+disable it. The policy applies to `check` and `get` too, not only to `run`.
 
-Note `secretspec check` reports optional secrets as `optional` **without probing whether they
-resolve** — "0 found, 0 missing, 3 optional" does not mean they are unset. Use `run` to test actual
-resolution.
+`secretspec check` reports optional secrets as `optional` **without probing
+whether they resolve**. "0 found, 0 missing, 3 optional" does not mean they
+are unset. Use `run` to test actual resolution.
 
-To use Vault instead of the keyring for a given secret — required on headless hosts, which have no
-Secret Service daemon — set `providers = ["home_vault"]` on that secret. Values land at
+To use Vault instead of the keyring for a secret, set
+`providers = ["home_vault"]` on that secret. This setting is required on
+headless hosts, which have no Secret Service daemon. Values land at
 `kv-v2/secretspec/{project}/{profile}/{key}` under field `value`.
 
 ### Verifying a rendered secret without exposing it
 
-Never `cat` a rendered secret or a decrypted sops value to check it. Error
-paths leak too: `sops decrypt` prints the offending plaintext scalar when a
-value fails to parse, so route stderr away or test the exit status alone.
+Never run `cat` on a rendered secret or a decrypted sops value to check it.
+Error paths leak values too: `sops decrypt` prints the offending plaintext
+scalar when a value fails to parse. Route stderr away, or test only the
+exit status.
 
 To confirm a rendered file matches its source, compare hashes on both ends:
 
@@ -170,70 +183,78 @@ grep -m1 '^VAR=' file | cut -d= -f2- | tr -d '\n' | sha256sum | cut -c1-12
 sops decrypt --extract '["section"]["key"]' secrets/<host>.yaml | tr -d '\n' | sha256sum | cut -c1-12
 ```
 
-Counting variables or checking file permissions verifies *structure*, not
-*content* — a wrong value passes both. Only the hash comparison proves the
-rendered value is correct.
+Counting variables or checking file permissions verifies *structure* only,
+not *content* — a wrong value can pass both checks. Only the hash
+comparison proves the rendered value is correct.
 
 ### hermes gateway env files
 
 `sops.templates` renders `~/.hermes/.env` and
-`~/.hermes/profiles/coding-local/.env`, because hermes-agent loads
-`$HERMES_HOME/.env` itself with `override=True` and outranks anything
-systemd injects. Only sensitive values are encrypted; endpoints and toggles
-stay readable in `hosts/hermes/secrets.nix`.
+`~/.hermes/profiles/coding-local/.env`. hermes-agent loads
+`$HERMES_HOME/.env` itself with `override=True`, and this load outranks
+anything systemd injects. Only sensitive values are encrypted. Endpoints
+and toggles stay readable in `hosts/hermes/secrets.nix`.
 
-Both gateways are **user** units, so `restartUnits` (system units only) does
-not reach them. After rotating any of these secrets:
+Both gateways are **user** units. `restartUnits` reaches system units only,
+so it does not reach these gateways. After you rotate any of these
+secrets, run:
 
 ```bash
 systemctl --user restart hermes-gateway hermes-gateway-coding-local
 ```
 
-Rotating `MATRIX_ACCESS_TOKEN` additionally requires wiping the crypto store
-— see `docs/hermes.md`. Historical E2EE messages become permanently
-undecryptable; that is inherent to `kill-sessions`, not a fault.
+Rotating `MATRIX_ACCESS_TOKEN` also requires wiping the crypto store — see
+`docs/hermes.md`. Past E2EE messages become permanently undecryptable.
+This result is inherent to `kill-sessions`, not a fault.
 
 ## Layer 3 — TPM2 and disk encryption
 
-The sops age key is the SSH host key, which lives on the root filesystem. So **whatever protects the
-root disk transitively protects every sops secret at rest.** There is deliberately no bespoke
-TPM-sealing of the age key: sops-nix has no supported TPM path, PCR values change on firmware
-updates, and sealing would forfeit remote re-keying.
+The sops age key is the SSH host key, which lives on the root filesystem.
+**Whatever protects the root disk transitively protects every sops secret
+at rest.** There is deliberately no bespoke TPM-sealing of the age key.
+sops-nix has no supported TPM path. PCR values change on firmware updates.
+Sealing would forfeit remote re-keying.
 
 ### petunia — plain TPM2 auto-unseal (accepted risk)
 
-petunia enrolls LUKS2 against **PCR 0 only**, because Secure Boot is inactive and PCR 7 is therefore
-meaningless. PCR 0 measures firmware but **not** the kernel, initrd, or cmdline, so a modified initrd
-on the same hardware would still unseal.
+petunia enrolls LUKS2 against **PCR 0 only**. Secure Boot is inactive on
+petunia, so PCR 7 has no meaning here. PCR 0 measures firmware only. It
+does **not** measure the kernel, the initrd, or the cmdline. A modified
+initrd on the same hardware would still unseal the disk.
 
-This is a **consciously accepted risk**, not an oversight: petunia is a physically-controlled desktop
-where the threat model is remote compromise, not device theft. See `docs/petunia.md` for the
-enrollment and re-enrollment procedure.
+This is a **consciously accepted risk**, not an oversight: petunia is a
+physically-controlled desktop, and its threat model is remote compromise,
+not device theft. See `docs/petunia.md` for the enrollment and
+re-enrollment procedure.
 
 ### sweet16 — TPM2 with PIN, mandatory
 
 > **sweet16 must never use plain TPM2 auto-unseal.**
 
-sweet16 is a laptop and its threat model is physical theft. Plain auto-unseal means power-on equals
-unlocked disk — including the SSH host key, the sops age key, and everything in `/run/secrets`. The
-only sanctioned enrollment form is:
+sweet16 is a laptop, and its threat model is physical theft. Plain
+auto-unseal means power-on unlocks the disk — including the SSH host key,
+the sops age key, and everything in `/run/secrets`. Use only this
+sanctioned enrollment form:
 
 ```bash
 systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0 --tpm2-with-pin=yes <device>
 ```
 
-The PIN is what closes the theft gap. A short PIN is safe here because the TPM rate-limits guesses
-(anti-hammering) — unlike a passphrase, which an attacker brute-forces offline against the LUKS KDF.
+The PIN closes the theft gap. A short PIN is safe here because the TPM
+rate-limits guesses against it (anti-hammering). A passphrase is
+different: an attacker brute-forces it offline against the LUKS KDF.
 Keyslot 0 remains a passphrase fallback.
 
-**This flag must survive re-enrollment.** sweet16's PCR 0 keyslot breaks on every firmware update,
-which Lenovo ships frequently via fwupd, and the re-enroll is hand-typed. The failure mode is copying
-petunia's command and silently dropping `--tpm2-with-pin=yes`.
+**This flag must survive re-enrollment.** sweet16's PCR 0 keyslot breaks
+on every firmware update, which Lenovo ships frequently via fwupd, and the
+re-enroll command is hand-typed. One failure mode is copying petunia's
+command and silently dropping `--tpm2-with-pin=yes`.
 
-Device paths differ between the two hosts. sweet16 uses `/dev/disk/by-partlabel/DISK_LUKS`. petunia
-must use `/dev/nvme0n1p2` because disko labels its partition `disk-main-DISK_LUKS`, so
-`by-partlabel/DISK_LUKS` does not resolve there. Confirm with `lsblk -o NAME,PARTLABEL` before
-enrolling.
+Device paths differ between the two hosts. sweet16 uses
+`/dev/disk/by-partlabel/DISK_LUKS`. petunia must use `/dev/nvme0n1p2`
+because disko labels its partition `disk-main-DISK_LUKS`, so
+`by-partlabel/DISK_LUKS` does not resolve there. Confirm the path with
+`lsblk -o NAME,PARTLABEL` before enrolling.
 
 Verify an enrollment carries the PIN:
 
@@ -241,14 +262,16 @@ Verify an enrollment carries the PIN:
 cryptsetup token export --token-id 0 /dev/disk/by-partlabel/DISK_LUKS
 ```
 
-`"tpm2-pin": true` and `"tpm2-pcrs": [0]` are the fields that matter. A token without `tpm2-pin`
-auto-unseals on power-on and must be removed with `systemd-cryptenroll --wipe-slot=tpm2` and redone.
+`"tpm2-pin": true` and `"tpm2-pcrs": [0]` are the fields that matter. A
+token without `tpm2-pin` auto-unseals on power-on. Remove it with
+`systemd-cryptenroll --wipe-slot=tpm2` and redo the enrollment.
 
 ### Dictionary-attack lockout
 
-The TPM rate-limits authValue guesses with a global counter shared by **every** TPM consumer on
-the host — the LUKS PIN, `ssh-tpm-agent` key PINs, and the `tpm2-pkcs11` token PIN all draw on
-it. Measured with `tpm2_getcap -T device:/dev/tpmrm0 properties-variable`:
+The TPM rate-limits authValue guesses with one global counter shared by
+**every** TPM consumer on the host. The LUKS PIN, `ssh-tpm-agent` key
+PINs, and the `tpm2-pkcs11` token PIN all draw on it. Measured with
+`tpm2_getcap -T device:/dev/tpmrm0 properties-variable`:
 
 | Property | sweet16 | petunia |
 |---|---|---|
@@ -256,36 +279,40 @@ it. Measured with `tpm2_getcap -T device:/dev/tpmrm0 properties-variable`:
 | `TPM2_PT_LOCKOUT_INTERVAL` (counter decays 1 per) | 7200s (2h) | 1000s (~17m) |
 | `lockoutAuthSet` | 1 | 0 |
 
-`LOCKOUT_INTERVAL` is what governs ordinary recovery — one failure is forgiven per interval.
-`TPM2_PT_LOCKOUT_RECOVERY` is narrower: it gates re-use of `lockoutAuth` after that specific
-auth fails, not general DA recovery.
+`LOCKOUT_INTERVAL` governs ordinary recovery: one failure is forgiven per
+interval. `TPM2_PT_LOCKOUT_RECOVERY` is narrower: it gates re-use of
+`lockoutAuth` only after that specific auth fails, not general DA recovery.
 
-petunia locks after three wrong PINs. That is survivable only because agent PINs are entered
-once per agent lifetime rather than per use — anything that prompts per operation would make a
-3-strike counter untenable. sweet16 tolerates 32 attempts but has `lockoutAuth` set, so
-`tpm2_dictionarylockout --clear-lockout` needs a password that may not be recorded anywhere;
-wait out the interval instead.
+petunia locks after three wrong PINs. This limit is survivable only
+because you enter an agent PIN once per agent lifetime, not per use.
+Anything that prompts per operation would make a 3-strike counter
+untenable. sweet16 tolerates 32 attempts but has `lockoutAuth` set, so
+`tpm2_dictionarylockout --clear-lockout` needs a password that may not be
+recorded anywhere. Wait out the interval instead.
 
-**A TPM lockout cannot lock you out of the disk.** LUKS2 keyslots are independent and the
-systemd-tpm2 token targets only its own slot:
+**A TPM lockout cannot lock you out of the disk.** LUKS2 keyslots are
+independent, and the systemd-tpm2 token targets only its own slot:
 
 ```
 Keyslot 0: argon2id   <- passphrase, no TPM involvement
 Keyslot 1: pbkdf2     <- systemd-tpm2 token ("keyslots":["1"])
 ```
 
-`systemd-cryptsetup` falls through to the passphrase prompt whenever the TPM path fails. On
-petunia the question does not arise at all: its keyslot is PCR-0 only with no PIN, and a
-policy session carrying no authValue does not feed the DA counter.
+`systemd-cryptsetup` falls through to the passphrase prompt whenever the
+TPM path fails. On petunia this question does not arise at all. Its
+keyslot is PCR-0 only with no PIN. A policy session carrying no
+authValue does not feed the DA counter.
 
 ### Hosts without a TPM
 
-avina and hermes are Proxmox LXC; dualie, forge, and rk3588 are non-NixOS. They lose nothing
-architecturally — their sops key is protected by whatever protects their storage. Same model, weaker
-at-rest floor, no configuration difference.
+avina and hermes are Proxmox LXC. dualie, forge, and rk3588 are non-NixOS.
+They lose nothing architecturally. Their sops key is protected by
+whatever protects their storage. The model stays the same, the at-rest
+floor is weaker, and there is no configuration difference.
 
 ### Emulated TPM (VM / microvm)
 
-An emulated TPM's state lives on the host, so it is a **test harness for the mechanism, not a
-security boundary**. Use `virtualisation.tpm.enable` in a NixOS VM test to exercise enroll and unseal
-logic; never treat it as protecting a real secret.
+An emulated TPM's state lives on the host, so it is a **test harness for
+the mechanism, not a security boundary**. Use `virtualisation.tpm.enable`
+in a NixOS VM test to exercise enroll and unseal logic. Never treat it as
+protecting a real secret.
