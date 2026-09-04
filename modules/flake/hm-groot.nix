@@ -5,7 +5,7 @@
   ...
 }:
 let
-  hm = config.flake.modules.homeManager;
+  homeManagerModules = config.flake.modules.homeManager;
   hosts = {
     dualie = "x86_64-linux";
     forge = "x86_64-linux";
@@ -23,12 +23,12 @@ in
         pkgs = inputs.nixpkgs.legacyPackages.${system};
         modules = [
           inputs.nixvim.homeModules.nixvim
-          hm."${host}-home"
+          homeManagerModules."${host}-home"
         ];
         extraSpecialArgs = {
           inherit (inputs) self;
           inherit inputs;
-          homeManagerModules = hm;
+          inherit homeManagerModules;
         };
       }
     )

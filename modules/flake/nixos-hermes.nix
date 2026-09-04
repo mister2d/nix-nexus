@@ -1,6 +1,6 @@
 { inputs, config, ... }:
 let
-  hm = config.flake.modules.homeManager;
+  homeManagerModules = config.flake.modules.homeManager;
   inherit (config.flake.modules) nixos;
 in
 {
@@ -10,7 +10,7 @@ in
       inherit inputs;
       inherit (inputs) self;
       nixosModules = nixos;
-      homeManagerModules = hm;
+      inherit homeManagerModules;
     };
     modules = [
       nixos.overlays-global

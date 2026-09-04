@@ -1,4 +1,4 @@
-_:
+{ lib, ... }:
 let
   # Impulse response files extracted from the official Lenovo Z16 Windows driver (ds557051)
   irsPath = ./../../assets/audio/irs;
@@ -15,9 +15,9 @@ let
   mapFiles =
     prefix: path:
     let
-      files = builtins.attrNames (builtins.readDir path);
+      files = lib.attrNames (builtins.readDir path);
     in
-    builtins.listToAttrs (
+    lib.listToAttrs (
       map (name: {
         name = "${prefix}/${name}";
         value = {

@@ -30,26 +30,26 @@ _: {
 
       stylixColors = lib.optionalAttrs (config.lib ? stylix) (
         let
-          c = config.lib.stylix.colors.withHashtag;
+          colors = config.lib.stylix.colors.withHashtag;
         in
         {
           custom = {
-            accent = c.base0D;
-            panel_bg = c.base00;
-            surface0 = c.base01;
-            surface1 = c.base02;
-            surface_dim = c.base01;
-            overlay0 = c.base03;
-            overlay1 = c.base04;
-            text = c.base05;
-            subtext0 = c.base04;
-            red = c.base08;
-            peach = c.base09;
-            yellow = c.base0A;
-            green = c.base0B;
-            teal = c.base0C;
-            blue = c.base0D;
-            mauve = c.base0E;
+            accent = colors.base0D;
+            panel_bg = colors.base00;
+            surface0 = colors.base01;
+            surface1 = colors.base02;
+            surface_dim = colors.base01;
+            overlay0 = colors.base03;
+            overlay1 = colors.base04;
+            text = colors.base05;
+            subtext0 = colors.base04;
+            red = colors.base08;
+            peach = colors.base09;
+            yellow = colors.base0A;
+            green = colors.base0B;
+            teal = colors.base0C;
+            blue = colors.base0D;
+            mauve = colors.base0E;
           };
         }
       );

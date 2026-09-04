@@ -21,7 +21,7 @@ _: {
       # not close over the overridden hermes-agent's own build attrs (that
       # self-reference deadlocks nixpkgs's cross-python dependency check).
       deps = hermesAgentBase.propagatedBuildInputs;
-      hermesPython = builtins.elemAt deps (builtins.length deps - 1);
+      hermesPython = lib.last deps;
       contextModeHermes = hermesPython.pkgs.callPackage ../../lib/context-mode-hermes.nix {
         pythonPackages = hermesPython.pkgs;
       };

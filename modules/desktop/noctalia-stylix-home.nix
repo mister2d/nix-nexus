@@ -15,10 +15,10 @@ _: {
       ...
     }:
     let
-      c = config.lib.stylix.colors.withHashtag;
+      colors = config.lib.stylix.colors.withHashtag;
 
       theme = (import ../../lib/themes { inherit pkgs; }).${osConfig.nix-nexus.theme.name};
-      light = if theme.lightPalette != null then theme.lightPalette else c;
+      light = if theme.lightPalette != null then theme.lightPalette else colors;
 
       mkPalette = p: {
         mPrimary = p.base0D;
@@ -71,7 +71,7 @@ _: {
     {
       programs.noctalia = {
         customPalettes.stylix = {
-          dark = mkPalette c;
+          dark = mkPalette colors;
           light = mkPalette light;
         };
 

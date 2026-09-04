@@ -9,6 +9,7 @@ _: {
     }:
     let
       pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+      customScripts = import ../../lib/custom-scripts.nix { inherit pkgs; };
 
       mod = "SUPER";
 
@@ -20,8 +21,8 @@ _: {
 
       # Workspace switch + move binds for 1–10, generated to avoid repetition.
       # Workspace 10 uses key "0", matching sway's $mod+0 = workspace 10.
-      wsBinds = builtins.concatLists (
-        builtins.genList (
+      wsBinds = lib.concatLists (
+        lib.genList (
           i:
           let
             num = i + 1;
@@ -102,7 +103,7 @@ _: {
             # Clipboard history.
             "${pkgs.wl-clipboard}/bin/wl-paste -t text --watch ${pkgs.clipman}/bin/clipman store --no-persist"
             # Battery alert script.
-            "${(import ../../lib/custom-scripts.nix { inherit pkgs; }).battery-alert}/bin/battery-alert"
+            "${customScripts.battery-alert}/bin/battery-alert"
             # EasyEffects: two races to win —
             # 1. WAYLAND_DISPLAY is not in the systemd env until exec-once runs,
             #    so the service crashes on first start; reset-failed clears that.

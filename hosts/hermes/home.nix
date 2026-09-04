@@ -2,20 +2,21 @@ _: {
   flake.modules.homeManager.hermes-home =
     {
       pkgs,
+      lib,
       ...
     }:
     let
       hermesPkg = pkgs.llm-agents.hermes-agent;
       allDeps = hermesPkg.propagatedBuildInputs;
-      hermesPython = builtins.elemAt allDeps (builtins.length allDeps - 1);
+      hermesPython = lib.last allDeps;
       # Exclude hermesPython itself, the bundled aiosqlite (replaced below with
       # the exact 0.22.1 pin platform.matrix requires), and the bundled
       # python-olm (replaced below with an override allowing its known-vuln
       # olm) — keeping the stock copies would collide in buildEnv.
-      pythonDeps = builtins.filter (
+      pythonDeps = lib.filter (
         p:
         p != hermesPython
-        && !(builtins.elem (p.pname or null) [
+        && !(lib.elem (p.pname or null) [
           "aiosqlite"
           "python-olm"
         ])
