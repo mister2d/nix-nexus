@@ -63,13 +63,6 @@ _: {
         };
       };
 
-      # EasyEffects service scoping: start after the graphical session is
-      # established so PipeWire is ready; tie lifecycle to the session.
-      systemd.user.services.easyeffects = {
-        after = [ "graphical-session.target" ];
-        partOf = [ "graphical-session.target" ];
-      };
-
       environment.systemPackages = with pkgs; [
         hyprutils
       ];
