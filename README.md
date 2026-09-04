@@ -131,6 +131,7 @@ direnv allow
 - [**Terminal & Multiplexing**](./docs/terminal.md): Kitty/Tmux configuration and Bash aliases.
 - [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix on non-NixOS hosts.
 - [**Devenv 2.0 Workflows**](./docs/devenv.md): Declarative development environments replacing Docker Compose.
+- [**Permafrost Host Module**](./docs/permafrost-host.md): The microvm bridge, NAT, kvm policy, and store settings behind the permafrost sandbox on sweet16.
 
 ---
 Enjoy your reproducible, structured environment.

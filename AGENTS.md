@@ -490,6 +490,7 @@ Current hosts and their assembly structure:
 |---|---|---|
 | `nix-nexus.zfs.*` | `modules/core/zfs.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.networking.tailscale.homeSSIDs` | `modules/core/networking.nix` | `hosts/sweet16/default.nix` |
+| `nix-nexus.virtualization.microvm.*` | `modules/core/microvm-host.nix` | `hosts/sweet16/default.nix` |
 
 ---
 
@@ -559,7 +560,8 @@ docs/
 ├── devenv.md                 ← declarative dev environments
 ├── petunia.md                ← TPM2 auto-unlock, dual GPU, rebuild procedure
 ├── petunia-sbom.md           ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
-└── secrets.md                ← sops-nix / secretspec / Vault layering, TPM2 posture per host
+├── secrets.md                ← sops-nix / secretspec / Vault layering, TPM2 posture per host
+└── permafrost-host.md        ← permafrost microvm host module: bridge, NAT, kvm policy, store settings
 .agents/
 ├── baseline.json             ← current per-config drv state + signed_off_through
 ├── signoff/                  ← one immutable generated entry per sign-off
