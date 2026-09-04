@@ -5,6 +5,7 @@ _: {
       lib,
       inputs,
       homeManagerModules,
+      nixosModules,
       ...
     }:
     let
@@ -14,14 +15,8 @@ _: {
       context-mode-pkg = import ../../lib/context-mode.nix { inherit pkgs lib; };
     in
     {
+      imports = [ nixosModules.core-home-manager ];
       home-manager = {
-        useGlobalPkgs = true;
-        useUserPackages = true;
-        backupFileExtension = "bak-$(date +%Y%m%d%H%M%S)";
-        extraSpecialArgs = {
-          inherit (inputs) self;
-          inherit inputs;
-        };
         users.groot = {
           home.stateVersion = "25.11";
           home.packages = with pkgs; [
