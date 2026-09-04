@@ -2,6 +2,9 @@ _: {
   flake.modules.homeManager.user-bash =
     { pkgs, ... }:
 
+    let
+      sharedAliases = import ../../lib/shell-aliases.nix;
+    in
     {
       home = {
         # Core Terminal Utilities
@@ -41,35 +44,9 @@ _: {
         enable = true;
 
         # Standard shell aliases
-        shellAliases = {
-          # Navigation
-          ".." = "cd ..";
-          "..." = "cd ../..";
-          "2.." = "cd ../..";
-          "3.." = "cd ../../..";
-          "4.." = "cd ../../../..";
-          "5.." = "cd ../../../../..";
-          h = "cd ~";
-
-          # Listing (eza-based)
-          la = "eza --long --all --group";
-          ll = "eza -la --icons --octal-permissions --group-directories-first";
-          ls = "eza -1 --icons --group-directories-first";
-          lrt = "eza -l --icons --octal-permissions --sort newest";
-
-          # Tools
-          yz = "yazi";
-          df = "df -h -x tmpfs";
-          du = "du -h --max-depth=1 2> /dev/null | sort -h -r | head -n20";
-          wiki = "wikiman -q";
-
+        shellAliases = sharedAliases // {
           # History
           list = "history 0 | fzf";
-
-          # Tailscale
-          tup = "sudo tailscale up";
-          tdown = "sudo tailscale down";
-          tstatus = "tailscale status";
 
           # Modern CLI Tooling Shorthand
           tv = "tv";
