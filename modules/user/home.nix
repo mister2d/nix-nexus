@@ -55,7 +55,7 @@ _: {
       ];
 
       # Development Home Profile
-      programs.dev-home.enable = true;
+      nix-nexus.user.dev.enable = true;
 
       # Home Configuration
       home = {

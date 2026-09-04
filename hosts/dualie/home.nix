@@ -33,7 +33,7 @@ _: {
       # Development Home Profile
       # Disabled MCP servers and LLM agents because they require modern CPU instructions (e.g. AVX2)
       # that are missing on Ivy Bridge Xeons.
-      programs.dev-home = {
+      nix-nexus.user.dev = {
         enable = true;
         enableMcpServers = false;
         enableLlmAgents = false;

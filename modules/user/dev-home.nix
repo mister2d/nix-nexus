@@ -12,7 +12,7 @@ _: {
     with lib;
 
     let
-      cfg = config.programs.dev-home;
+      cfg = config.nix-nexus.user.dev;
 
       pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
 
@@ -81,7 +81,7 @@ _: {
           [ ];
     in
     {
-      options.programs.dev-home = {
+      options.nix-nexus.user.dev = {
         enable = mkEnableOption "development home profile";
         enableMcpServers = mkOption {
           type = types.bool;

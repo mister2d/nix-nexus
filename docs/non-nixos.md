@@ -75,7 +75,7 @@ The generated environment dynamically maps your host's native NVIDIA drivers int
 If you are deploying to older servers (e.g., Ivy Bridge Xeons) that lack modern instruction sets like **AVX2**, you can selectively disable heavy workstation tools while keeping your core shell environment:
 
 ```nix
-programs.dev-home = {
+nix-nexus.user.dev = {
   enable = true;
   enableMcpServers = false; # Disables packages requiring AVX2
   enableLlmAgents = false;  # Disables packages requiring modern instructions

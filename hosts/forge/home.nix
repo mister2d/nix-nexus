@@ -28,7 +28,7 @@ _: {
 
       # Development Home Profile
       # Enabled MCP servers and LLM agents because i7-9850H supports AVX2
-      programs.dev-home = {
+      nix-nexus.user.dev = {
         enable = true;
         enableMcpServers = true;
         enableLlmAgents = true;

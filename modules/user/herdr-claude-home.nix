@@ -34,9 +34,9 @@ _: {
       # Hosts without the development home profile (avina, hermes) never
       # declare these options; those that disable LLM agents (dualie on Ivy
       # Bridge, rk3588 on ARM) have no Claude Code to integrate with.
-      hasDevHome = options.programs ? dev-home;
+      hasDevHome = lib.hasAttrByPath [ "nix-nexus" "user" "dev" ] options;
       claudeEnabled =
-        hasDevHome && config.programs.dev-home.enable && config.programs.dev-home.enableLlmAgents;
+        hasDevHome && config.nix-nexus.user.dev.enable && config.nix-nexus.user.dev.enableLlmAgents;
 
       herdrClaudeHook =
         pkgs.runCommand "herdr-claude-hook-${herdr.version}"
