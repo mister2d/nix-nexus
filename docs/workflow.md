@@ -203,7 +203,7 @@ way, verify before writing.
 ## Step 3 — Lint
 
 ```bash
-.agents/scripts/preflight.sh modules/tools/bash.nix hosts/sweet16/default.nix
+.agents/scripts/preflight.sh modules/user/bash.nix hosts/sweet16/default.nix
 ```
 
 This runs two gates and stops at the first failure:

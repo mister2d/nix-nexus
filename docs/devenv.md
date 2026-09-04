@@ -17,7 +17,7 @@ For engineers transitioning from traditional Linux environments or relying heavi
 Devenv 2.0 is integrated natively into our Nix Flake architecture:
 
 1.  **Flake Input:** Devenv is pinned as a flake input (`github:cachix/devenv`) in our root `flake.nix`.
-2.  **Home Manager Deployment:** The `devenv` binary is injected into the user environment via `modules/tools/dev/home.nix`, guaranteeing you are always using the locked 2.0 version.
+2.  **Home Manager Deployment:** The `devenv` binary is injected into the user environment via `modules/user/dev-home.nix`, guaranteeing you are always using the locked 2.0 version.
 
 *Note: `devbox` is temporarily retained for backwards compatibility with legacy projects, but new projects should default to Devenv.*
 
