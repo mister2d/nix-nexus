@@ -9,11 +9,8 @@ _: {
     }:
     let
       inherit (inputs.self) overlays;
-      unstablePkgs = import inputs.nixpkgs-unstable {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-        overlays = [ overlays.buildFixes ];
-      };
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+      unstablePkgs = pin.pinnedWith [ overlays.buildFixes ] inputs.nixpkgs-unstable;
       context-mode-pkg = import ../../lib/context-mode.nix { inherit pkgs lib; };
     in
     {

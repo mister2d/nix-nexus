@@ -7,11 +7,10 @@ _: {
     }:
 
     let
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+
       # Ceph packages from pinned input for stability
-      ceph-pkgs = import inputs.pkgs-ceph {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-      };
+      ceph-pkgs = pin.pinned inputs.pkgs-ceph;
 
       ceph-mount-ctl = pkgs.writeShellApplication {
         name = "ceph_mount_ctl";

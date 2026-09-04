@@ -8,10 +8,9 @@ _: {
       ...
     }:
     let
-      unstablePkgs = import inputs.nixpkgs-unstable {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-      };
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+
+      unstablePkgs = pin.pinned inputs.nixpkgs-unstable;
     in
     {
       imports = [

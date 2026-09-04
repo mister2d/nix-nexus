@@ -8,6 +8,8 @@ _: {
       ...
     }:
     let
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+
       mod = "SUPER";
 
       # Noctalia IPC helper — produces the exec string for Hyprland bind directives.
@@ -33,21 +35,10 @@ _: {
       );
       # Vivaldi from unstable, paired with the codecs build that exports
       # av_dynamic_hdr_smpte2094_app5_to_t35
-      vivaldi =
-        (import inputs.nixpkgs-unstable {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).vivaldi.override
-          {
-            proprietaryCodecs = true;
-            inherit
-              (import inputs.pkgs-vivaldi-codecs {
-                inherit (pkgs.stdenv.hostPlatform) system;
-                config.allowUnfree = true;
-              })
-              vivaldi-ffmpeg-codecs
-              ;
-          };
+      vivaldi = (pin.pinned inputs.nixpkgs-unstable).vivaldi.override {
+        proprietaryCodecs = true;
+        inherit (pin.pinned inputs.pkgs-vivaldi-codecs) vivaldi-ffmpeg-codecs;
+      };
     in
     {
       imports = [

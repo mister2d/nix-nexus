@@ -90,13 +90,11 @@ _: {
 
       environment.systemPackages =
         let
+          pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+
           # Use pinned Ceph input for consistency
-          ceph-pkgs = import inputs.pkgs-ceph {
-            inherit (pkgs.stdenv.hostPlatform) system;
-            config.allowUnfree = true;
-          };
+          ceph-pkgs = pin.pinned inputs.pkgs-ceph;
         in
-        with pkgs;
         [
           # Ceph Integration:
           # - ceph: Provides 'ceph-fuse' for user-space mounts

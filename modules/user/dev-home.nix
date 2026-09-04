@@ -14,82 +14,30 @@ _: {
     let
       cfg = config.programs.dev-home;
 
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+
       # Versioned package helpers
-      nomad-pkg =
-        (import inputs.pkgs-nomad {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).nomad;
-      vault-pkg =
-        (import inputs.pkgs-hashicorp {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).vault;
-      consul-pkg =
-        (import inputs.pkgs-hashicorp {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).consul;
-      terraform-pkg =
-        (import inputs.pkgs-terraform {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).terraform;
-      omnictl-pkg =
-        (import inputs.pkgs-talos {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).omnictl;
-      talosctl-pkg =
-        (import inputs.pkgs-talos {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).talosctl;
-      meld-pkg =
-        (import inputs.pkgs-apps {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).meld;
-      helm-pkg =
-        (import inputs.pkgs-hashicorp {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).kubernetes-helm;
-      butane-pkg =
-        (import inputs.pkgs-apps {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).butane;
-      envsubst-pkg =
-        (import inputs.pkgs-hashicorp {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).envsubst;
-      tflint-pkg =
-        (import inputs.pkgs-talos {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).tflint;
+      hashicorp-pkgs = pin.pinned inputs.pkgs-hashicorp;
+      talos-pkgs = pin.pinned inputs.pkgs-talos;
+      apps-pkgs = pin.pinned inputs.pkgs-apps;
+      nomad-pkg = (pin.pinned inputs.pkgs-nomad).nomad;
+      vault-pkg = hashicorp-pkgs.vault;
+      consul-pkg = hashicorp-pkgs.consul;
+      terraform-pkg = (pin.pinned inputs.pkgs-terraform).terraform;
+      omnictl-pkg = talos-pkgs.omnictl;
+      talosctl-pkg = talos-pkgs.talosctl;
+      meld-pkg = apps-pkgs.meld;
+      helm-pkg = hashicorp-pkgs.kubernetes-helm;
+      butane-pkg = apps-pkgs.butane;
+      envsubst-pkg = hashicorp-pkgs.envsubst;
+      tflint-pkg = talos-pkgs.tflint;
 
       # Unstable Packages (for agents not in llm-agents or requiring latest unstable)
-      unstable-pkgs = import inputs.nixpkgs-unstable {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-        # Apply our build fixes to unstable as well
-        overlays = [ self.overlays.buildFixes ];
-      };
+      unstable-pkgs = pin.pinnedWith [ self.overlays.buildFixes ] inputs.nixpkgs-unstable;
 
       # Kubernetes tools
-      kubelogin-oidc-pkg =
-        (import inputs.pkgs-talos {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).kubelogin-oidc;
-      kubectl-rook-ceph-pkg =
-        (import inputs.pkgs-talos {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).kubectl-rook-ceph;
+      kubelogin-oidc-pkg = talos-pkgs.kubelogin-oidc;
+      kubectl-rook-ceph-pkg = talos-pkgs.kubectl-rook-ceph;
 
       # Project-level CUDA environment generator
       inherit ((import ../../lib/custom-scripts.nix { inherit pkgs; })) llm-init;

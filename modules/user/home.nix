@@ -9,55 +9,25 @@ _: {
     }:
 
     let
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+
       # Environment packages
-      ipmitool-pkg =
-        (import inputs.pkgs-hashicorp {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).ipmitool;
-      mqtt-explorer-pkg =
-        (import inputs.pkgs-terraform {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).mqtt-explorer;
-      super-slicer-pkg =
-        (import inputs.pkgs-terraform {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).super-slicer;
-      prusa-slicer-pkg =
-        (import inputs.pkgs-terraform {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).prusa-slicer;
-      vlc-pkg =
-        (import inputs.pkgs-vlc {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).vlc;
-      signalbackup-tools-pkg =
-        (import inputs.pkgs-talos {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          config.allowUnfree = true;
-        }).signalbackup-tools;
+      terraform-pkgs = pin.pinned inputs.pkgs-terraform;
+      ipmitool-pkg = (pin.pinned inputs.pkgs-hashicorp).ipmitool;
+      mqtt-explorer-pkg = terraform-pkgs.mqtt-explorer;
+      super-slicer-pkg = terraform-pkgs.super-slicer;
+      prusa-slicer-pkg = terraform-pkgs.prusa-slicer;
+      vlc-pkg = (pin.pinned inputs.pkgs-vlc).vlc;
+      signalbackup-tools-pkg = (pin.pinned inputs.pkgs-talos).signalbackup-tools;
 
       # Unstable packages for user-level tools
-      unstable-pkgs = import inputs.nixpkgs-unstable {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-      };
+      unstable-pkgs = pin.pinned inputs.nixpkgs-unstable;
 
       # Vivaldi from unstable, paired with the codecs build that exports
       # av_dynamic_hdr_smpte2094_app5_to_t35
       vivaldi = unstable-pkgs.vivaldi.override {
         proprietaryCodecs = true;
-        inherit
-          (import inputs.pkgs-vivaldi-codecs {
-            inherit (pkgs.stdenv.hostPlatform) system;
-            config.allowUnfree = true;
-          })
-          vivaldi-ffmpeg-codecs
-          ;
+        inherit (pin.pinned inputs.pkgs-vivaldi-codecs) vivaldi-ffmpeg-codecs;
       };
 
       # Handle slicer conflicts by joining them with symlinkJoin
@@ -95,10 +65,7 @@ _: {
         # These are applications installed specifically for the ddukes user.
         packages = with pkgs; [
           # Pin Google Chrome to specific nixpkgs input and allow unfree for that input
-          (import inputs.nixpkgs-chrome {
-            inherit (pkgs.stdenv.hostPlatform) system;
-            config.allowUnfree = true;
-          }).google-chrome
+          (pin.pinned inputs.nixpkgs-chrome).google-chrome
 
           # Browsers
           unstable-pkgs.firefox

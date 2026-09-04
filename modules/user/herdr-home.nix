@@ -21,10 +21,9 @@ _: {
     }:
 
     let
-      unstable-pkgs = import inputs.nixpkgs-unstable {
-        inherit (pkgs.stdenv.hostPlatform) system;
-        config.allowUnfree = true;
-      };
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+
+      unstable-pkgs = pin.pinned inputs.nixpkgs-unstable;
 
       inherit (unstable-pkgs) herdr;
       keymap = import ../../lib/keymap.nix { inherit lib; };
