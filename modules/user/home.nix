@@ -134,12 +134,13 @@ _: {
           NIXOS_OZONE_WL = lib.mkForce "1";
 
           # Editor Configuration
-          # Using the absolute path to the user's nixvim wrapper ensures that
-          # sudoedit and other system tools consistently use the user's
-          # personal configuration even when paths are scrubbed.
+          # nixvim sets EDITOR and VISUAL to nvim at normal priority under
+          # defaultEditor = true. mkForce selects this absolute per-user
+          # path instead. SUDO_EDITOR has no other definition, so it takes
+          # a plain value.
           EDITOR = lib.mkForce "/etc/profiles/per-user/ddukes/bin/nvim";
           VISUAL = lib.mkForce "/etc/profiles/per-user/ddukes/bin/nvim";
-          SUDO_EDITOR = lib.mkForce "/etc/profiles/per-user/ddukes/bin/nvim";
+          SUDO_EDITOR = "/etc/profiles/per-user/ddukes/bin/nvim";
         };
       };
 

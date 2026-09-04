@@ -58,9 +58,10 @@ _: {
           firewall = {
             enable = true;
 
-            # Disable Reverse Path Filtering (lib.mkForce required to override Tailscale default)
-            # This prevents the kernel from dropping packets in multi-homed or VPN
-            # environments where responses might exit via a different interface.
+            # Tailscale sets checkReversePath to "loose" at normal priority for
+            # useRoutingFeatures = "client". mkForce sets false instead and
+            # avoids a definition conflict between the two values. Strict
+            # filtering drops return packets on multi-homed or VPN hosts.
             checkReversePath = lib.mkForce false;
 
             # Standard application ports

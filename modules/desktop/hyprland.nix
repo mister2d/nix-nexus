@@ -38,6 +38,8 @@ _: {
       # polkit — defensive mkDefault; desktop-niri also sets this on sweet16.
       security.polkit.enable = lib.mkDefault true;
 
+      # hardware-z16 overrides power-profiles-daemon and upower at normal
+      # priority, so both stay mkDefault here to let it win on that host.
       services = {
         # power-profiles-daemon: needed for gamemode CPU governor switching.
         power-profiles-daemon.enable = lib.mkDefault true;

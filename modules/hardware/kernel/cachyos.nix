@@ -180,6 +180,8 @@ _: {
           # mergeDefaultOption passes the merge-marker attrset straight to apply.
           # Use if/then/else so the value is the actual linuxPackages scope.
           # -------------------------------------------------------------------------
+          # hardware-z16 sets boot.kernelPackages with mkOverride 900 to pin
+          # linuxPackages_6_12. mkForce wins on hosts that import both modules.
           boot.kernelPackages = lib.mkForce (
             if cfg.variant == "server" && !cfg.enableCustomBuild then
               # SERVER PATH A: pre-built server kernel from overlay. No per-arch

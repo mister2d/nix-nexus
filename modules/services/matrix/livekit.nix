@@ -1,7 +1,6 @@
 _: {
   flake.modules.nixos.services-matrix =
     {
-      lib,
       matrixDomain,
       rtcDomain,
       ...
@@ -106,10 +105,9 @@ _: {
         after = [ "vault-agent-init.service" ];
         wants = [ "vault-agent-init.service" ];
 
-        # Force use of modern bind syntax by unsetting the module-provided PORT
-        # and explicitly providing BIND. This avoids the 'MUST NOT be set together' error.
+        # lk-jwt-service derives LIVEKIT_JWT_BIND from the port option.
+        # This declares the same value directly for clarity.
         environment = {
-          LIVEKIT_JWT_PORT = lib.mkForce null;
           LIVEKIT_JWT_BIND = ":${toString jwtServicePort}";
           # Public SFU URL — returned in /sfu/get responses so clients connect
           # through HAProxy (/livekit/sfu → 127.0.0.1:7880) rather than to

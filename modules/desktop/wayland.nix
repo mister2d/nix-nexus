@@ -2,7 +2,6 @@ _: {
   flake.modules.nixos.desktop-default =
     {
       pkgs,
-      lib,
       ...
     }:
     {
@@ -28,8 +27,9 @@ _: {
           pkgs.xdg-desktop-portal-gnome
         ];
 
-        # Configuration is scoped per compositor to prevent conflicts
-        config = lib.mkForce {
+        # This module holds the only definition of xdg.portal.config in the
+        # fleet. No compositor module sets this option, so this value needs no mkForce.
+        config = {
           common.default = [
             "gtk"
             "gnome"
