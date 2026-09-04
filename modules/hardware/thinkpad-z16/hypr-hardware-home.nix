@@ -57,8 +57,8 @@ _: {
       };
 
       home.sessionVariables = {
-        LIBVA_DRIVER_NAME = lib.mkForce "radeonsi";
-        VDPAU_DRIVER = lib.mkForce "radeonsi";
+        LIBVA_DRIVER_NAME = "radeonsi";
+        VDPAU_DRIVER = "radeonsi";
       };
     };
 }

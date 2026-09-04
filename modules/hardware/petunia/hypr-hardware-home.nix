@@ -23,13 +23,13 @@ _: {
         # ── Input Overrides ───────────────────────────────────────────────
         # Desktop workstation: flat mouse acceleration, no touchpad overrides.
         input = {
-          accel_profile = lib.mkForce "flat";
+          accel_profile = "flat";
         };
       };
 
       home.sessionVariables = {
-        LIBVA_DRIVER_NAME = lib.mkForce "radeonsi";
-        VDPAU_DRIVER = lib.mkForce "radeonsi";
+        LIBVA_DRIVER_NAME = "radeonsi";
+        VDPAU_DRIVER = "radeonsi";
       };
     };
 }

@@ -187,7 +187,7 @@ _: {
             };
             follow_mouse = 1;
             sensitivity = 0.0;
-            accel_profile = "adaptive";
+            accel_profile = lib.mkDefault "adaptive";
           };
 
           # ── Gestures ──────────────────────────────────────────────────────
