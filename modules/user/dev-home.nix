@@ -9,8 +9,6 @@ _: {
       ...
     }:
 
-    with lib;
-
     let
       cfg = config.nix-nexus.user.dev;
 
@@ -82,20 +80,20 @@ _: {
     in
     {
       options.nix-nexus.user.dev = {
-        enable = mkEnableOption "development home profile";
-        enableMcpServers = mkOption {
-          type = types.bool;
+        enable = lib.mkEnableOption "development home profile";
+        enableMcpServers = lib.mkOption {
+          type = lib.types.bool;
           default = true;
           description = "Whether to install MCP servers.";
         };
-        enableLlmAgents = mkOption {
-          type = types.bool;
+        enableLlmAgents = lib.mkOption {
+          type = lib.types.bool;
           default = true;
           description = "Whether to install AI Coding Agents.";
         };
       };
 
-      config = mkIf cfg.enable {
+      config = lib.mkIf cfg.enable {
         home.packages =
           with pkgs;
           [

@@ -1,6 +1,6 @@
 { pkgs }:
 
-rec {
+{
   battery-alert = pkgs.writeShellScriptBin "battery-alert" ''
     # Waybar Battery Alert Daemon
     ALERT_FILE="/tmp/waybar-style-alert.css"

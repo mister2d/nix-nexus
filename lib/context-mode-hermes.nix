@@ -4,7 +4,7 @@
   fetchFromGitHub,
 }:
 
-pythonPackages.buildPythonPackage rec {
+pythonPackages.buildPythonPackage {
   pname = "context-mode-hermes";
   version = "1.3.0";
   pyproject = true;

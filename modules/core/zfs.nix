@@ -5,34 +5,33 @@ _: {
       config,
       ...
     }:
-    with lib;
     let
       cfg = config.nix-nexus.zfs;
     in
     {
       options.nix-nexus.zfs = {
-        arcMax = mkOption {
-          type = types.int;
+        arcMax = lib.mkOption {
+          type = lib.types.int;
           default = 4294967296; # 4GB
           description = "Maximum ZFS ARC size in bytes.";
         };
-        arcMin = mkOption {
-          type = types.int;
+        arcMin = lib.mkOption {
+          type = lib.types.int;
           default = 1073741824; # 1GB
           description = "Minimum ZFS ARC size in bytes.";
         };
-        arcSysFree = mkOption {
-          type = types.int;
+        arcSysFree = lib.mkOption {
+          type = lib.types.int;
           default = 2147483648; # 2GB
           description = "Memory to leave free for the system (outside ARC) in bytes.";
         };
-        metaLimitPercent = mkOption {
-          type = types.int;
+        metaLimitPercent = lib.mkOption {
+          type = lib.types.int;
           default = 75;
           description = "Maximum percentage of ARC that can be used for metadata.";
         };
-        dnodeLimitPercent = mkOption {
-          type = types.int;
+        dnodeLimitPercent = lib.mkOption {
+          type = lib.types.int;
           default = 10;
           description = "Maximum percentage of ARC that can be used for dnodes.";
         };

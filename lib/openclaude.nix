@@ -1,8 +1,11 @@
 { pkgs, lib }:
 
-pkgs.buildNpmPackage rec {
-  pname = "openclaude";
+let
   version = "0.4.0";
+in
+pkgs.buildNpmPackage {
+  pname = "openclaude";
+  inherit version;
 
   src = pkgs.fetchurl {
     url = "https://registry.npmjs.org/@gitlawb/openclaude/-/openclaude-${version}.tgz";
@@ -47,11 +50,11 @@ pkgs.buildNpmPackage rec {
     runHook postInstall
   '';
 
-  meta = with lib; {
+  meta = {
     description = "Open-source coding-agent CLI (Claude Code alternative)";
     homepage = "https://github.com/Gitlawb/openclaude";
-    license = licenses.mit;
-    platforms = platforms.all;
+    license = lib.licenses.mit;
+    platforms = lib.platforms.all;
     mainProgram = "openclaude";
   };
 }

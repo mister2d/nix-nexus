@@ -48,7 +48,7 @@ let
     in
     map line actions;
 in
-rec {
+{
   # tmux's `shortcut` option takes the bare letter; herdr wants full chord syntax.
   prefix = {
     tmux = "a";

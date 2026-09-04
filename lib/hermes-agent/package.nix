@@ -15,152 +15,169 @@
 let
   # Native (PyO3) runtime for hermes' Relay lifecycle and shared metrics;
   # PyPI ships wheels only, so build from source with maturin.
-  nemo-relay = python3.pkgs.buildPythonPackage rec {
-    pname = "nemo-relay";
-    version = "0.6.0";
-    pyproject = true;
+  nemo-relay =
+    let
+      version = "0.6.0";
+      src = fetchFromGitHub {
+        owner = "NVIDIA";
+        repo = "NeMo-Relay";
+        tag = version;
+        hash = "sha256-mqI1tDl01a+FCv1FSMqvzYGuS/7hNlc99jcFiN6dRIM=";
+      };
+    in
+    python3.pkgs.buildPythonPackage {
+      pname = "nemo-relay";
+      inherit version;
+      pyproject = true;
 
-    src = fetchFromGitHub {
-      owner = "NVIDIA";
-      repo = "NeMo-Relay";
-      tag = version;
-      hash = "sha256-mqI1tDl01a+FCv1FSMqvzYGuS/7hNlc99jcFiN6dRIM=";
-    };
-
-    cargoDeps = rustPlatform.fetchCargoVendor {
       inherit src;
-      name = "nemo-relay-${version}";
-      hash = "sha256-KxPNGhYHmMFCSiEJomZztrc2P/knYA0It+vuurIccCQ=";
+
+      cargoDeps = rustPlatform.fetchCargoVendor {
+        inherit src;
+        name = "nemo-relay-${version}";
+        hash = "sha256-KxPNGhYHmMFCSiEJomZztrc2P/knYA0It+vuurIccCQ=";
+      };
+
+      nativeBuildInputs = with rustPlatform; [
+        cargoSetupHook
+        maturinBuildHook
+      ];
+
+      pythonImportsCheck = [
+        "nemo_relay"
+        "nemo_relay._native"
+      ];
+
+      meta = {
+        description = "Python bindings for the NeMo Relay agent runtime";
+        homepage = "https://github.com/NVIDIA/NeMo-Relay";
+        license = lib.licenses.asl20;
+        sourceProvenance = with lib.sourceTypes; [ fromSource ];
+        platforms = lib.platforms.unix;
+      };
     };
 
-    nativeBuildInputs = with rustPlatform; [
-      cargoSetupHook
-      maturinBuildHook
-    ];
-
-    pythonImportsCheck = [
-      "nemo_relay"
-      "nemo_relay._native"
-    ];
-
-    meta = with lib; {
-      description = "Python bindings for the NeMo Relay agent runtime";
-      homepage = "https://github.com/NVIDIA/NeMo-Relay";
-      license = licenses.asl20;
-      sourceProvenance = with sourceTypes; [ fromSource ];
-      platforms = platforms.unix;
-    };
-  };
-
-  exa-py = python3.pkgs.buildPythonPackage rec {
-    pname = "exa-py";
-    version = "2.10.2";
-    pyproject = true;
-
-    src = fetchPypi {
-      pname = "exa_py";
+  exa-py =
+    let
+      version = "2.10.2";
+    in
+    python3.pkgs.buildPythonPackage {
+      pname = "exa-py";
       inherit version;
-      hash = "sha256-94HzCxmfEQIzM4RyitrmS7Faa7yr+pfpH9cF+QrP/EU=";
+      pyproject = true;
+
+      src = fetchPypi {
+        pname = "exa_py";
+        inherit version;
+        hash = "sha256-94HzCxmfEQIzM4RyitrmS7Faa7yr+pfpH9cF+QrP/EU=";
+      };
+
+      build-system = with python3.pkgs; [
+        poetry-core
+      ];
+
+      dependencies = with python3.pkgs; [
+        httpcore
+        httpx
+        openai
+        pydantic
+        python-dotenv
+        requests
+        typing-extensions
+      ];
+
+      pythonImportsCheck = [ "exa_py" ];
+
+      meta = {
+        description = "Python SDK for Exa API";
+        homepage = "https://github.com/exa-labs/exa-py";
+        license = lib.licenses.mit;
+        sourceProvenance = with lib.sourceTypes; [ fromSource ];
+        platforms = lib.platforms.all;
+      };
     };
 
-    build-system = with python3.pkgs; [
-      poetry-core
-    ];
-
-    dependencies = with python3.pkgs; [
-      httpcore
-      httpx
-      openai
-      pydantic
-      python-dotenv
-      requests
-      typing-extensions
-    ];
-
-    pythonImportsCheck = [ "exa_py" ];
-
-    meta = with lib; {
-      description = "Python SDK for Exa API";
-      homepage = "https://github.com/exa-labs/exa-py";
-      license = licenses.mit;
-      sourceProvenance = with sourceTypes; [ fromSource ];
-      platforms = platforms.all;
-    };
-  };
-
-  fal-client = python3.pkgs.buildPythonPackage rec {
-    pname = "fal-client";
-    version = "0.13.1";
-    pyproject = true;
-
-    src = fetchPypi {
-      pname = "fal_client";
+  fal-client =
+    let
+      version = "0.13.1";
+    in
+    python3.pkgs.buildPythonPackage {
+      pname = "fal-client";
       inherit version;
-      hash = "sha256-nhwH0KYbRSqP+0jBmd5fJUPXVG8SMPYxI3BEMSfF6Tc=";
+      pyproject = true;
+
+      src = fetchPypi {
+        pname = "fal_client";
+        inherit version;
+        hash = "sha256-nhwH0KYbRSqP+0jBmd5fJUPXVG8SMPYxI3BEMSfF6Tc=";
+      };
+
+      build-system = with python3.pkgs; [
+        setuptools
+        setuptools-scm
+      ];
+
+      dependencies = with python3.pkgs; [
+        httpx
+        httpx-sse
+        msgpack
+        websockets
+      ];
+
+      pythonImportsCheck = [ "fal_client" ];
+
+      meta = {
+        description = "Python client for fal.ai";
+        homepage = "https://github.com/fal-ai/fal";
+        license = lib.licenses.asl20;
+        sourceProvenance = with lib.sourceTypes; [ fromSource ];
+        platforms = lib.platforms.all;
+      };
     };
 
-    build-system = with python3.pkgs; [
-      setuptools
-      setuptools-scm
-    ];
-
-    dependencies = with python3.pkgs; [
-      httpx
-      httpx-sse
-      msgpack
-      websockets
-    ];
-
-    pythonImportsCheck = [ "fal_client" ];
-
-    meta = with lib; {
-      description = "Python client for fal.ai";
-      homepage = "https://github.com/fal-ai/fal";
-      license = licenses.asl20;
-      sourceProvenance = with sourceTypes; [ fromSource ];
-      platforms = platforms.all;
-    };
-  };
-
-  parallel-web = python3.pkgs.buildPythonPackage rec {
-    pname = "parallel-web";
-    version = "0.4.2";
-    pyproject = true;
-
-    src = fetchPypi {
-      pname = "parallel_web";
+  parallel-web =
+    let
+      version = "0.4.2";
+    in
+    python3.pkgs.buildPythonPackage {
+      pname = "parallel-web";
       inherit version;
-      hash = "sha256-WZtajzh9w1x9yMgeNy6t9pWKQKys6li/Fw38ZjwAPac=";
+      pyproject = true;
+
+      src = fetchPypi {
+        pname = "parallel_web";
+        inherit version;
+        hash = "sha256-WZtajzh9w1x9yMgeNy6t9pWKQKys6li/Fw38ZjwAPac=";
+      };
+
+      build-system = with python3.pkgs; [
+        hatchling
+        hatch-fancy-pypi-readme
+      ];
+
+      # Upstream pins hatchling==1.26.3 in build-system.requires; pythonRelaxDeps
+      # only touches runtime metadata, so skip the build-time pin check.
+      pypaBuildFlags = [ "--skip-dependency-check" ];
+
+      dependencies = with python3.pkgs; [
+        anyio
+        distro
+        httpx
+        pydantic
+        sniffio
+        typing-extensions
+      ];
+
+      pythonImportsCheck = [ "parallel" ];
+
+      meta = {
+        description = "Python SDK for Parallel Web API";
+        homepage = "https://github.com/parallel-web/parallel-sdk-python";
+        license = lib.licenses.asl20;
+        sourceProvenance = with lib.sourceTypes; [ fromSource ];
+        platforms = lib.platforms.all;
+      };
     };
-
-    build-system = with python3.pkgs; [
-      hatchling
-      hatch-fancy-pypi-readme
-    ];
-
-    # Upstream pins hatchling==1.26.3 in build-system.requires; pythonRelaxDeps
-    # only touches runtime metadata, so skip the build-time pin check.
-    pypaBuildFlags = [ "--skip-dependency-check" ];
-
-    dependencies = with python3.pkgs; [
-      anyio
-      distro
-      httpx
-      pydantic
-      sniffio
-      typing-extensions
-    ];
-
-    pythonImportsCheck = [ "parallel" ];
-
-    meta = with lib; {
-      description = "Python SDK for Parallel Web API";
-      homepage = "https://github.com/parallel-web/parallel-sdk-python";
-      license = licenses.asl20;
-      sourceProvenance = with sourceTypes; [ fromSource ];
-      platforms = platforms.all;
-    };
-  };
 
   version = "2026.8.3";
 
@@ -488,12 +505,12 @@ python3.pkgs.buildPythonApplication {
     inherit hermes-frontend;
   };
 
-  meta = with lib; {
+  meta = {
     description = "Self-improving AI agent by Nous Research — creates skills from experience and runs anywhere";
     homepage = "https://hermes-agent.nousresearch.com/";
     changelog = "https://github.com/NousResearch/hermes-agent/releases/tag/v${version}";
-    license = licenses.mit;
-    sourceProvenance = with sourceTypes; [ fromSource ];
+    license = lib.licenses.mit;
+    sourceProvenance = with lib.sourceTypes; [ fromSource ];
     platforms = [
       "x86_64-linux"
       "aarch64-linux"

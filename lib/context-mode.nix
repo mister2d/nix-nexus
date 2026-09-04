@@ -1,8 +1,11 @@
 { pkgs, lib }:
 
-pkgs.buildNpmPackage rec {
-  pname = "context-mode";
+let
   version = "1.0.169";
+in
+pkgs.buildNpmPackage {
+  pname = "context-mode";
+  inherit version;
 
   src = pkgs.fetchurl {
     url = "https://registry.npmjs.org/context-mode/-/context-mode-${version}.tgz";
