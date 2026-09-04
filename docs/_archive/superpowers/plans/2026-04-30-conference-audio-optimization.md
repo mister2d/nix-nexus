@@ -8,7 +8,7 @@
 
 **Tech Stack:** EasyEffects 8.x JSON presets, NixOS/Nix modules, PipeWire, WirePlumber
 
-**Spec:** `docs/superpowers/specs/2026-04-30-conference-audio-optimization-design.md`
+**Spec:** `docs/_archive/superpowers/specs/2026-04-30-conference-audio-optimization-design.md`
 
 ---
 
