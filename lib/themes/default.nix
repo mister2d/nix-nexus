@@ -96,5 +96,9 @@ in
   kanagawa = mkClassic "kanagawa.yaml";
   rose-pine = mkClassic "rose-pine.yaml";
   nord = mkClassic "nord.yaml";
-  catppuccin-mocha = mkClassic "catppuccin-mocha.yaml";
+  # User preference: keep the OLED true-black terminal deepening under
+  # catppuccin rather than mocha's own #1e1e2e base.
+  catppuccin-mocha = mkClassic "catppuccin-mocha.yaml" // {
+    trueBlackTerminal = true;
+  };
 }
