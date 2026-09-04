@@ -1,6 +1,12 @@
 _: {
   flake.modules.nixos.hardware-z16 =
     { pkgs, ... }:
+    let
+      sampleRate = 48000; # Hz
+      quantum = 1024; # samples
+      minQuantum = 512; # samples
+      maxQuantum = 8192; # samples
+    in
     {
       security.rtkit.enable = true;
       services.pipewire = {
@@ -57,10 +63,10 @@ _: {
         # Real-time conferencing and playback (balanced latency for ML noise suppression)
         extraConfig.pipewire."92-low-latency" = {
           "context.properties" = {
-            "default.clock.rate" = 48000;
-            "default.clock.quantum" = 1024;
-            "default.clock.min-quantum" = 512;
-            "default.clock.max-quantum" = 8192;
+            "default.clock.rate" = sampleRate;
+            "default.clock.quantum" = quantum;
+            "default.clock.min-quantum" = minQuantum;
+            "default.clock.max-quantum" = maxQuantum;
           };
         };
       };

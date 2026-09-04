@@ -7,6 +7,14 @@ _: {
       ...
     }:
     let
+      # Element Call session timing, in milliseconds.
+      delayedLeaveEventDelayMs = 90000;
+      delayedLeaveEventRestartLocalTimeoutMs = 10000;
+      delayedLeaveEventRestartMs = 4000;
+      membershipEventExpiryMs = 7200000;
+      networkErrorRetryMs = 100;
+      waitForKeyRotationMs = 5000;
+
       # Bundled Widget Focus Config:
       # Element Web 1.12.x always serves the embedded Element Call widget from its
       # own origin (element.novuscotia.com/widgets/element-call/) regardless of the
@@ -38,12 +46,12 @@ _: {
         builtins.toJSON {
           # Preserve upstream session timing parameters.
           matrix_rtc_session = {
-            delayed_leave_event_delay_ms = 90000;
-            delayed_leave_event_restart_local_timeout_ms = 10000;
-            delayed_leave_event_restart_ms = 4000;
-            membership_event_expiry_ms = 7200000;
-            network_error_retry_ms = 100;
-            wait_for_key_rotation_ms = 5000;
+            delayed_leave_event_delay_ms = delayedLeaveEventDelayMs;
+            delayed_leave_event_restart_local_timeout_ms = delayedLeaveEventRestartLocalTimeoutMs;
+            delayed_leave_event_restart_ms = delayedLeaveEventRestartMs;
+            membership_event_expiry_ms = membershipEventExpiryMs;
+            network_error_retry_ms = networkErrorRetryMs;
+            wait_for_key_rotation_ms = waitForKeyRotationMs;
           };
           # Focus discovery — read by Element Call when no focus is provided
           # via room state or Widget API. Mirrors the well-known and standalone

@@ -9,13 +9,22 @@ _: {
     let
       # Key rendered by Vault Agent from turn_shared_secret.
       keyFile = "/run/vault-secrets/livekit.key";
+
+      livekitPort = 7880; # LiveKit HTTP/WebSocket port
+      rtcPortRangeStart = 50100; # WebRTC media UDP port range start
+      rtcPortRangeEnd = 50200; # WebRTC media UDP port range end
+      rtcTcpPort = 7881; # WebRTC media TCP fallback port
+      turnTlsPort = 5349; # TURN over TLS port
+      turnUdpPort = 3478; # TURN over UDP port
+      jwtServicePort = 8081; # lk-jwt-service port
+      wellKnownPort = 8083; # local well-known server port
     in
     {
       services.livekit = {
         enable = true;
         inherit keyFile;
         settings = {
-          port = 7880;
+          port = livekitPort;
           bind_addresses = [ "0.0.0.0" ];
 
           room = {
@@ -32,10 +41,10 @@ _: {
           rtc = {
             # UDP port range for WebRTC media. Must stay within the range
             # opened in hosts/avina/default.nix allowedUDPPortRanges (50100-50200).
-            port_range_start = 50100;
-            port_range_end = 50200;
+            port_range_start = rtcPortRangeStart;
+            port_range_end = rtcPortRangeEnd;
             # TCP fallback for RTC media.
-            tcp_port = 7881;
+            tcp_port = rtcTcpPort;
 
             # RTC IP Configuration:
             # Advertise the LAN IP directly. use_external_ip = true is intentionally
@@ -68,8 +77,8 @@ _: {
           turn = {
             enabled = true;
             domain = rtcDomain;
-            tls_port = 5349;
-            udp_port = 3478;
+            tls_port = turnTlsPort;
+            udp_port = turnUdpPort;
             cert_file = "/run/certs/turn-fullchain.pem";
             key_file = "/run/certs/turn.key";
           };
@@ -81,7 +90,7 @@ _: {
       services.lk-jwt-service = {
         enable = true;
         # Keep NixOS option 'port' to satisfy module validation.
-        port = 8081;
+        port = jwtServicePort;
         inherit keyFile;
         # Public SFU URL returned to clients in JWT responses.
         # MUST be the public WebSocket endpoint — clients use this URL to connect
@@ -101,7 +110,7 @@ _: {
         # and explicitly providing BIND. This avoids the 'MUST NOT be set together' error.
         environment = {
           LIVEKIT_JWT_PORT = lib.mkForce null;
-          LIVEKIT_JWT_BIND = ":8081";
+          LIVEKIT_JWT_BIND = ":${toString jwtServicePort}";
           # Public SFU URL — returned in /sfu/get responses so clients connect
           # through HAProxy (/livekit/sfu → 127.0.0.1:7880) rather than to
           # localhost. The LiveKit Go SDK converts wss:// to https:// for Twirp
@@ -111,7 +120,7 @@ _: {
           # Internal Discovery: Point directly to the local well-known server.
           # This ensures lk-jwt-service can resolve homeserver details even if
           # HAProxy or external DNS are experiencing issues.
-          LIVEKIT_WELL_KNOWN_URL = "http://127.0.0.1:8083";
+          LIVEKIT_WELL_KNOWN_URL = "http://127.0.0.1:${toString wellKnownPort}";
         };
       };
     };

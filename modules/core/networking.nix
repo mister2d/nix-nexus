@@ -8,6 +8,8 @@ _: {
     }:
     let
       cfg = config.nix-nexus.networking.tailscale;
+      castStreamPortRangeStart = 32768; # ephemeral UDP port range start
+      castStreamPortRangeEnd = 61000; # ephemeral UDP port range end
     in
     {
       options.nix-nexus.networking.tailscale = {
@@ -85,8 +87,8 @@ _: {
 
             allowedUDPPortRanges = [
               {
-                from = 32768;
-                to = 61000;
+                from = castStreamPortRangeStart;
+                to = castStreamPortRangeEnd;
               } # Google Cast Streaming
             ];
 

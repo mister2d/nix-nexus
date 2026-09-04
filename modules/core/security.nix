@@ -1,6 +1,9 @@
 _: {
   flake.modules.nixos.core-security =
     { pkgs, ... }:
+    let
+      sevenDays = 7 * 24 * 60 * 60; # seconds
+    in
     {
       security = {
         rtkit.enable = true;
@@ -42,8 +45,8 @@ _: {
           # rather than a literal week, and stop signing from re-prompting at
           # the old 24h ceiling.
           settings = {
-            default-cache-ttl = 604800;
-            max-cache-ttl = 604800;
+            default-cache-ttl = sevenDays;
+            max-cache-ttl = sevenDays;
           };
         };
       };
