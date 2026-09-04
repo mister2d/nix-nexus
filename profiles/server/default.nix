@@ -10,7 +10,10 @@
 # config) and configure networking (firewall, interface) in their own default.nix.
 _: {
   flake.modules.nixos.server-default =
-    { nixosModules, ... }:
+    { nixosModules, lib, ... }:
+    let
+      keymap = import ../../lib/keymap.nix { inherit lib; };
+    in
     {
       imports = [
         nixosModules.core-nix
@@ -48,8 +51,8 @@ _: {
         extraConfig = ''
           set -g status-style bg=black,fg=cyan
           set -g status-left "#[fg=cyan,bold] #S #[default]| "
-          bind | split-window -h -c "#{pane_current_path}"
-          bind - split-window -v -c "#{pane_current_path}"
+
+          ${keymap.renderTmux keymap.multiplexer}
         '';
       };
     };
