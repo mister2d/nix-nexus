@@ -1,9 +1,9 @@
 # Environment Package Inventory
 
-This document provides a comprehensive list of the software packages managed within the `nix-nexus` environment, including their specific use cases and roles within the ecosystem.
+This document lists the software packages `nix-nexus` manages. It states each package's use case and role in the environment.
 
 ## Core Development & DevOps Tools
-These tools are pinned to specific versions to ensure absolute reproducibility across deployments.
+These tools use pinned versions. This keeps deployments fully reproducible.
 
 | Package | Version | Description | Use Case |
 |:---:|:---:|:--- |:--- |
@@ -50,26 +50,26 @@ These tools are pinned to specific versions to ensure absolute reproducibility a
 
 ## Package Maintenance & Version Bumping
 
-To ensure system stability and reproducibility across workstations and server nodes, `nix-nexus` employs several distinct pinning strategies. Updating software and hardware drivers requires following the "Nix proper way" for each type.
+`nix-nexus` uses several pinning strategies. These strategies keep workstations and server nodes stable and reproducible. Update software and hardware drivers the Nix way for each pinning type.
 
 ### Channels vs. Flakes (The 2026 standard)
-In this project, you **never** need to run `nix-channel --update`. All dependencies are locked in `flake.lock`. Running a channel update will not affect the project, as the flake environment is isolated and reproducible.
+Never run `nix-channel --update` in this project. `flake.lock` locks all dependencies. A channel update does not affect the project. The flake environment stays isolated and reproducible.
 
 ### 1. Updating Specific Packages
-The command you run depends on where the package is defined in `flake.nix`.
+The command depends on where `flake.nix` defines the package.
 
 #### Scenario A: The package has its own Flake Input
-If a package comes from a specific repository (e.g., `opencode`, `gemini-cli`), you can update it in isolation without touching the rest of the system.
+Some packages come from a specific repository, for example `opencode` or `gemini-cli`. Update these in isolation. You do not touch the rest of the system.
 *   **Target:** `inputs.llm-agents`
 *   **Command:** `nix flake update llm-agents`
 
 #### Scenario B: The package is part of the standard system (nixpkgs)
-If a package (e.g., `tmux`, `git`, `bash`) is sourced from the primary NixOS repository, it is updated by bumping the entire `nixpkgs` input. You cannot update these in isolation.
+Some packages come from the primary NixOS repository, for example `tmux`, `git`, or `bash`. Update these by bumping the entire `nixpkgs` input. You cannot update these packages alone.
 *   **Target:** `inputs.nixpkgs`
 *   **Command:** `nix flake update nixpkgs`
 
 #### Scenario C: Updating a Hard-Pinned Version
-If a package is "Hard Pinned" (e.g., `nomad`, `terraform`), updating it requires manually changing the commit hash in `flake.nix` because it points to a specific point in time that won't move on its own.
+Some packages are hard pinned, for example `nomad` and `terraform`. A hard-pinned input points to one fixed commit. It never moves on its own. Update it by changing the commit hash in `flake.nix` by hand.
 1.  Find the new hash on [NixHub.io](https://www.nixhub.io).
 2.  Update `flake.nix`:
     ```nix
@@ -79,17 +79,17 @@ If a package is "Hard Pinned" (e.g., `nomad`, `terraform`), updating it requires
 
 ### 2. Soft Pinning (Version Assertions)
 **Used for:** The Matrix 2.0 stack (Synapse, MAS, LiveKit, Vault) in `modules/services/matrix/versions.nix`.
-These packages follow the primary `nixpkgs` input but are protected by assertions to prevent "accidental" upgrades during a rolling system update.
+These packages follow the primary `nixpkgs` input. Assertions protect them and block accidental upgrades during a rolling system update.
 
 **The Update Process:**
 1.  **Update Global Nixpkgs:** Run `nix flake update nixpkgs`.
-2.  **Trigger Assertion:** Attempt to build or evaluate the configuration (e.g., `nixos-rebuild dry-run --flake .#avina`). If a pinned package was updated in nixpkgs, the build will fail with a "Matrix stack version drift" error.
-3.  **Acknowledge & Bump:** Verify the new version is compatible, then update the constant in `modules/services/matrix/versions.nix` to match the new version string.
-4.  **Validate:** Re-run the evaluation; it should now pass.
+2.  **Trigger Assertion:** Build or evaluate the configuration, for example `nixos-rebuild dry-run --flake .#avina`. If nixpkgs updated a pinned package, the build fails with a "Matrix stack version drift" error.
+3.  **Acknowledge & Bump:** Verify the new version is compatible. Then update the constant in `modules/services/matrix/versions.nix` to match the new version string.
+4.  **Validate:** Re-run the evaluation. It should now pass.
 
 ### 3. Rolling Updates (Standard Packages)
 **Used for:** System utilities, terminal tools, and productivity apps.
-These are managed via the standard `nixpkgs` and `nixpkgs-unstable` inputs without extra pinning logic.
+The standard `nixpkgs` and `nixpkgs-unstable` inputs manage these packages. They need no extra pinning logic.
 
 **The Update Process:**
 1.  Run `nix flake update`.
@@ -98,5 +98,5 @@ These are managed via the standard `nixpkgs` and `nixpkgs-unstable` inputs witho
 
 ### Recommended Tools
 *   **NixHub.io**: Search for package version history and commit hashes.
-*   **nix-diff**: Compare two derivations to see exactly what changed in an update.
-*   **nix-tree**: Visualize package dependency graphs to identify why a specific version is being pulled in.
+*   **nix-diff**: Compare two derivations to see what changed in an update.
+*   **nix-tree**: View package dependency graphs to find why a specific version is pulled in.
