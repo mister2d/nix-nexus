@@ -1,10 +1,10 @@
 # Development workflow
 
-A day-one guide to changing something in nix-nexus and getting it onto a
-machine. It assumes you can use git and a terminal, and that you know little or
-no Nix. You do not need to understand the dendritic pattern to follow this —
-read [architecture.md](./architecture.md) when you want to know *why* it is
-shaped this way.
+This guide is for day one. It shows you how to change something in
+nix-nexus and deploy it to a machine. It assumes you know git and a
+terminal. It assumes you know little or no Nix. You do not need to
+understand the dendritic pattern to follow this guide. Read
+[architecture.md](./architecture.md) to learn why the repo has this shape.
 
 If you read nothing else, read [the loop at a glance](#the-loop-at-a-glance)
 and [when something goes wrong](#when-something-goes-wrong).
@@ -13,8 +13,8 @@ and [when something goes wrong](#when-something-goes-wrong).
 
 ## The mental model
 
-Three different things in this repo are all "Nix", and conflating them is the
-most common source of early confusion. They are separate layers:
+This repo has three different things. All three are called "Nix". People
+often confuse these three things at first. Treat them as separate layers:
 
 | Layer | What it configures | Where it lives | Applied by |
 |---|---|---|---|
@@ -22,13 +22,14 @@ most common source of early confusion. They are separate layers:
 | **NixOS system** | A whole machine — kernel, services, users, packages | `modules/`, `hosts/`, `profiles/` | `deploy-host.sh <host>` |
 | **Home Manager** | One user's environment — shell config, aliases, dotfiles | same tree, `homeManager` modules | same deploy, or `home-manager switch` on standalone hosts |
 
-The dev shell has nothing to do with the machines you deploy. Changing a linter
-in `checks.nix` does not change any host.
+The dev shell does not affect the machines you deploy. A linter change in
+`checks.nix` does not change any host.
 
 ### The fleet
 
-Seven configurations. Four are full NixOS machines you deploy to; three are
-just a user environment on a machine someone else manages.
+The fleet has seven configurations. Four are full NixOS machines. You
+deploy to these four machines. Three are only a user environment. Someone
+else manages the machine for each of these three.
 
 | Config | Kind | Notes |
 |---|---|---|
@@ -67,27 +68,28 @@ cd nix-nexus
 direnv allow          # if you use direnv — recommended
 ```
 
-With direnv, the dev shell is entered automatically whenever you `cd` in.
-Without it, run this yourself every time:
+With direnv, you enter the dev shell automatically when you `cd` in.
+Without direnv, run this command every time:
 
 ```bash
 nix develop --impure
 ```
 
-**`--impure` is mandatory, not cosmetic.** The dev shell needs to know its own
-directory, and it finds that by reading `$PWD` — something Nix refuses to do in
-pure mode. Every `nix develop` and `nix flake check` against this repo needs
-it. Plain `nix develop` fails with a confusing assertion about not being able
-to determine the current directory.
+**`--impure` is mandatory. It is not cosmetic.** The dev shell needs to
+know its own directory. It finds the directory by reading `$PWD`. Nix
+refuses to read `$PWD` in pure mode. Every `nix develop` and
+`nix flake check` command against this repo needs `--impure`. Plain
+`nix develop` fails. It shows a confusing assertion. The assertion says Nix
+cannot determine the current directory.
 
-The first entry builds the whole dev shell and can take a few minutes.
-Afterwards it is cached and instant.
+The first entry builds the whole dev shell. This can take a few minutes.
+Later entries use the cache and start instantly.
 
 ### Things you must not hand-edit
 
-Entering the shell **generates** several files as symlinks into the read-only
-Nix store. Editing them either fails or is silently discarded on the next shell
-entry:
+Entering the shell generates several files. These files are symlinks into
+the read-only Nix store. If you edit one of these files, the edit fails.
+Or the next shell entry silently discards your edit:
 
 | File | Generated from |
 |---|---|
@@ -95,11 +97,11 @@ entry:
 | `.claude/settings.json` | `modules/flake/checks.nix` (`claude.code`) |
 | `.mcp.json` | same |
 
-To change linting or hooks, edit `modules/flake/checks.nix` and re-enter the
-shell.
+To change linting or hooks, edit `modules/flake/checks.nix` and re-enter
+the shell.
 
-Entering the shell also installs the git pre-commit hook for you. There is no
-install command to run.
+Entering the shell also installs the git pre-commit hook. You do not need
+to run an install command.
 
 ---
 
@@ -121,18 +123,19 @@ install command to run.
   deploy        deploy-host.sh <host>         push it to a machine
 ```
 
-Small doc-only edits skip everything from *check* onward. The full loop is for
-changes under `modules/`, `hosts/`, `profiles/`, or `flake.nix` / `flake.lock`
-— the paths that actually affect a machine. This guide calls those
+Small doc-only edits skip every step from *check* onward. The full loop
+applies to changes under `modules/`, `hosts/`, `profiles/`, `flake.nix`, or
+`flake.lock`. These paths affect a machine. This guide calls these paths
 **evaluated config**.
 
 ---
 
 ## Step 1 — Find what to change
 
-There is no central list of modules. Every `.nix` file under `modules/`,
-`hosts/`, or `profiles/` is discovered automatically and registers itself under
-a name. So the question is usually "which file owns this setting?"
+Nix-nexus has no central list of modules. Nix-nexus discovers every `.nix`
+file under `modules/`, `hosts/`, or `profiles/` automatically. Each file
+registers itself under a name. So the usual question is: which file owns
+this setting?
 
 ```bash
 # Search the tree
@@ -146,20 +149,20 @@ nix eval --json .#modules.homeManager --apply builtins.attrNames | jq
 .agents/scripts/consumers.sh core-tpm2
 ```
 
-`consumers.sh` is the important one. It follows module-to-module references and
-tells you which *hosts* end up including a key:
+`consumers.sh` is the important script here. It follows module-to-module
+references. It tells you which *hosts* include a key:
 
 ```
 sweet16: via hosts/sweet16/default.nix
 petunia: via hosts/petunia/default.nix
 ```
 
-That list is your **expected blast radius**. Write it down — in step 4 you
-compare it against what actually changed.
+That list is your **expected blast radius**. Write down this list. In step
+4, you compare it against what actually changed.
 
-For adding something new rather than editing something existing, the
-[cookbook](./cookbook.md) has seven step-by-step recipes (new module, new user,
-new host, and so on). Start there.
+If you want to add something new, instead of editing something that
+exists, use the [cookbook](./cookbook.md). It has seven step-by-step
+recipes: new module, new user, new host, and more. Start there.
 
 ---
 
@@ -167,12 +170,13 @@ new host, and so on). Start there.
 
 Edit the file. Two rules matter more than the rest:
 
-**One logical change per commit.** Linting and drift-checking are per-commit,
-and a commit that does two unrelated things cannot be validated or reverted
-cleanly.
+**Make one logical change per commit.** Linting and drift checks run per
+commit. A commit with two unrelated changes is hard to validate. It is
+also hard to revert cleanly.
 
-**Never import another module by file path.** Modules reference each other by
-registry name, through a `nixosModules` / `homeManagerModules` argument:
+**Never import another module by file path.** Modules reference each
+other by registry name. They use a `nixosModules` or `homeManagerModules`
+argument:
 
 ```nix
 # correct
@@ -182,21 +186,23 @@ imports = [ nixosModules.core-tpm2 ];
 imports = [ ../../modules/core/tpm2.nix ];
 ```
 
-If you are adding a brand-new file, **`git add` it before building.** Nix
-evaluates the *git-tracked* tree, so an untracked new `.nix` file is silently
-ignored — you will build successfully and wonder why nothing changed.
+If you add a brand-new file, **run `git add` on it before you build.** Nix
+evaluates only the *git-tracked* tree. Nix ignores an untracked new `.nix`
+file silently. Your build succeeds. But nothing changes, and you do not
+know why.
 
 ### Don't guess package or option names
 
-Package attributes and option paths drift between nixpkgs releases, so a name
-you remember may be renamed or gone. Look it up rather than guessing:
+Package attributes and option paths change between nixpkgs releases. A
+name you remember may not exist any more, or nixpkgs may have renamed it.
+Look up the name. Do not guess it:
 
 ```bash
 nix eval --raw nixpkgs#ripgrep.name        # does this attribute exist?
 ```
 
-Inside an AI session the `nixos-tools` MCP server does this directly. Either
-way, verify before writing.
+Inside an AI session, the `nixos-tools` MCP server does this directly for
+you. Either way, verify the name before you write it.
 
 ---
 
@@ -209,7 +215,7 @@ way, verify before writing.
 This runs two gates and stops at the first failure:
 
 1. the formatting/lint hooks on the files you name
-2. `nix flake check --impure` — evaluates all seven configurations
+2. `nix flake check --impure`, which evaluates all seven configurations
 
 Three linters run:
 
@@ -219,13 +225,14 @@ Three linters run:
 | `deadnix` | Unused bindings and unused function arguments |
 | `statix` | Nix anti-patterns — `{ ... }:` that should be `_:`, `with pkgs;`, and similar |
 
-**When `nixfmt` reformats a file, re-stage it and run again.** That is normal,
-not an error. Do not fight the formatter.
+**When `nixfmt` reformats a file, re-stage it and run again.** That is
+normal, not an error. Do not fight the formatter.
 
-> The command is `prek`, not `pre-commit` — `prek` is a faster drop-in
-> reimplementation, and `pre-commit` is not installed. Inside an already-entered
-> shell you can run `prek run --files <files>` directly. Prefer `preflight.sh`,
-> which also runs the flake check and gets `--impure` right.
+> The command here is `prek`, not `pre-commit`. `prek` is a faster
+> drop-in replacement for `pre-commit`. This repo does not install
+> `pre-commit`. Inside an already-entered shell, you can run
+> `prek run --files <files>` directly. Prefer `preflight.sh`. It also runs
+> the flake check, and it sets `--impure` correctly.
 
 Then commit normally. The git hook re-runs the linters on staged files.
 
@@ -233,8 +240,8 @@ Then commit normally. The git hook re-runs the linters on staged files.
 
 ## Step 4 — Check the blast radius
 
-This is the step that distinguishes "it evaluates" from "it does what I meant".
-Skip it only for doc-only changes.
+This step shows the difference between "it evaluates" and "it does what I
+meant". Skip this step only for doc-only changes.
 
 ```bash
 # what flake inputs moved, if any?
@@ -244,9 +251,9 @@ Skip it only for doc-only changes.
 .agents/scripts/verify-drift.sh <base-commit> HEAD
 ```
 
-`verify-drift.sh` prints a table of all seven configs with `none`, `DRIFT`, or
-`N/A`, and exits `10` if anything drifted. Use the last signed-off commit as
-your base:
+`verify-drift.sh` prints a table of all seven configs. Each config shows
+`none`, `DRIFT`, or `N/A`. The script exits with code `10` if anything
+drifted. Use the last signed-off commit as your base:
 
 ```bash
 jq -r .signed_off_through .agents/baseline.json
@@ -273,8 +280,9 @@ diff <(nix derivation show /nix/store/...-A.drv | jq -S .) \
 
 ## Step 5 — Sign off
 
-Every change to evaluated config needs a recorded judgment before it can be
-pushed. This is enforced — see [when something goes wrong](#the-push-guard-blocked-my-push).
+Every change to evaluated config needs a recorded judgment. You must
+record this judgment before you push the change. The push guard enforces
+this rule. See [when something goes wrong](#the-push-guard-blocked-my-push).
 
 ```bash
 .agents/scripts/signoff.sh --slug tailscale-exit-node <<'EOF'
@@ -289,21 +297,24 @@ Equal. verify-drift reports DRIFT on exactly those two, `none` elsewhere.
 EOF
 ```
 
-You supply **only the prose**. The script generates the filename, timestamp,
-commit list, drift table, every store hash, and the verdict header, then writes:
+You supply **only the prose**. The script generates the filename, the
+timestamp, the commit list, the drift table, every store hash, and the
+verdict header. Then it writes:
 
-- `.agents/signoff/<date>-<slug>.md` — one immutable entry per sign-off
-- `.agents/baseline.json` — current state, replaced each time
+- `.agents/signoff/<date>-<slug>.md`: one immutable entry for each
+  sign-off
+- `.agents/baseline.json`: the current state. The script replaces this
+  file each time.
 
-Never type a store hash into a sign-off. If you find yourself doing that, the
-script should be doing it instead.
+Never type a store hash into a sign-off by hand. If you need a store
+hash, let the script generate it instead.
 
-Use these headings: `### Expected-drift set` and `### Actual vs expected`
-always; add `### Root cause` when they differ and `### Deploy note` when you
-deployed something.
+Always use these headings: `### Expected-drift set` and
+`### Actual vs expected`. Add `### Root cause` when the actual and
+expected drift differ. Add `### Deploy note` when you deployed something.
 
-If the drift does **not** match expectations, do not sign off. Record the
-investigation without advancing the baseline:
+If the drift does **not** match what you expect, do not sign off. Record
+your investigation, but do not advance the baseline:
 
 ```bash
 .agents/scripts/signoff.sh --slug weird-drift --verdict blocked <<'EOF'
@@ -311,7 +322,8 @@ investigation without advancing the baseline:
 EOF
 ```
 
-Then commit the sign-off — it is a normal commit, conventionally its own:
+Then commit the sign-off. It is a normal commit. By convention, it is its
+own separate commit:
 
 ```bash
 git add .agents && git commit -m "docs(signoff): record tailscale exit node drift"
@@ -322,12 +334,13 @@ git add .agents && git commit -m "docs(signoff): record tailscale exit node drif
 ## Step 6 — Deploy
 
 > **`sweet16` is very likely the machine you are sitting at.** A `switch`
-> restarts user services and can disturb a running desktop session. For
-> compositor, shell, or theming changes use `--boot` so they apply at the next
-> boot, and let the user reboot on their own schedule.
+> restarts user services. It can disturb a running desktop session. For
+> compositor, shell, or theming changes, use `--boot`. This applies the
+> change at the next boot. Let the user reboot on their own schedule.
 
-Deploys are always remote, even to the local machine, and always authenticate
-with a short-lived Vault-issued SSH certificate. There is no local-sudo path.
+Deploys are always remote, even to the local machine. Deploys always
+authenticate with a short-lived Vault-issued SSH certificate. There is no
+local-sudo path.
 
 ```bash
 # check the cert and reachability without touching the machine
@@ -344,9 +357,10 @@ with a short-lived Vault-issued SSH certificate. There is no local-sudo path.
 .agents/scripts/deploy-host.sh petunia --build-host petunia.home.lan
 ```
 
-The script runs four stages and stops at the first failure: certificate check,
-ssh reachability, `nixos-rebuild`, then a generation check confirming the
-machine is actually running what you built.
+The script runs four stages. It stops at the first failure. The stages
+are: certificate check, SSH reachability check, `nixos-rebuild`, and a
+generation check. The generation check confirms the machine runs what you
+built.
 
 To time a build without deploying:
 
@@ -356,23 +370,25 @@ To time a build without deploying:
 
 ### Before your first deploy
 
-You need an SSH certificate at `~/.ssh/id_ed25519-cert.pub`, signed by the CA
-in `certs/trusted_ssh_ca.pub`, with principal `root` and more than 30 minutes
-of validity left. Check it:
+You need an SSH certificate at `~/.ssh/id_ed25519-cert.pub`. The CA in
+`certs/trusted_ssh_ca.pub` must sign this certificate. The certificate
+must have the principal `root`. The certificate must have more than 30
+minutes of validity left. Check the certificate:
 
 ```bash
 .agents/scripts/cert-check.sh
 ```
 
-**Obtaining and refreshing that certificate is a manual step and the command is
-not stored in this repo — ask the maintainer.** Renewal is deliberately not
-automated. `cert-check.sh` will tell you when it is expiring; it will not fix
-it for you, and neither will the deploy script.
+**Getting and refreshing this certificate is a manual step. This repo
+does not store the command. Ask the maintainer.** This repo does not
+automate certificate renewal. This is deliberate. `cert-check.sh` tells
+you when the certificate is expiring. `cert-check.sh` does not fix the
+certificate. The deploy script does not fix it either.
 
 ### Standalone Home Manager hosts
 
-`dualie`, `forge`, and `rk3588` are not deployed by these scripts. They
-self-manage — run this on the host itself:
+These scripts do not deploy `dualie`, `forge`, or `rk3588`. Each of these
+hosts manages itself. Run this command on the host itself:
 
 ```bash
 home-manager switch --flake .#groot@dualie
@@ -390,17 +406,18 @@ push blocked — config commits not covered by the latest sign-off
   6c83f42 fix(tools): fix lrt alias
 ```
 
-You changed evaluated config and have not signed off on it. This is working as
-intended. Go do [step 5](#step-5--sign-off), commit the sign-off, and push again.
+You changed evaluated config. You have not signed off on this change.
+This is working as intended. Complete
+[step 5](#step-5--sign-off). Commit the sign-off. Push again.
 
-The guard requires every outgoing commit touching `modules/`, `hosts/`,
-`profiles/` or `flake.*` to be an ancestor of `signed_off_through` in
-`.agents/baseline.json`. Merely having *a* sign-off in the range is not enough —
-it has to actually cover your commits. A sign-off written for an earlier commit
-will not do.
+The guard checks every outgoing commit that touches `modules/`, `hosts/`,
+`profiles/`, or `flake.*`. Each of these commits must be an ancestor of
+`signed_off_through` in `.agents/baseline.json`. Having *a* sign-off in
+the range is not enough. The sign-off must cover your commits. A sign-off
+written for an earlier commit does not cover your commits.
 
-This hook only runs inside an AI coding session. It is a safety net for
-automation, not a lock on you.
+This hook runs only inside an AI coding session. It is a safety net for
+automation. It does not lock you out.
 
 ### `nix develop` fails with an assertion about the current directory
 
@@ -408,16 +425,18 @@ You forgot `--impure`. See [one-time setup](#one-time-setup).
 
 ### `pre-commit: command not found`
 
-It is `prek` here. Use `.agents/scripts/preflight.sh <files>`, or `prek run
---files <files>` inside the shell.
+It is `prek` here. Use `.agents/scripts/preflight.sh <files>`. Or use
+`prek run --files <files>` inside the shell.
 
 ### `error: attribute 'foo' missing`
 
-A host references a registry key that doesn't exist. Usually one of:
+A host references a registry key that does not exist. This usually has
+one of these causes:
 
 - a typo in the key string
-- the file is new and **not yet `git add`ed**, so Nix cannot see it
-- a path segment starts with `_`, which excludes it from discovery
+- the file is new. You have **not yet run `git add` on it**. Nix cannot
+  see the file
+- a path segment starts with `_`. This excludes the file from discovery
 
 ```bash
 grep -rn 'flake.modules.nixos.foo' modules/ hosts/ profiles/
@@ -425,19 +444,20 @@ grep -rn 'flake.modules.nixos.foo' modules/ hosts/ profiles/
 
 ### My change had no effect
 
-Almost always an untracked file. `git status` — if your new `.nix` file is
-listed as untracked, `git add` it and rebuild.
+Almost always, the cause is an untracked file. Run `git status`. If your
+new `.nix` file appears as untracked, run `git add` on it and rebuild.
 
 ### I deployed something broken
 
-Every deploy leaves the previous generation bootable. Roll back on the host:
+Every deploy leaves the previous generation bootable. Roll back on the
+host:
 
 ```bash
 sudo nixos-rebuild switch --rollback
 ```
 
-or pick an older generation from the boot menu. [upgrading.md](./upgrading.md)
-covers rollback in depth.
+Or pick an older generation from the boot menu.
+[upgrading.md](./upgrading.md) covers rollback in depth.
 
 ---
 
@@ -453,6 +473,6 @@ covers rollback in depth.
 | Work on a non-NixOS machine | [non-nixos.md](./non-nixos.md) |
 | Know the exact contract of a script | [.agents/validation.md](../.agents/validation.md) |
 
-`AGENTS.md` at the repo root is the maintenance authority for AI agents working
-on this repo. It is stricter and more detailed than this guide; where the two
-disagree, `AGENTS.md` wins.
+`AGENTS.md` at the repo root is the maintenance authority for AI agents
+working on this repo. It is stricter and more detailed than this guide.
+Where the two disagree, `AGENTS.md` wins.
