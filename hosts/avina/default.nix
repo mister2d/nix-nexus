@@ -1,7 +1,6 @@
 _: {
   flake.modules.nixos.avina-default =
     {
-      pkgs,
       modulesPath,
       nixosModules,
       ...
@@ -35,6 +34,7 @@ _: {
 
         nixosModules.server-default # Base: security, sysctl, users — no ZFS, no boot, no NM
         nixosModules.services-matrix # Matrix 2.0 communications suite
+        nixosModules.core-groot
       ];
 
       # Encrypted secrets for this host. Decrypted at activation with an age key
@@ -107,20 +107,9 @@ _: {
       };
 
       # Administrative user for server access.
-      # groot is the fleet-wide operator identity used across all hosts.
+      # avina is the only host that grants groot wheel access.
       users.users.groot = {
-        isNormalUser = true;
-        extraGroups = [
-          "wheel"
-          "kvm"
-        ];
-        shell = pkgs.bash;
-        openssh.authorizedKeys.keys = [
-          # TPM-sealed personal keys, one per originating host.
-          "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNFB6pgRk5PE1xMS3TlfOaJe61nDIk+yuJmuxkrtGMLZYVXBqqYnr/IKRLfX6DLIGeEOCTUJbGxXvFhoYUAmC7E= sony (TPM)"
-          "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNXL5V23wci0ARBKtji+yLad2Mg0pxIflmq2clUoNVQabpYQbwhIgDHcui1CBqZnA0FdDuVtnsrWzI0XMi3GvQI= ddukes@sweet16 personal (TPM)"
-          "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBBwldrZh2sFdX5Z3IyizIlgYBGKLz31t90zokoU/XLcsHGLfZW8RbDwz4c1hGGdjCDlV5eaTMipeqF8a59qiN30= ddukes@petunia personal (TPM)"
-        ];
+        extraGroups = [ "wheel" ];
       };
 
       services = {

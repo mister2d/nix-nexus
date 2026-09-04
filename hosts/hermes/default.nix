@@ -16,6 +16,7 @@ _: {
       imports = [
         (modulesPath + "/virtualisation/proxmox-lxc.nix")
         nixosModules.server-default
+        nixosModules.core-groot
       ];
 
       proxmoxLXC = {
@@ -27,18 +28,6 @@ _: {
         hostName = "hermes";
         networkmanager.enable = false;
         firewall.enable = false;
-      };
-
-      users.users.groot = {
-        isNormalUser = true;
-        extraGroups = [ "kvm" ];
-        shell = pkgs.bash;
-        openssh.authorizedKeys.keys = [
-          # TPM-sealed personal keys, one per originating host.
-          "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNFB6pgRk5PE1xMS3TlfOaJe61nDIk+yuJmuxkrtGMLZYVXBqqYnr/IKRLfX6DLIGeEOCTUJbGxXvFhoYUAmC7E= sony (TPM)"
-          "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBNXL5V23wci0ARBKtji+yLad2Mg0pxIflmq2clUoNVQabpYQbwhIgDHcui1CBqZnA0FdDuVtnsrWzI0XMi3GvQI= ddukes@sweet16 personal (TPM)"
-          "ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBBwldrZh2sFdX5Z3IyizIlgYBGKLz31t90zokoU/XLcsHGLfZW8RbDwz4c1hGGdjCDlV5eaTMipeqF8a59qiN30= ddukes@petunia personal (TPM)"
-        ];
       };
 
       security.sudo.enable = false;
