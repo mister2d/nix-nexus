@@ -637,8 +637,13 @@ that is not managed by NixOS. Home Manager is the only Nix-managed layer.
 
 ```
 hosts/<hostname>/home.nix             # HM profile
-modules/flake/hm-<user>-<hostname>.nix  # standalone HM config
+modules/flake/hm-<user>.nix           # standalone HM config, one file per user
 ```
+
+If the user already has a standalone HM assembly file (for example
+`modules/flake/hm-groot.nix`, which maps `dualie`, `forge`, and `rk3588`),
+add the new host to that file's host-to-system attrset instead of creating a
+new file.
 
 ### `hosts/<hostname>/home.nix`
 
@@ -676,25 +681,47 @@ _: {
 }
 ```
 
-### `modules/flake/hm-alice-mydebian.nix`
+### `modules/flake/hm-alice.nix`
+
+One file per user maps every one of that user's standalone hosts, following
+the pattern in `modules/flake/hm-groot.nix` (which maps `dualie`, `forge`, and
+`rk3588`). `flake.homeConfigurations` is `lazyAttrsOf raw`, so one fragment
+may set several `"user@host"` keys with `lib.mapAttrs'`.
 
 ```nix
-{ inputs, config, ... }:
-let hm = config.flake.modules.homeManager; in
+{
+  inputs,
+  config,
+  lib,
+  ...
+}:
+let
+  hm = config.flake.modules.homeManager;
+  hosts = {
+    mydebian = "x86_64-linux";
+  };
+in
 {
   # Usage: nix run home-manager/release-25.11 -- switch --flake .#alice@mydebian -b bak
-  flake.homeConfigurations."alice@mydebian" =
-    inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = inputs.nixpkgs.legacyPackages."x86_64-linux";
-      modules = [ hm.mydebian-home ];
-      extraSpecialArgs = {
-        inherit (inputs) self;
-        inherit inputs;
-        homeManagerModules = hm;
-      };
-    };
+  flake.homeConfigurations = lib.mapAttrs' (
+    host: system:
+    lib.nameValuePair "alice@${host}" (
+      inputs.home-manager.lib.homeManagerConfiguration {
+        pkgs = inputs.nixpkgs.legacyPackages.${system};
+        modules = [ hm."${host}-home" ];
+        extraSpecialArgs = {
+          inherit (inputs) self;
+          inherit inputs;
+          homeManagerModules = hm;
+        };
+      }
+    )
+  ) hosts;
 }
 ```
+
+Adding a second standalone host for the same user is then one more line in
+`hosts`, not a new file.
 
 ### Activate
 
@@ -708,8 +735,8 @@ home-manager switch --flake .#alice@mydebian -b bak
 
 > **Note on architecture:** `flake.homeConfigurations` uses `lib.types.raw`
 > (not `deferredModule`), so each `"user@host"` key must be set by exactly one
-> fragment. Unlike NixOS modules, standalone HM configs cannot be split across
-> multiple files under the same key.
+> fragment. One fragment may set several keys, as `modules/flake/hm-groot.nix`
+> does, but a single key still cannot be split across multiple files.
 
 ---
 
@@ -723,7 +750,7 @@ home-manager switch --flake .#alice@mydebian -b bak
 | Enable HM capability on a host | `hosts/<hostname>/home.nix` — add to `imports` |
 | Add multi-file service stack | `modules/services/<stack>/*.nix` (all same name) |
 | Add new NixOS host | `hosts/<hostname>/default.nix` + `modules/flake/nixos-<hostname>.nix` |
-| Add new standalone HM host | `hosts/<hostname>/home.nix` + `modules/flake/hm-<user>-<hostname>.nix` |
+| Add new standalone HM host | `hosts/<hostname>/home.nix` + `modules/flake/hm-<user>.nix` (e.g. `modules/flake/hm-groot.nix`) |
 | Add HM for a user on NixOS | `hosts/<hostname>/<user>-hm.nix` + `hosts/<hostname>/<user>-home.nix` |
 
 ---

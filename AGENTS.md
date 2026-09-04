@@ -247,7 +247,7 @@ Before creating or moving any file, verify where it belongs:
 | Host HM profile | `hosts/<hostname>/home.nix` | `<hostname>-home` |
 | HM wiring (NixOS-side) | `hosts/<hostname>/<user>-hm.nix` | `hm-<user>-<hostname>` |
 | Flake assembly (nixosSystem call) | `modules/flake/nixos-<hostname>.nix` | (no registry key — sets `flake.nixosConfigurations`) |
-| Standalone HM assembly | `modules/flake/hm-<user>-<hostname>.nix` | (no registry key — sets `flake.homeConfigurations`) |
+| Standalone HM assembly | `modules/flake/hm-<user>.nix` (one file maps every host for that user, e.g. `modules/flake/hm-groot.nix`) | (no registry key — sets `flake.homeConfigurations`) |
 | Pure helpers / derivations | `lib/<name>.nix` | (no key — plain Nix, imported by path) |
 
 **Naming rules:**
@@ -480,9 +480,9 @@ Current hosts and their assembly structure:
 | petunia | NixOS | x86_64 | `modules/flake/nixos-petunia.nix` | `hosts/petunia/default.nix` | `hosts/petunia/ddukes-hm.nix` |
 | avina | NixOS | x86_64 | `modules/flake/nixos-avina.nix` | `hosts/avina/default.nix` | `hosts/avina/ddukes-hm.nix` |
 | hermes | NixOS | x86_64 | `modules/flake/nixos-hermes.nix` | `hosts/hermes/default.nix` | `hosts/hermes/groot-hm.nix` |
-| dualie | Debian (standalone HM) | x86_64 | `modules/flake/hm-groot-dualie.nix` | `hosts/dualie/home.nix` | n/a |
-| forge | Linux (standalone HM) | x86_64 | `modules/flake/hm-groot-forge.nix` | `hosts/forge/home.nix` | n/a |
-| rk3588 | Armbian (standalone HM) | aarch64 | `modules/flake/hm-groot-rk3588.nix` | `hosts/rk3588/home.nix` | n/a |
+| dualie | Debian (standalone HM) | x86_64 | `modules/flake/hm-groot.nix` | `hosts/dualie/home.nix` | n/a |
+| forge | Linux (standalone HM) | x86_64 | `modules/flake/hm-groot.nix` | `hosts/forge/home.nix` | n/a |
+| rk3588 | Armbian (standalone HM) | aarch64 | `modules/flake/hm-groot.nix` | `hosts/rk3588/home.nix` | n/a |
 
 **Current custom `nix-nexus.*` options:**
 
