@@ -1,21 +1,23 @@
 # Architecture: The Dendritic Pattern
 
-This document explains how nix-nexus is structured, why it is structured that way,
-and what that means in practice when you are reading or editing code.
+This document explains the structure of nix-nexus. It explains why nix-nexus
+has this structure. It explains what this means when you read or edit code.
 
 ---
 
 ## The core idea in one sentence
 
 Every `.nix` file in `modules/`, `hosts/`, and `profiles/` is a self-contained
-**fragment** that announces its own name to a shared registry. Hosts compose
-machines by reading names from that registry — never by importing files by path.
+**fragment**. Each fragment announces its own name to a shared registry. A
+host builds a machine by reading names from that registry. A host never
+imports a file by its path.
 
 ---
 
 ## How file discovery works
 
-`flake.nix` uses **import-tree** to discover all `.nix` files under three subtrees:
+`flake.nix` uses **import-tree** to find every `.nix` file under three
+subtrees:
 
 ```nix
 fleet = builtins.foldl' (it: p: it.addPath p) inputs.import-tree [
@@ -26,20 +28,21 @@ fleet = builtins.foldl' (it: p: it.addPath p) inputs.import-tree [
 inputs.flake-parts.lib.mkFlake { inherit inputs; } fleet.result;
 ```
 
-`addPath` appends each root to the discovery set. `fleet.result` produces a
-**flake-parts** module containing one big `imports` list of every discovered file.
-No file is explicitly named in `flake.nix`; adding a new `.nix` file anywhere
-under those three trees makes it live automatically on the next evaluation.
+`addPath` adds each root to the set of files to find. `fleet.result` builds a
+**flake-parts** module. This module holds one `imports` list of every file
+found. No file is named in `flake.nix`. You add a new `.nix` file anywhere
+under these three trees. The file becomes active at the next evaluation.
 
-> **import-tree convention**: files with a path segment starting with `_` are
-> excluded. Everything else matching `*.nix` is included.
+> **import-tree convention**: import-tree excludes a file when a path segment
+> starts with `_`. import-tree includes every other file that matches
+> `*.nix`.
 
 ---
 
 ## What each file must look like
 
-Every discovered file is evaluated as a **flake-parts module**. The outermost
-shape is always:
+Every found file is a **flake-parts module**. The outermost shape is always
+one of two forms.
 
 ```nix
 # Minimal fragment — no inputs needed
@@ -48,7 +51,7 @@ _: {
 }
 ```
 
-or, when the fragment needs flake-level inputs:
+Use this form when the fragment needs flake-level inputs:
 
 ```nix
 { inputs, config, ... }: {
@@ -56,9 +59,9 @@ or, when the fragment needs flake-level inputs:
 }
 ```
 
-The underscore (`_`) or named argument set is the **flake-parts module argument**
-(analogous to `{ config, pkgs, ... }` in a NixOS module). Do not confuse it with
-the NixOS module argument that appears inside the value.
+The underscore (`_`) or named argument set is the **flake-parts module
+argument** (compare it to `{ config, pkgs, ... }` in a NixOS module). Do not
+confuse it with the NixOS module argument inside the value.
 
 ---
 
@@ -71,25 +74,26 @@ flake.modules.nixos      # type: lazyAttrsOf deferredModule
 flake.modules.homeManager  # type: lazyAttrsOf deferredModule
 ```
 
-Every fragment that sets `flake.modules.nixos.<name> = <module>` adds an entry to
-the NixOS registry. Every fragment that sets `flake.modules.homeManager.<name> = <module>`
-adds to the Home Manager registry.
+A fragment that sets `flake.modules.nixos.<name> = <module>` adds an entry to
+the NixOS registry. A fragment that sets
+`flake.modules.homeManager.<name> = <module>` adds an entry to the Home
+Manager registry.
 
-The type `lazyAttrsOf deferredModule` is what makes multi-file stacks possible:
-multiple fragments can register **the same name** and the module system merges all
-their contributions under that single key. This is how `services-matrix` spans nine
-files without an aggregator.
+The type `lazyAttrsOf deferredModule` makes multi-file stacks possible.
+Multiple fragments can register **the same name**. The module system merges
+all their contributions under that one key. This is how `services-matrix`
+spans nine files without an aggregator.
 
 ---
 
 ## How a host assembly works
 
-Each host has two pieces:
+Each host has two pieces.
 
 ### 1. The host module — `hosts/<hostname>/default.nix`
 
-A NixOS module registered as `flake.modules.nixos.<hostname>-default`. This is
-where machine-specific configuration lives: `networking.hostName`, hardware
+A NixOS module registered as `flake.modules.nixos.<hostname>-default`. Here
+you place machine-specific configuration: `networking.hostName`, hardware
 imports, kernel parameters, per-host tuning.
 
 ```nix
@@ -112,13 +116,14 @@ _: {
 ```
 
 The key point: every `nixosModules.*` reference is a **name lookup** into the
-registry. No path imports. The full registry is delivered as `nixosModules` via
-`specialArgs` in the flake assembly (see next).
+registry. No path imports. The flake assembly (see next) delivers the full
+registry as `nixosModules` through `specialArgs`.
 
 ### 2. The flake assembly — `modules/flake/nixos-<hostname>.nix`
 
-A flake-parts fragment that calls `nixpkgs.lib.nixosSystem`, binding the registry
-into `specialArgs` and selecting which named modules form the machine's closure:
+A flake-parts fragment that calls `nixpkgs.lib.nixosSystem`. It binds the
+registry into `specialArgs` and picks which named modules form the machine's
+closure:
 
 ```nix
 { inputs, config, ... }:
@@ -145,9 +150,10 @@ in
 }
 ```
 
-`specialArgs` is how every NixOS module in this flake receives `nixosModules` and
-`homeManagerModules` as function arguments — those two names are available anywhere
-you write `{ nixosModules, ... }:` or `{ homeManagerModules, ... }:`.
+`specialArgs` gives every NixOS module in this flake the `nixosModules` and
+`homeManagerModules` function arguments. You can write
+`{ nixosModules, ... }:` or `{ homeManagerModules, ... }:` in any NixOS
+module and read these two names.
 
 ---
 
@@ -161,9 +167,10 @@ modules/            Granular aspects — hardware, services, desktop, user
 
 ### Core (`modules/core/`)
 
-These modules form the base security, networking, and system hygiene posture. They
-are not imported directly by hosts; instead they are composed by `profiles/workstation`
-and `profiles/server` under the names `workstation-default` and `server-default`.
+These modules set the base security, networking, and system hygiene posture.
+No host imports them directly. Instead, `profiles/workstation` and
+`profiles/server` compose them under the names `workstation-default` and
+`server-default`.
 
 | Module name | What it does |
 |---|---|
@@ -176,7 +183,7 @@ and `profiles/server` under the names `workstation-default` and `server-default`
 
 ### Profiles (`profiles/`)
 
-Profiles aggregate core modules into named role bundles:
+Profiles group core modules into named role bundles:
 
 - `workstation-default` — imports core-boot + core-networking + core-security +
   core-sysctl + core-users + core-zfs
@@ -187,18 +194,18 @@ Profiles aggregate core modules into named role bundles:
 
 ### Modules (`modules/`)
 
-Everything else. Hardware aspects, compositor configs, service stacks, user HM
-profiles. Each file is a focused, opt-in capability fragment.
+Everything else lives here: hardware aspects, compositor configs, service
+stacks, user HM profiles. Each file is a focused, opt-in capability fragment.
 
 ---
 
 ## Home Manager wiring
 
-Home Manager integration for a NixOS host uses two additional fragments:
+Home Manager integration for a NixOS host uses two more fragments.
 
 **`hosts/<hostname>/<user>-hm.nix`** — NixOS-side wiring. Registered as a
-`flake.modules.nixos` entry. Configures the `home-manager` NixOS module and maps
-a HM profile to a system user:
+`flake.modules.nixos` entry. This fragment configures the `home-manager`
+NixOS module and maps a HM profile to a system user:
 
 ```nix
 _: {
@@ -223,8 +230,8 @@ _: {
 ```
 
 **`hosts/<hostname>/home.nix`** — The HM profile itself. Registered under
-`flake.modules.homeManager.<hostname>-home`. Imports named HM modules and adds
-host-specific overrides:
+`flake.modules.homeManager.<hostname>-home`. This fragment imports named HM
+modules and adds host-specific overrides:
 
 ```nix
 _: {
@@ -236,6 +243,7 @@ _: {
         homeManagerModules.hardware-z16-hypr-home
         homeManagerModules.desktop-hyprland-home
         homeManagerModules.desktop-noctalia-home
+        homeManagerModules.desktop-theme-home
       ];
       programs.btop.package = pkgs.btop.override { rocmSupport = true; };
     };
@@ -246,10 +254,10 @@ _: {
 
 ## Standalone Home Manager (non-NixOS hosts)
 
-For machines that run a foreign Linux (Debian, Armbian, etc.), one flake-parts
-fragment maps every host for a given user. `modules/flake/hm-groot.nix` builds
-`groot@dualie`, `groot@forge`, and `groot@rk3588` from a single host-to-system
-table:
+For a machine that runs a foreign Linux (Debian, Armbian, and so on), one
+flake-parts fragment maps every host for one user. `modules/flake/hm-groot.nix`
+builds `groot@dualie`, `groot@forge`, and `groot@rk3588` from one
+host-to-system table:
 
 ```nix
 { inputs, config, lib, ... }:
@@ -279,7 +287,7 @@ in
 }
 ```
 
-Activated with:
+Activate it with:
 ```bash
 nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
 ```
@@ -306,8 +314,8 @@ nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
 
 ## Custom options (`nix-nexus.*`)
 
-Modules can declare custom options in the `nix-nexus` namespace. The convention
-is `nix-nexus.<subsystem>.<option>`:
+A module can declare custom options in the `nix-nexus` namespace. The
+convention is `nix-nexus.<subsystem>.<option>`:
 
 ```nix
 # Declaration (modules/core/zfs.nix)
@@ -325,13 +333,16 @@ Currently declared options:
 
 ## `lib/` — helpers that are not modules
 
-Files under `lib/` are plain Nix expressions, not flake-parts fragments. They are
-imported explicitly with a relative path where needed, not auto-discovered:
+Files under `lib/` are plain Nix expressions, not flake-parts fragments. You
+import each one by a relative path where you need it. import-tree does not
+find these files.
 
 - `lib/custom-scripts.nix` — returns `{ pkgs }: { battery-alert = ...; system-stats = ...; }` 
-- `lib/keymap.nix` — canonical multiplexer keymap plus `renderTmux` / `renderHerdr`;
-  the single source both `programs.tmux` and herdr resolve their bindings from
+- `lib/keymap.nix` — the canonical multiplexer keymap plus `renderTmux` and
+  `renderHerdr`. Both `programs.tmux` and herdr read their bindings from this
+  one source
 - `lib/openclaude.nix` — npm package derivation
 - `lib/avina/site-config.nix` — pure data attrset for avina domain constants
 
-Do not place module logic in `lib/`. Do not place pure helper logic in `modules/`.
+Do not place module logic in `lib/`. Do not place pure helper logic in
+`modules/`.
