@@ -20,64 +20,7 @@ _: {
       # Terms of Service:
       # Served at https://<matrixDomain>/tos and referenced by MAS branding.tos_uri.
       # This is a private, invite-only homeserver — no public registration.
-      tosContent = pkgs.writeTextDir "tos/index.html" ''
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-          <meta charset="UTF-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Terms of Service</title>
-          <style>
-            body { font-family: sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; line-height: 1.6; color: #333; }
-            h1 { border-bottom: 1px solid #ccc; padding-bottom: 8px; }
-            h2 { margin-top: 2em; }
-          </style>
-        </head>
-        <body>
-          <h1>Terms of Service</h1>
-          <p><em>Last updated: 2026-03-25</em></p>
-
-          <h2>1. Service Description</h2>
-          <p>This Matrix homeserver is a private, invite-only communication service. Access is
-          restricted to authorised individuals. There is no public registration; all accounts
-          are provisioned by the administrator.</p>
-
-          <h2>2. Acceptable Use</h2>
-          <p>You agree to use this service only for lawful, personal communication. The following
-          are prohibited:</p>
-          <ul>
-            <li>Sharing, distributing, or storing illegal content of any kind.</li>
-            <li>Harassing, threatening, or abusing other users.</li>
-            <li>Attempting to gain unauthorised access to server infrastructure or other accounts.</li>
-            <li>Using automated tools to send bulk messages or spam.</li>
-            <li>Any activity that violates applicable law.</li>
-          </ul>
-
-          <h2>3. Privacy</h2>
-          <p>Messages and files sent through this service are stored on the server. The
-          administrator may access server logs and metadata for operational and security
-          purposes. Do not transmit information you require to remain confidential using
-          unencrypted Matrix rooms.</p>
-
-          <h2>4. Account Termination</h2>
-          <p>The administrator reserves the right to suspend or permanently remove access for
-          any user who violates these terms, or for any other operational reason, without
-          prior notice.</p>
-
-          <h2>5. Availability</h2>
-          <p>This service is provided on a best-effort basis with no uptime guarantees. The
-          administrator accepts no liability for data loss, service interruptions, or any
-          damages arising from use of the service.</p>
-
-          <h2>6. Changes</h2>
-          <p>These terms may be updated at any time. Continued use of the service after
-          changes are posted constitutes acceptance of the revised terms.</p>
-
-          <h2>7. Contact</h2>
-          <p>Questions regarding these terms should be directed to the server administrator.</p>
-        </body>
-        </html>
-      '';
+      tosContent = pkgs.writeTextDir "tos/index.html" (builtins.readFile ./tos.html);
 
       wellKnownConfig = pkgs.symlinkJoin {
         name = "matrix-well-known";
