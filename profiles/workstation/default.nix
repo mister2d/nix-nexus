@@ -1,6 +1,11 @@
 _: {
   flake.modules.nixos.workstation-default =
-    { pkgs, nixosModules, ... }:
+    {
+      pkgs,
+      lib,
+      nixosModules,
+      ...
+    }:
     {
       imports = [
         nixosModules.core-boot
@@ -13,6 +18,18 @@ _: {
         nixosModules.core-users
         nixosModules.core-zfs
       ];
+
+      # ZFS Performance Profile shared by every workstation. A host overrides
+      # any value with a plain assignment (mkDefault loses to mkForce or a
+      # bare set).
+      nix-nexus.zfs = {
+        arcMax = lib.mkDefault 4294967296; # 4GB
+        arcMin = lib.mkDefault 1073741824; # 1GB
+        arcSysFree = lib.mkDefault 8589934592; # 8GB
+
+        metaLimitPercent = lib.mkDefault 50;
+        dnodeLimitPercent = lib.mkDefault 10;
+      };
 
       # Global Wireless Regulatory Domain
       # This ensures the WiFi card uses the correct frequency bands for the US

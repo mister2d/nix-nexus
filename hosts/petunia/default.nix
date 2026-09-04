@@ -61,19 +61,6 @@ _: {
       # Userspace TPM access for ssh-tpm-agent and tpm2-pkcs11.
       nix-nexus.tpm2.users = [ "ddukes" ];
 
-      # ZFS Inference Tuning
-      nix-nexus.zfs = {
-        # 64GB RAM; ARC kept small to maximise KV-cache / CPU-offload headroom.
-        # NVMe latency (~50-100µs) makes a large ARC unnecessary.
-        arcMax = 4294967296; # 4GB
-        arcMin = 1073741824; # 1GB
-        arcSysFree = 8589934592; # 8GB (ROCm dual-GPU dynamic alloc headroom)
-
-        # Inference is data-heavy, not metadata-heavy; favour data cache.
-        metaLimitPercent = 50;
-        dnodeLimitPercent = 10;
-      };
-
       # Host ID for ZFS (needs to be unique and persistent)
       # Generated randomly for petunia
       networking.hostId = "4e1a0d9b";

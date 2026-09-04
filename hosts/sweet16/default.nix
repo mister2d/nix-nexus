@@ -63,16 +63,6 @@ _: {
 
         # Userspace TPM access for ssh-tpm-agent and tpm2-pkcs11.
         tpm2.users = [ "ddukes" ];
-
-        # ZFS Performance Profile (Coding & General Purpose)
-        zfs = {
-          arcMax = 4294967296; # 4GB
-          arcMin = 1073741824; # 1GB
-          arcSysFree = 8589934592; # 8GB
-
-          metaLimitPercent = 50;
-          dnodeLimitPercent = 10;
-        };
       };
 
       # Prevent NVMe from entering ps 4 (9500µs exit latency); caps at ps 3 (1200µs) for ZFS
