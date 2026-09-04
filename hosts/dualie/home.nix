@@ -13,16 +13,7 @@ _: {
       unstable-pkgs = pin.pinned inputs.nixpkgs-unstable;
     in
     {
-      imports = [
-        homeManagerModules.user-bash
-        homeManagerModules.user-fish
-        homeManagerModules.user-neovim-home
-        homeManagerModules.user-terminal-home
-        homeManagerModules.user-terminal-oled-home
-        homeManagerModules.user-television-home
-        homeManagerModules.user-dev-home
-        homeManagerModules.user-herdr-home
-      ];
+      imports = [ homeManagerModules.user-standalone-home ];
 
       # Home Configuration
       home = {
@@ -47,12 +38,6 @@ _: {
         enableMcpServers = false;
         enableLlmAgents = false;
       };
-
-      # Let Home Manager install and manage itself.
-      programs.home-manager.enable = true;
-
-      # Allow unfree packages for the Home Manager profile
-      nixpkgs.config.allowUnfree = true;
 
       # Add Model Control Protocol (MCP) server packages via overlay
       # This matches the system-wide configuration on sweet16.
