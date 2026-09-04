@@ -1,10 +1,12 @@
 # Upgrading nix-nexus
 
-This guide covers how to keep the fleet current — both routine within-release
-updates and full major-release upgrades. It is written specifically for this
-flake-based repository. The [official NixOS upgrading reference](https://nixos.org/manual/nixos/stable/#sec-upgrading)
-covers the traditional channel-based workflow; the flake approach used here
-differs in the mechanics but follows the same principles.
+This guide explains how to keep the fleet current. It covers routine
+within-release updates and full major-release upgrades. It applies
+specifically to this flake-based repository.
+
+The [official NixOS upgrading reference](https://nixos.org/manual/nixos/stable/#sec-upgrading)
+covers the traditional channel-based workflow. The flake approach here
+differs in the mechanics. It follows the same principles.
 
 ---
 
@@ -20,21 +22,22 @@ NixOS follows a biannual release cycle, named by year and month:
 | `nixos-25.11-small` | Stable (previous, server) | Same as the previous stable with fewer pre-built binaries |
 
 **Stable releases** receive only conservative bug fixes and minor package
-upgrades — not major version jumps in core software. This is what
-`nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05"` tracks.
+upgrades. They exclude major version jumps in core software.
+`nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05"` tracks this branch.
 
-**Unstable** reflects the development branch and may have radical changes
-between updates. nix-nexus uses `nixpkgs-unstable` selectively (currently
-for petunia's AI/ML stack and tool inputs that require cutting-edge packages).
+**Unstable** reflects the development branch. It may include radical changes
+between updates. nix-nexus uses `nixpkgs-unstable` selectively, currently for
+petunia's AI/ML stack and tool inputs that need cutting-edge packages.
 
 ---
 
 ## How flake inputs replace channels
 
-In a traditional NixOS setup, `nix-channel --add` subscribes to a channel URL
-and `nixos-rebuild switch --upgrade` fetches it. In this flake repository,
-`flake.nix` inputs serve the same role — the channel is encoded in the input
-URL, and `flake.lock` pins the exact commit:
+In a traditional NixOS setup, `nix-channel --add` subscribes to a channel
+URL. `nixos-rebuild switch --upgrade` fetches it.
+
+In this flake repository, `flake.nix` inputs serve the same role. The
+channel is encoded in the input URL. `flake.lock` pins the exact commit:
 
 ```nix
 # This is the flake equivalent of subscribing to nixos-26.05:
@@ -48,12 +51,12 @@ nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
 
 ## Input categories in this flake
 
-Understanding which inputs to update (and which to leave alone) is essential.
+Know which inputs to update and which inputs to leave alone.
 
 ### Category 1 — Release-tracked inputs (update together on upgrade)
 
-These follow the current stable release branch and must all be bumped
-together when upgrading to a new NixOS release:
+These inputs follow the current stable release branch. Bump them together
+when you upgrade to a new NixOS release:
 
 | Input | Current URL | Notes |
 |---|---|---|
@@ -64,8 +67,8 @@ together when upgrading to a new NixOS release:
 
 ### Category 2 — Unstable-tracked inputs (update independently)
 
-These follow the nixos-unstable branch and are not tied to the stable release
-cycle. Update them separately at any time:
+These inputs follow the nixos-unstable branch. They have no tie to the
+stable release cycle. Update them separately at any time:
 
 | Input | Current URL |
 |---|---|
@@ -74,8 +77,8 @@ cycle. Update them separately at any time:
 
 ### Category 3 — Tool inputs (update opportunistically)
 
-These have no hard release coupling. Update when you need new features or
-bug fixes from them:
+These inputs have no hard release coupling. Update them when you need new
+features or bug fixes from them:
 
 `flake-parts`, `import-tree`, `devenv`, `pre-commit-hooks`, `nixos-hardware`,
 `mcp-servers-nix`, `llm-agents`, `niri`, `hyprland`, `dms`, `disko`,
@@ -83,9 +86,9 @@ bug fixes from them:
 
 ### Category 4 — Intentionally pinned inputs (do NOT update without review)
 
-These are pinned to specific nixpkgs commits to lock particular package
-versions. Updating them requires verifying the target version is still
-available at the new commit, and updating the inline comment:
+These inputs pin to specific nixpkgs commits to lock particular package
+versions. Before you update one, verify the target version is still
+available at the new commit. Update the inline comment too:
 
 | Input | Pinned for |
 |---|---|
@@ -104,8 +107,9 @@ See `docs/packages.md` for the pinned version details.
 
 ## Routine updates (within-release)
 
-Use this when you want to pull the latest packages on the current stable branch
-(security patches, bug fixes, minor package updates) without changing the release.
+Use this procedure to pull the latest packages on the current stable
+branch. This includes security patches, bug fixes, and minor package
+updates. It does not change the release.
 
 ### 1. Pull latest commits for all non-pinned inputs
 
@@ -126,7 +130,7 @@ nix flake update
 git diff flake.lock
 ```
 
-Check that `nixpkgs` moved to a newer commit on the same branch and that
+Check that `nixpkgs` moved to a newer commit on the same branch. Check that
 no pinned inputs shifted unexpectedly.
 
 ### 3. Deploy to each host
@@ -162,11 +166,11 @@ upgrades the entire fleet to a new stable branch.
 
 > **Before starting:** Read the NixOS release notes for the target version at
 > `https://nixos.org/manual/nixos/stable/release-notes`. Note any breaking
-> changes, renamed options, or modules that require configuration updates.
+> changes, renamed options, or modules that need configuration updates.
 
 ### 1. Update release-tracked inputs in `flake.nix`
 
-Open `flake.nix` and update every URL that contains the current release tag.
+Open `flake.nix`. Update every URL that contains the current release tag.
 Find all occurrences of the old release string:
 
 ```bash
@@ -198,9 +202,9 @@ nixvim.url       = "github:nix-community/nixvim/nixos-26.05";
 nix flake update nixpkgs pkgs-stable home-manager nixvim
 ```
 
-This resolves the new branch heads and writes them to `flake.lock`. The
-intentionally pinned inputs (`pkgs-nomad`, `pkgs-hashicorp`, etc.) are
-untouched.
+This resolves the new branch heads. It writes them to `flake.lock`. The
+intentionally pinned inputs, such as `pkgs-nomad` and `pkgs-hashicorp`,
+stay untouched.
 
 ### 3. Evaluate the full tree
 
@@ -210,12 +214,13 @@ nix flake check
 
 This evaluates every host configuration. Common failures on a major upgrade:
 
-- **Renamed options**: a NixOS module was refactored. Check the release notes
-  and update the option path in the relevant module file.
-- **Removed packages**: a package was renamed or moved. Use `nixos-tools` MCP
-  (`action: search, query: <package>`) to find the new attribute path.
+- **Renamed options**: a NixOS module changed structure. Check the release
+  notes. Update the option path in the relevant module file.
+- **Removed packages**: a package was renamed or moved. Use the
+  `nixos-tools` MCP (`action: search, query: <package>`) to find the new
+  attribute path.
 - **Home Manager version mismatch**: if `home-manager.url` still points to
-  the old release branch, update it (see step 1).
+  the old release branch, update it. See step 1.
 
 Fix all evaluation errors before proceeding.
 
@@ -235,8 +240,8 @@ ssh root@hermes systemctl --failed
 
 ### 5. Deploy remaining hosts
 
-Once satisfied, roll out to all remaining hosts in order of criticality
-(workstations before production servers):
+Once you confirm the host works, roll out to all remaining hosts. Deploy
+workstations before production servers:
 
 ```bash
 nixos-rebuild switch --flake .#sweet16
@@ -266,10 +271,10 @@ git commit -m "chore(flake): upgrade NixOS 25.11 → 26.05"
 
 ### Boot-time rollback (recommended for broken boots)
 
-NixOS keeps all previous system generations in the GRUB/systemd-boot menu.
-If the new generation fails to boot or breaks a critical service, reboot and
-select a prior generation from the boot menu. No data is lost; the previous
-system closure is fully intact on disk.
+NixOS keeps all previous system generations in the GRUB or systemd-boot
+menu. If the new generation fails to boot, or breaks a critical service,
+reboot and select a prior generation from the boot menu. No data is lost.
+The previous system closure stays fully intact on disk.
 
 ### In-session rollback
 
@@ -279,8 +284,9 @@ If the system booted but the running configuration is broken:
 nixos-rebuild switch --rollback
 ```
 
-This activates the previous generation without rebooting. Use `boot --rollback`
-instead if you want the rollback to persist across reboots.
+This activates the previous generation without a reboot. Use
+`boot --rollback` instead if you want the rollback to persist across
+reboots.
 
 ### Flake-level rollback
 
@@ -302,9 +308,10 @@ From the official NixOS manual:
 > easily, so in that case you will not be able to go back to your original
 > channel.
 
-In practice: downgrading from an unstable or newer stable to an older stable
-release after Nix itself was upgraded may require rebuilding the Nix store
-schema. Avoid downgrading across major Nix version boundaries.
+In practice, downgrading from unstable or a newer stable release to an
+older stable release can require a Nix store schema rebuild. This applies
+after Nix itself was upgraded. Avoid downgrading across major Nix version
+boundaries.
 
 ---
 
@@ -325,9 +332,9 @@ For a flake-based system, point it at the flake path:
 ```
 
 When `allowReboot = false`, the service runs `nixos-rebuild switch` on the
-current lock file at the scheduled interval. When `allowReboot = true`, it
-also reboots if the new generation includes a different kernel, initrd, or
-kernel module set.
+current lock file at the scheduled interval. When `allowReboot = true`, the
+service also reboots if the new generation includes a different kernel,
+initrd, or kernel module set.
 
 Check when the service is scheduled to run:
 
@@ -335,11 +342,11 @@ Check when the service is scheduled to run:
 systemctl list-timers nixos-upgrade.timer
 ```
 
-> **Note:** Auto-upgrade with a flake activates the currently locked inputs —
-> it does not run `nix flake update` automatically. To pull new package
-> versions, you must update `flake.lock` in the repository manually (or via
-> CI) and push the change. The auto-upgrade service then applies whatever lock
-> file is present at the configured path.
+> **Note:** Auto-upgrade with a flake activates the currently locked inputs.
+> It does not run `nix flake update` automatically. To pull new package
+> versions, update `flake.lock` in the repository manually, or via CI, and
+> push the change. The auto-upgrade service then applies whatever lock file
+> is present at the configured path.
 
 ---
 
