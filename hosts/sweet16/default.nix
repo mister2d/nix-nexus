@@ -53,7 +53,7 @@ _: {
 
       nix-nexus = {
         # Desktop theme, from the lib/themes registry.
-        theme.name = "matte-black";
+        theme.name = "catppuccin-mocha";
 
         # Tailscale roaming: accept-routes is suppressed on home SSIDs (LAN is directly
         # reachable) and enabled everywhere else (road/hotspot access to LAN resources).
