@@ -73,7 +73,7 @@ _: {
         tmux = {
           enable = true;
           shell = "${pkgs.bash}/bin/bash";
-          # Standard terminal for compatibility with legacy tools like screen
+          # Standard terminal type for compatibility with tools such as screen
           terminal = "tmux-256color";
           historyLimit = 100000;
           keyMode = "vi";

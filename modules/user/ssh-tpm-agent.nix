@@ -36,10 +36,10 @@ _: {
       home = {
         packages = [ pkgs.ssh-tpm-agent ];
 
-        # gpg-agent no longer serves SSH, so nothing else sets this. Both are
-        # needed and reach different places: home.sessionVariables is sourced
-        # by login shells, while graphical terminals inherit from the systemd
-        # user manager, which only reads environment.d.
+        # ssh-tpm-agent serves SSH. gpg-agent serves GPG only.
+        # Both variables are necessary. Login shells source
+        # home.sessionVariables. Graphical terminals inherit from the
+        # systemd user manager. That manager reads only environment.d.
         sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
 
         # Both targets are generated at runtime on each host and cannot live in

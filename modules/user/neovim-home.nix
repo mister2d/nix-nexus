@@ -15,7 +15,7 @@ _: {
 
         # --- Core Options (The Nix Way) ---
         opts = {
-          # Legacy behavior
+          # Editing behavior
           background = "dark";
           expandtab = true;
           shiftwidth = 2;
@@ -23,7 +23,7 @@ _: {
           smartindent = true;
 
           # Navigation & UI
-          number = false; # Follows legacy preference
+          number = false; # Line numbers off
           relativenumber = false;
           cursorline = true;
           scrolloff = 8;
@@ -64,7 +64,7 @@ _: {
             action = "<C-r>+";
           }
 
-          # Legacy navigation
+          # Fast scroll navigation
           {
             mode = "n";
             key = "<C-d>";
