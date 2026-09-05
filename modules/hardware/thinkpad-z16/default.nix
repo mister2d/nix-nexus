@@ -9,25 +9,25 @@ _: {
       ...
     }:
     {
-      # Boot-time optimizations for Ryzen 6000 and AMD hardware
+      # Boot configuration for Ryzen 6000 and AMD hardware.
       boot = {
-        # The Z16 benefits greatly from modern kernels for AMDGPU fixes.
-        # We pin to 6.12 (LTS) for maximum stability with ZFS while meeting the 6.6+ requirement.
+        # Kernel 6.12 (LTS) carries the AMDGPU fixes this hardware needs and
+        # meets the 6.6+ ZFS requirement.
         kernelPackages = lib.mkOverride 900 pkgs.linuxPackages_6_12;
 
         kernelParams = [
-          "amdgpu.sg_display=0" # Fix for white flickering on Ryzen 6000 + OLED
-          "amdgpu.dcdebugmask=0x410" # Fix for RDNA2 display/PM timeouts + stability
-          "amdgpu.gpu_recovery=1" # Enable soft-recovery for GPU resets
-          "amdgpu.lockup_timeout=10000" # Default 10s timeout; 1s was too aggressive and triggered false resets during VA-API video encode
-          "amdgpu.gttsize=8192" # Allow 8GB GTT for video conferencing headroom while still reserving RAM for apps
-          "iommu=pt" # Passthrough mode for better GPU memory stability on Ryzen
-          "snd_pci_acp6x.dmic_config=1" # Ensure Digital Mic is detected on Rembrandt
-          "initcall_blacklist=acpi_cpufreq_init" # Prevent legacy driver from competing with P-State
-          "mem_sleep_default=s2idle" # Modern Standby (S0ix) is required for the Z16's Rembrandt APU
+          "amdgpu.sg_display=0" # Prevents white flickering on Ryzen 6000 OLED panels
+          "amdgpu.dcdebugmask=0x410" # Stabilizes RDNA2 display and power-management timeouts
+          "amdgpu.gpu_recovery=1" # Enables GPU soft recovery after a reset
+          "amdgpu.lockup_timeout=10000" # 10s lockup timeout avoids false resets during VA-API video encode
+          "amdgpu.gttsize=8192" # Reserves 8GB GTT for video conferencing headroom
+          "iommu=pt" # Improves GPU memory stability via passthrough mode
+          "snd_pci_acp6x.dmic_config=1" # Enables detection of the digital mic on Rembrandt
+          "initcall_blacklist=acpi_cpufreq_init" # Blocks acpi_cpufreq so P-State handles frequency scaling
+          "mem_sleep_default=s2idle" # Enables Modern Standby (S0ix) for the Rembrandt APU
         ];
 
-        # Hardware Modprobe Options
+        # Modprobe options for audio, WiFi, and GPU stability.
         extraModprobeConfig = ''
           options snd_pci_acp6x dmic_acp_check=1
           options snd_sof_amd_rembrandt dmic_acp_check=1
@@ -37,28 +37,25 @@ _: {
           options amdgpu noretry=0
         '';
 
-        # Correct ThinkPad ACPI options
+        # Loads the ThinkPad ACPI kernel module.
         kernelModules = [ "thinkpad_acpi" ];
       };
 
-      # Services and Power Management
+      # Power management and hardware services.
       services = {
-        # 1. Power Management: TLP vs Power Profiles
-        # The Z16 benefits significantly from modern AMD P-State negotiation.
-        # We use power-profiles-daemon for native ACPI profile handling.
+        # power-profiles-daemon handles ACPI power profiles natively via AMD P-State.
         power-profiles-daemon.enable = true;
         tlp.enable = false;
 
-        # The Z16 has a haptic "ForcePad". The 'lenovo-thinkpad-z' base handles the
-        # ELAN trackpoint, but we ensure the libinput settings are optimal.
-        # (Sway config handles the 'clickfinger' method)
+        # libinput drives the ForcePad's ELAN trackpoint. Sway configures the
+        # clickfinger method separately.
         libinput.enable = true;
 
-        # 4. Fingerprint Support
-        # The 'z' base enables fprintd. we just ensure it's here.
+        # lenovo-thinkpad-z already enables fprintd. mkDefault keeps this
+        # explicit without overriding host settings.
         fprintd.enable = lib.mkDefault true;
 
-        # 5. Firmware Updates
+        # Firmware updates via fwupd.
         fwupd.enable = true;
 
         udev.extraRules = ''
@@ -73,23 +70,21 @@ _: {
         '';
       };
 
-      # Fingerprint Support for PAM services (Hardware-Specific)
+      # PAM services request fingerprint authentication.
       security.pam.services = {
         sudo.fprintAuth = true;
         login.fprintAuth = true;
         polkit-1.fprintAuth = true;
       };
 
-      # 2. Audio Quirks (Z16 Audio & Mic)
-      # The Z16 uses AMD ACP (Audio Coprocessor) for DMIC and Cirrus Amps for speakers.
+      # Enables all firmware and AMD CPU microcode updates.
       hardware = {
         enableAllFirmware = true;
         enableRedistributableFirmware = true;
         cpu.amd.updateMicrocode = true;
       };
 
-      # 6. Machine-Specific Networking
-      # The Z16 WiFi device is specifically named 'wlp4s0'.
+      # The Z16 WiFi device is named wlp4s0.
       networking.interfaces.wlp4s0.useDHCP = lib.mkDefault true;
 
       environment.systemPackages = [

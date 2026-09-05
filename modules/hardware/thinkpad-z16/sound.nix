@@ -77,7 +77,7 @@ _: {
       # Power management support for WirePlumber/Pipewire (Fixes UPower errors)
       services.upower.enable = true;
 
-      # Noise suppression (RNNoise via EasyEffects; NoiseTorch legacy path disabled)
+      # EasyEffects applies RNNoise for noise suppression. NoiseTorch stays disabled.
       programs.noisetorch.enable = false;
 
       # Sync platform::micmute LED with PipeWire source mute state.

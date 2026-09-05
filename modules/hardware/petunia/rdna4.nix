@@ -7,19 +7,19 @@ _: {
     {
       # Dual R9700 (RDNA4, gfx1201) graphics + ROCm compute wiring.
       #
-      # Vulkan is served by RADV (Mesa); AMDVLK is intentionally not installed.
-      # amdgpu exposes two independent interfaces to each gfx1201 device:
+      # RADV (Mesa) is the sole Vulkan driver. amdgpu exposes two independent
+      # interfaces to each gfx1201 device:
       #   DRM/KMS → /dev/dri/renderD12x (Mesa/RADV — Vulkan path)
       #   KFD     → /dev/kfd            (ROCm CLR — compute path)
-      # Both are active simultaneously; there is no driver-level conflict.
+      # Both interfaces run at the same time with no driver-level conflict.
       #
-      # HSA_OVERRIDE_GFX_VERSION is intentionally absent: gfx1201 is
-      # officially supported in ROCm 7.x, and the override misidentifies
-      # the ISA at the HSA runtime level, causing wrong code generation.
+      # ROCm 7.x recognizes gfx1201 natively. HSA_OVERRIDE_GFX_VERSION forces
+      # the wrong ISA at the HSA runtime level and causes wrong code
+      # generation. This module leaves it unset.
       #
-      # The HIP/Vulkan build toolchain is not part of the system closure;
-      # inference projects consume github:tenarches/nix-rdna4 devShells
-      # (llama-rocm / llama-vulkan) directly.
+      # The system closure excludes the HIP/Vulkan build toolchain. Inference
+      # projects consume github:tenarches/nix-rdna4 devShells (llama-rocm /
+      # llama-vulkan) directly.
 
       services = {
         xserver.videoDrivers = [ "amdgpu" ];
@@ -75,9 +75,9 @@ _: {
         };
       };
 
-      # AMD's toolchain and most ML frameworks hard-code /opt/rocm for
-      # library discovery; this symlink is the canonical NixOS workaround.
-      # Add paths as workloads require (e.g. rocSPARSE, MIOpen).
+      # This symlink provides /opt/rocm, the hard-coded library path AMD's
+      # toolchain and most ML frameworks expect. Add paths as workloads
+      # require (e.g. rocSPARSE, MIOpen).
       systemd.tmpfiles.rules =
         let
           rocmEnv = pkgs.symlinkJoin {
