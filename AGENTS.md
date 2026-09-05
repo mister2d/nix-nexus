@@ -237,7 +237,7 @@ one definition. This design is correct and intentional. Do not change it.
 
 ## 4. File placement and naming conventions
 
-Before creating or moving any file, verify where it belongs:
+Before you create or move a file, find your task in this table:
 
 | What you're adding | Where it goes | Registry key convention |
 |---|---|---|
@@ -258,56 +258,58 @@ Before creating or moving any file, verify where it belongs:
 | Pure helpers / derivations | `lib/<name>.nix` | (no key — plain Nix, imported by path) |
 
 **Naming rules:**
-- Registry keys are always `kebab-case`.
-- A file may register to a key that already exists — the module system merges
-  contributions. This is how multi-file stacks work.
-- Files with a path segment starting with `_` are excluded from discovery.
+- Registry keys use `kebab-case`.
+- A file can register to a key that already exists. The module system merges
+  the contributions. This is how multi-file stacks work.
+- A file with a path segment that starts with `_` is excluded from discovery.
 
 ---
 
 ## 5. Universal operating rules
 
-Follow these on every task, every commit:
+Follow these rules on every task and every commit:
 
-1. **Read before asserting.** If you have not opened a file in this session, you
-   do not know its contents. Use `Read` before editing, `ls` before claiming a
-   directory structure.
+1. **Read before you assert a fact.** If you have not opened a file in this
+   session, you do not know its contents. Use `Read` before you edit a file.
+   Use `ls` before you state a directory structure.
 
-2. **Verify with `nixos-tools` before writing any package or option path.** Never
-   write `pkgs.somePackage` or `services.something.enable` from memory alone.
+2. **Verify with `nixos-tools` before you write any package or option path.**
+   Never write `pkgs.somePackage` or `services.something.enable` from memory.
    Query `nixos-tools` first (see §2).
 
-3. **One logical change per commit.** Do not batch unrelated edits. Linting and
-   closure verification are per-commit.
+3. **Make one logical change per commit.** Do not batch unrelated edits. Lint
+   and verify the closure for each commit.
 
-4. **Lint before committing:**
+4. **Lint before you commit:**
    ```bash
    .agents/scripts/preflight.sh <space-separated changed files>
    ```
-   All three hooks must pass: `nixfmt` (formatting, RFC 166 style), `deadnix`
-   (unused bindings), `statix` (Nix anti-patterns). The runner is `prek`, not
-   `pre-commit` — `pre-commit` is not installed. `preflight.sh` also runs
-   `nix flake check --impure`; `--impure` is mandatory for every `nix develop`
-   and `nix flake check` in this repo.
+   All three hooks must pass. `nixfmt` checks formatting under RFC 166 style.
+   `deadnix` finds unused bindings. `statix` finds Nix anti-patterns. The
+   runner is `prek`, not `pre-commit` — `pre-commit` is not installed.
+   `preflight.sh` also runs `nix flake check --impure`. `--impure` is
+   mandatory for every `nix develop` and `nix flake check` in this repo.
 
-5. **Evaluate after committing:**
+5. **Evaluate the flake after you commit:**
    ```bash
    nix flake check
    ```
-   This evaluates the full module tree for all hosts. Must pass green.
+   This step evaluates the full module tree for all hosts. It must pass
+   green.
 
-6. **No store-path drift without written justification.** If a closure baseline
-   is recorded in `.agents/baseline.json` and you observe hash changes,
-   investigate and document before proceeding. "It changed" is not a
+6. **Write a justification for any store-path drift.** A closure baseline
+   sits in `.agents/baseline.json`. If you see a hash change, investigate it
+   and document the cause before you proceed. "It changed" is not a
    justification.
 
-7. **Honest uncertainty.** If you cannot confirm a change is behavior-preserving,
-   stop and report. A blocked task accurately described is better than a silently
-   broken configuration.
+7. **Report honest uncertainty.** If you cannot confirm a change keeps the
+   same behavior, stop and report it. A blocked task with a clear report is
+   better than a silently broken configuration.
 
-8. **No invented patterns.** Every structural choice must trace to §0 authorities
-   or the existing codebase. If the right approach is unclear, read the authority
-   first. Gaps are open questions, not licence to fill from memory.
+8. **Do not invent patterns.** Every structural choice must trace to a §0
+   authority or the existing codebase. If the right approach is unclear,
+   read the authority first. A gap is an open question, not a licence to
+   fill from memory.
 
 ---
 
