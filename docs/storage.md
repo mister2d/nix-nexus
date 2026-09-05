@@ -1,17 +1,20 @@
 # Storage & Cluster Integration
 
-This document outlines the tools and procedures for interacting with remote storage clusters, specifically CephFS, using the user-space mount controller.
+This document covers the tools and steps for reaching remote storage
+clusters, specifically CephFS, through the user-space mount controller.
 
 ## CephFS User-Space Mount Controller (`ceph_mount_ctl`)
 
-The `ceph_mount_ctl` is a specialized Bash controller managed by Home Manager. It abstracts the complexity of CSI UUIDs, automates credential retrieval from your secure `pass` store, and utilizes FUSE for non-privileged mounting.
+The `ceph_mount_ctl` is a Bash controller managed by Home Manager. It hides
+the complexity of CSI UUIDs, retrieves credentials from your secure `pass`
+store, and uses FUSE for non-privileged mounting.
 
 ### 1. Prerequisites
 
-Before using the controller, ensure your environment is prepared:
+Before you use the controller, prepare your environment:
 
-1.  **Group Membership**: Your user must be in the `fuse` group (handled automatically by the `nix-nexus` configuration).
-2.  **Secret Storage**: Credentials must be stored in `pass`. The controller expects the following structure:
+1.  **Group Membership**: Your user must be in the `fuse` group. The `nix-nexus` configuration handles this for you.
+2.  **Secret Storage**: Store credentials in `pass`. The controller expects this structure:
     - **Path**: `ceph/clusters/<cluster_id>/clients/z16.ddukes`
     - **Format**:
       ```text
@@ -23,7 +26,7 @@ Before using the controller, ensure your environment is prepared:
 
 ### 2. Configuration (`volumes.json`)
 
-The mapping file translates human-readable aliases to cluster-specific CSI paths.
+The mapping file translates readable aliases to cluster-specific CSI paths.
 
 **Path**: `~/.config/ceph/volumes.json`
 **Schema**:
@@ -46,28 +49,30 @@ The mapping file translates human-readable aliases to cluster-specific CSI paths
 
 ### 3. Usage
 
-The `ceph_mount_ctl` command provides a simple interface for managing your mounts.
+The `ceph_mount_ctl` command gives a simple interface for managing your mounts.
 
 #### List Available Aliases
-To see which volumes are configured in your `volumes.json`:
+To see which volumes are set in your `volumes.json`:
 ```bash
 ceph_mount_ctl list
 ```
 
 #### Mount a Volume
-Mounting is performed into `~/mnt/ceph/<alias>`. The controller will automatically verify network connectivity to the monitors and fetch keys from `pass`.
+Mounting happens into `~/mnt/ceph/<alias>`. The controller checks network
+connectivity to the monitors and fetches keys from `pass` on its own.
 ```bash
 ceph_mount_ctl mount work
 ```
 
 #### Unmount a Volume
-The controller uses `fusermount3` for clean teardowns. If the mount is busy, it will attempt a lazy unmount.
+The controller uses `fusermount3` for clean teardowns. If the mount is
+busy, it tries a lazy unmount.
 ```bash
 ceph_mount_ctl unmount work
 ```
 
 ### 4. Implementation Details
 
-- **FUSE-based**: No `sudo` or kernel-level mounting is required.
-- **Stateless**: No persistent keyrings are stored on disk. Secrets exist only in memory during the mount handshake.
-- **Pre-flight Checks**: The controller verifies connectivity to at least one Monitor IP on port 6789 before attempting the mount to prevent long hang times.
+- **FUSE-based**: The mount needs no `sudo` or kernel-level mounting.
+- **Stateless**: No persistent keyrings sit on disk. Secrets exist only in memory during the mount handshake.
+- **Pre-flight Checks**: The controller checks connectivity to at least one Monitor IP on port 6789 before it attempts the mount. This avoids long hang times.
