@@ -1,6 +1,7 @@
 _: {
   flake.modules.homeManager.user-home =
     {
+      config,
       pkgs,
       lib,
       inputs,
@@ -138,9 +139,9 @@ _: {
           # defaultEditor = true. mkForce selects this absolute per-user
           # path instead. SUDO_EDITOR has no other definition, so it takes
           # a plain value.
-          EDITOR = lib.mkForce "/etc/profiles/per-user/ddukes/bin/nvim";
-          VISUAL = lib.mkForce "/etc/profiles/per-user/ddukes/bin/nvim";
-          SUDO_EDITOR = "/etc/profiles/per-user/ddukes/bin/nvim";
+          EDITOR = lib.mkForce "${config.home.profileDirectory}/bin/nvim";
+          VISUAL = lib.mkForce "${config.home.profileDirectory}/bin/nvim";
+          SUDO_EDITOR = "${config.home.profileDirectory}/bin/nvim";
         };
       };
 
