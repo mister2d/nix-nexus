@@ -38,11 +38,11 @@ node_id() {
 }
 
 if ! git show "${OLD_REV}:flake.lock" >/dev/null 2>&1; then
-  echo "flake.lock missing at ${OLD_REV}" >&2
+  echo "flake.lock is missing at ${OLD_REV}." >&2
   exit 2
 fi
 if ! git show "${NEW_REV}:flake.lock" >/dev/null 2>&1; then
-  echo "flake.lock missing at ${NEW_REV}" >&2
+  echo "flake.lock is missing at ${NEW_REV}." >&2
   exit 2
 fi
 

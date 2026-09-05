@@ -56,7 +56,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      echo "deploy-host: unknown argument '$1'" >&2
+      echo "deploy-host: argument '$1' is unknown." >&2
       exit 5
       ;;
   esac
@@ -71,19 +71,19 @@ echo "== deploy-host: ${HOST} (action=${ACTION}) =="
 
 echo "-- stage: cert-check --"
 if ! "${SCRIPT_DIR}/cert-check.sh"; then
-  echo "deploy-host: cert-check failed — regenerate the Vault SSH cert before retrying" >&2
+  echo "deploy-host: cert-check failed. Regenerate the Vault SSH cert, then retry." >&2
   exit 1
 fi
 
 echo "-- stage: ssh reachability --"
 if ! ssh "$TARGET" true; then
-  echo "deploy-host: ${TARGET} unreachable over ssh" >&2
+  echo "deploy-host: ssh cannot reach ${TARGET}." >&2
   exit 2
 fi
 echo "ssh reachability: OK"
 
 if [[ "$CHECK_ONLY" -eq 1 ]]; then
-  echo "deploy-host: --check-only, stopping before nixos-rebuild"
+  echo "deploy-host: --check-only is set. The script stops before nixos-rebuild."
   exit 0
 fi
 
@@ -95,7 +95,7 @@ fi
 echo "-- stage: nixos-rebuild (${CMD[*]}) --"
 START=$(date +%s)
 if ! "${CMD[@]}"; then
-  echo "deploy-host: nixos-rebuild failed" >&2
+  echo "deploy-host: nixos-rebuild failed." >&2
   exit 3
 fi
 END=$(date +%s)
@@ -103,8 +103,8 @@ echo "nixos-rebuild: OK in $((END - START))s"
 
 echo "-- stage: verify-generation --"
 if ! "${SCRIPT_DIR}/verify-generation.sh" "$HOST"; then
-  echo "deploy-host: generation verify failed" >&2
+  echo "deploy-host: generation verify failed." >&2
   exit 4
 fi
 
-echo "deploy-host: ${HOST} deployed successfully in $((END - START))s"
+echo "deploy-host: ${HOST} deployed in $((END - START))s."

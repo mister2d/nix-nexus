@@ -84,7 +84,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      echo "signoff.sh: unknown argument '$1'" >&2
+      echo "signoff.sh: argument '$1' is unknown." >&2
       echo "Usage: signoff.sh --slug <kebab-slug> [--title T] [--base REV] [--head REV] [--verdict signed-off|blocked] [--dry-run] < narrative.md" >&2
       echo "       signoff.sh --bootstrap [--dry-run]" >&2
       exit 2
@@ -95,18 +95,18 @@ done
 case "$VERDICT" in
   signed-off | blocked) ;;
   *)
-    echo "signoff.sh: --verdict must be 'signed-off' or 'blocked', got '$VERDICT'" >&2
+    echo "signoff.sh: --verdict must be 'signed-off' or 'blocked'. Got '$VERDICT'." >&2
     exit 2
     ;;
 esac
 
 if [[ "$BOOTSTRAP" -eq 0 && -z "$SLUG" ]]; then
-  echo "signoff.sh: --slug is required (or use --bootstrap)" >&2
+  echo "signoff.sh: --slug is required. Pass --bootstrap to skip it." >&2
   exit 2
 fi
 
 if [[ ! "$SLUG" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ && -n "$SLUG" ]]; then
-  echo "signoff.sh: --slug must be kebab-case ([a-z0-9-]), got '$SLUG'" >&2
+  echo "signoff.sh: --slug must be kebab-case ([a-z0-9-]). Got '$SLUG'." >&2
   exit 2
 fi
 
@@ -119,7 +119,7 @@ if [[ "$BOOTSTRAP" -eq 0 ]]; then
     NARRATIVE="$(cat)"
   fi
   if [[ -z "${NARRATIVE//[[:space:]]/}" ]]; then
-    echo "signoff.sh: no judgment supplied on stdin — an entry without judgment is not a sign-off" >&2
+    echo "signoff.sh: stdin has no judgment text. An entry without judgment is not a sign-off." >&2
     exit 4
   fi
 fi
@@ -129,7 +129,7 @@ ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
 if ! git diff --quiet || ! git diff --cached --quiet; then
-  echo "signoff.sh: working tree is dirty — baselines must come from a clean committed rev" >&2
+  echo "signoff.sh: the working tree is dirty. Baselines must come from a clean committed rev." >&2
   exit 3
 fi
 
@@ -139,11 +139,11 @@ if [[ -z "$BASE_REV" ]]; then
   elif [[ -f "$BASELINE_FILE" ]]; then
     BASE_REV="$(jq -r '.signed_off_through // empty' "$BASELINE_FILE")"
     if [[ -z "$BASE_REV" ]]; then
-      echo "signoff.sh: $BASELINE_FILE has no .signed_off_through; pass --base explicitly" >&2
+      echo "signoff.sh: $BASELINE_FILE has no .signed_off_through field. Pass --base explicitly." >&2
       exit 2
     fi
   else
-    echo "signoff.sh: no $BASELINE_FILE and no --base; run --bootstrap first" >&2
+    echo "signoff.sh: $BASELINE_FILE is missing and --base is not set. Run --bootstrap first." >&2
     exit 2
   fi
 fi
@@ -160,7 +160,7 @@ ENTRY_FILE=""
 if [[ "$BOOTSTRAP" -eq 0 ]]; then
   ENTRY_FILE="${SIGNOFF_DIR}/${TODAY}-${SLUG}.md"
   if [[ -e "$ENTRY_FILE" ]]; then
-    echo "signoff.sh: $ENTRY_FILE already exists — entries are immutable, pick another slug" >&2
+    echo "signoff.sh: $ENTRY_FILE already exists. Entries are immutable. Pick another slug." >&2
     exit 5
   fi
   [[ -z "$TITLE" ]] && TITLE="${SLUG//-/ }"
@@ -186,7 +186,7 @@ CFG_BASE=()
 CFG_HEAD=()
 CFG_STATUS=()
 
-echo "signoff: evaluating ${BASE_SHORT}..${HEAD_SHORT} (7 configs)" >&2
+echo "signoff: evaluating ${BASE_SHORT}..${HEAD_SHORT} across 7 configs." >&2
 
 for cfg in $NIXOS_HOSTS $HM_CONFIGS; do
   kind="nixos"
@@ -194,7 +194,7 @@ for cfg in $NIXOS_HOSTS $HM_CONFIGS; do
 
   head_drv="$(drv_at_rev "$HEAD_SHA" "$cfg")"
   if [[ "$head_drv" == "EVAL_FAILURE" ]]; then
-    echo "signoff.sh: EVAL_FAILURE for $cfg at $HEAD_SHORT — nothing written" >&2
+    echo "signoff.sh: evaluation failed for $cfg at $HEAD_SHORT. The script wrote nothing." >&2
     exit 10
   fi
 
@@ -203,7 +203,7 @@ for cfg in $NIXOS_HOSTS $HM_CONFIGS; do
   else
     base_drv="$(drv_at_rev "$BASE_SHA" "$cfg")"
     if [[ "$base_drv" == "EVAL_FAILURE" ]]; then
-      echo "signoff.sh: EVAL_FAILURE for $cfg at $BASE_SHORT — nothing written" >&2
+      echo "signoff.sh: evaluation failed for $cfg at $BASE_SHORT. The script wrote nothing." >&2
       exit 10
     fi
   fi
@@ -345,7 +345,7 @@ if [[ "$BOOTSTRAP" -eq 1 || "$VERDICT" == "signed-off" ]]; then
   mv "$TMP" "$BASELINE_FILE"
   echo "signoff: baseline recorded through ${HEAD_SHORT}"
 else
-  echo "signoff: verdict is blocked — baseline left unchanged"
+  echo "signoff: verdict is blocked. The baseline is unchanged."
 fi
 
 printf '%-16s %s\n' "Config" "Result"

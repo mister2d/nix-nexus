@@ -29,7 +29,7 @@ TARGET="root@${HOST}.home.lan"
 
 CURRENT="$(ssh "$TARGET" readlink -f /run/current-system 2>/dev/null || true)"
 if [[ -z "$CURRENT" ]]; then
-  echo "verify-generation: could not read /run/current-system on ${TARGET}" >&2
+  echo "verify-generation: cannot read /run/current-system on ${TARGET}." >&2
   exit 3
 fi
 
@@ -40,7 +40,7 @@ echo "  current system: ${CURRENT}"
 [[ -n "$GEN" ]] && echo "  profile link: ${GEN}"
 
 if [[ -z "$EXPECTED_TOPLEVEL" ]]; then
-  echo "  (no expected toplevel given — report only)"
+  echo "  (no expected toplevel given, reporting only)"
   exit 0
 fi
 

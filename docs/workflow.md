@@ -401,8 +401,7 @@ home-manager switch --flake .#groot@dualie
 ### The push guard blocked my push
 
 ```
-push blocked — config commits not covered by the latest sign-off
-(signed off through 8af2830):
+push blocked: the sign-off through 8af2830 does not cover these config commits:
   6c83f42 fix(tools): fix lrt alias
 ```
 

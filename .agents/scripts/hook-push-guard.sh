@@ -117,11 +117,11 @@ if [[ -n "$TEST_THROUGH" ]]; then
   THROUGH="$TEST_THROUGH"
 else
   if ! BASELINE="$(git show HEAD:.agents/baseline.json 2>/dev/null)"; then
-    echo "push blocked — no .agents/baseline.json committed at HEAD; run closure-validator, then retry" >&2
+    echo "push blocked: .agents/baseline.json is not committed at HEAD. Run closure-validator, then retry." >&2
     exit 2
   fi
   if ! THROUGH="$(printf '%s' "$BASELINE" | jq -er '.signed_off_through // empty' 2>/dev/null)"; then
-    echo "push blocked — .agents/baseline.json has no .signed_off_through; run closure-validator, then retry" >&2
+    echo "push blocked: .agents/baseline.json has no .signed_off_through field. Run closure-validator, then retry." >&2
     exit 2
   fi
 fi
@@ -144,11 +144,11 @@ while IFS= read -r c; do
 done <<< "$CONFIG_COMMITS"
 
 if [[ -n "$UNCOVERED" ]]; then
-  echo "push blocked — config commits not covered by the latest sign-off (signed off through ${THROUGH:0:7}):" >&2
+  echo "push blocked: the sign-off through ${THROUGH:0:7} does not cover these config commits:" >&2
   for c in $UNCOVERED; do
     git log -1 --format='  %h %s' "$c" >&2 || true
   done
-  echo "run closure-validator, then retry" >&2
+  echo "Run closure-validator, then retry." >&2
   exit 2
 fi
 

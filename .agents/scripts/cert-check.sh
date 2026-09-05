@@ -50,13 +50,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 if [[ ! -f "$CERT" ]]; then
-  echo "cert-check: ${CERT} not found" >&2
+  echo "cert-check: cert file ${CERT} not found." >&2
   exit 22
 fi
 
 INFO="$(ssh-keygen -L -f "$CERT" 2>/dev/null || true)"
 if [[ -z "$INFO" ]]; then
-  echo "cert-check: failed to parse ${CERT}" >&2
+  echo "cert-check: cannot parse ${CERT}." >&2
   exit 22
 fi
 
@@ -65,7 +65,7 @@ fi
 #                 root
 PRINCIPALS="$(printf '%s\n' "$INFO" | awk '/Principals:/{p=1;next} /^[[:space:]]*[A-Za-z ]+:/{p=0} p' | tr -d '[:space:]')"
 if [[ "$PRINCIPALS" != *"root"* ]]; then
-  echo "cert-check: principal 'root' not found in ${CERT}" >&2
+  echo "cert-check: cert ${CERT} does not list principal 'root'." >&2
   exit 21
 fi
 
@@ -74,7 +74,7 @@ VALID_LINE="$(printf '%s\n' "$INFO" | grep -m1 'Valid:')"
 VALID_TO="$(printf '%s\n' "$VALID_LINE" | sed -E 's/.*to ([0-9T:-]+).*/\1/')"
 
 if [[ -z "$VALID_TO" ]]; then
-  echo "cert-check: could not parse validity window from: ${VALID_LINE}" >&2
+  echo "cert-check: cannot parse the validity window from '${VALID_LINE}'." >&2
   exit 22
 fi
 
@@ -85,16 +85,16 @@ NOW_EPOCH="$(date +%s)"
 VALID_TO_EPOCH="$(date -d "$VALID_TO" +%s 2>/dev/null || true)"
 
 if [[ -z "$VALID_TO_EPOCH" ]]; then
-  echo "cert-check: could not convert '${VALID_TO}' to epoch" >&2
+  echo "cert-check: cannot convert '${VALID_TO}' to an epoch time." >&2
   exit 22
 fi
 
 REMAINING_MIN=$(( (VALID_TO_EPOCH - NOW_EPOCH) / 60 ))
 
 if [[ "$REMAINING_MIN" -le "$MIN_MINUTES" ]]; then
-  echo "cert-check: only ${REMAINING_MIN} minute(s) remaining (< ${MIN_MINUTES}) — regenerate Vault cert" >&2
+  echo "cert-check: ${REMAINING_MIN} minute(s) remain, below the ${MIN_MINUTES}-minute minimum. Regenerate the Vault cert." >&2
   exit 20
 fi
 
-echo "cert-check: OK, ${REMAINING_MIN} minute(s) remaining (valid to ${VALID_TO})"
+echo "cert-check: OK. ${REMAINING_MIN} minute(s) remain. Valid until ${VALID_TO}."
 exit 0

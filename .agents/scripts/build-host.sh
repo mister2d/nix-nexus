@@ -32,7 +32,7 @@ START=$(date +%s)
 if ! OUT_PATH=$(nix build ".#nixosConfigurations.${HOST}.config.system.build.toplevel" \
   --no-link --print-out-paths 2>"$LOG"); then
   END=$(date +%s)
-  echo "build-host: FAILED after $((END - START))s"
+  echo "build-host: build failed after $((END - START))s."
   cat "$LOG" >&2
   exit 1
 fi
@@ -43,7 +43,7 @@ BUILT=$(grep -c '^building ' "$LOG" 2>/dev/null || true)
 SUBSTITUTED="${SUBSTITUTED:-0}"
 BUILT="${BUILT:-0}"
 
-echo "build-host: ${HOST} OK in $((END - START))s"
+echo "build-host: build for ${HOST} finished in $((END - START))s."
 echo "  substituted: ${SUBSTITUTED}"
 echo "  locally built: ${BUILT}"
 echo "  out path: ${OUT_PATH}"
