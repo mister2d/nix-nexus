@@ -1,3 +1,6 @@
+# Host: sweet16 (NixOS x86_64 workstation).
+# Registry key: flake.modules.nixos.sweet16-default
+# Composes: sweet16-hardware, hardware-z16, core-tpm2, core-microvm-host, hardware-kernel-cachyos, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland.
 _: {
   flake.modules.nixos.sweet16-default =
     {

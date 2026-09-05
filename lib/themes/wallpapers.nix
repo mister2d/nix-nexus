@@ -1,6 +1,8 @@
-# Per-theme wallpaper packs, pinned to omacom/omarchy rev
-# b686ed892d9c3020c3336203f6d34cc75b544e2b (MIT-licensed repo; images carry
-# no separate license statement).
+# Helper: returns per-theme wallpaper packs as linkFarm derivations.
+# Pins the source to omacom/omarchy rev b686ed892d9c3020c3336203f6d34cc75b544e2b.
+# The repo is MIT-licensed. The images carry no separate license statement.
+#
+# Called by: lib/themes/default.nix.
 { pkgs }:
 let
   rev = "b686ed892d9c3020c3336203f6d34cc75b544e2b";

@@ -1,3 +1,5 @@
+# Flake assembly for avina. Sets flake.nixosConfigurations.avina.
+# Composes overlays-global, sops, avina-default, matrix-pin-stable, home-manager, hm-ddukes-avina.
 { inputs, config, ... }:
 let
   homeManagerModules = config.flake.modules.homeManager;

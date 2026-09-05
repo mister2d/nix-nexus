@@ -1,3 +1,5 @@
+# Flake assembly: overlays. Sets flake.overlays.buildFixes and flake.overlays.mcp.
+# Composes the mcp-servers-nix overlay with local Python build fixes.
 {
   inputs,
   lib,

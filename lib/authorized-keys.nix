@@ -1,3 +1,5 @@
+# Helper: returns TPM-sealed SSH public keys for authorized_keys entries.
+# Called by: modules/core/groot.nix, modules/core/users.nix.
 {
   # TPM-sealed keys. The private key cannot leave the chip.
   # Each host needs its own key.

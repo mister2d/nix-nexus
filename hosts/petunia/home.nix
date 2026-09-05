@@ -1,3 +1,6 @@
+# Host: petunia (NixOS x86_64 workstation).
+# Registry key: flake.modules.homeManager.petunia-home
+# Composes: user-home, user-ssh-tpm-agent, desktop-noctalia-home, hardware-petunia-hypr-home, desktop-hyprland-home, desktop-theme-home.
 _: {
   flake.modules.homeManager.petunia-home =
     { homeManagerModules, ... }:

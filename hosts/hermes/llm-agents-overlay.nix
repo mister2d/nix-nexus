@@ -1,3 +1,7 @@
+# Host: hermes (NixOS x86_64 Proxmox LXC server).
+# Registry key: flake.modules.nixos.llm-agents-hermes
+# Configures: overrides pkgs.llm-agents.hermes-agent with the lib/hermes-agent vendor and context-mode-hermes.
+# Imported by: modules/flake/nixos-hermes.nix.
 _: {
   flake.modules.nixos.llm-agents-hermes =
     {

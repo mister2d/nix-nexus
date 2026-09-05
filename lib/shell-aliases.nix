@@ -1,5 +1,5 @@
-# Shell aliases identical in bash and fish.
-# Plain attrset, not a flake-parts fragment. Import by relative path.
+# Helper: returns shell aliases identical in bash and fish.
+# Called by: modules/user/fish.nix, modules/user/bash.nix.
 {
   ".." = "cd ..";
   "..." = "cd ../..";

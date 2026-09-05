@@ -1,3 +1,5 @@
+# Helper: builds a setup hook that provides a writable HOME for versionCheckHook.
+# Called by: hosts/hermes/llm-agents-overlay.nix.
 {
   lib,
   makeSetupHook,

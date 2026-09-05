@@ -1,3 +1,5 @@
+# Helper: builds the context-mode-hermes Python package.
+# Called by: hosts/hermes/llm-agents-overlay.nix.
 {
   lib,
   pythonPackages,

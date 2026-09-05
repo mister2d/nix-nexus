@@ -1,3 +1,7 @@
+# Helper: returns an attrset of shell script derivations (battery-alert,
+# system-stats, audio-selector, llm-init, rocm-init).
+# Called by: modules/programs/dev/scripts.nix, modules/desktop/hyprland-home.nix,
+# modules/user/dev-home.nix.
 { pkgs }:
 
 {

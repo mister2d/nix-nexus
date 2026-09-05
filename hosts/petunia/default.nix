@@ -1,3 +1,6 @@
+# Host: petunia (NixOS x86_64 workstation).
+# Registry key: flake.modules.nixos.petunia-default
+# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb.
 _: {
   flake.modules.nixos.petunia-default =
     { nixosModules, ... }:

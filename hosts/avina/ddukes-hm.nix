@@ -1,3 +1,6 @@
+# Host: avina (NixOS x86_64 Proxmox LXC server).
+# Registry key: flake.modules.nixos.hm-ddukes-avina
+# Composes: core-home-manager, avina-home.
 _: {
   flake.modules.nixos.hm-ddukes-avina =
     {

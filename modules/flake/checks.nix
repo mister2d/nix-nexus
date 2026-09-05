@@ -1,3 +1,5 @@
+# Flake assembly: devshell. Sets devenv.shells.default and checks.pre-commit-check.
+# Composes the devenv devshell, git-hooks lint suite, and Claude Code wiring.
 { inputs, ... }:
 {
   imports = [ inputs.devenv.flakeModule ];

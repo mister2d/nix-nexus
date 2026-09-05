@@ -1,3 +1,7 @@
+# Host: petunia (NixOS x86_64 workstation).
+# Registry key: flake.modules.nixos.petunia-disko
+# Configures: ZFS-on-LUKS disk layout (root, nix, home, data, var datasets) via disko.
+# Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.petunia-disko = _: {
     disko.devices = {

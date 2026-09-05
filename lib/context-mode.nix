@@ -1,3 +1,5 @@
+# Helper: builds the context-mode npm package.
+# Called by: hosts/hermes/groot-hm.nix.
 { pkgs, lib }:
 
 let

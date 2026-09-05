@@ -1,3 +1,5 @@
+# Flake assembly for groot@dualie, groot@forge, groot@rk3588. Sets flake.homeConfigurations.
+# Composes nixvim and each host's homeManager registry key (<host>-home).
 {
   inputs,
   config,

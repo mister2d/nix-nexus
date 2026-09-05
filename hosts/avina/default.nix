@@ -1,3 +1,6 @@
+# Host: avina (NixOS x86_64 Proxmox LXC server).
+# Registry key: flake.modules.nixos.avina-default
+# Composes: hardware-proxmox-lxc, server-default, services-matrix, core-groot.
 _: {
   flake.modules.nixos.avina-default =
     {

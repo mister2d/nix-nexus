@@ -1,9 +1,8 @@
-# Shared multiplexer keymap.
+# Helper: renders the shared multiplexer keymap into tmux bind lines and
+# herdr's [keys] table.
 #
-# One canonical action list, rendered into both tmux `bind` directives and
-# herdr's `[keys]` TOML table, so the two multiplexers stay in sync from a
-# single source. Plain Nix — not a flake-parts fragment; import by relative
-# path from the consuming module.
+# Called by: modules/user/herdr-home.nix, modules/user/terminal-home.nix,
+# profiles/server/default.nix.
 #
 # Action fields:
 #   group    — section heading, used to group the rendered tmux output

@@ -1,3 +1,6 @@
+# Helper: builds the hermes-agent package, vendored ahead of upstream
+# llm-agents packaging.
+# Called by: hosts/hermes/llm-agents-overlay.nix.
 {
   lib,
   stdenv,

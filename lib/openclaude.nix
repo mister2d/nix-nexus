@@ -1,3 +1,5 @@
+# Helper: builds the openclaude npm package.
+# Called by: modules/user/dev-home.nix.
 { pkgs, lib }:
 
 let

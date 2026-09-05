@@ -1,9 +1,10 @@
-# Named desktop theme registry, consumed by modules/desktop/theme.nix,
-# modules/desktop/theme-home.nix and modules/desktop/noctalia-stylix-home.nix.
-# Plain Nix — not a flake-parts fragment; import by relative path from the
-# consuming module.
+# Helper: returns the named desktop theme registry, one attrset per theme.
 #
-# One attrset per theme:
+# Called by: modules/desktop/theme.nix, modules/desktop/theme-home.nix,
+# modules/desktop/theme-wallpapers-home.nix,
+# modules/desktop/noctalia-stylix-home.nix.
+#
+# Each theme attrset holds:
 #   scheme            — base16 YAML path passed to stylix.base16Scheme
 #   polarity          — stylix.polarity
 #   override          — stylix.override attrset of bare-hex strings

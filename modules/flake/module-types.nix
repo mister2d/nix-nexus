@@ -1,3 +1,5 @@
+# Flake assembly: registry-type. Sets flake.modules and flake.homeConfigurations.
+# Declares the option types every dendritic registry file writes into.
 { lib, ... }:
 {
   options = {

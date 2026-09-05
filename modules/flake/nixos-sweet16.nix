@@ -1,3 +1,5 @@
+# Flake assembly for sweet16. Sets flake.nixosConfigurations.sweet16.
+# Composes overlays-global, sops, nixos-hardware Z16/AMD/SSD modules, sweet16-default, home-manager, stylix, hm-ddukes-sweet16.
 { inputs, config, ... }:
 let
   homeManagerModules = config.flake.modules.homeManager;

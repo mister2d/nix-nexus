@@ -1,3 +1,5 @@
+# Flake assembly for hermes. Sets flake.nixosConfigurations.hermes.
+# Composes overlays-global, sops, hermes-mcp-overlay, hermes-default, llm-agents-hermes, home-manager, hm-groot-hermes.
 { inputs, config, ... }:
 let
   homeManagerModules = config.flake.modules.homeManager;
