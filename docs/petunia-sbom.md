@@ -35,7 +35,7 @@ System: `/nix/store/n8zpz2pszj1my3dvszprmgshzqi14v9z-nixos-system-petunia-26.11.
 
 ### ROCm (HIP runtime and libraries)
 
-All 7.2.3 packages sourced from `nixpkgs-unstable d407951` (2026-07-05).  
+All 7.2.3 packages come from `nixpkgs-unstable d407951` (2026-07-05).  
 Target ISA: `amdgcn-amd-amdhsa--gfx1201` (RDNA4) and `gfx12-generic`.
 
 | Package | Version | Notes |
@@ -151,21 +151,25 @@ Target ISA: `amdgcn-amd-amdhsa--gfx1201` (RDNA4) and `gfx12-generic`.
 
 ### RDNA4 dual-GPU wiring
 
-Configured directly in `modules/hardware/petunia/rdna4.nix` (plain nixpkgs-unstable
-options; no external GPU flake):
+`modules/hardware/petunia/rdna4.nix` configures the dual-GPU wiring directly. It uses
+plain nixpkgs-unstable options and no external GPU flake:
 - Dual-GPU env wiring: `ROCR_VISIBLE_DEVICES=0,1`, `HCC_AMDGPU_TARGET=gfx1201,gfx1201`
 - `rocm-combined-gfx1201` symlinkJoin at `/opt/rocm` for both cards
-- HIP/Vulkan build toolchain lives in per-project devShells
-  (`github:tenarches/nix-rdna4` `llama-rocm` / `llama-vulkan`), not the system closure
+- The HIP/Vulkan build toolchain lives in per-project devShells
+  (`github:tenarches/nix-rdna4` `llama-rocm` / `llama-vulkan`). It stays out of the
+  system closure.
 
 ### Runtime environment
 
-`ROCR_VISIBLE_DEVICES`, `HIP_VISIBLE_DEVICES`, and related env vars are available to scope workloads per GPU.  
-Both GPUs export as HSA agents 2 and 3 (agent 1 is the CPU).
+Use `ROCR_VISIBLE_DEVICES`, `HIP_VISIBLE_DEVICES`, and related env vars to scope workloads
+to one GPU.  
+Both GPUs export as HSA agents 2 and 3. Agent 1 is the CPU.
 
 ### Inference service posture
 
-No persistent inference daemon (ollama, vllm, triton server) is configured at the system level. Workloads run as user processes or Docker containers (`docker.service` is active). `onnxruntime-1.26.0` is the only system-level ML runtime installed.
+No persistent inference daemon (ollama, vllm, triton server) runs at the system level.
+Workloads run as user processes or Docker containers. `docker.service` stays active.
+`onnxruntime-1.26.0` is the only system-level ML runtime installed.
 
 ---
 
@@ -177,7 +181,7 @@ No persistent inference daemon (ollama, vllm, triton server) is configured at th
 | `python3.11-scipy` | 1.16.3 |
 | `python3.13-pillow` | 12.2.0 |
 
-> Full ML stacks (PyTorch, Transformers, etc.) are expected to live in user virtualenvs or Docker images, not the system closure.
+> Full ML stacks (PyTorch, Transformers, etc.) belong in user virtualenvs or Docker images. Keep them out of the system closure.
 
 ---
 
