@@ -315,11 +315,11 @@ Follow these rules on every task and every commit:
 
 ## 6. Validation protocol
 
-Run these steps for every substantive change. The order matters.
+Run these steps for every substantive change. Run the steps in order.
 
 ### Step 1 — Pre-edit baseline (for changes with closure risk)
 
-Capture derivation hashes before touching any file:
+Capture derivation hashes before you touch any file.
 
 ```bash
 # For all NixOS hosts:
@@ -346,10 +346,10 @@ prek run --files modules/foo/bar.nix
 prek run   # all staged files
 ```
 
-Fix all failures before proceeding. Common failures:
-- `nixfmt`: auto-formats; re-stage the reformatted file.
+Fix all failures before you proceed. Common failures:
+- `nixfmt`: auto-formats the file. Re-stage the reformatted file.
 - `deadnix`: remove the flagged unused binding.
-- `statix`: read the warning; fix the anti-pattern. Common ones:
+- `statix`: read the warning. Fix the anti-pattern. Common ones:
   - `{ ... }:` empty pattern → change to `_:`.
   - `with pkgs;` → use explicit `pkgs.` prefix.
 
@@ -359,12 +359,13 @@ Fix all failures before proceeding. Common failures:
 nix flake check
 ```
 
-This must complete without errors. Warnings are acceptable but should be
-investigated if new.
+This step must complete without errors. Warnings are acceptable. Investigate
+any new warning.
 
 ### Step 4 — Closure comparison
 
-After committing, re-run the Step 1 commands and compare. Expected outcomes:
+Commit your change. Re-run the Step 1 commands. Compare the results.
+Expected outcomes:
 
 | Change type | Expected outcome |
 |---|---|
@@ -373,7 +374,7 @@ After committing, re-run the Step 1 commands and compare. Expected outcomes:
 | Option namespace rename | Zero drift — same generated config |
 | New host added | New entry only; no other hosts drift |
 
-For any unexpected drift: inspect the derivation JSON to find the root cause:
+For any unexpected drift: inspect the derivation JSON. Find the root cause.
 ```bash
 # Compare two drvs:
 diff <(nix show-derivation /nix/store/...-A.drv | python3 -m json.tool) \
@@ -382,8 +383,9 @@ diff <(nix show-derivation /nix/store/...-A.drv | python3 -m json.tool) \
 
 ### Step 5 — Sign off
 
-For significant changes (new hosts, structural refactors, registry type changes),
-run the writer and supply judgment on stdin:
+For significant changes, run the writer. Significant changes include new
+hosts, structural refactors, and registry type changes. Supply judgment on
+stdin:
 
 ```bash
 .agents/scripts/signoff.sh --slug <kebab-slug> <<'EOF'
@@ -394,9 +396,9 @@ run the writer and supply judgment on stdin:
 EOF
 ```
 
-It writes an immutable entry under `.agents/signoff/` and replaces
+It writes an immutable entry under `.agents/signoff/`. It replaces
 `.agents/baseline.json` with the new per-config state. Never hand-write a
-store hash or hand-author an entry — the script generates every fact, you
+store hash. Never hand-author an entry. The script generates every fact. You
 supply only the judgment.
 
 ---
@@ -412,12 +414,12 @@ The `docs/cookbook.md` contains step-by-step recipes for:
 - Adding a new NixOS server/LXC host
 - Adding a standalone Home Manager host
 
-**Read the relevant recipe before starting.** This section summarizes the
-decision points that cross-cut all tasks.
+**Read the relevant recipe before you start.** This section lists the
+decision points that apply to every task.
 
 ### 7.1 Deciding where a new module belongs
 
-Ask:
+Ask these questions:
 1. Is it machine-specific hardware configuration? → `hosts/<hostname>/` or
    `modules/hardware/<platform>/`
 2. Is it a user-level (Home Manager) concern? → `modules/user/` or
@@ -429,11 +431,13 @@ Ask:
 
 ### 7.2 Deciding the registry key
 
-1. Check naming conventions in §4.
-2. Check whether an existing key accepts contributions (multi-file stacks). If
-   you're adding to an existing stack (e.g., `services-matrix`), use the same key
-   — the module system merges contributions automatically.
-3. If creating a new key: verify it does not collide with an existing one:
+1. Check the naming conventions in §4.
+2. Check whether an existing key accepts contributions. Multi-file stacks
+   accept contributions. If you add to an existing stack, for example
+   `services-matrix`, use the same key. The module system merges
+   contributions automatically.
+3. If you create a new key, check that it does not collide with an existing
+   one.
    ```bash
    grep -r 'flake\.modules\.\(nixos\|homeManager\)\.' modules/ hosts/ profiles/ \
      | grep -o '"[^"]*"' | sort -u
@@ -441,29 +445,33 @@ Ask:
 
 ### 7.3 Adding a flake input
 
-When a new capability requires a new flake input:
-1. Add it to the `inputs` attrset in `flake.nix`.
-2. Use `inputs.nixpkgs.follows = "nixpkgs"` if the input takes a nixpkgs to
-   avoid dependency duplication (verify with `nixos-tools` if unsure).
-3. Run `nix flake update <input-name>` to pin it.
+Follow these steps when a new capability needs a new flake input.
+1. Add the input to the `inputs` attrset in `flake.nix`.
+2. Use `inputs.nixpkgs.follows = "nixpkgs"` if the input takes a nixpkgs.
+   This step avoids dependency duplication. Verify with `nixos-tools` if you
+   are unsure.
+3. Run `nix flake update <input-name>` to pin the input.
 4. Commit `flake.nix` and `flake.lock` together.
 
 ### 7.4 Pinning a package to a specific nixpkgs commit
 
-When you need to pin a package to avoid a regression or use a specific version:
-1. Use `nix_versions` to find the nixpkgs commit that shipped the desired version.
+Follow these steps when you need to pin a package to avoid a regression or
+to use a specific version.
+1. Use `nix_versions` to find the nixpkgs commit that shipped the version
+   you want.
 2. Add a pinned input to `flake.nix`:
    ```nix
    pkgs-mything.url = "github:nixos/nixpkgs/<commit-sha>";
    ```
-3. Reference it in the consuming module via `inputs.pkgs-mything.legacyPackages.${system}`.
+3. Reference the input in the consuming module through
+   `inputs.pkgs-mything.legacyPackages.${system}`.
 
 ---
 
 ## 8. Forbidden anti-patterns
 
-These patterns break the architecture or have been explicitly corrected in this
-codebase. Do not reintroduce them.
+Each pattern in this list is forbidden. Do not add any of these patterns to
+this codebase.
 
 | Anti-pattern | Why it is forbidden | Correct alternative |
 |---|---|---|
