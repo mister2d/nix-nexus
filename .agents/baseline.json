@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-09-05T05:30:55Z",
+  "recorded": "2026-09-05T06:29:12Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "c4fce2111c90ad132390ec708156326b0c7f1777",
-  "signoff": ".agents/signoff/2026-09-05-comment-sweep.md"
+  "signed_off_through": "49bb5e187b69c7b0e0007eefeca99277a600d2f2",
+  "signoff": ".agents/signoff/2026-09-05-comment-sweep-semicolons.md"
 }
