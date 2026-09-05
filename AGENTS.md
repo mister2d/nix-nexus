@@ -1,22 +1,23 @@
 # AGENTS.md — nix-nexus Maintenance Authority
 
-> **Purpose.** This document is the single authoritative guide for any AI coding
-> agent maintaining, extending, or debugging nix-nexus. It is a living reference,
-> not a one-time task list. Every task — from adding a package to onboarding a new
-> host — must be grounded in the rules and verification steps here.
+> **Purpose.** This document is the one authority for each AI coding agent.
+> The agent maintains, extends, or fixes nix-nexus. This document is a living reference.
+> It is not a one-time task list. Every task must follow the rules and checks
+> in this document. Tasks range from adding a package to configuring a new
+> host.
 >
-> **If you are not a Nix/NixOS expert, that is expected.** This document and its
-> companion `docs/` guides tell you exactly what to do. For factual NixOS data
-> (package names, option paths, versions, Home Manager options), you have the
-> `nixos-tools` MCP server. Use it. Do not rely on training-data memory of
-> nixpkgs — it drifts by months.
+> **If you are not a Nix or NixOS expert, that is normal.** This document and
+> the `docs/` guides tell you what to do. Use the `nixos-tools` MCP server for
+> facts about NixOS. Facts include package names, option paths, versions, and
+> Home Manager options. Do not trust training-data memory of nixpkgs. Training
+> data can be months behind nixpkgs.
 
 ---
 
 ## 0. Steering authorities
 
 When this document and an upstream reference conflict, **the upstream reference
-wins**. Stop and report the conflict; do not improvise.
+wins**. Stop. Report the conflict. Do not improvise.
 
 | Authority | Where to fetch | Governs |
 |---|---|---|
@@ -26,36 +27,40 @@ wins**. Stop and report the conflict; do not improvise.
 | NixOS manual | Use `nixos-tools` MCP (see §2) | NixOS options, module patterns, `lib.*` functions |
 | Home Manager manual | Use `nixos-tools` MCP (see §2) | HM options and module patterns |
 
-Use the `fetch` MCP tool to re-read any authority URL before making structural
-changes. Do not rely on training-data memory of any of these projects.
+Use the `fetch` MCP tool. Read any authority URL again before you make
+structural changes. Do not trust training-data memory of these projects.
 
 ---
 
 ## 1. What this repository is (plain-terms orientation)
 
-nix-nexus manages the complete system configuration for a fleet of seven machines
-(NixOS workstations, NixOS LXC servers, and non-NixOS standalone nodes) using a
-single Nix flake. It uses the **dendritic pattern**: every `.nix` configuration
-file announces its own name into a shared registry, and hosts compose themselves
-by picking names from that registry — not by importing files by path.
+nix-nexus manages the full system configuration for a fleet of seven machines.
+The fleet has NixOS workstations, NixOS LXC servers, and non-NixOS standalone
+nodes. nix-nexus uses one Nix flake for all machines. nix-nexus uses the
+**dendritic pattern**. In this pattern, each `.nix` configuration file
+announces its own name in a shared registry. Hosts then choose names from
+that registry to build their configuration. Hosts compose their configuration
+from registry names, not from path imports.
 
-The practical consequence: adding a new capability is just adding a new `.nix`
-file. No aggregator file, no central import list, no wiring in `flake.nix`.
+As a result, you add a new capability with one new `.nix` file. You do not
+need an aggregator file. You do not need a central import list. You do not
+need wiring in `flake.nix`.
 
-**Read these before making non-trivial changes:**
-- `docs/architecture.md` — how the pattern works end-to-end
-- `docs/cookbook.md` — step-by-step recipes for the most common tasks
-- `docs/workflow.md` — the human-facing day-to-day loop (shell, lint, drift,
-  sign-off, deploy); lighter than this document and safe to point newcomers at
+**Read these documents before you make a change that is not trivial:**
+- `docs/architecture.md` — explains how the pattern works, from start to end
+- `docs/cookbook.md` — lists steps for the most common tasks
+- `docs/workflow.md` — describes the daily work loop for humans. The loop
+  includes the shell, lint, drift check, sign-off, and deploy steps. This
+  guide is lighter than this document. It is safe for new team members to read.
 
 ---
 
 ## 2. The nixos-tools MCP server — your factual grounding tool
 
-**Use `nixos-tools` before asserting any fact about nixpkgs, NixOS, or Home
-Manager.** Training data lags nixpkgs by months. An attribute path, option name,
-or package version that seems right from memory may be renamed, removed, or
-split. Always verify.
+**Use `nixos-tools` before you state any fact about nixpkgs, NixOS, or Home
+Manager.** Training data can be months behind nixpkgs. An attribute path,
+option name, or package version from memory can be wrong. Nixpkgs can rename,
+remove, or split it. Always check it first.
 
 ### When to use it
 
@@ -95,9 +100,9 @@ split. Always verify.
 { "action": "search", "source": "nix.dev", "query": "flake inputs" }
 ```
 
-**Rule:** If you are about to write a package attribute path, NixOS option path,
-or Home Manager option path that you did not just verify with `nixos-tools` in
-this session, stop and verify it first.
+Before you write a package attribute path, a NixOS option path, or a Home
+Manager option path, check it with `nixos-tools` in this session. If you have
+not checked it, stop. Check it first.
 
 ---
 
