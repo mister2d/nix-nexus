@@ -1,3 +1,7 @@
+# Registry key: flake.modules.homeManager.user-dev-home
+# Configures: development tools, MCP servers, and AI coding agent packages.
+# Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home).
+# Options: nix-nexus.user.dev.*
 _: {
   flake.modules.homeManager.user-dev-home =
     {

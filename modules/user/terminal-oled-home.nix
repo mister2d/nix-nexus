@@ -1,3 +1,6 @@
+# Registry key: flake.modules.homeManager.user-terminal-oled-home
+# Configures: the true-black OLED color palette for Kitty and Ghostty.
+# Imported by: modules/user/standalone-home.nix (user-standalone-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
   flake.modules.homeManager.user-terminal-oled-home =
     _:

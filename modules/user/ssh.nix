@@ -1,8 +1,7 @@
-# SSH client defaults for ddukes.
-#
-# Host-specific blocks stay hand-managed under ~/.ssh/config.d/. Only the
-# global defaults live here, so per-host opt-ins (agent forwarding, jump
-# hosts, forced commands) are edited without a rebuild.
+# Registry key: flake.modules.homeManager.user-ssh
+# Configures: SSH client defaults for strict host checking, keepalive, log level.
+# Imported by: modules/user/home.nix (user-home).
+# Host-specific blocks stay hand-managed under ~/.ssh/config.d/.
 _: {
   flake.modules.homeManager.user-ssh = _: {
     programs.ssh = {

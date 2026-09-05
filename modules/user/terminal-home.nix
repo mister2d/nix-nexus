@@ -1,3 +1,6 @@
+# Registry key: flake.modules.homeManager.user-terminal-home
+# Configures: Kitty, Ghostty, and Tmux terminal defaults and keybindings.
+# Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
   flake.modules.homeManager.user-terminal-home =
     { pkgs, lib, ... }:

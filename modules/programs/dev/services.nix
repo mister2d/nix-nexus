@@ -1,3 +1,6 @@
+# Merged into: flake.modules.nixos.development-default
+# Configures: the MCP server overlay, Devbox, and the Docker daemon.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.development-default =
     {

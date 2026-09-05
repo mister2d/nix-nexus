@@ -1,3 +1,6 @@
+# Merged into: flake.modules.nixos.services-matrix
+# Configures: Matrix Synapse homeserver settings and MatrixRTC transport options.
+# Imported by: hosts/avina/default.nix (avina-default).
 _: {
   flake.modules.nixos.services-matrix =
     {

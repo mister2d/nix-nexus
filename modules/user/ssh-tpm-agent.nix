@@ -1,34 +1,13 @@
-# TPM-sealed SSH keys, served by two isolated ssh-tpm-agent instances.
-#
-# The split is the whole point: a socket forwarded into a sandbox must not be
-# able to reach the personal key. ssh-tpm-agent scopes its key set by
-# --key-dir, so one instance per socket is the only hard boundary — per-key
-# confirmation would still let a guest *use* a key, merely with a prompt.
+# Registry key: flake.modules.homeManager.user-ssh-tpm-agent
+# Configures: two isolated ssh-tpm-agent instances for TPM-sealed SSH keys.
+# Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
+# TPM group access needs nix-nexus.tpm2.users. A fresh login applies new membership.
 #
 #   ssh-tpm-agent     ~/.ssh/tpm      interactive ssh, Vault-cert deploys
 #   permafrost-agent  ~/.ssh/agents   forwarded to permafrost-* guests only
 #
-# Each instance loads only .tpm files from its directory, so plain keys left
-# alongside them are ignored.
-#
-# The keys carry no PIN. Two constraints force that, and both are load-bearing:
-#
-#   * The agent is a daemon with no tty, so any PIN must come from an askpass.
-#     ssh-tpm-agent only probes FHS paths (/usr/lib/ssh/gnome-ssh-askpass,
-#     /usr/bin/ksshaskpass, ...) which do not exist here, and these hosts are
-#     driven headless, so no GUI prompt can be answered anyway.
-#   * Caching needs the kernel keyctl helpers. /sbin/request-key is absent, and
-#     the agent logs "kernel is missing the keyctl executable helpers" and
-#     caches nothing — so a PIN would be demanded on every signature, not once
-#     per login.
-#
-# Security rests on the TPM instead: the private half never leaves the chip, so
-# a key cannot be copied off the host. Reintroducing a PIN means solving both
-# points above first.
-#
-# Group membership is granted by nix-nexus.tpm2.users, but the systemd user
-# manager only picks it up when it restarts — a full logout or reboot. Until
-# then these units fail with "open /dev/tpmrm0: permission denied".
+# Each instance loads only .tpm files from its own --key-dir.
+# A socket forwarded into a sandbox cannot reach the personal key.
 _: {
   flake.modules.homeManager.user-ssh-tpm-agent =
     {
@@ -86,6 +65,12 @@ _: {
         };
       };
 
+      # The keys carry no PIN.
+      # The agent runs as a daemon with no tty, so a PIN needs an askpass.
+      # No askpass binary exists on these hosts.
+      # The kernel keyctl helpers are absent, so the agent caches no PIN.
+      # Without caching, a PIN would prompt on every signature, not once per login.
+      # The TPM protects the key instead: the private half never leaves the chip.
       systemd.user = {
         sessionVariables.SSH_AUTH_SOCK = "\${XDG_RUNTIME_DIR}/ssh-tpm-agent.sock";
 

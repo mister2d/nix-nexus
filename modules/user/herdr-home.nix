@@ -1,15 +1,9 @@
-# herdr — terminal multiplexer with first-class coding-agent awareness.
-#
-# Keybindings come from lib/keymap.nix, the same source tmux renders from, so
-# the leader key, splits, pane navigation and window switching behave
-# identically in both. herdr allows exactly one binding per action, so where
-# tmux binds two chords (prefix+p/n and Shift-arrow for window nav) herdr gets
-# the no-prefix chord.
-#
-# theme.name = "terminal" makes herdr draw from the outer terminal's ANSI
-# palette. That is already stylix-themed for ddukes and the true-black OLED
-# palette for groot, so one setting covers both users. On stylix hosts the
-# sidebar tokens are additionally pinned to the base16 scheme.
+# Merged into: flake.modules.homeManager.user-herdr-home
+# Configures: herdr, a terminal multiplexer with coding-agent session awareness.
+# Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/avina/home.nix (avina-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
+# Keybindings come from lib/keymap.nix, the same source tmux renders from.
+# theme.name "terminal" reads the outer terminal's ANSI palette for both users.
+# Stylix hosts also pin the sidebar tokens to the active base16 scheme.
 _: {
   flake.modules.homeManager.user-herdr-home =
     {

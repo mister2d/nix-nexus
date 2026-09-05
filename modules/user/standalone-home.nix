@@ -1,3 +1,6 @@
+# Registry key: flake.modules.homeManager.user-standalone-home
+# Configures: the standalone (non-NixOS) Home Manager profile for groot.
+# Imported by: hosts/dualie/home.nix (dualie-home), hosts/forge/home.nix (forge-home), hosts/rk3588/home.nix (rk3588-home).
 _: {
   flake.modules.homeManager.user-standalone-home =
     { homeManagerModules, ... }:

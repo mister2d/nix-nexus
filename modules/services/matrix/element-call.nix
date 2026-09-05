@@ -1,3 +1,6 @@
+# Merged into: flake.modules.nixos.services-matrix
+# Configures: the Element Call static server and its client-side focus discovery config.
+# Imported by: hosts/avina/default.nix (avina-default).
 _: {
   flake.modules.nixos.services-matrix =
     {

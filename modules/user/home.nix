@@ -1,3 +1,6 @@
+# Registry key: flake.modules.homeManager.user-home
+# Configures: the ddukes Home Manager profile: desktop apps, Wayland env, GTK/Qt.
+# Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
   flake.modules.homeManager.user-home =
     {

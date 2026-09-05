@@ -1,3 +1,6 @@
+# Registry key: flake.modules.homeManager.user-audio-effects
+# Configures: the EasyEffects daemon, Z16 impulse responses, and preset assets.
+# Imported by: modules/user/home.nix (user-home).
 { lib, ... }:
 let
   # Impulse response files extracted from the official Lenovo Z16 Windows driver (ds557051)

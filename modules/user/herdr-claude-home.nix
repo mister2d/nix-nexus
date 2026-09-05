@@ -1,18 +1,8 @@
-# herdr's Claude Code integration, provisioned declaratively.
-#
-# `herdr integration install claude` writes two things: a hook script under
-# ~/.claude/hooks, and a SessionStart entry in ~/.claude/settings.json that
-# runs it. The hook reports Claude's session id to the herdr socket, which is
-# what lets herdr resume a pane into the same conversation after a server
-# restart.
-#
-# The script is versioned inside the herdr binary (HERDR_INTEGRATION_VERSION),
-# so it is generated from the pinned package rather than copied by hand.
-# settings.json is merged rather than replaced: Claude Code writes its own
-# keys there, so it cannot become a read-only store symlink.
-#
-# Merges into the user-herdr-home key rather than declaring its own, so the
-# agent integration stays reviewable as a separate file.
+# Merged into: flake.modules.homeManager.user-herdr-home
+# Configures: herdr's Claude Code session-resume hook and settings.json merge.
+# Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/avina/home.nix (avina-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
+# The hook script comes from the pinned herdr package, not a hand-copied file.
+# settings.json is merged, not replaced, since Claude Code writes its own keys there.
 _: {
   flake.modules.homeManager.user-herdr-home =
     {
