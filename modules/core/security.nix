@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.core-security
+# Configures: polkit, rtkit, PKI trust, gnome-keyring, and gpg-agent caching.
+# Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 _: {
   flake.modules.nixos.core-security =
     { pkgs, ... }:

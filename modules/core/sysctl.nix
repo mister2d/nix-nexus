@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.core-sysctl
+# Configures: swappiness, cache pressure, min free memory, and earlyoom thresholds.
+# Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 _: {
   flake.modules.nixos.core-sysctl =
     { lib, config, ... }:

@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.core-users
+# Configures: the ddukes system user, groups, shell, and SSH authorized keys.
+# Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 _: {
   flake.modules.nixos.core-users =
     { pkgs, ... }:

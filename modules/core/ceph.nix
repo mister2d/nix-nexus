@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.core-ceph
+# Configures: a systemd service that unmounts CephFS before sleep or shutdown.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.core-ceph =
     { pkgs, ... }:

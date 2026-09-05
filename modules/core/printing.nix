@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.core-printing
+# Configures: CUPS printing, Avahi discovery, and the ensured HP printer.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.core-printing =
     { pkgs, ... }:

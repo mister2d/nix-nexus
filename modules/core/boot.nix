@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.core-boot
+# Configures: kernel packages, LUKS initrd unlock, and boot loader timeout.
+# Imported by: profiles/workstation/default.nix (workstation-default).
 _: {
   flake.modules.nixos.core-boot =
     {

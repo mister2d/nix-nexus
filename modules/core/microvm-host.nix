@@ -1,9 +1,8 @@
-# Registers flake.modules.nixos.core-microvm-host.
-# Configures the bridge, NAT, kvm access and nested-virt policy for
-# permafrost microvm guests.
-# Options live under nix-nexus.virtualization.microvm.*.
-# The permafrost runner (nix run of tenarches/nix-permafrost) attaches
-# taps to the bridge at runtime.
+# Registry key: flake.modules.nixos.core-microvm-host
+# Configures: the bridge, NAT, and nested-virt policy for permafrost microvm guests.
+# Imported by: hosts/sweet16/default.nix (sweet16-default).
+# Options: nix-nexus.virtualization.microvm.*
+# The permafrost runner attaches taps to the bridge at runtime.
 _: {
   flake.modules.nixos.core-microvm-host =
     {

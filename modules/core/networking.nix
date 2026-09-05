@@ -1,3 +1,7 @@
+# Registry key: flake.modules.nixos.core-networking
+# Configures: NetworkManager, firewall rules, and Tailscale autoconnect routing policy.
+# Imported by: profiles/workstation/default.nix (workstation-default).
+# Options: nix-nexus.networking.tailscale.homeSSIDs
 _: {
   flake.modules.nixos.core-networking =
     {

@@ -1,13 +1,7 @@
-# profiles/server — Base profile for headless NixOS servers and LXC containers.
-#
-# Intentionally omits:
-#   modules/core/boot.nix  — LUKS, systemd initrd; meaningless in a container
-#   modules/core/zfs.nix   — ZFS pool management, devNodes, ARC tuning
-#   modules/core/networking.nix — workstation networking (NetworkManager, WiFi,
-#                                 mDNS, Google Cast, Syncthing, Tailscale)
-#
-# Hosts importing this profile set boot.isContainer = true (or their own boot
-# config) and configure networking (firewall, interface) in their own default.nix.
+# Registry key: flake.modules.nixos.server-default
+# Configures: the base profile for headless NixOS servers and LXC containers.
+# Imported by: hosts/avina/default.nix (avina-default), hosts/hermes/default.nix (hermes-default).
+# Omits: modules/core/boot.nix, modules/core/zfs.nix, modules/core/networking.nix.
 _: {
   flake.modules.nixos.server-default =
     { nixosModules, lib, ... }:

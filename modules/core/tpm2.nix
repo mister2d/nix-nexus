@@ -1,13 +1,8 @@
-# TPM2 support for LUKS auto-unlock via systemd-cryptenroll.
-#
-# Opt in per host — avina and hermes are Proxmox LXC and have no TPM.
-#
-# Nothing here is host-specific: the PIN requirement lives in the enrollment
-# command, not in this configuration. See docs/secrets.md for the per-host
-# posture, which is NOT uniform:
-#
-#   petunia  plain PCR-0 auto-unseal — accepted risk, physically-controlled desktop
-#   sweet16  MUST enroll --tpm2-with-pin=yes — laptop, theft is the threat model
+# Registry key: flake.modules.nixos.core-tpm2
+# Configures: TPM2 support for LUKS auto-unlock via systemd-cryptenroll.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
+# Options: nix-nexus.tpm2.users
+# See docs/secrets.md for per-host TPM2 enrollment posture.
 _: {
   flake.modules.nixos.core-tpm2 =
     { config, lib, ... }:

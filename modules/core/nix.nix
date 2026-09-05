@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.core-nix
+# Configures: Nix daemon settings, binary caches, trusted users, and garbage collection.
+# Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 let
   gib = n: n * 1024 * 1024 * 1024;
 in
