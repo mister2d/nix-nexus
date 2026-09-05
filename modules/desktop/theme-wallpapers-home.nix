@@ -1,7 +1,7 @@
-# Installs the active theme's wallpaper pack (lib/themes/wallpapers.nix)
-# into the user's home and points noctalia's default wallpaper directory at
-# it. A no-op when the theme has no pack (cfg.wallpapers.enable and
-# theme.wallpapers both gate this).
+# Merged into: flake.modules.homeManager.desktop-theme-home
+# Configures: the active theme's wallpaper pack and noctalia's default wallpaper directory.
+# Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
+# Installs nothing when the active theme carries no wallpaper pack.
 _: {
   flake.modules.homeManager.desktop-theme-home =
     {

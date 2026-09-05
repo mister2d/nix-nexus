@@ -1,3 +1,7 @@
+# Registry key: flake.modules.nixos.hardware-kernel-cachyos
+# Configures: the CachyOS kernel variant, ZFS wiring, and its binary cache.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
+# Options: nix-nexus.kernel.cachyos.*
 _: {
   flake.modules.nixos.hardware-kernel-cachyos =
     {

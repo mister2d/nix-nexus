@@ -1,3 +1,6 @@
+# Merged into: flake.modules.nixos.desktop-default
+# Configures: the noctalia binary cache substituter for every desktop host.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   # NixOS-side companion to desktop-noctalia-home. The shell itself is a Home
   # Manager concern; only the binary cache has to be declared system-wide.

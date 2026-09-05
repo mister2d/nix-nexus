@@ -1,3 +1,6 @@
+# Registry key: flake.modules.homeManager.desktop-hyprland-home
+# Configures: Hyprland keybindings, workspace binds, and exec-once startup.
+# Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
   flake.modules.homeManager.desktop-hyprland-home =
     {

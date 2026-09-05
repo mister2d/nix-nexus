@@ -1,3 +1,6 @@
+# Merged into: flake.modules.nixos.hardware-petunia
+# Configures: dual RDNA4 R9700 graphics, ROCm compute, and driver environment.
+# Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.hardware-petunia =
     { pkgs, ... }:

@@ -1,3 +1,6 @@
+# Merged into: flake.modules.nixos.desktop-default
+# Configures: Wayland session variables, Qt support, and XDG desktop portals.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.desktop-default =
     {

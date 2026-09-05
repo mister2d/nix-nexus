@@ -1,11 +1,8 @@
-# Maps the active stylix base16 scheme onto noctalia's "stylix" custom
-# palette. Mirrors upstream stylix/modules/noctalia/hm.nix's role mapping for
-# the dark variant, sourced live from config.lib.stylix.colors.
-#
-# The light variant is not covered by upstream (it only ships dark); it comes
-# from the active theme's lightPalette in the theme registry (lib/themes),
-# mapped through the same roles as upstream's dark variant. Themes without a
-# light palette fall back to the dark palette instead of an undefined one.
+# Merged into: flake.modules.homeManager.desktop-noctalia-home
+# Configures: the noctalia "stylix" custom palette from the active base16 scheme.
+# Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
+# Mirrors the dark-variant role mapping in upstream stylix/modules/noctalia/hm.nix.
+# The light variant comes from the theme registry, not from the upstream module.
 _: {
   flake.modules.homeManager.desktop-noctalia-home =
     {

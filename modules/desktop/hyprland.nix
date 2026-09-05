@@ -1,3 +1,6 @@
+# Registry key: flake.modules.nixos.desktop-hyprland
+# Configures: the Hyprland compositor, its binary cache, and gamemode policy.
+# Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.desktop-hyprland =
     {

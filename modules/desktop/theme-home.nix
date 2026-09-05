@@ -1,3 +1,6 @@
+# Merged into: flake.modules.homeManager.desktop-theme-home
+# Configures: stylix HM targets for kitty, ghostty, gtk, qt, and the cursor.
+# Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
   # These stylix.targets options only exist in the HM option tree on hosts
   # that pull in the NixOS stylix module — sweet16 and petunia only.
