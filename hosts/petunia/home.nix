@@ -20,7 +20,7 @@ _: {
         homeManagerModules.desktop-theme-home
       ];
 
-      # Resource Monitor (amdgpu_top provides detailed AMD metrics; btop for process view)
+      # Resource Monitor (amdgpu_top provides detailed AMD metrics, btop for process view)
       programs.btop.enable = true;
     };
 }

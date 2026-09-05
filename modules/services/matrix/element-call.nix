@@ -12,8 +12,8 @@ _: {
     let
       # Client Configuration:
       # Minimal config — homeserver autodiscovery only. livekit_service_url is
-      # intentionally absent: upstream classifies it as a local-dev override; the
-      # production discovery path is /.well-known org.matrix.msc4143.rtc_foci,
+      # intentionally absent. Upstream classifies it as a local-dev override.
+      # The production discovery path is /.well-known org.matrix.msc4143.rtc_foci,
       # served statically by haproxy.nix.
       elementCallConfig = pkgs.writeText "element-call-config.json" (
         builtins.toJSON {

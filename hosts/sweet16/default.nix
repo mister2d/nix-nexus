@@ -62,8 +62,9 @@ _: {
         # Desktop theme, from the lib/themes registry.
         theme.name = "catppuccin-mocha";
 
-        # Tailscale roaming: accept-routes is suppressed on home SSIDs (LAN is directly
-        # reachable) and enabled everywhere else (road/hotspot access to LAN resources).
+        # Tailscale roaming: accept-routes is suppressed on home SSIDs, since
+        # the LAN is directly reachable there. It stays enabled everywhere
+        # else, for road and hotspot access to LAN resources.
         networking.tailscale.homeSSIDs = [
           "Trial"
         ];
@@ -75,7 +76,7 @@ _: {
         virtualization.microvm.enable = true;
       };
 
-      # Prevent NVMe from entering ps 4 (9500µs exit latency); caps at ps 3 (1200µs) for ZFS
+      # Prevent NVMe from entering ps 4 (9500µs exit latency). Caps at ps 3 (1200µs) for ZFS.
       boot.kernelParams = [ "nvme_core.default_ps_max_latency_us=9000" ];
 
       # CachyOS Kernel Configuration

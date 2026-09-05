@@ -22,7 +22,7 @@ _: {
       inherit (unstable-pkgs) herdr;
 
       # Hosts without the development home profile (avina, hermes) never
-      # declare these options; those that disable LLM agents (dualie on Ivy
+      # declare these options. Those that disable LLM agents (dualie on Ivy
       # Bridge, rk3588 on ARM) have no Claude Code to integrate with.
       hasDevHome = lib.hasAttrByPath [ "nix-nexus" "user" "dev" ] options;
       claudeEnabled =

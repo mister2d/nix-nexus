@@ -20,7 +20,7 @@
           pkgs.bun
 
           # Secrets tooling. sops/age edit and encrypt the files consumed by
-          # core-sops; ssh-to-age derives a host's age recipient from its SSH
+          # core-sops. ssh-to-age derives a host's age recipient from its SSH
           # host key. secretspec comes from nixpkgs-unstable because the stable
           # channel lags (0.10.1 vs 0.13.0).
           pkgs.sops
@@ -28,7 +28,7 @@
           pkgs.ssh-to-age
           inputs.nixpkgs-unstable.legacyPackages.${system}.secretspec
 
-          # langfuse is not packaged in nixpkgs; vendored from PyPI, pinned to
+          # langfuse is not packaged in nixpkgs. Vendored from PyPI, pinned to
           # satisfy the Claude Code Stop hook's >=4.0,<5 constraint.
           (pkgs.python3.withPackages (ps: [
             (ps.buildPythonPackage {
@@ -67,7 +67,7 @@
 
         # Claude Code integration: generates .claude/settings.json and
         # .mcp.json from these options. Hook scripts and .claude/agents/*.md
-        # stay hand-authored; only the wiring is declared here.
+        # stay hand-authored. Only the wiring is declared here.
         claude.code = {
           enable = true;
 

@@ -12,7 +12,7 @@
 #                        when the theme has no light variant (dark palette
 #                        is reused)
 #   trueBlackTerminal — whether OLED true-black terminal deepening
-#                        (modules/desktop/theme-home.nix) applies; false when
+#                        (modules/desktop/theme-home.nix) applies. False when
 #                        the theme's own background is part of its identity
 #                        (a tint, not near-black)
 #   wallpapers         — linkFarm of the theme's wallpaper pack
@@ -22,9 +22,9 @@
 let
   wallpaperPacks = import ./wallpapers.nix { inherit pkgs; };
 
-  # Classic base16-schemes: no bespoke override, no light variant, and OLED
-  # true-black deepening left off since these track their upstream author's
-  # intended dark background rather than a near-black one.
+  # Classic base16-schemes: no bespoke override, no light variant. OLED
+  # true-black deepening stays off, since these track their upstream
+  # author's intended dark background rather than a near-black one.
   mkClassic = file: {
     scheme = "${pkgs.base16-schemes}/share/themes/${file}";
     polarity = "dark";
@@ -69,7 +69,7 @@ in
     wallpapers = wallpaperPacks.matte-black;
   };
 
-  # Green-tinted background is the theme's identity; OLED deepening would
+  # Green-tinted background is the theme's identity. OLED deepening would
   # replace it with plain black and defeat the point of choosing this theme.
   osaka-jade = {
     scheme = ./schemes/osaka-jade.yaml;

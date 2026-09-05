@@ -49,15 +49,18 @@ _: {
             tcp_port = rtcTcpPort;
 
             # RTC IP Configuration:
-            # Advertise the LAN IP directly. use_external_ip = true is intentionally
-            # absent: it would cause LiveKit to discover the WAN IP via STUN and use
-            # it for both ICE host candidates and TURN relay allocation. The WAN IP
-            # does not exist as a local interface on avina, so TURN relay allocation
-            # fails silently (no relay candidates are produced), and host candidates
-            # at the WAN IP are unreachable internally without hairpin NAT.
-            # Split horizon DNS resolves matrix-rtc.novuscotia.com to 10.0.1.7 for
-            # internal clients, so advertising 10.0.1.7 directly gives all LAN and
-            # Tailscale-subnet clients a valid host candidate and working TURN relay.
+            # Advertise the LAN IP directly. use_external_ip = true stays absent.
+            # That setting would make LiveKit discover the WAN IP via STUN.
+            # It would then use the WAN IP for ICE host candidates and for
+            # TURN relay allocation.
+            # The WAN IP does not exist as a local interface on avina.
+            # TURN relay allocation then fails silently, producing no relay
+            # candidates. Host candidates at the WAN IP become unreachable
+            # internally, since avina has no hairpin NAT.
+            # Split horizon DNS resolves matrix-rtc.novuscotia.com to 10.0.1.7
+            # for internal clients. Advertising 10.0.1.7 directly gives every
+            # LAN and Tailscale-subnet client a valid host candidate and a
+            # working TURN relay.
             ips = {
               includes = [
                 "10.0.1.7/32"

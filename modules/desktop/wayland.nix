@@ -55,9 +55,9 @@ _: {
             "gtk"
           ];
 
-          # Hyprland uses its own portal for screen capture; GTK for the rest.
+          # Hyprland uses its own portal for screen capture. GTK handles the rest.
           # xdg-desktop-portal-hyprland is added to extraPortals automatically
-          # by programs.hyprland in desktop-hyprland.nix; no manual entry needed.
+          # by programs.hyprland in desktop-hyprland.nix. No manual entry is needed.
           hyprland = {
             default = [
               "hyprland"

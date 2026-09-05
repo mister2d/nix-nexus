@@ -170,8 +170,9 @@ _: {
 
           # -------------------------------------------------------------------------
           # Overlay.
-          # overlays.pinned: locks kernel to the exact version built by upstream Hydra CI,
-          # guaranteeing the store hash matches the binary cache entry.
+          # overlays.pinned: locks kernel to the exact version built by
+          # upstream Hydra CI. This guarantees the store hash matches the
+          # binary cache entry.
           # -------------------------------------------------------------------------
           nixpkgs.overlays = [
             inputs.nix-cachyos-kernel.overlays.pinned
@@ -179,7 +180,7 @@ _: {
 
           # -------------------------------------------------------------------------
           # Kernel selection — four paths across variant × enableCustomBuild.
-          # boot.kernelPackages is types.unspecified; its apply function calls
+          # boot.kernelPackages is types.unspecified. Its apply function calls
           # .extend on the value directly. lib.mkMerge is NOT safe here because
           # mergeDefaultOption passes the merge-marker attrset straight to apply.
           # Use if/then/else so the value is the actual linuxPackages scope.
@@ -213,10 +214,10 @@ _: {
                 }
               )
             else if !cfg.enableCustomBuild then
-              # BORE PATH A: pre-built attrset from overlay; binary cache hit guaranteed.
+              # BORE PATH A: pre-built attrset from overlay. Binary cache hit guaranteed.
               pkgs.cachyosKernels.${linuxPackagesAttr}
             else
-              # BORE PATH B: override-based build; produces a new hash → local build required.
+              # BORE PATH B: override-based build. Produces a new hash → local build required.
               let
                 baseKernel = pkgs.cachyosKernels.${boreVariantAttr.${cfg.processorOpt}}.override {
                   bbr3 = cfg.enableBbr3;

@@ -8,9 +8,9 @@ _: {
       # Dual R9700 (RDNA4, gfx1201) graphics + ROCm compute wiring.
       #
       # RADV (Mesa) is the sole Vulkan driver. amdgpu exposes two independent
-      # interfaces to each gfx1201 device:
-      #   DRM/KMS → /dev/dri/renderD12x (Mesa/RADV — Vulkan path)
-      #   KFD     → /dev/kfd            (ROCm CLR — compute path)
+      # interfaces to each gfx1201 device.
+      #   DRM/KMS → /dev/dri/renderD12x (Mesa/RADV — Vulkan path).
+      #   KFD     → /dev/kfd            (ROCm CLR — compute path).
       # Both interfaces run at the same time with no driver-level conflict.
       #
       # ROCm 7.x recognizes gfx1201 natively. HSA_OVERRIDE_GFX_VERSION forces
@@ -29,7 +29,7 @@ _: {
         # tuning is iterative and hardware-specific.
         lact.enable = true;
 
-        # /dev/kfd is the HSA compute interface; users need the `render` group.
+        # /dev/kfd is the HSA compute interface. Users need the `render` group.
         udev.extraRules = ''
           SUBSYSTEM=="drm",  KERNEL=="renderD*", GROUP="render", MODE="0660"
           KERNEL=="kfd",                         GROUP="render", MODE="0660"
@@ -37,10 +37,10 @@ _: {
       };
 
       # amdgpu.gpu_recovery=1     — soft GPU reset on timeout instead of hard
-      #                             hang; critical for LLM inference loads.
+      #                             hang. Critical for LLM inference loads.
       # amdgpu.lockup_timeout=10000 — ROCm kernels can legitimately run for
-      #                             seconds; the default 5s causes false resets.
-      # iommu=pt                  — IOMMU passthrough; lower DMA translation
+      #                             seconds. The default 5s causes false resets.
+      # iommu=pt                  — IOMMU passthrough. Lower DMA translation
       #                             overhead for GPU compute.
       # pcie_bus_config=performance — maximize PCIe read request size for
       #                             inter-GPU DMA throughput (dual-GPU).
@@ -63,7 +63,7 @@ _: {
           enable32Bit = true; # Wine, Steam, 32-bit Vulkan clients
 
           extraPackages = [
-            # OpenCL dispatch layer via ROCm CLR; the full compute stack is
+            # OpenCL dispatch layer via ROCm CLR. The full compute stack is
             # provided through the /opt/rocm symlink below.
             pkgs.rocmPackages.clr.icd
 
@@ -94,7 +94,7 @@ _: {
         [ "L+ /opt/rocm - - - - ${rocmEnv}" ];
 
       environment.sessionVariables = {
-        # Both R9700s visible to the HSA runtime; HIP indices 0 and 1.
+        # Both R9700s visible to the HSA runtime. HIP indices 0 and 1.
         ROCR_VISIBLE_DEVICES = "0,1";
         # Explicit ISA target for tools that JIT-compile HIP kernels.
         HCC_AMDGPU_TARGET = "gfx1201,gfx1201";

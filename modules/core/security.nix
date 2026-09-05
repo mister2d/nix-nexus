@@ -22,7 +22,7 @@ _: {
 
         # gnome-keyring pulls in gcr-ssh-agent, which exports SSH_AUTH_SOCK
         # into the systemd user environment. Graphical terminals inherit from
-        # there rather than from a login shell, so it silently wins over the
+        # there rather than from a login shell. It silently wins over the
         # session variable and hands out an agent holding no keys. Keyring
         # credential storage is unaffected.
         gnome.gcr-ssh-agent.enable = false;

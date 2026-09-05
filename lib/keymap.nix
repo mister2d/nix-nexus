@@ -48,7 +48,7 @@ let
     map line actions;
 in
 {
-  # tmux's `shortcut` option takes the bare letter; herdr wants full chord syntax.
+  # tmux's `shortcut` option takes the bare letter. herdr wants full chord syntax.
   prefix = {
     tmux = "a";
     herdr = "ctrl+a";
@@ -128,7 +128,7 @@ in
       herdr = "swap_pane_right";
     }
 
-    # tmux binds both prefix+p/n and these; herdr allows exactly one binding
+    # tmux binds both prefix+p/n and these. herdr allows exactly one binding
     # per action, so the deliberate no-prefix chord is the one it gets.
     {
       group = "Shift-arrow to switch windows";
@@ -145,7 +145,7 @@ in
       herdr = "next_tab";
     }
 
-    # tmux already binds each of these on the prefix by default; only herdr
+    # tmux already binds each of these on the prefix by default. Only herdr
     # needs telling, so `tmux = null` keeps the generated tmux.conf free of
     # redundant lines.
     {
@@ -200,7 +200,7 @@ in
   ];
 
   # Grouped `bind` lines for programs.tmux.extraConfig. Actions with tmux = null
-  # are skipped; groups are emitted in first-appearance order under their heading.
+  # are skipped. Groups are emitted in first-appearance order under their heading.
   renderTmux =
     actions:
     let

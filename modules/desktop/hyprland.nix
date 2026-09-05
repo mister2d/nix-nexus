@@ -18,9 +18,9 @@ _: {
       ];
 
       # Upstream Hyprland binary cache. Declared in nix.settings so it applies
-      # to non-interactive deploys; a flake nixConfig entry would require
-      # per-user acceptance that ssh sessions cannot prompt for, and Hyprland
-      # would build from source on the host.
+      # to non-interactive deploys. A flake nixConfig entry would require
+      # per-user acceptance that ssh sessions cannot prompt for. Hyprland
+      # would also build from source on the host.
       nix.settings = {
         substituters = lib.mkAfter [ "https://hyprland.cachix.org" ];
         trusted-public-keys = lib.mkAfter [
@@ -38,7 +38,7 @@ _: {
       # PAM service required for hyprlock GPU-accelerated lockscreen.
       security.pam.services.hyprlock = { };
 
-      # polkit — defensive mkDefault; desktop-niri also sets this on sweet16.
+      # polkit — defensive mkDefault. desktop-niri also sets this on sweet16.
       security.polkit.enable = lib.mkDefault true;
 
       # hardware-z16 overrides power-profiles-daemon and upower at normal
@@ -62,7 +62,7 @@ _: {
           };
           gpu = {
             apply_gpu_optimisations = "accept-responsibility";
-            # sweet16 has no card0; dGPU (RX 6700M) is card1.
+            # sweet16 has no card0. dGPU (RX 6700M) is card1.
             gpu_device = 1;
           };
         };

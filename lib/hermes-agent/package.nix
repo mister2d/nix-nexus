@@ -16,7 +16,7 @@
 }:
 
 let
-  # Native (PyO3) runtime for hermes' Relay lifecycle and shared metrics;
+  # Native (PyO3) runtime for hermes' Relay lifecycle and shared metrics.
   # PyPI ships wheels only, so build from source with maturin.
   nemo-relay =
     let
@@ -158,7 +158,7 @@ let
         hatch-fancy-pypi-readme
       ];
 
-      # Upstream pins hatchling==1.26.3 in build-system.requires; pythonRelaxDeps
+      # Upstream pins hatchling==1.26.3 in build-system.requires. pythonRelaxDeps
       # only touches runtime metadata, so skip the build-time pin check.
       pypaBuildFlags = [ "--skip-dependency-check" ];
 
@@ -192,18 +192,18 @@ let
   };
 
   # Upstream moved ui-tui/ and web/ into npm workspaces with a single root
-  # package-lock.json, so both frontends must be built from the repo root.
+  # package-lock.json. Both frontends must be built from the repo root.
   # `hermes --tui` runs the compiled Ink/React bundle via HERMES_TUI_DIR
-  # (hermes_cli/main.py:_make_tui_argv fast-path, #4364) and
-  # `hermes dashboard` serves the Vite app via HERMES_WEB_DIST.
+  # (hermes_cli/main.py:_make_tui_argv fast-path, #4364). `hermes dashboard`
+  # serves the Vite app via HERMES_WEB_DIST.
   hermes-frontend = buildNpmPackage {
     pname = "hermes-frontend";
     inherit version src;
     npmDepsHash = "sha256-33ALD6Th++LCp8JiVO6ba27GhuP3GBuLGUuyoJg99iM=";
 
-    # The apps/desktop workspace pulls in electron; skip its binary download
+    # The apps/desktop workspace pulls in electron. Skip its binary download
     # and all install scripts — the esbuild/vite builds below don't need them.
-    # Upstream's engines.npm range excludes nixpkgs' current npm; the pin is
+    # Upstream's engines.npm range excludes nixpkgs' current npm. The pin is
     # only about a CLI compat quirk unrelated to this build.
     npmFlags = [
       "--ignore-scripts"
@@ -218,7 +218,7 @@ let
       runHook postBuild
     '';
 
-    # dist/entry.js is a self-contained esbuild bundle; package.json is kept
+    # dist/entry.js is a self-contained esbuild bundle. package.json is kept
     # so node resolves it as an ES module.
     installPhase = ''
       runHook preInstall
@@ -268,7 +268,7 @@ let
       # Relay lifecycle + shared metrics
       nemo-relay
     ]
-    # faster-whisper -> av SIGKILLs during import on darwin; voice is optional.
+    # faster-whisper -> av SIGKILLs during import on darwin. Voice is optional.
     ++ lib.optionals stdenv.hostPlatform.isLinux [ faster-whisper ]
     ++ optionalDeps.gateway
     ++ optionalDeps.misc;
@@ -284,8 +284,8 @@ let
     };
   });
 
-  # nixpkgs' firecrawl-py 2.8.0 builds from the firecrawl monorepo tag v2.8.0,
-  # whose python-sdk pyproject declares a different SDK version, so the new
+  # nixpkgs' firecrawl-py 2.8.0 builds from the firecrawl monorepo tag v2.8.0.
+  # Its python-sdk pyproject declares a different SDK version, so the new
   # pythonMetadataCheckPhase fails. Skip the check until nixpkgs fixes the
   # version mismatch.
   firecrawl-py' = python3.pkgs.firecrawl-py.overridePythonAttrs {
@@ -349,10 +349,10 @@ let
     ];
   };
 
-  # The TUI spawns `$HERMES_PYTHON -m tui_gateway.entry`; sys.executable is the
+  # The TUI spawns `$HERMES_PYTHON -m tui_gateway.entry`. sys.executable is the
   # bare interpreter, so give it an env with the runtime deps. The dashboard
-  # PTY path copies wrapper env into a nested Node subprocess, which then
-  # resolves the gateway import root from HERMES_PYTHON_SRC_ROOT.
+  # PTY path copies wrapper env into a nested Node subprocess. That subprocess
+  # then resolves the gateway import root from HERMES_PYTHON_SRC_ROOT.
   pythonEnv = python3.withPackages (_: hermesDeps);
 in
 python3.pkgs.buildPythonApplication {
@@ -364,12 +364,12 @@ python3.pkgs.buildPythonApplication {
     setuptools
   ];
 
-  # lazy_deps._is_satisfied enforces exact PyPI pins and tries to pip install
-  # into the read-only store on any drift, silently disabling the feature
-  # (e.g. nixpkgs aiosqlite 0.21.0 vs hermes pin 0.22.1 disabled matrix).
-  # The closure already provides every dep, so presence is sufficient.
+  # lazy_deps._is_satisfied enforces exact PyPI pins. It tries to pip install
+  # into the read-only store on any drift, silently disabling the feature.
+  # For example, nixpkgs aiosqlite 0.21.0 versus hermes pin 0.22.1 disabled
+  # matrix. The closure already provides every dep, so presence is sufficient.
   # Dashboard slash workers re-exec the bare sys.executable, which cannot
-  # import Hermes modules or its dependencies under Nix; run them with the
+  # import Hermes modules or its dependencies under Nix. Run them with the
   # wrapper-provided interpreter and source root instead of leaking a global
   # PYTHONPATH into every subprocess Hermes spawns.
   patches = [ ./slash-worker-hermes-python.patch ];
@@ -380,7 +380,7 @@ python3.pkgs.buildPythonApplication {
   '';
 
   # setup.py refuses to build wheels/sdists unless it knows this is a Nix
-  # (uv2nix-style) build; upstream gates it behind this env var.
+  # (uv2nix-style) build. Upstream gates it behind this env var.
   env.HERMES_NIX_BUILD = "1";
 
   # Upstream pins setuptools<83 in build-system.requires. nixpkgs ships
@@ -406,14 +406,14 @@ python3.pkgs.buildPythonApplication {
     "--set"
     "HERMES_NODE"
     "${nodejs}/bin/node"
-    # Skills are copied to $out/share/hermes in postInstall; point hermes at them.
+    # Skills are copied to $out/share/hermes in postInstall. Point hermes at them.
     "--set"
     "HERMES_BUNDLED_SKILLS"
     "${placeholder "out"}/share/hermes/skills"
     "--set"
     "HERMES_OPTIONAL_SKILLS"
     "${placeholder "out"}/share/hermes/optional-skills"
-    # Disable runtime pip installs; absent extras disable cleanly.
+    # Disable runtime pip installs. Absent extras disable cleanly.
     "--set"
     "HERMES_DISABLE_LAZY_INSTALLS"
     "1"
@@ -424,8 +424,8 @@ python3.pkgs.buildPythonApplication {
     "${nodejs}/bin"
   ];
 
-  # Skills are shipped as setup.py data_files, which the wheel build drops;
-  # install them manually.
+  # Skills are shipped as setup.py data_files, which the wheel build drops.
+  # Install them manually.
   postInstall = ''
     mkdir -p $out/share/hermes
     cp -r ${src}/skills $out/share/hermes/skills

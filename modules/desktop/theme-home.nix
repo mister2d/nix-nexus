@@ -3,7 +3,7 @@
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
   # These stylix.targets options only exist in the HM option tree on hosts
-  # that pull in the NixOS stylix module — sweet16 and petunia only.
+  # that pull in the NixOS stylix module. Only sweet16 and petunia do.
   flake.modules.homeManager.desktop-theme-home =
     {
       lib,
@@ -28,17 +28,17 @@ _: {
     in
     {
       # stylix's cursor module (stylix/hm/cursor.nix) sets home.pointerCursor's
-      # name/package/size/x11.enable/gtk.enable but never .enable itself, and
+      # name/package/size/x11.enable/gtk.enable but never .enable itself.
       # Home Manager has deprecated inferring enablement from a non-null config.
       # Set it explicitly so cursor config generation keeps working without warning.
       home.pointerCursor.enable = true;
 
       stylix.targets =
         # The stylix v5 noctalia target (customPalettes) only exists on the
-        # stylix master branch (petunia); sweet16 pins release-26.05, which
+        # stylix master branch (petunia). sweet16 pins release-26.05, which
         # lacks it. Guard so this file can be shared by both hosts.
         lib.optionalAttrs (options.stylix.targets ? noctalia) {
-          # Palette mapping will be owned here in a later commit; upstream's
+          # Palette mapping will be owned here in a later commit. Upstream's
           # v5 target would otherwise write the same customPalettes keys,
           # a hard conflict.
           noctalia.enable = false;
@@ -46,11 +46,11 @@ _: {
         // {
           # noctalia owns the wallpaper, not hyprpaper.
           hyprland.hyprpaper.enable = false;
-          # Themes nixvim from the active base16 palette on desktop hosts;
+          # Themes nixvim from the active base16 palette on desktop hosts.
           # carbonfox remains the default elsewhere via mkDefault.
           nixvim.enable = true;
           # programs.tmux.extraConfig is types.lines, so its colour lines
-          # can't be split out cleanly; they're overridden below instead via
+          # can't be split out cleanly. They're overridden below instead via
           # a mkAfter block, the same last-directive-wins mechanism kitty uses.
           tmux.enable = false;
 
@@ -79,15 +79,15 @@ _: {
         nixvim.colorschemes.nightfox.enable = false;
 
         # Kitty renders its palette by calling the base16 scheme object as a
-        # functor (`colors { templateRepo; target; }`); mkTarget's
-        # colors.override only patches the outer attrset's field access, which
-        # that functor closure never reads, so stylix.targets.kitty.colors.override
+        # functor (`colors { templateRepo; target; }`). mkTarget's
+        # colors.override only patches the outer attrset's field access.
+        # That functor closure never reads it, so stylix.targets.kitty.colors.override
         # cannot reach the generated theme. Home Manager also emits
-        # programs.kitty.settings before the target's `include <theme>` line, so
-        # any background/tab-bar keys set in settings are silently discarded by
-        # kitty's last-directive-wins config parsing. Both are worked around
-        # here: kitty parses top-to-bottom, and lib.mkAfter places this block
-        # after that include, making it the effective config.
+        # programs.kitty.settings before the target's `include <theme>` line.
+        # Any background/tab-bar keys set in settings are silently discarded
+        # by kitty's last-directive-wins config parsing. Both are worked
+        # around here: kitty parses top-to-bottom, and lib.mkAfter places
+        # this block after that include. This makes it the effective config.
         kitty.extraConfig = lib.mkAfter ''
           ${lib.optionalString theme.trueBlackTerminal "background ${trueBlack}"}
           active_tab_foreground ${trueBlack}

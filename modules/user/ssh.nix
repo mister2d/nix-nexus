@@ -7,19 +7,18 @@ _: {
     programs.ssh = {
       enable = true;
 
-      # The module's legacy default block is deprecated upstream; every value
+      # The module's default block is deprecated upstream. Every value
       # relied on here is declared explicitly under settings."*" instead.
       enableDefaultConfig = false;
 
-      # Emitted ahead of the Host * block, so config.d entries take precedence
-      # for any directive they set — ssh keeps the first value it obtains.
+      # Emitted ahead of the Host * block. config.d entries take precedence
+      # for any directive they set, since ssh keeps the first value it obtains.
       includes = [ "config.d/*.conf" ];
 
       settings."*" = {
         # Agent forwarding is opt-in per host. Forwarding to every host lets
         # any of them use every key the agent holds, for the life of the
-        # connection — which is precisely what a per-key agent socket exists
-        # to prevent.
+        # connection. A per-key agent socket exists precisely to prevent this.
         ForwardAgent = false;
 
         # accept-new trusts a host on first contact but refuses a key that

@@ -7,7 +7,7 @@ _: {
     let
       # OpenRGB's shipped udev rules tag matching devices with
       # TAG+="uaccess", granting access to the seated logind user. That
-      # covers ddukes at a console but grants nothing to the headless SDK
+      # covers ddukes at a console. It grants nothing to the headless SDK
       # server, which runs as a dedicated system user (see below). This
       # rewrites the rules to grant the openrgb group access instead, scoped
       # to exactly the OpenRGB-supported device list. The rules do not grant
@@ -26,7 +26,7 @@ _: {
       '';
     in
     {
-      # motherboard is left unset; it auto-defaults per host from
+      # motherboard is left unset. It auto-defaults per host from
       # hardware.cpu.{intel,amd}.updateMicrocode.
       services.hardware.openrgb.enable = true;
 
@@ -42,7 +42,7 @@ _: {
         User = "openrgb";
         Group = "openrgb";
         # OpenRGB derives its config directory from $HOME. The openrgb
-        # system user's default home is /var/empty, which is unwritable, so
+        # system user's default home is /var/empty, which is unwritable.
         # HOME must be pointed at the service's StateDirectory instead.
         Environment = "HOME=/var/lib/OpenRGB";
       };

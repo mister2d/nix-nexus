@@ -48,11 +48,11 @@ _: {
       networking.hostName = "petunia";
 
       # Grants ddukes direct OpenRGB device access (group-scoped udev rules
-      # from services-openrgb); list-merges with core-users.
+      # from services-openrgb). List-merges with core-users.
       users.users.ddukes.extraGroups = [ "openrgb" ];
 
       # CachyOS server kernel: EEVDF scheduler, 300Hz timer, no preemption, x86_64-v3 ISA.
-      # processorOpt requires a local build (~45 min on the 5600X); ZFS wired via zfs-cachyos.
+      # processorOpt requires a local build (~45 min on the 5600X). ZFS wires in via zfs-cachyos.
       nix-nexus.kernel.cachyos = {
         enable = true;
         variant = "server";

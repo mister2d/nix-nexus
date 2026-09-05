@@ -11,14 +11,14 @@ _: {
     }:
     let
       certDir = "/run/certs";
-      # Not /run/secrets: sops-nix hardcodes that path as its symlink target and
-      # re-points it at a fresh generation directory on every activation, which
-      # removes vault-agent's rendered files until it re-renders. Consumers using
-      # LoadCredential= fail immediately when that happens.
+      # Not /run/secrets: sops-nix hardcodes that path as its symlink target.
+      # It re-points the symlink at a fresh generation directory on every
+      # activation, removing vault-agent's rendered files until it re-renders.
+      # Consumers using LoadCredential= fail immediately when that happens.
       secretDir = "/run/vault-secrets";
       # AppRole seed, decrypted by sops-nix at activation. This is the credential
-      # that unlocks every other secret, so it is deliberately not fetched from
-      # Vault — that would be circular. sops-nix renders into /run/secrets.
+      # that unlocks every other secret. It is deliberately not fetched from
+      # Vault, since that would be circular. sops-nix renders into /run/secrets.
       bootstrapDir = "/run/secrets";
 
       # ── Vault KV-v2 Hierarchy ───────────────────────────────────────────────
@@ -110,7 +110,7 @@ _: {
       # SMTP credentials are pulled from the shared smtp path for the email transport.
       #
       # claims_imports templates use Tera syntax ({{ }}) which conflicts with Consul template
-      # delimiters; literal braces are emitted via {{ "{{" }} and {{ "}}" }} escapes.
+      # delimiters. Literal braces are emitted via {{ "{{" }} and {{ "}}" }} escapes.
       masConfigTmpl = pkgs.writeText "mas-config.ctmpl" ''
         {{ with $c := secret "${configPath}" }}
         {{ with $m := secret "${masPath}" }}
@@ -224,7 +224,7 @@ _: {
       #
       # Security posture: ECDSA P-384 (primary, hardened) + RSA-4096 (mandatory
       # for OIDC Core spec RS256 compliance). Modern clients preferentially use
-      # ES384; RSA-4096 exists solely for spec compliance.
+      # ES384. RSA-4096 exists solely for spec compliance.
       #
       # Both must be generated once and never rotated — changing a signing key
       # invalidates all active sessions and issued tokens.
@@ -354,10 +354,11 @@ _: {
             ];
             serviceConfig = {
               Type = "oneshot";
-              # Without this the unit is inactive the moment it finishes, so its
-              # active state cannot mean "secrets are rendered" and consumers have
-              # nothing to order against. It also keeps switch-to-configuration
-              # from skipping the unit as dead when its config changes.
+              # Without this the unit is inactive the moment it finishes.
+              # Its active state then cannot mean "secrets are rendered", and
+              # consumers have nothing to order against. It also keeps
+              # switch-to-configuration from skipping the unit as dead when
+              # its config changes.
               RemainAfterExit = true;
               ExecStart = "${pkgs.vault}/bin/vault agent -config=${vaultAgentConfig} -exit-after-auth";
               Environment = [ "HOME=/tmp" ];
@@ -400,10 +401,10 @@ _: {
           # vault-agent-init one-shot to prevent race conditions during boot.
           #
           # `after` alone is not enough: it only orders units that are already in
-          # the same job transaction. Nothing here pulled vault-agent-init in, so
-          # on a switch these could start before it and read secrets that had not
-          # been rendered yet. `wants` pulls it into the transaction so the
-          # ordering has something to apply to; it is deliberately not `requires`,
+          # the same job transaction. Nothing here pulled vault-agent-init in.
+          # On a switch these could start before it and read secrets that had
+          # not been rendered yet. `wants` pulls it into the transaction so the
+          # ordering has something to apply to. It is deliberately not `requires`,
           # since that would propagate vault-agent-init's stop to every consumer.
           haproxy = {
             after = [ "vault-agent-init.service" ];

@@ -189,7 +189,8 @@ _: {
       # SSID Strategy:
       # - SSIDs are not hardcoded here to keep this configuration portable and Git-ready.
       # - Operationally, use 'nmtui' or the network applet to first connect to a network.
-      # - Passwords are securely persisted by NetworkManager in /etc/NetworkManager/system-connections/
-      #   or your local user keyring (libsecret), keeping them out of the Nix store.
+      # - Passwords are securely persisted by NetworkManager, in
+      #   /etc/NetworkManager/system-connections/ or your local user keyring
+      #   (libsecret). Both paths keep passwords out of the Nix store.
     };
 }

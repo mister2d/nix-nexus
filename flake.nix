@@ -24,21 +24,21 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     # Hyprland upstream flake for v0.56.1. nixos-25.11 ships 0.52.1 which lacks
-    # render.cm_auto_hdr. nixpkgs.follows reduces nixpkgs duplication; Hyprland's
-    # sub-inputs (aquamarine, hyprlang, etc.) retain their own pinned nixpkgs.
+    # render.cm_auto_hdr. nixpkgs.follows reduces nixpkgs duplication.
+    # Hyprland's sub-inputs (aquamarine, hyprlang, etc.) retain their own pinned nixpkgs.
     hyprland = {
       url = "github:hyprwm/Hyprland/v0.56.1";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    # Pinned to a tagged release; unlike other inputs, main is not tracked here
-    # since it can carry unreviewed nix-packaging changes ahead of a release.
+    # Pinned to a tagged release. Unlike other inputs, main is not tracked here.
+    # It can carry unreviewed nix-packaging changes ahead of a release.
     # inputs.nixpkgs.follows intentionally absent — required for the Noctalia Cachix binary cache.
     # See: https://docs.noctalia.dev/v5/getting-started/nixos/#binary-cache
     noctalia.url = "github:noctalia-dev/noctalia/v5.0.0-beta.7";
 
     # ── Theming ─────────────────────────────────────────────────────────────
     # Two branches, mirroring the home-manager/home-manager-unstable dual-track
-    # idiom above: sweet16 pins nixpkgs 26.05 + home-manager release-26.05;
+    # idiom above. sweet16 pins nixpkgs 26.05 + home-manager release-26.05.
     # petunia tracks nixpkgs-unstable + home-manager master.
     stylix = {
       url = "github:nix-community/stylix/release-26.05";

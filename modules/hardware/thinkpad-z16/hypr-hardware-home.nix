@@ -12,7 +12,7 @@ _: {
         # Catchall: any other connected output at preferred mode.
         monitor = [
           # Scale 1.20 is the nearest preferred fractional value Hyprland v0.55
-          # supports for wp_fractional_scale_v1; 1.15 was silently rounded up.
+          # supports for wp_fractional_scale_v1. 1.15 was silently rounded up.
           # DP-1 offset = 3840 / 1.20 = 3200 scaled units.
           # @60 matches the EDID — the panel only reports 60.00Hz.
           "eDP-1,3840x2400@60,0x0,1.20,bitdepth,10"
@@ -39,7 +39,7 @@ _: {
         # render.cm_enabled:  Activates color management subsystem.
         # render.cm_auto_hdr: Auto-engages HDR output for fullscreen HDR apps.
         #                     Requires bitdepth,10 on the monitor line above.
-        #                     Added in v0.41; requires upstream flake (nixos-25.11
+        #                     Added in v0.41. Requires upstream flake (nixos-25.11
         #                     ships 0.52.1 which predates the option rename).
         render = {
           cm_enabled = true;

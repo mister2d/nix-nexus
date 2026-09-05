@@ -17,7 +17,7 @@ _: {
       mod = "SUPER";
 
       # Noctalia IPC helper — produces the exec string for Hyprland bind directives.
-      # Hyprland's exec takes a plain string; niri's spawn takes listOf str.
+      # Hyprland's exec takes a plain string. niri's spawn takes listOf str.
       noc = cmd: "noctalia msg ${cmd}";
 
       inherit (config.lib.stylix.colors) base05;
@@ -67,7 +67,7 @@ _: {
             "XDG_SESSION_TYPE"
             "XDG_SESSION_DESKTOP"
           ];
-          # Restart the portal once the environment is propagated; Noctalia
+          # Restart the portal once the environment is propagated. Noctalia
           # needs a fresh portal instance to register its screenshot backend.
           extraCommands = [
             "systemctl --user restart xdg-desktop-portal.service"
@@ -109,9 +109,9 @@ _: {
             "${customScripts.battery-alert}/bin/battery-alert"
             # EasyEffects: two races to win —
             # 1. WAYLAND_DISPLAY is not in the systemd env until exec-once runs,
-            #    so the service crashes on first start; reset-failed clears that.
+            #    so the service crashes on first start. reset-failed clears that.
             # 2. Noctalia's StatusNotifierWatcher may not be on the session bus
-            #    yet; poll until it is before restarting so the tray icon lands.
+            #    yet. Poll until it is before restarting so the tray icon lands.
             "bash -c 'until busctl --user status org.kde.StatusNotifierWatcher &>/dev/null; do sleep 0.2; done; systemctl --user reset-failed easyeffects.service; systemctl --user start easyeffects.service'"
           ];
 
@@ -327,12 +327,12 @@ _: {
           bindl = [
             # Noctalia owns mute OSD
             ", XF86AudioMute, exec, ${noc "volume-mute"}"
-            # Mic mute: no Noctalia IPC; pamixer handles this directly.
+            # Mic mute: no Noctalia IPC. pamixer handles this directly.
             ", XF86AudioMicMute, exec, ${pkgs.pamixer}/bin/pamixer --default-source -t"
           ];
         };
 
-        # Resize submap (raw hyprlang; cleaner than settings.submaps for this).
+        # Resize submap (raw hyprlang, cleaner than settings.submaps for this).
         extraConfig = ''
           submap = resize
           binde = , right,  resizeactive, 20 0

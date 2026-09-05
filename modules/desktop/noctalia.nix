@@ -3,14 +3,14 @@
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   # NixOS-side companion to desktop-noctalia-home. The shell itself is a Home
-  # Manager concern; only the binary cache has to be declared system-wide.
+  # Manager concern. Only the binary cache has to be declared system-wide.
   flake.modules.nixos.desktop-default =
     { lib, ... }:
     {
       # Upstream noctalia binary cache. Declared in nix.settings so it applies
-      # to non-interactive deploys; a flake nixConfig entry would require
-      # per-user acceptance that ssh sessions cannot prompt for, and noctalia
-      # would build from source on the host.
+      # to non-interactive deploys. A flake nixConfig entry would require
+      # per-user acceptance that ssh sessions cannot prompt for. Noctalia
+      # would also build from source on the host.
       # The noctalia input deliberately does not follow nixpkgs, which is what
       # keeps these cache entries valid — see flake.nix.
       nix.settings = {

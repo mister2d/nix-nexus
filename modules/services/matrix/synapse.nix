@@ -49,10 +49,11 @@ _: {
           federation_client_minimum_tls_version = "1.2";
 
           # SSRF Prevention:
-          # Explicitly blacklist RFC-1918, loopback, link-local, and reserved ranges
-          # so Synapse cannot be used to probe internal services via URL fetch endpoints
-          # (media proxy, URL previews, etc.). Synapse has built-in defaults but listing
-          # them explicitly makes the security posture verifiable.
+          # Explicitly blacklist RFC-1918, loopback, link-local, and reserved
+          # ranges. This stops Synapse probing internal services through URL
+          # fetch endpoints such as the media proxy or URL previews. Synapse
+          # has built-in defaults, but listing them explicitly makes the
+          # security posture verifiable.
           ip_range_blacklist = [
             "127.0.0.0/8"
             "10.0.0.0/8"
@@ -132,12 +133,13 @@ _: {
             msc4108_enabled = true;
             # MSC4143: MatrixRTC transport discovery endpoint.
             # Registers /_matrix/client/unstable/org.matrix.msc4143/rtc/transports.
-            # In practice, haproxy.nix intercepts all requests to this path with a
-            # static http-request return rule (is_rtc_discovery ACL) before they
-            # reach Synapse — bypassing Synapse's auth requirement on this endpoint.
-            # The matrix_rtc.transports block below is therefore not actively served
-            # but mirrors the HAProxy static response for consistency and as a fallback
-            # if the HAProxy intercept is ever removed.
+            # In practice, haproxy.nix intercepts all requests to this path.
+            # A static http-request return rule (is_rtc_discovery ACL) answers
+            # them before they reach Synapse, bypassing Synapse's auth
+            # requirement on this endpoint. The matrix_rtc.transports block
+            # below is therefore not actively served. It mirrors the HAProxy
+            # static response for consistency and as a fallback, in case the
+            # HAProxy intercept is ever removed.
             msc4143_enabled = true;
             # MSC3266: Room Summary API. Required by Element Call for knocking over
             # federation (standalone mode join-via-knock flow).

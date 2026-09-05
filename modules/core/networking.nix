@@ -32,8 +32,8 @@ _: {
 
       config = {
         # Unified Network Management
-        # This module implements a "Modern Networking" pattern that handles both
-        # workstations (NetworkManager) and servers (networkd) while avoiding
+        # This module implements a "Modern Networking" pattern that handles
+        # both workstations (NetworkManager) and servers (networkd). It avoids
         # duplicate DHCP client conflicts and asymmetric routing issues.
         networking = {
           # Disable the dhcpcd DHCP client globally. NetworkManager and
@@ -49,7 +49,7 @@ _: {
             enable = lib.mkDefault true;
             dns = "systemd-resolved";
 
-            # SSIDs are defined declaratively; passwords are managed in the system keyring.
+            # SSIDs are defined declaratively. Passwords are managed in the system keyring.
             ensureProfiles.profiles = {
               # "MyWiFi" = {
               #   connection = { id = "MyWiFi"; type = "wifi"; permissions = "user:ddukes"; };
@@ -102,10 +102,10 @@ _: {
           };
 
           # NM dispatcher: flip accept-routes based on SSID when homeSSIDs is configured.
-          # On a known home SSID the LAN is directly reachable, so subnet routes must be
-          # suppressed to prevent Table 52 from overriding local paths.  On any other
-          # network (hotel, hotspot, office) we want them so remote LAN resources route
-          # through Tailscale.
+          # On a known home SSID the LAN is directly reachable. Subnet routes
+          # must be suppressed to prevent Table 52 from overriding local
+          # paths. On any other network (hotel, hotspot, office) we want them
+          # so remote LAN resources route through Tailscale.
           networkmanager.dispatcherScripts = lib.mkIf (cfg.homeSSIDs != [ ]) [
             {
               source = pkgs.writeShellScript "tailscale-accept-routes" ''
@@ -170,8 +170,8 @@ _: {
             Type = "oneshot";
             ExecStart =
               let
-                # Roaming workstations (homeSSIDs set): start with accept-routes enabled;
-                # the NM dispatcher will disable it when on a known home network.
+                # Roaming workstations (homeSSIDs set): start with accept-routes enabled.
+                # The NM dispatcher will disable it when on a known home network.
                 # Static workstations (no homeSSIDs): disable to prevent Table 52 LAN hijack.
                 # Servers (non-NM): always accept routes.
                 routing =

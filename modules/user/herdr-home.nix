@@ -76,7 +76,7 @@ _: {
       tomlFormat = pkgs.formats.toml { };
       rawConfig = tomlFormat.generate "herdr-config.toml" settings;
 
-      # `herdr config check` is hermetic — no $HOME, no network — and exits 1
+      # `herdr config check` is hermetic — no $HOME, no network. It exits 1
       # on any unknown key or invalid binding. Running it here turns a keymap
       # typo into a build failure instead of a binding silently disabled at
       # runtime.

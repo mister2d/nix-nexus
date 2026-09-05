@@ -12,7 +12,7 @@ _: {
     }:
     let
       agentPkgs = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
-      # llm-agents.nix has not packaged hermes-agent v2026.8.3 yet; vendor it
+      # llm-agents.nix has not packaged hermes-agent v2026.8.3 yet. Vendor it
       # here with a graft for the upstream plugin-manifest packaging
       # regression (see lib/hermes-agent/package.nix).
       versionCheckHomeHook =
@@ -21,9 +21,9 @@ _: {
       hermesAgentBase = pkgs.callPackage ../../lib/hermes-agent/package.nix {
         inherit versionCheckHomeHook;
       };
-      # Computed from the pre-override derivation so the plugin package does
-      # not close over the overridden hermes-agent's own build attrs (that
-      # self-reference deadlocks nixpkgs's cross-python dependency check).
+      # Computed from the pre-override derivation, so the plugin package does
+      # not close over the overridden hermes-agent's own build attrs. That
+      # self-reference deadlocks nixpkgs's cross-python dependency check.
       deps = hermesAgentBase.propagatedBuildInputs;
       hermesPython = lib.last deps;
       contextModeHermes = hermesPython.pkgs.callPackage ../../lib/context-mode-hermes.nix {

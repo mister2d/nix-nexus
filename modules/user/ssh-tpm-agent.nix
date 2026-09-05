@@ -46,15 +46,15 @@ _: {
         # the store, hence mkOutOfStoreSymlink. Each host resolves to its own
         # key, since a TPM key cannot be shared.
         file = {
-          # ~/.ssh/id_ecdsa is in ssh's default identity list, so naming the
-          # public half canonically means the key is found with no client
-          # config at all — including under IdentitiesOnly, which lists exactly
-          # those default paths and would otherwise offer nothing. It pairs
-          # with the already-canonical ~/.ssh/id_ecdsa-cert.pub.
+          # ~/.ssh/id_ecdsa is in ssh's default identity list. Naming the
+          # public half canonically finds the key with no client config.
+          # This also covers IdentitiesOnly, which lists only default paths
+          # and would otherwise offer nothing. It pairs with the
+          # already-canonical ~/.ssh/id_ecdsa-cert.pub.
           #
           # Only the public half moves. The sealed key stays in its own
-          # directory: --key-dir recurses, so a key-dir of ~/.ssh would pull in
-          # ~/.ssh/agents too and collapse the two agents into one.
+          # directory: --key-dir recurses. A key-dir of ~/.ssh would pull in
+          # ~/.ssh/agents too, collapsing the two agents into one.
           ".ssh/id_ecdsa.pub".source =
             config.lib.file.mkOutOfStoreSymlink "${config.home.homeDirectory}/.ssh/tpm/id_ecdsa_personal.pub";
 
@@ -91,8 +91,8 @@ _: {
           };
           Service = {
             Type = "simple";
-            # The agent exits non-zero if its key directory is absent, which on
-            # a fresh host is the state before any key has been generated.
+            # The agent exits non-zero if its key directory is absent.
+            # A fresh host is in this state before any key exists.
             ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}";
             ExecStart = "${bin} --key-dir ${inst.keyDir}";
             Environment = [ "SSH_TPM_AUTH_SOCK=%t/${name}.sock" ];

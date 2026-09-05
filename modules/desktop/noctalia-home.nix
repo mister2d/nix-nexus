@@ -36,9 +36,9 @@ _: {
           };
 
           # https://docs.noctalia.dev/v5/desktop/wallpaper/
-          # wallpaper.directory is left unset here; the active theme's default
+          # wallpaper.directory is left unset here. The active theme's default
           # (desktop-theme-home, modules/desktop/theme-wallpapers-home.nix)
-          # supplies it via mkDefault, and runtime picks persist separately
+          # supplies it via mkDefault. Runtime picks persist separately
           # to settings.toml and win over both.
           wallpaper = {
             enabled = true;

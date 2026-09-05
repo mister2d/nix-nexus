@@ -14,7 +14,7 @@ pkgs.buildNpmPackage {
     hash = "sha512-94JIaFuLjF9SO2BsGTrbGtyT44K95+9OC8BdbaL/UT76xOkanJLfUR5CzmNw+GELXZQqH4nBrKg9wjBnSFkVnQ==";
   };
 
-  # The published tarball ships no lockfile; use the one generated out-of-band.
+  # The published tarball ships no lockfile. Use the one generated out-of-band.
   postPatch = ''
     cp ${./context-mode-lock.json} package-lock.json
   '';
@@ -22,7 +22,7 @@ pkgs.buildNpmPackage {
   npmDepsHash = "sha256-VNeQeINN0B5BXUDM2/H5IDT6ySWCLmuC8HG7Pvdsp40=";
 
   # scripts.postinstall hard-exits on Linux + Node <22.5 and shells out to
-  # prebuild-install/npm against the network; skip all lifecycle scripts.
+  # prebuild-install/npm against the network. Skip all lifecycle scripts.
   npmFlags = [ "--ignore-scripts" ];
 
   # --ignore-scripts also skips better-sqlite3's own install script, so let
@@ -37,7 +37,7 @@ pkgs.buildNpmPackage {
   buildPhase = "true";
 
   # The bundles mark better-sqlite3, turndown, turndown-plugin-gfm, and
-  # @mixmark-io/domino as external, so node_modules must ship alongside the
+  # @mixmark-io/domino as external. node_modules must ship alongside the
   # bundle rather than installing cli.bundle.mjs on its own.
   installPhase = ''
     runHook preInstall
