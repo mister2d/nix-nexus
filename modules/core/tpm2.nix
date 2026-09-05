@@ -13,9 +13,9 @@ _: {
         example = [ "ddukes" ];
         description = ''
           Users granted access to the TPM resource manager (/dev/tpmrm0) via
-          membership in security.tpm2.tssGroup. Required by userspace TPM
-          consumers such as ssh-tpm-agent and tpm2-pkcs11; LUKS unsealing runs
-          in initrd as root and needs nothing here.
+          membership in security.tpm2.tssGroup. Userspace TPM consumers such
+          as ssh-tpm-agent and tpm2-pkcs11 require this membership. LUKS
+          unsealing runs in initrd as root and needs no group membership.
         '';
       };
 

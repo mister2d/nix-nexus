@@ -40,9 +40,9 @@ _: {
       nix-nexus.secrets.sops.hostFile = ../../secrets/avina.yaml;
 
       sops.secrets = {
-        # vault-agent's AppRole seed. Previously hand-placed in /var/lib/secrets
-        # and the one credential in the fleet that unlocked all the others while
-        # being unmanaged itself. Both vault-agent units run as root.
+        # sops-nix seeds the AppRole role-id and secret-id vault-agent reads
+        # from /run/secrets to authenticate to Vault. Both vault-agent units
+        # run as root.
         vault-role-id = {
           owner = "root";
           group = "root";

@@ -5,17 +5,18 @@ _: {
   flake.modules.nixos.services-openrgb =
     { pkgs, ... }:
     let
-      # OpenRGB's shipped udev rules only tag matching devices with
+      # OpenRGB's shipped udev rules tag matching devices with
       # TAG+="uaccess", granting access to the seated logind user. That
       # covers ddukes at a console but grants nothing to the headless SDK
       # server, which runs as a dedicated system user (see below). This
-      # rewrites the rules to grant the openrgb group instead, scoped to
-      # exactly the OpenRGB-supported device list — no blanket hidraw
-      # grant, which would expose keyboard HID traffic.
+      # rewrites the rules to grant the openrgb group access instead, scoped
+      # to exactly the OpenRGB-supported device list. The rules do not grant
+      # blanket hidraw access. A blanket hidraw grant would expose keyboard
+      # HID traffic from unrelated devices.
       #
       # /dev/port (Super I/O controllers) requires CAP_SYS_RAWIO at open
-      # time regardless of file permissions, so those specific controllers
-      # remain inaccessible to the unprivileged service user; SMBus
+      # time regardless of file permissions. Those specific controllers
+      # remain inaccessible to the unprivileged service user. SMBus
       # motherboard RGB (/dev/i2c-*) and USB/hidraw controllers work.
       openrgbGroupRules = pkgs.runCommand "openrgb-group-udev-rules" { } ''
         mkdir -p $out/lib/udev/rules.d

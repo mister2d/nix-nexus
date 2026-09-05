@@ -40,13 +40,12 @@ _: {
           enable = true;
           pinentryPackage = pkgs.pinentry-curses;
 
-          # SSH is served by ssh-tpm-agent, so gpg-agent handles GPG only and
-          # the *-cache-ttl-ssh settings no longer apply.
+          # ssh-tpm-agent serves SSH. gpg-agent handles GPG only. The
+          # *-cache-ttl-ssh settings have no effect here.
           #
-          # gpg-agent dies with the login session, so its lifetime is the real
-          # bound on the cache — these values amount to "once per session"
-          # rather than a literal week, and stop signing from re-prompting at
-          # the old 24h ceiling.
+          # gpg-agent exits with the login session, so session lifetime
+          # bounds the cache in practice. These values apply once per login
+          # session rather than a literal week.
           settings = {
             default-cache-ttl = sevenDays;
             max-cache-ttl = sevenDays;

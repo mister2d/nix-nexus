@@ -36,9 +36,10 @@ _: {
         # workstations (NetworkManager) and servers (networkd) while avoiding
         # duplicate DHCP client conflicts and asymmetric routing issues.
         networking = {
-          # Disable the legacy DHCP client globally. Modern NixOS modules (NetworkManager
-          # and systemd-networkd) manage their own DHCP internally. This eliminates
-          # duplicate routes (e.g., metric 600 vs 3002) and routing table "wars".
+          # Disable the dhcpcd DHCP client globally. NetworkManager and
+          # systemd-networkd manage their own DHCP internally. This avoids
+          # duplicate routes (e.g., metric 600 vs 3002) and routing table
+          # conflicts.
           useDHCP = false;
           dhcpcd.enable = false;
 
