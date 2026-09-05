@@ -98,9 +98,9 @@ _: {
 
         # terminal-home's tmux extraConfig carries the non-stylix fallback
         # colors. stylix's tmux target stays disabled above because
-        # extraConfig is types.lines, so this mkAfter block restates only the
-        # color-bearing directives — tmux parses top-to-bottom and the last
-        # directive wins, the same mechanism the kitty workaround above uses.
+        # extraConfig is types.lines. This mkAfter block restates only the
+        # color-bearing directives. tmux parses top to bottom and the last
+        # directive wins, as in the kitty block above.
         tmux.extraConfig = lib.mkAfter ''
           set -g status-style bg=${base00},fg=${base05}
           set -g status-left "#[fg=${base0D},bold] #S #[default]| "

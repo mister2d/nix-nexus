@@ -383,8 +383,8 @@ python3.pkgs.buildPythonApplication {
   # (uv2nix-style) build; upstream gates it behind this env var.
   env.HERMES_NIX_BUILD = "1";
 
-  # Upstream pins setuptools<83 in build-system.requires, which nixpkgs'
-  # setuptools 83 no longer satisfies; the pin is only about metadata quirks.
+  # Upstream pins setuptools<83 in build-system.requires. nixpkgs ships
+  # setuptools 83. The pin only covers metadata quirks, so skip the check.
   pypaBuildFlags = [ "--skip-dependency-check" ];
 
   dependencies = hermesDeps;
