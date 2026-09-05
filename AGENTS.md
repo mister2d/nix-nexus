@@ -108,12 +108,12 @@ not checked it, stop. Check it first.
 
 ## 3. Architecture invariants — what must never be violated
 
-These are the non-negotiable rules of the dendritic pattern. Violating any of
-them breaks the architecture, even if the result evaluates correctly.
+These rules are non-negotiable for the dendritic pattern. A violation breaks
+the architecture. This is true even when the result evaluates correctly.
 
 ### 3.1 Every `.nix` file under `modules/`, `hosts/`, `profiles/` is a flake-parts fragment
 
-Every file must have the outermost shape:
+Every file must have this outermost shape:
 
 ```nix
 # No inputs needed:
@@ -127,13 +127,14 @@ _: {
 }
 ```
 
-Files starting with `_` in any path segment are excluded from auto-discovery.
-Everything else is included automatically — do not add explicit imports.
+A file with `_` at the start of any path segment is excluded from
+auto-discovery. The system includes every other file automatically. Do not add
+explicit imports.
 
 ### 3.2 Hosts compose by name, never by path
 
-Inside any NixOS module delivered by the registry, the `imports` list must only
-use names from `nixosModules.*` or `homeManagerModules.*`. Never use `import
+Inside a NixOS module from the registry, the `imports` list must use only
+names from `nixosModules.*` or `homeManagerModules.*`. Never use `import
 ./relative/path.nix` inside a module that is itself part of the registry.
 
 ```nix
@@ -153,10 +154,10 @@ imports = [
 
 ### 3.3 No aggregator files
 
-An aggregator file is a fragment whose only purpose is to import other named
-modules — it adds no configuration of its own. These are forbidden. Instead,
-use `lib.types.deferredModule` merge semantics: multiple files can share the
-same registry key and the module system merges their contents.
+An aggregator file is a fragment that only imports other named modules. It
+adds no configuration of its own. Aggregator files are forbidden. Instead, use
+`lib.types.deferredModule` merge semantics. Multiple files can share one
+registry key. The module system merges their contents.
 
 ```nix
 # WRONG — aggregator (imports-only fragment)
@@ -186,8 +187,8 @@ _: {
 
 ### 3.4 Custom options belong in `nix-nexus.<subsystem>.*`
 
-When a module declares custom options, they must be namespaced at depth three
-or deeper: `nix-nexus.<subsystem>.<option>`. Options at depth two
+When a module declares custom options, the options must sit at depth three or
+deeper: `nix-nexus.<subsystem>.<option>`. Options at depth two
 (`nix-nexus.<option>`) are forbidden.
 
 ```nix
@@ -201,13 +202,14 @@ options.nix-nexus.tailscale.homeSSIDs = lib.mkOption { ... };
 
 ### 3.5 `lib/` is not auto-discovered
 
-Files under `lib/` are plain Nix helpers (derivations, pure data). They are not
-flake-parts fragments and are not auto-discovered. Import them explicitly by
-relative path at the call site.
+Files under `lib/` are plain Nix helpers. Examples are derivations and pure
+data. They are not flake-parts fragments. The system does not auto-discover
+them. Import each file explicitly by relative path at the call site.
 
 ### 3.6 `flake.nix` is a pass-through — do not hard-code module wiring there
 
-`flake.nix` contains one composable import-tree builder and nothing else:
+`flake.nix` contains one composable import-tree builder. It contains nothing
+else:
 
 ```nix
 outputs =
@@ -222,14 +224,14 @@ outputs =
   inputs.flake-parts.lib.mkFlake { inherit inputs; } fleet.result;
 ```
 
-To add a new subtree, append one `addPath` path to that list. No other changes
-to `flake.nix` should be needed for routine maintenance.
+To add a new subtree, append one `addPath` path to that list. Routine
+maintenance should need no other change to `flake.nix`.
 
 ### 3.7 Standalone HM configurations use `lib.types.raw`
 
-`flake.homeConfigurations` uses `lib.types.raw`, not `deferredModule`. Each
-standalone HM configuration (`"user@host"`) has exactly one definition. This
-is correct and intentional — do not change it.
+`flake.homeConfigurations` uses `lib.types.raw`. It does not use
+`deferredModule`. Each standalone HM configuration (`"user@host"`) has exactly
+one definition. This design is correct and intentional. Do not change it.
 
 ---
 
