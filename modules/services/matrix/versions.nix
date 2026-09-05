@@ -6,15 +6,17 @@ _: {
     { pkgs, ... }:
     let
       # ── Matrix 2.0 Stack — Authoritative Version Registry ────────────────────
-      # Packages prefixed with (stable) are sourced via the pkgs-stable overlay
-      # declared in flake.nix (nixos-25.11 @ b6018f87). All other packages
-      # come from the primary nixpkgs input (nixos-26.05 @ 8eeec934).
+      # The pkgs-stable overlay in flake.nix sources every package marked
+      # (stable), pinned to nixos-25.11 @ b6018f87. The primary nixpkgs input
+      # sources all other packages, pinned to nixos-26.05 @ 8eeec934.
       #
       # To upgrade a component:
       #   1. Update the version constant below.
-      #   2. Update the pkgs-stable or nixpkgs pin in flake.nix if necessary.
-      #   3. Run nixos-rebuild — the assertion will confirm the resolved version.
-      #   4. Update hosts/avina/README.md stack table.
+      #   2. Update the pkgs-stable or nixpkgs pin in flake.nix when the new
+      #      version requires a newer channel.
+      #   3. Run nixos-rebuild.
+      #   4. Confirm the assertion matches the resolved version.
+      #   5. Update hosts/avina/README.md stack table.
       expected = {
         # Matrix homeserver (stable)
         synapse = "1.155.0";

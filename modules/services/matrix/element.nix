@@ -20,31 +20,27 @@ _: {
 
       # Bundled Widget Focus Config:
       # Element Web 1.12.x always serves the embedded Element Call widget from its
-      # own origin (element.novuscotia.com/widgets/element-call/) regardless of the
-      # element_call.url setting. This means the widget reads config.json from
-      # /widgets/element-call/config.json — not from the root config.json and not
-      # from the external element-call instance at rtcDomain.
+      # own origin, ignoring the element_call.url setting.
+      # The widget reads focus from its own config.json, not from the root
+      # config.json or the external element-call instance at rtcDomain.
       #
-      # Element Call discovers its LiveKit focus via three paths, tried in order:
-      #   1. Widget API (MSC2764): Element Web passes focus to the widget iframe via
-      #      postMessage. This is the primary path. However, Element Web 1.12.10 has
-      #      a circular-dependency (TDZ) bug in WidgetStore that prevents Widget API
-      #      from initialising, making this path unreliable.
-      #   2. config.json: The widget reads focus from its own-origin config.json
-      #      (widgets/element-call/config.json). This file is the reliable path and
-      #      is what this override ensures is populated.
-      #   3. /.well-known/matrix/client: Cross-origin fetch from the homeserver.
-      #      Works once the browser's HTTP disk cache is fresh; CORS headers are
-      #      served by haproxy.nix's wellknown_backend.
+      # Element Call tries three focus discovery paths in order:
+      #   1. Widget API (MSC2764). Element Web passes focus to the widget iframe
+      #      via postMessage. A circular-dependency bug in WidgetStore blocks
+      #      Widget API initialisation in Element Web 1.12.10.
+      #   2. config.json. The widget reads focus from its own-origin config.json
+      #      at widgets/element-call/config.json. This override populates that
+      #      file and is the reliable path.
+      #   3. /.well-known/matrix/client. A cross-origin fetch to the homeserver.
+      #      CORS headers come from haproxy.nix's wellknown_backend.
       #
-      # Joining an existing call (started by Element X) always works regardless of
-      # focus discovery because the focus is read from the m.call.member room state
-      # event, not from well-known or config.json.
+      # A joined call started by Element X reads focus from the m.call.member
+      # room state event, independent of well-known or config.json.
       #
       # The element-web package ships a minimal config.json with only the
       # matrix_rtc_session timing parameters and no focus config. This override
-      # merges the upstream timing parameters with the focus config so both are
-      # present for the bundled widget.
+      # merges the upstream timing parameters with the focus config for the
+      # bundled widget.
       widgetCallConfig = pkgs.writeText "element-call-widget-config.json" (
         builtins.toJSON {
           # Preserve upstream session timing parameters.
@@ -85,22 +81,21 @@ _: {
       );
 
       # Client Configuration:
-      # Generates the element-web config.json to ensure users are automatically
-      # routed to the fleet homeserver with secure defaults.
+      # Generates the element-web config.json and routes users to the fleet
+      # homeserver with secure defaults.
       #
-      # element_call.url overrides the default (https://call.element.io) so
-      # Element Web uses the self-hosted Element Call instance. Without this,
-      # Element Web either routes to the public call.element.io or falls back
-      # to Jitsi for group calls.
+      # element_call.url overrides the default call.element.io endpoint so
+      # Element Web uses the self-hosted Element Call instance. Without it,
+      # Element Web routes to the public call.element.io or falls back to
+      # Jitsi for group calls.
       #
-      # element_call.use_exclusively disables the legacy Jitsi VoIP stack and
-      # makes Element Call (MatrixRTC / MSC3401) the sole calling backend.
+      # element_call.use_exclusively disables the Jitsi VoIP stack and
+      # makes Element Call the sole calling backend for MatrixRTC (MSC3401).
       #
-      # Note: standalone call.${callDomain} login (username/password) is a
-      # limitation of Element Call 0.11.1 — it does not support native OIDC
-      # in standalone mode. For authenticated users this is irrelevant: Element
-      # Web embeds Element Call as a widget and passes the access token via the
-      # Widget API (MSC2764), so no separate OIDC flow is required for calls.
+      # Standalone call.${callDomain} login uses username and password because
+      # Element Call 0.11.1 has no native OIDC support in standalone mode.
+      # Authenticated users are unaffected. Element Web embeds Element Call as
+      # a widget and passes the access token via the Widget API (MSC2764).
       elementConfig = pkgs.writeText "element-config.json" (
         builtins.toJSON {
           default_server_config = {

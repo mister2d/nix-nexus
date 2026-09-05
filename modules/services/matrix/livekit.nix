@@ -67,15 +67,15 @@ _: {
 
           # Built-in TURN server:
           # Provides ICE relay for clients behind symmetric NAT or ISPs that block UDP.
-          # Coturn is not used — LiveKit TURN is the sole TURN/STUN relay for this stack.
-          # Reuses the ports previously reserved for Coturn (already open at the edge):
+          # LiveKit TURN is the sole TURN/STUN relay for this stack. Coturn is not used.
+          # The edge firewall opens these ports for TURN:
           #   TURN/UDP:  3478   (plain relay / STUN)
-          #   TURNS/TLS: 5349   (TLS relay — same port as legacy coturn)
+          #   TURNS/TLS: 5349   (TLS relay)
           # LiveKit handles TLS directly using the domain cert rendered by vault-agent.
           # Credentials are HMAC-generated per-session.
-          # use_external_ip is intentionally absent (same reasoning as rtc above): the
-          # TURN relay advertises 10.0.1.7 as the relay address, which is reachable by
-          # all LAN and Tailscale-subnet clients via split-horizon DNS.
+          # use_external_ip is absent. The TURN relay advertises 10.0.1.7 as the
+          # relay address, reachable by all LAN and Tailscale-subnet clients via
+          # split-horizon DNS.
           turn = {
             enabled = true;
             domain = rtcDomain;
@@ -104,7 +104,7 @@ _: {
       systemd.services.lk-jwt-service = {
         # LoadCredential reads /run/vault-secrets/livekit.key at unit start, so
         # the unit must not start before vault-agent has rendered it. livekit,
-        # synapse, and MAS already carry this ordering; this one did not.
+        # synapse, and MAS carry the same ordering.
         after = [ "vault-agent-init.service" ];
         wants = [ "vault-agent-init.service" ];
 

@@ -34,10 +34,10 @@ _: {
                 base_url = "https://${matrixDomain}";
               };
               # MSC3861 / MSC2965: advertise MAS as the OIDC provider.
-              # m.authentication is the stable key (MSC3861); org.matrix.msc2965.authentication
-              # is the legacy draft key retained for older clients. Both are needed: Element Web
-              # uses the draft key in some versions; Element Call uses the stable key for
-              # native OIDC discovery (MSC3861).
+              # m.authentication is the stable key (MSC3861). org.matrix.msc2965.authentication
+              # is the draft key that older clients read. Both are needed.
+              # Element Web uses the draft key in some versions. Element Call uses
+              # the stable key for native OIDC discovery (MSC3861).
               "m.authentication" = {
                 issuer = "https://${masDomain}/";
                 account = "https://${masDomain}/account";
@@ -113,7 +113,7 @@ _: {
     in
     {
       # Terms of Service static server:
-      # Serves /tos on port 8085; referenced by MAS branding.tos_uri.
+      # Serves /tos on port 8085. MAS branding.tos_uri references this endpoint.
       systemd.services.avina-tos = {
         description = "Matrix Terms of Service static server";
         after = [ "network.target" ];
