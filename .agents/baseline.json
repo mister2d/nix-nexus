@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-09-04T20:46:07Z",
+  "recorded": "2026-09-05T00:16:19Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "2ec7b87eb42a31ce24fbccad32875b6c3e5c3858",
-  "signoff": ".agents/signoff/2026-09-04-microvm-host.md"
+  "signed_off_through": "b8ce70e10c95602489b09fb8c7980edb3e8d9606",
+  "signoff": ".agents/signoff/2026-09-05-readability.md"
 }
