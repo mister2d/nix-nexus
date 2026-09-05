@@ -523,19 +523,19 @@ Current hosts and their assembly structure:
 The host's assembly (`modules/flake/nixos-<host>.nix`) references a registry key
 that does not exist. Common causes:
 1. The file that should register key `X` has a typo in its key string.
-2. The file is under a path segment starting with `_` and was excluded.
-3. The file was deleted without updating the caller.
+2. The file's path has a segment that starts with `_`. Auto-discovery excludes the file.
+3. Someone deleted the file. The caller still references the old key.
 
 Find where the key is expected: `grep -r '"X"' modules/ hosts/`.
 Find where it should be registered: `grep -r 'flake.modules.nixos.X' modules/ hosts/`.
 
 ### "type error" or "cannot merge" in registry
 
-`flake.homeConfigurations` uses `lib.types.raw` — it cannot have duplicate keys.
-If two files register `"user@host"`, one must be removed.
+`flake.homeConfigurations` uses `lib.types.raw`. This type forbids duplicate keys.
+If two files register `"user@host"`, remove one of them.
 
-`flake.modules.nixos` and `flake.modules.homeManager` use `lib.types.deferredModule`
-— duplicate keys are expected and merged correctly.
+`flake.modules.nixos` and `flake.modules.homeManager` use `lib.types.deferredModule`.
+This type expects duplicate keys and merges them correctly.
 
 ### `statix` warning: "empty pattern `{ ... }:`"
 
@@ -543,8 +543,8 @@ Change `{ ... }:` to `_:` when no arguments from the set are used.
 
 ### `deadnix` failure: unused binding
 
-Remove the binding. If it is needed for documentation, there is no exception —
-Nix is a functional language; unused bindings are dead code.
+Remove the binding. There is no exception for documentation.
+Nix is a functional language. Unused bindings are dead code.
 
 ### Pre-commit reformats a file after you edit it
 
@@ -661,12 +661,14 @@ modules/flake/
 
 ## 12. Agent workflow
 
-The maintenance pipeline is split between deterministic scripts (§ toolbox
-below, in `.agents/scripts/`) and thin judgment-only agents
-(`.claude/agents/*.md`). Scripts own *how* — clean per-rev evals, drift
-comparison, lint gates, deploys. Agents own *whether/why* — where code goes,
-whether drift is expected, when it's safe to deploy. This keeps LLM context
-spent on judgment, not on restating deterministic process in every prompt.
+The maintenance pipeline splits work into two layers. Deterministic scripts
+do the mechanical steps. The scripts live in `.agents/scripts/` (see the
+toolbox below). Judgment-only agents make the decisions. The agents live in
+`.claude/agents/*.md`. Scripts run clean per-revision evaluations, compare
+drift, apply lint gates, and deploy code. Agents decide where code goes,
+whether drift is expected, and when a deploy is safe. This design saves
+LLM context for judgment. Agents do not restate the deterministic process
+in every prompt.
 
 ### Roster
 
@@ -679,11 +681,12 @@ spent on judgment, not on restating deterministic process in every prompt.
 
 ### Standard pipeline
 
-scout → implement (`preflight.sh` per commit) → validate → deploy. The main
-session orchestrates: it dispatches each agent, relays their conclusions,
-and makes the final call — it does not re-derive their work. Trivial
-doc-only edits (no module/host/option changes) skip the pipeline entirely;
-just edit and commit.
+The pipeline runs four phases in order: scout, implement, validate, deploy.
+Implement runs `preflight.sh` before each commit. The main session directs
+the pipeline. It dispatches each agent and relays their conclusions.
+The main session makes the final call. It does not redo the agent's work.
+Trivial doc-only edits change no module, host, or option. These edits skip
+the pipeline. Edit and commit these changes directly.
 
 ### Script toolbox
 
@@ -705,28 +708,36 @@ output format, exit codes). Summary:
 
 ### Mechanical hooks
 
-Below the agent tier sits a mechanical tier: two Claude Code hooks, declared
-in `modules/flake/checks.nix` (`devenv.shells.default.claude.code.hooks`) and
-generated into `.claude/settings.json` by devenv on shell entry, deterministic
-and zero-token. They don't judge — they notice a pattern and nudge the
-orchestrating session to dispatch the right judgment agent.
+A mechanical tier sits below the agent tier. This tier has two Claude Code
+hooks. `modules/flake/checks.nix` declares the hooks
+(`devenv.shells.default.claude.code.hooks`). Devenv generates the hooks into
+`.claude/settings.json` on shell entry. The hooks run deterministically and
+use no LLM tokens. The hooks do not judge. Each hook notices a pattern and
+nudges the orchestrating session to dispatch the right judgment agent.
 
 | Hook | Event | Enforces |
 |---|---|---|
 | `hook-commit-reminder.sh` | `PostToolUse(Bash)` | after a `git commit` whose files match `^(modules\|hosts\|profiles\|flake\.(nix\|lock))`, exits 2 with a stderr reminder to dispatch `closure-validator` before deploy/push |
 | `hook-push-guard.sh` | `PreToolUse(Bash)` | before a `git push`, requires every outgoing commit touching evaluated config to be an ancestor of `.signed_off_through` in `.agents/baseline.json` (read as committed at HEAD); exits 2 and blocks otherwise |
 
-`hook-commit-reminder.sh` only fires on an actual `git commit` match and can't
-block (`PostToolUse` exit 2 is non-blocking — the commit already happened).
+`hook-commit-reminder.sh` fires only on an actual `git commit` match. This
+hook cannot block the commit. `PostToolUse` exit 2 is non-blocking. The
+commit already happened before the hook runs.
 
-`hook-push-guard.sh` fails open on its own errors: a missing `jq`, any git
-probing failure, an unresolvable or empty range, or a `signed_off_through`
-naming a sha not in the repo all exit 0. It blocks in exactly two cases — a
-config commit provably not covered by the sign-off, and `baseline.json` absent
-or malformed at HEAD. The second blocks by deliberate choice rather than
-failing open: absence of the record is precisely the gated condition, so
-failing open there would make the gate defeatable with `rm`.
+`hook-push-guard.sh` fails open on several errors. A missing `jq` triggers
+exit 0. Any git probing failure triggers exit 0. An unresolvable or empty
+range triggers exit 0. A `signed_off_through` value that names a sha absent
+from the repo triggers exit 0.
 
-Neither hook re-implements judgment already owned by `closure-validator` —
-they only detect the precondition for dispatching it. Note the guard binds the
-agent, not the human: a push from a plain terminal bypasses it entirely.
+The hook blocks in exactly two cases. Case one: a config commit that is
+provably not covered by the sign-off. Case two: `baseline.json` is absent or
+malformed at HEAD.
+
+Case two blocks by deliberate choice. It does not fail open. Absence of the
+record is exactly the condition the hook gates. Failing open in this case
+would let `rm` defeat the gate.
+
+Neither hook re-implements judgment owned by `closure-validator`. Each hook
+only detects the precondition for dispatching that agent. The guard binds
+the agent, not the human. A push from a plain terminal bypasses the guard
+entirely.
