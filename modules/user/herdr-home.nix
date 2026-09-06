@@ -88,6 +88,18 @@ _: {
     {
       home.packages = [ herdr ];
 
-      xdg.configFile."herdr/config.toml".source = checkedConfig;
+      # Copied, not symlinked. herdr rewrites config.toml in place whenever a
+      # setting changes inside the TUI — theme, agent panel sort — and a
+      # store symlink fails that write with "Read-only file system", which
+      # takes the Settings screen with it. The Nix-rendered baseline is
+      # reinstalled on every activation, so TUI edits last until the next
+      # home-manager switch. The rm -f clears the symlink a previous
+      # generation left behind; install would follow it and fail against the
+      # store instead of replacing it.
+      home.activation.herdrConfig = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+        run ${pkgs.coreutils}/bin/rm -f "${config.xdg.configHome}/herdr/config.toml"
+        run ${pkgs.coreutils}/bin/install -Dm0644 \
+          ${checkedConfig} "${config.xdg.configHome}/herdr/config.toml"
+      '';
     };
 }
