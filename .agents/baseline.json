@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/5cc3jj4ysqmji6140n2vzh61i9ybx9zh-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/s19db3kx2my1r7a3waxh4l59663x5q04-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/sa9bzcl7myfgayhmp1wdzp68nag0j9f6-home-manager-generation.drv",
+      "drv": "/nix/store/7xw3jywav0k8mi9xg7l7vk25dwhiv43x-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/ybl006f8ygv9z6xk2x6m1swdn3scq207-home-manager-generation.drv",
+      "drv": "/nix/store/5wzfl9vys8m67apgg9j036npa0b4pjml-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/8wwsi2dnpppbmmcmzfq30g5qh88dykn8-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/fvnhw3j8z88lwn3pzisvjvrw8rbhwsi3-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/s6bqb974rf8dilylbq2zhlbsnhawjicd-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/yw7rxin9ck3hhh30casllzlfim08vklx-nixos-system-petunia-26.11.20260729.0954f7e.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/4rmmcwhg8hdz802wxm5l78i72bnqmmyb-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/jd26gzp68ay4zqd4qrflk9gxcjp8qf45-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-05T06:29:12Z",
+  "recorded": "2026-09-06T22:33:25Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "49bb5e187b69c7b0e0007eefeca99277a600d2f2",
-  "signoff": ".agents/signoff/2026-09-05-comment-sweep-semicolons.md"
+  "signed_off_through": "80573ea21d9e156e7949224824551b5b29ffe906",
+  "signoff": ".agents/signoff/2026-09-06-herdr-writable-config.md"
 }
