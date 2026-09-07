@@ -22,7 +22,7 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/fvnhw3j8z88lwn3pzisvjvrw8rbhwsi3-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/q9j2371p8wy2znqg5crahd4qpb96ykiv-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-09-07T01:17:42Z",
+  "recorded": "2026-09-07T20:49:04Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "d62fa3f3523e684b0ed87651ec7b8332a0acbcf1",
-  "signoff": ".agents/signoff/2026-09-07-input-bumps-noctalia-devenv-llm-agents.md"
+  "signed_off_through": "f09628001326627489e9d10978a06a1ece7e469e",
+  "signoff": ".agents/signoff/2026-09-07-add-openai-api-key-hermes.md"
 }
