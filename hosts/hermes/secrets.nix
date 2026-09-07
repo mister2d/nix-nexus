@@ -30,11 +30,13 @@ _: {
         "gateway/google-maps-api-key" = { };
         "gateway/langfuse-public-key" = { };
         "gateway/langfuse-secret-key" = { };
+        "gateway/openai-api-key" = { };
 
         "coding-local/api-server-key" = { };
         "coding-local/github-pat" = { };
         "coding-local/langfuse-public-key" = { };
         "coding-local/langfuse-secret-key" = { };
+        "coding-local/openai-api-key" = { };
       };
 
       sops.templates = {
@@ -69,6 +71,9 @@ _: {
             ## Google Maps
             GOOGLE_MAPS_API_KEY=${placeholder."gateway/google-maps-api-key"}
 
+            ## OpenAI
+            OPENAI_API_KEY=${placeholder."gateway/openai-api-key"}
+
             ## LangFuse traces
             HERMES_LANGFUSE_PUBLIC_KEY=${placeholder."gateway/langfuse-public-key"}
             HERMES_LANGFUSE_SECRET_KEY=${placeholder."gateway/langfuse-secret-key"}
@@ -102,6 +107,9 @@ _: {
             ## Crawl4ai
             CRAWL4AI_URL="https://crawl4ai.service.internal.novuscotia.com"
             CRAWL4AI_AUTH_TOKEN="dummy"
+
+            ## OpenAI
+            OPENAI_API_KEY=${placeholder."coding-local/openai-api-key"}
 
             ## LangFuse traces
             HERMES_LANGFUSE_PUBLIC_KEY=${placeholder."coding-local/langfuse-public-key"}
