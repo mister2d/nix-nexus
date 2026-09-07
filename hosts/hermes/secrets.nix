@@ -72,7 +72,7 @@ _: {
             GOOGLE_MAPS_API_KEY=${placeholder."gateway/google-maps-api-key"}
 
             ## OpenAI
-            OPENAI_API_KEY=${placeholder."gateway/openai-api-key"}
+            VOICE_TOOLS_OPENAI_KEY=${placeholder."gateway/openai-api-key"}
 
             ## LangFuse traces
             HERMES_LANGFUSE_PUBLIC_KEY=${placeholder."gateway/langfuse-public-key"}
@@ -109,7 +109,7 @@ _: {
             CRAWL4AI_AUTH_TOKEN="dummy"
 
             ## OpenAI
-            OPENAI_API_KEY=${placeholder."coding-local/openai-api-key"}
+            VOICE_TOOLS_OPENAI_KEY=${placeholder."coding-local/openai-api-key"}
 
             ## LangFuse traces
             HERMES_LANGFUSE_PUBLIC_KEY=${placeholder."coding-local/langfuse-public-key"}
