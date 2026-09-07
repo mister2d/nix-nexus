@@ -34,7 +34,7 @@
     # It can carry unreviewed nix-packaging changes ahead of a release.
     # inputs.nixpkgs.follows intentionally absent — required for the Noctalia Cachix binary cache.
     # See: https://docs.noctalia.dev/v5/getting-started/nixos/#binary-cache
-    noctalia.url = "github:noctalia-dev/noctalia/v5.0.0-beta.7";
+    noctalia.url = "github:noctalia-dev/noctalia/v5.0.1";
 
     # ── Theming ─────────────────────────────────────────────────────────────
     # Two branches, mirroring the home-manager/home-manager-unstable dual-track
