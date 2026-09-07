@@ -6,12 +6,12 @@
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/7xw3jywav0k8mi9xg7l7vk25dwhiv43x-home-manager-generation.drv",
+      "drv": "/nix/store/h74r3d9msy1bir2264qajl1lbgqfv4m0-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/5wzfl9vys8m67apgg9j036npa0b4pjml-home-manager-generation.drv",
+      "drv": "/nix/store/7pshw5sd2nc2ajy5dl5d162v4r1vcig4-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/yw7rxin9ck3hhh30casllzlfim08vklx-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/i5f81v2zl05m1np6wwdpb1j8cj1bkj1i-nixos-system-petunia-26.11.20260729.0954f7e.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/jd26gzp68ay4zqd4qrflk9gxcjp8qf45-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/p4qz0f2cnmr268g57d5vfsjy89y3nhrr-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-06T22:33:25Z",
+  "recorded": "2026-09-07T01:17:42Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "80573ea21d9e156e7949224824551b5b29ffe906",
-  "signoff": ".agents/signoff/2026-09-06-herdr-writable-config.md"
+  "signed_off_through": "d62fa3f3523e684b0ed87651ec7b8332a0acbcf1",
+  "signoff": ".agents/signoff/2026-09-07-input-bumps-noctalia-devenv-llm-agents.md"
 }
