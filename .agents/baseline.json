@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/s19db3kx2my1r7a3waxh4l59663x5q04-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/xnciwabixv9vnr0j7d7knljrr4iq7hib-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/h74r3d9msy1bir2264qajl1lbgqfv4m0-home-manager-generation.drv",
+      "drv": "/nix/store/zy57xhf9lzk8kgbyapyk1fpv4wx2nkbq-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/7pshw5sd2nc2ajy5dl5d162v4r1vcig4-home-manager-generation.drv",
+      "drv": "/nix/store/gp4c1c5j361hhi5pdzsg74ri01iad7qi-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/794q64yjpv51h2gqxl41jgmyc9f5l5il-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/az1z2kd68gl5yw2k5d8ascarhyngjqy8-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/i5f81v2zl05m1np6wwdpb1j8cj1bkj1i-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/dzma861pnq2r3y5iqvsj9c125np290xy-nixos-system-petunia-26.11.20260729.0954f7e.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/p4qz0f2cnmr268g57d5vfsjy89y3nhrr-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/0j6mx3jiak78rarrld5gfviq300p95ky-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-07T21:05:34Z",
+  "recorded": "2026-09-10T00:28:09Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "02fcf4c00589430a7a810b94202ef0af6583a14f",
-  "signoff": ".agents/signoff/2026-09-07-rename-voice-tools-openai-key-hermes.md"
+  "signed_off_through": "4303170aa8dc86fdfc2592d570a396b48adebf8a",
+  "signoff": ".agents/signoff/2026-09-10-decouple-herdr-own-flake-input.md"
 }
