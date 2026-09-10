@@ -65,6 +65,14 @@ _: {
         };
       };
 
+      # ~/.bashrc never sources hm-session-vars.sh, so non-login bash (ssh
+      # exec, e.g. a remote herdr server) would otherwise have no agent
+      # socket. bashrcExtra lands before the interactive guard in ~/.bashrc,
+      # so it applies there too.
+      programs.bash.bashrcExtra = ''
+        export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-tpm-agent.sock"
+      '';
+
       # The keys carry no PIN.
       # The agent runs as a daemon with no tty, so a PIN needs an askpass.
       # No askpass binary exists on these hosts.
