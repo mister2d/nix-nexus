@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/dzma861pnq2r3y5iqvsj9c125np290xy-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/49qf0xnz8j0arqydhyyhy2h0ifz7flir-nixos-system-petunia-26.11.20260729.0954f7e.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/0j6mx3jiak78rarrld5gfviq300p95ky-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/pyw4gfr01jfi193jkb40i4c61j34aick-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-10T00:28:09Z",
+  "recorded": "2026-09-10T02:29:39Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "4303170aa8dc86fdfc2592d570a396b48adebf8a",
-  "signoff": ".agents/signoff/2026-09-10-decouple-herdr-own-flake-input.md"
+  "signed_off_through": "c67462423f853e1d7aaeb6d0c3a0e1b0d58359c4",
+  "signoff": ".agents/signoff/2026-09-10-ssh-auth-sock-non-login-bash.md"
 }
