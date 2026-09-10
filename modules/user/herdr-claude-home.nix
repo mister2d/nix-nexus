@@ -15,11 +15,9 @@ _: {
     }:
 
     let
-      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
-
-      unstable-pkgs = pin.pinned inputs.nixpkgs-unstable;
-
-      inherit (unstable-pkgs) herdr;
+      # Same herdr package as user-herdr-home in herdr-home.nix: the
+      # flake input pinned to a tagged release.
+      inherit (inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}) herdr;
 
       # Hosts without the development home profile (avina, hermes) never
       # declare these options. Those that disable LLM agents (dualie on Ivy

@@ -8,6 +8,16 @@
     flake-parts.url = "github:hercules-ci/flake-parts";
     import-tree.url = "github:vic/import-tree";
 
+    # herdr — terminal multiplexer with coding-agent session awareness.
+    # Pinned to a tagged release and built from its own flake rather than
+    # through nixpkgs, so it tracks the upstream release independently of
+    # the nixpkgs-unstable input. rust-overlay is a herdr sub-input and
+    # follows nixpkgs.
+    herdr = {
+      url = "github:herdrdev/herdr/v0.9.0";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
+    };
+
     # ── Home Manager ────────────────────────────────────────────────────────
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";

@@ -15,11 +15,9 @@ _: {
     }:
 
     let
-      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
-
-      unstable-pkgs = pin.pinned inputs.nixpkgs-unstable;
-
-      inherit (unstable-pkgs) herdr;
+      # herdr comes from its own flake input, pinned to a tagged release,
+      # so it tracks upstream independently of nixpkgs-unstable.
+      inherit (inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}) herdr;
       keymap = import ../../lib/keymap.nix { inherit lib; };
 
       stylixColors = lib.optionalAttrs (config.lib ? stylix) (
