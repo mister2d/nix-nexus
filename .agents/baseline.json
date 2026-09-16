@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/49qf0xnz8j0arqydhyyhy2h0ifz7flir-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/f19br5li2whzimcnc4dhjjhl94a5ppry-nixos-system-petunia-26.11.20260729.0954f7e.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/pyw4gfr01jfi193jkb40i4c61j34aick-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/s159jaq6cd1wq20vrr7mfz9hmcm9sxk9-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-10T02:29:39Z",
+  "recorded": "2026-09-16T10:19:24Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "c67462423f853e1d7aaeb6d0c3a0e1b0d58359c4",
-  "signoff": ".agents/signoff/2026-09-10-ssh-auth-sock-non-login-bash.md"
+  "signed_off_through": "67dc8d02f2df788a1e3d00111a27f8db617cf4fc",
+  "signoff": ".agents/signoff/2026-09-16-hyprland-disable-unfocused-transparency.md"
 }
