@@ -1,9 +1,17 @@
 # Registry key: flake.modules.nixos.core-printing
 # Configures: CUPS printing, Avahi discovery, and the ensured HP printer.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
+# Printer provisioning runs in systemd.services.cups (ExecStartPost) on
+# nixpkgs 26.11+ (sweet16 tracks 26.05 and still runs it in a separate
+# ensure-printers.service). Each host's own nixosSystem lib decides which
+# branch applies, since sweet16 and petunia build against different
+# nixpkgs inputs.
 _: {
   flake.modules.nixos.core-printing =
-    { pkgs, ... }:
+    { lib, pkgs, ... }:
+    let
+      newProvisioning = lib.versionAtLeast lib.trivial.release "26.11";
+    in
     {
       services = {
         printing = {
@@ -27,28 +35,49 @@ _: {
         };
       };
 
-      systemd.services = {
-        cups.aliases = [ "printing.service" ];
-        ensure-printers = {
-          aliases = [ "printing-provision.service" ];
-          after = [
-            "network-online.target"
-            "cups.service"
-            "avahi-daemon.service"
-            "nss-lookup.target"
-          ];
-          wants = [
-            "network-online.target"
-            "cups.service"
-            "avahi-daemon.service"
-            "nss-lookup.target"
-          ];
-          serviceConfig = {
-            Restart = "on-failure";
-            RestartSec = 30;
+      systemd.services = lib.mkMerge [
+        (lib.mkIf (!newProvisioning) {
+          cups.aliases = [ "printing.service" ];
+          ensure-printers = {
+            aliases = [ "printing-provision.service" ];
+            after = [
+              "network-online.target"
+              "cups.service"
+              "avahi-daemon.service"
+              "nss-lookup.target"
+            ];
+            wants = [
+              "network-online.target"
+              "cups.service"
+              "avahi-daemon.service"
+              "nss-lookup.target"
+            ];
+            serviceConfig = {
+              Restart = "on-failure";
+              RestartSec = 30;
+            };
           };
-        };
-      };
+        })
+        (lib.mkIf newProvisioning {
+          cups = {
+            aliases = [ "printing.service" ];
+            after = [
+              "network-online.target"
+              "avahi-daemon.service"
+              "nss-lookup.target"
+            ];
+            wants = [
+              "network-online.target"
+              "avahi-daemon.service"
+              "nss-lookup.target"
+            ];
+            serviceConfig = {
+              Restart = "on-failure";
+              RestartSec = 30;
+            };
+          };
+        })
+      ];
 
       hardware.printers = {
         ensurePrinters = [
