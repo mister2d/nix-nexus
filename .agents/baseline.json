@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/583mavg0ha1npvrxhz4bf5p9ma8wamhy-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/5i7ancvg9cbwcgys8cmfr0jcvz0vzzcp-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/zyjzz65972nl0z8g1hfbzm5m5c63c4vr-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/30510nslv36fv2qhh1rp0pwabvf6hyvw-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-23T19:10:34Z",
+  "recorded": "2026-09-23T22:36:06Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "a3ad2baf6755801fdd8489a335d6bfc161f4691f",
-  "signoff": ".agents/signoff/2026-09-23-nixpkgs-unstable-bump-printing-26-11.md"
+  "signed_off_through": "4053334e283d185acb5746d7d47f1536317b2147",
+  "signoff": ".agents/signoff/2026-09-23-hyprland-nixpkgs-unstable.md"
 }
