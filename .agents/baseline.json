@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/xnciwabixv9vnr0j7d7knljrr4iq7hib-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/hy5s96brm9iv9dnvflgm3rwgz17q4g0v-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/zy57xhf9lzk8kgbyapyk1fpv4wx2nkbq-home-manager-generation.drv",
+      "drv": "/nix/store/hmdhc2wlq8ws838nf9izaciwxjsxkqrx-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/gp4c1c5j361hhi5pdzsg74ri01iad7qi-home-manager-generation.drv",
+      "drv": "/nix/store/bcxajmh57k47kvgarxi9f5vs9riaxnsq-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/az1z2kd68gl5yw2k5d8ascarhyngjqy8-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/ml5gy6dhg828b8qr3khib2bl14yhd1rj-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/f19br5li2whzimcnc4dhjjhl94a5ppry-nixos-system-petunia-26.11.20260729.0954f7e.drv",
+      "drv": "/nix/store/583mavg0ha1npvrxhz4bf5p9ma8wamhy-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/s159jaq6cd1wq20vrr7mfz9hmcm9sxk9-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/zyjzz65972nl0z8g1hfbzm5m5c63c4vr-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-09-16T10:19:24Z",
+  "recorded": "2026-09-23T19:10:34Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "67dc8d02f2df788a1e3d00111a27f8db617cf4fc",
-  "signoff": ".agents/signoff/2026-09-16-hyprland-disable-unfocused-transparency.md"
+  "signed_off_through": "a3ad2baf6755801fdd8489a335d6bfc161f4691f",
+  "signoff": ".agents/signoff/2026-09-23-nixpkgs-unstable-bump-printing-26-11.md"
 }
