@@ -124,7 +124,6 @@ _: {
           # Appearance & Themes
           adwaita-icon-theme # Core theme engine/icons (fixes GTK module errors)
           gnome-themes-extra # Provides Adwaita theme engine
-          gtk-engine-murrine # Murrine engine for various GTK themes
 
           # Fonts
           font-awesome
