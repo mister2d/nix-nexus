@@ -45,16 +45,15 @@ _: {
       };
     in
     {
-      imports = [
-        # Sets wayland.windowManager.hyprland.package to upstream v0.56.1.
-        inputs.hyprland.homeManagerModules.default
-      ];
-
       # -----------------------------------------------------------------------
       # Hyprland compositor
       # -----------------------------------------------------------------------
       wayland.windowManager.hyprland = {
         enable = true;
+        # Matches programs.hyprland.package in desktop-hyprland.nix (NixOS).
+        # portalPackage stays at its own default: finalPortalPackage overrides
+        # its embedded hyprland input with this package regardless.
+        package = (pin.pinned inputs.nixpkgs-unstable).hyprland;
         xwayland.enable = true;
         configType = "hyprlang";
 

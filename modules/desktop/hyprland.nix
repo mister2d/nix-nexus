@@ -1,5 +1,5 @@
 # Registry key: flake.modules.nixos.desktop-hyprland
-# Configures: the Hyprland compositor, its binary cache, and gamemode policy.
+# Configures: the Hyprland compositor and gamemode policy.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.desktop-hyprland =
@@ -9,27 +9,19 @@ _: {
       inputs,
       ...
     }:
+    let
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
+      unstablePkgs = pin.pinned inputs.nixpkgs-unstable;
+    in
     {
-      imports = [
-        # Override programs.hyprland.{package,portalPackage} defaults to the
-        # upstream flake outputs (v0.56.1). nixpkgs module still provides all
-        # option declarations, session entry, polkit, portal, systemd PATH.
-        inputs.hyprland.nixosModules.default
-      ];
-
-      # Upstream Hyprland binary cache. Declared in nix.settings so it applies
-      # to non-interactive deploys. A flake nixConfig entry would require
-      # per-user acceptance that ssh sessions cannot prompt for. Hyprland
-      # would also build from source on the host.
-      nix.settings = {
-        substituters = lib.mkAfter [ "https://hyprland.cachix.org" ];
-        trusted-public-keys = lib.mkAfter [
-          "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc="
-        ];
-      };
-
+      # Both hosts need Hyprland >= 0.56 for render.cm_auto_hdr and related
+      # HDR/color-management settings. nixos-26.05 ships 0.55.4, which lacks
+      # them, so both packages come from nixpkgs-unstable regardless of which
+      # nixpkgs channel the host's system builds from.
       programs.hyprland = {
         enable = true;
+        package = lib.mkDefault unstablePkgs.hyprland;
+        portalPackage = lib.mkDefault unstablePkgs.xdg-desktop-portal-hyprland;
         withUWSM = false;
         xwayland.enable = true;
         systemd.setPath.enable = false;
