@@ -47,7 +47,7 @@ caused the old `SIGNOFF.md` to accumulate four incompatible formats.
 | `build-host.sh <host>` | timed local build with substituted-vs-built cache stats | 0 success, 1 build failed |
 | `deploy-host.sh <host> [--build-host <h>] [--boot\|--test] [--check-only]` | cert-check → ssh probe → `nixos-rebuild --target-host` → generation verify | 0 success, 1 cert, 2 ssh, 3 rebuild, 4 verify |
 | `verify-generation.sh <host> [toplevel]` | via ssh: compares the remote system profile against an expected toplevel | 0 OK/report-only, 1 mismatch |
-| `push-image.sh <package> <image-name>` | builds a flake OCI-image package, tags it with the short HEAD sha, pushes `<tag>` and `latest` to `code.novuscotia.com/novuscotia-ops/<image-name>` via `skopeo copy`; prints the pushed digest. Credentials come only from the operator's own `skopeo login` | 0 success, 1 dirty tree, 2 build failed, 3 push failed, 4 arg error |
+| `push-image.sh <image-name> <package> [<package>...]` | builds one or more flake OCI-image packages, tags each `<tag>-<arch>` (arch read from the built image via `skopeo inspect`) and pushes it via `skopeo copy`. With 2+ packages, assembles an OCI index at `<tag>` from the pushed per-arch images (`regctl index create`/`index add`, nixpkgs `regclient`) and retags it `latest` (`regctl image copy`); with exactly 1 package, pushes `<tag>`/`latest` directly (no index). Credentials come only from the operator's own `skopeo login`; `regctl` reuses the same containers auth.json via a `DOCKER_CONFIG` symlink | 0 success, 1 dirty tree, 2 build failed, 3 push failed, 4 arg error, 5 index assembly failed |
 
 ## Standard drift-verification flow
 
