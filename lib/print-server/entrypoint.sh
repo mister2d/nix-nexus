@@ -82,6 +82,23 @@ provision_loop() {
   done
 }
 
-provision_loop &
+# Wait for the scheduler socket before the first provisioning check, so an
+# early lpstat/lpadmin does not race cupsd's startup.
+wait_for_cupsd() {
+  i=0
+  until [ "$(lpstat -r 2>/dev/null)" = "scheduler is running" ]; do
+    i=$((i + 1))
+    if [ "$i" -ge 60 ]; then
+      echo "entrypoint: cupsd not answering after 60s, provisioning anyway" >&2
+      return 0
+    fi
+    sleep 1
+  done
+}
+
+{
+  wait_for_cupsd
+  provision_loop
+} &
 
 wait "$cupsd_pid"
