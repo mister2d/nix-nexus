@@ -47,6 +47,7 @@ caused the old `SIGNOFF.md` to accumulate four incompatible formats.
 | `build-host.sh <host>` | timed local build with substituted-vs-built cache stats | 0 success, 1 build failed |
 | `deploy-host.sh <host> [--build-host <h>] [--boot\|--test] [--check-only]` | cert-check → ssh probe → `nixos-rebuild --target-host` → generation verify | 0 success, 1 cert, 2 ssh, 3 rebuild, 4 verify |
 | `verify-generation.sh <host> [toplevel]` | via ssh: compares the remote system profile against an expected toplevel | 0 OK/report-only, 1 mismatch |
+| `push-image.sh <package> <image-name>` | builds a flake OCI-image package, tags it with the short HEAD sha, pushes `<tag>` and `latest` to `code.novuscotia.com/novuscotia-ops/<image-name>` via `skopeo copy`; prints the pushed digest. Credentials come only from the operator's own `skopeo login` | 0 success, 1 dirty tree, 2 build failed, 3 push failed, 4 arg error |
 
 ## Standard drift-verification flow
 
