@@ -1,17 +1,14 @@
 # Registry key: flake.modules.nixos.core-printing
 # Configures: CUPS printing, Avahi discovery, and the ensured HP printer.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
-# Printer provisioning runs in systemd.services.cups (ExecStartPost) on
-# nixpkgs 26.11+ (sweet16 tracks 26.05 and still runs it in a separate
-# ensure-printers.service). Each host's own nixosSystem lib decides which
-# branch applies, since sweet16 and petunia build against different
-# nixpkgs inputs.
+# The queue points at the Nomad-hosted CUPS print server
+# (ipp://print-server.service.consul:631), which spools jobs even while the
+# physical printer is off. Printer provisioning uses nixpkgs' own mechanism:
+# systemd.services.cups (ExecStartPost) on nixpkgs 26.11+ (petunia), and a
+# separate ensure-printers.service on nixpkgs 26.05 (sweet16).
 _: {
   flake.modules.nixos.core-printing =
-    { lib, pkgs, ... }:
-    let
-      newProvisioning = lib.versionAtLeast lib.trivial.release "26.11";
-    in
+    { pkgs, ... }:
     {
       services = {
         printing = {
@@ -35,49 +32,7 @@ _: {
         };
       };
 
-      systemd.services = lib.mkMerge [
-        (lib.mkIf (!newProvisioning) {
-          cups.aliases = [ "printing.service" ];
-          ensure-printers = {
-            aliases = [ "printing-provision.service" ];
-            after = [
-              "network-online.target"
-              "cups.service"
-              "avahi-daemon.service"
-              "nss-lookup.target"
-            ];
-            wants = [
-              "network-online.target"
-              "cups.service"
-              "avahi-daemon.service"
-              "nss-lookup.target"
-            ];
-            serviceConfig = {
-              Restart = "on-failure";
-              RestartSec = 30;
-            };
-          };
-        })
-        (lib.mkIf newProvisioning {
-          cups = {
-            aliases = [ "printing.service" ];
-            after = [
-              "network-online.target"
-              "avahi-daemon.service"
-              "nss-lookup.target"
-            ];
-            wants = [
-              "network-online.target"
-              "avahi-daemon.service"
-              "nss-lookup.target"
-            ];
-            serviceConfig = {
-              Restart = "on-failure";
-              RestartSec = 30;
-            };
-          };
-        })
-      ];
+      systemd.services.cups.aliases = [ "printing.service" ];
 
       hardware.printers = {
         ensurePrinters = [
@@ -85,7 +40,7 @@ _: {
             name = "hp-m283fdw";
             description = "HP Color LaserJet MFP M283fdw";
             location = "Home Office";
-            deviceUri = "ipp://10.0.5.10/ipp/print";
+            deviceUri = "ipp://print-server.service.consul:631/printers/hp-m283fdw";
             model = "everywhere";
           }
         ];
