@@ -16,7 +16,8 @@
 #
 # Credentials come only from the operator's own `skopeo login` (containers
 # auth.json, typically ~/.config/containers/auth.json). This script never
-# reads, prints, or requires a token itself.
+# reads, prints, or requires a token itself. Copies pass --insecure-policy:
+# the source is a locally built archive, so no signature policy.json applies.
 #
 # Exit codes: 0 = success, 1 = dirty tree, 2 = build failed, 3 = push failed,
 # 4 = argument error.
@@ -54,13 +55,13 @@ DEST_TAGGED="docker://${REGISTRY}/${IMAGE_NAME}:${TAG}"
 DEST_LATEST="docker://${REGISTRY}/${IMAGE_NAME}:latest"
 
 echo "-- stage: push ${TAG} --"
-if ! nix run nixpkgs#skopeo -- copy "docker-archive:${OUT_PATH}" "$DEST_TAGGED"; then
+if ! nix run nixpkgs#skopeo -- --insecure-policy copy "docker-archive:${OUT_PATH}" "$DEST_TAGGED"; then
   echo "push-image: push of ${DEST_TAGGED} failed." >&2
   exit 3
 fi
 
 echo "-- stage: push latest --"
-if ! nix run nixpkgs#skopeo -- copy "docker-archive:${OUT_PATH}" "$DEST_LATEST"; then
+if ! nix run nixpkgs#skopeo -- --insecure-policy copy "docker-archive:${OUT_PATH}" "$DEST_LATEST"; then
   echo "push-image: push of ${DEST_LATEST} failed." >&2
   exit 3
 fi
