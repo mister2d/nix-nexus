@@ -12,7 +12,7 @@ set -eu
 : "${PRINTER_NAME:=hp-m283fdw}"
 : "${PRINTER_URI:=ipp://10.0.5.10/ipp/print}"
 : "${PRINTER_INFO:=HP Color LaserJet Pro MFP M283fdw}"
-: "${ALLOW_SUBNET:=10.0.1.0/24}"
+: "${ADMIN_SUBNET:=10.0.1.0/24}"
 
 DATA_DIR=/data
 ETC_CUPS="$DATA_DIR/etc-cups"
@@ -23,9 +23,8 @@ STATE_DIR=/run/cups
 CUPSD_CONF_TEMPLATE=/etc/print-server/cupsd.conf
 CUPS_FILES_CONF_SRC=/etc/print-server/cups-files.conf
 
-# Talk to cupsd over its local Unix domain socket, not TCP :631. cupsd.conf
-# restricts /admin to Require user @SYSTEM, which only PeerCred (local
-# socket) authentication satisfies for root without a password.
+# Talk to cupsd over its local Unix domain socket, not TCP :631, so local
+# lpadmin/lpstat do not depend on the network listener.
 export CUPS_SERVER="$STATE_DIR/cups.sock"
 
 # Private state: spool, TLS keys, generated config.
@@ -38,7 +37,7 @@ mkdir -p "$CACHE_DIR" "$STATE_DIR"
 
 # Refresh the generated config from the image on every start. printers.conf,
 # ppd/, and ssl/ under $ETC_CUPS are left alone; cupsd owns those.
-sed "s|__ALLOW_SUBNET__|$ALLOW_SUBNET|g" "$CUPSD_CONF_TEMPLATE" >"$ETC_CUPS/cupsd.conf"
+sed "s|__ADMIN_SUBNET__|$ADMIN_SUBNET|g" "$CUPSD_CONF_TEMPLATE" >"$ETC_CUPS/cupsd.conf"
 cp "$CUPS_FILES_CONF_SRC" "$ETC_CUPS/cups-files.conf"
 
 cupsd -f -c "$ETC_CUPS/cupsd.conf" -s "$ETC_CUPS/cups-files.conf" &
