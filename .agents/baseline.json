@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-09-24T05:03:13Z",
+  "recorded": "2026-09-24T06:11:37Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "fc339926b49c82525370cf2ce17102d4f53f40a2",
-  "signoff": ".agents/signoff/2026-09-24-print-server-image.md"
+  "signed_off_through": "e6666696d29af9df7ba46f0c64d1d015aaf9c244",
+  "signoff": ".agents/signoff/2026-09-24-print-server-multiarch.md"
 }
