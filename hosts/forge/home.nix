@@ -5,7 +5,6 @@ _: {
   flake.modules.homeManager.forge-home =
     {
       pkgs,
-      inputs,
       homeManagerModules,
       ...
     }:
@@ -29,16 +28,6 @@ _: {
         ];
       };
 
-      # Development Home Profile
-      # Enabled MCP servers and LLM agents because i7-9850H supports AVX2
-      nix-nexus.user.dev = {
-        enable = true;
-        enableMcpServers = true;
-        enableLlmAgents = true;
-      };
       nix-nexus.user.herdr.claudeIntegration.enable = true;
-
-      # Add Model Control Protocol (MCP) server packages via overlay
-      nixpkgs.overlays = [ inputs.mcp-servers-nix.overlays.default ];
     };
 }

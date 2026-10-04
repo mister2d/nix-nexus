@@ -1,25 +1,10 @@
 # Merged into: flake.modules.nixos.development-default
-# Configures: the MCP server overlay, Devbox, and the Docker daemon.
+# Configures: the Docker daemon.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.development-default =
+    { pkgs, ... }:
     {
-      pkgs,
-      self,
-      ...
-    }:
-    {
-      # Add Model Control Protocol (MCP) server packages via overlay
-      # These remain system-wide, so all users can leverage them if needed.
-      # Primary tools now live in the user's dev profile instead.
-      nixpkgs.overlays = [ self.overlays.mcp ];
-
-      # System-level development utilities
-      environment.systemPackages = with pkgs; [
-        # Devbox is kept at system level as it's often used for bootstrapping
-        devbox
-      ];
-
       # Docker daemon is a system-wide service
       virtualisation.docker = {
         enable = true;

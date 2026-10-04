@@ -32,18 +32,5 @@ _: {
           unstable-pkgs.llama-swap
         ];
       };
-
-      # Development Home Profile
-      # Disabled MCP servers and LLM agents because they require modern CPU instructions (e.g. AVX2)
-      # that are missing on Ivy Bridge Xeons.
-      nix-nexus.user.dev = {
-        enable = true;
-        enableMcpServers = false;
-        enableLlmAgents = false;
-      };
-
-      # Add Model Control Protocol (MCP) server packages via overlay
-      # This matches the system-wide configuration on sweet16.
-      nixpkgs.overlays = [ inputs.mcp-servers-nix.overlays.default ];
     };
 }

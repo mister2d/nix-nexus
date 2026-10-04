@@ -28,14 +28,5 @@ _: {
           tmux
         ];
       };
-
-      # Development Home Profile
-      # Disabled AI/Compute modules for ARM64 SBC RAM/CPU constraints.
-      # These often require modern x86_64 CPU instructions or heavy resources.
-      nix-nexus.user.dev = {
-        enable = true;
-        enableMcpServers = false;
-        enableLlmAgents = false;
-      };
     };
 }
