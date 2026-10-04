@@ -16,16 +16,15 @@ _: {
       pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
 
       # Environment packages
-      terraform-pkgs = pin.pinned inputs.pkgs-terraform;
-      ipmitool-pkg = (pin.pinned inputs.pkgs-hashicorp).ipmitool;
-      mqtt-explorer-pkg = terraform-pkgs.mqtt-explorer;
-      super-slicer-pkg = terraform-pkgs.super-slicer;
-      prusa-slicer-pkg = terraform-pkgs.prusa-slicer;
-      vlc-pkg = (pin.pinned inputs.pkgs-vlc).vlc;
-      signalbackup-tools-pkg = (pin.pinned inputs.pkgs-talos).signalbackup-tools;
-
       # Unstable packages for user-level tools
       unstable-pkgs = pin.pinned inputs.nixpkgs-unstable;
+
+      ipmitool-pkg = unstable-pkgs.ipmitool;
+      mqtt-explorer-pkg = unstable-pkgs.mqtt-explorer;
+      super-slicer-pkg = unstable-pkgs.super-slicer;
+      prusa-slicer-pkg = unstable-pkgs.prusa-slicer;
+      vlc-pkg = (pin.pinned inputs.pkgs-vlc).vlc;
+      signalbackup-tools-pkg = unstable-pkgs.signalbackup-tools;
 
       # Vivaldi from unstable, paired with the codecs build that exports
       # av_dynamic_hdr_smpte2094_app5_to_t35
