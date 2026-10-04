@@ -1,5 +1,6 @@
 # Merged into: flake.modules.homeManager.user-herdr-home
 # Configures: herdr's Claude Code session-resume hook and settings.json merge.
+# Options: nix-nexus.user.herdr.claudeIntegration.enable (default off; sweet16, petunia, forge enable it).
 # Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/avina/home.nix (avina-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 # The hook script comes from the pinned herdr package, not a hand-copied file.
 # settings.json is merged, not replaced, since Claude Code writes its own keys there.
@@ -9,7 +10,6 @@ _: {
       pkgs,
       lib,
       config,
-      options,
       inputs,
       ...
     }:
@@ -19,12 +19,7 @@ _: {
       # flake input pinned to a tagged release.
       inherit (inputs.herdr.packages.${pkgs.stdenv.hostPlatform.system}) herdr;
 
-      # Hosts without the development home profile (avina, hermes) never
-      # declare these options. Those that disable LLM agents (dualie on Ivy
-      # Bridge, rk3588 on ARM) have no Claude Code to integrate with.
-      hasDevHome = lib.hasAttrByPath [ "nix-nexus" "user" "dev" ] options;
-      claudeEnabled =
-        hasDevHome && config.nix-nexus.user.dev.enable && config.nix-nexus.user.dev.enableLlmAgents;
+      cfg = config.nix-nexus.user.herdr.claudeIntegration;
 
       herdrClaudeHook =
         pkgs.runCommand "herdr-claude-hook-${herdr.version}"
@@ -83,19 +78,24 @@ _: {
         '';
       };
     in
-    lib.mkIf claudeEnabled {
-      # `herdr integration status` reads HERDR_INTEGRATION_VERSION from the
-      # file at this path. The file must be the raw script. The wrapper has
-      # no marker and reports "outdated". Nix owns the path, so `herdr
-      # integration install claude` cannot write here. This is intended. A
-      # herdr version bump moves the symlink and the reported version follows.
-      home.file.".claude/hooks/herdr-agent-state.sh".source =
-        "${herdrClaudeHook}/libexec/herdr-agent-state.sh";
+    {
+      options.nix-nexus.user.herdr.claudeIntegration.enable =
+        lib.mkEnableOption "herdr's Claude Code session-resume hook and settings.json merge";
 
-      # settings.json still calls the wrapper: same script, but with python3
-      # and coreutils pinned onto PATH.
-      home.activation.herdrClaudeIntegration = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-        run ${lib.getExe mergeSettings}
-      '';
+      config = lib.mkIf cfg.enable {
+        # `herdr integration status` reads HERDR_INTEGRATION_VERSION from the
+        # file at this path. The file must be the raw script. The wrapper has
+        # no marker and reports "outdated". Nix owns the path, so `herdr
+        # integration install claude` cannot write here. This is intended. A
+        # herdr version bump moves the symlink and the reported version follows.
+        home.file.".claude/hooks/herdr-agent-state.sh".source =
+          "${herdrClaudeHook}/libexec/herdr-agent-state.sh";
+
+        # settings.json still calls the wrapper: same script, but with python3
+        # and coreutils pinned onto PATH.
+        home.activation.herdrClaudeIntegration = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+          run ${lib.getExe mergeSettings}
+        '';
+      };
     };
 }

@@ -60,6 +60,7 @@ _: {
 
       # Development Home Profile
       nix-nexus.user.dev.enable = true;
+      nix-nexus.user.herdr.claudeIntegration.enable = true;
 
       # Home Configuration
       home = {

@@ -36,6 +36,7 @@ _: {
         enableMcpServers = true;
         enableLlmAgents = true;
       };
+      nix-nexus.user.herdr.claudeIntegration.enable = true;
 
       # Add Model Control Protocol (MCP) server packages via overlay
       nixpkgs.overlays = [ inputs.mcp-servers-nix.overlays.default ];
