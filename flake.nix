@@ -86,6 +86,17 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    # Developer tooling (overlays, modules, devShells). Consumed by hermes only;
+    # every other host calls its devShells on demand. See docs/devshell.md.
+    nix-devshell = {
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell";
+      inputs = {
+        nixpkgs-unstable.follows = "nixpkgs-unstable";
+        flake-parts.follows = "flake-parts";
+        import-tree.follows = "import-tree";
+      };
+    };
+
     # ── Pinned nixpkgs snapshots ─────────────────────────────────────────────
     # Each pin preserves a working version of one or more packages.
     pkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11"; # Matrix stack (avina)

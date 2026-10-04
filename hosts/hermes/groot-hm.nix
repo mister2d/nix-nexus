@@ -5,17 +5,14 @@ _: {
   flake.modules.nixos.hm-groot-hermes =
     {
       pkgs,
-      lib,
       inputs,
       homeManagerModules,
       nixosModules,
       ...
     }:
     let
-      inherit (inputs.self) overlays;
       pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
-      unstablePkgs = pin.pinnedWith [ overlays.buildFixes ] inputs.nixpkgs-unstable;
-      context-mode-pkg = import ../../lib/context-mode.nix { inherit pkgs lib; };
+      unstablePkgs = pin.pinnedWith [ inputs.nix-devshell.overlays.buildFixes ] inputs.nixpkgs-unstable;
     in
     {
       imports = [ nixosModules.core-home-manager ];
@@ -35,7 +32,7 @@ _: {
             ripgrep
 
             # agentic use packages
-            context-mode-pkg
+            context-mode
             context7-mcp
             github-mcp-server
             unstablePkgs.github-cli
