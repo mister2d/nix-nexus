@@ -107,7 +107,7 @@ Nix-Nexus manages the global environment. Developer tooling (AI coding agents, M
 ```bash
 nix develop git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#hashicorp
 ```
-Only the `hermes` host consumes it as a flake input. See [docs/devshell.md](./docs/devshell.md).
+The `devenv` CLI and direnv remain installed on sweet16, petunia, dualie, forge, and rk3588 (`modules/user/devenv-home.nix`) so you can call these shells. Only the `hermes` host consumes nix-devshell as a flake input. See [docs/devshell.md](./docs/devshell.md).
 
 ---
 

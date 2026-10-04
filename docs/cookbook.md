@@ -667,7 +667,7 @@ _: {
         homeManagerModules.user-bash
         homeManagerModules.user-neovim-home
         homeManagerModules.user-terminal-home
-        homeManagerModules.user-direnv-home
+        homeManagerModules.user-devenv-home
       ];
 
       home = {

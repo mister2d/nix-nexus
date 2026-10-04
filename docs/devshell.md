@@ -65,6 +65,12 @@ before signing off a bump.
 Every other host (sweet16, petunia, avina, dualie, forge, rk3588) calls the
 shells on demand and installs nothing from nix-devshell.
 
+The `devenv` CLI and direnv (with nix-direnv) stay installed on sweet16,
+petunia, dualie, forge, and rk3588. `modules/user/devenv-home.nix`
+(`user-devenv-home`) provides them, so `devenv shell`, `nix develop`, and
+`use flake` in an `.envrc` can call nix-devshell from the CLI. The `devenv`
+binary comes from nix-nexus's `devenv` flake input.
+
 ## Maintaining the tooling
 
 Changes to the tool set, pins, and overlays belong in the nix-devshell

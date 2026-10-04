@@ -522,6 +522,9 @@ hermes-agent, `llm-init`, and `rocm-init`. Single-home rule: nothing in that
 set is duplicated here. Only the `hermes` host consumes it as a flake input
 (`hosts/hermes/mcp-overlay.nix`, `hosts/hermes/llm-agents-overlay.nix`,
 `hosts/hermes/groot-hm.nix`). Every other host calls its devShells on demand.
+The `devenv` CLI and direnv (with nix-direnv) stay installed on sweet16, petunia,
+dualie, forge, and rk3588 through `user-devenv-home`
+(`modules/user/devenv-home.nix`), so nix-devshell is callable from the CLI.
 See `docs/devshell.md`.
 
 ---

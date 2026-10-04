@@ -22,8 +22,9 @@ rely on `docker-compose` for local development:
 Devenv 2.0 is part of our Nix Flake architecture:
 
 1.  **Flake Input:** Devenv is pinned as a flake input (`github:cachix/devenv`) in our root `flake.nix`.
-2.  **Contributor shell:** The repository devshell (`modules/flake/checks.nix`, entered through direnv or `nix develop --impure`) provides the locked `devenv` binary.
-3.  **Other projects:** The general development toolchain, including `devenv` and `devbox`, comes from the `nix-devshell` flake. See [devshell.md](./devshell.md).
+2.  **Host install:** `modules/user/devenv-home.nix` (`user-devenv-home`) installs the locked `devenv` binary and direnv on sweet16, petunia, dualie, forge, and rk3588, so nix-devshell is callable from the CLI.
+3.  **Contributor shell:** The repository devshell (`modules/flake/checks.nix`, entered through direnv or `nix develop --impure`) provides the locked `devenv` binary.
+4.  **Other projects:** The general development toolchain, including `devenv` and `devbox`, comes from the `nix-devshell` flake (the host `devenv` binary still comes from item 2). See [devshell.md](./devshell.md).
 
 *Note: New projects should default to Devenv.*
 

@@ -53,7 +53,7 @@ _: {
         homeManagerModules.user-ssh
         homeManagerModules.user-audio-effects
         homeManagerModules.user-audio-routing
-        homeManagerModules.user-direnv-home
+        homeManagerModules.user-devenv-home
         homeManagerModules.user-herdr-home
       ];
 

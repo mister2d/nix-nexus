@@ -12,7 +12,7 @@ _: {
         homeManagerModules.user-terminal-home
         homeManagerModules.user-terminal-oled-home
         homeManagerModules.user-television-home
-        homeManagerModules.user-direnv-home
+        homeManagerModules.user-devenv-home
         homeManagerModules.user-herdr-home
       ];
 

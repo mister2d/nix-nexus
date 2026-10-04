@@ -48,7 +48,7 @@ Import your preferred `nix-nexus` modules:
   imports = [
     ../../modules/user/bash.nix
     ../../modules/user/neovim-home.nix
-    ../../modules/user/direnv-home.nix
+    ../../modules/user/devenv-home.nix
   ];
   home.username = "groot";
   home.homeDirectory = "/home/groot";
