@@ -44,8 +44,7 @@ Concerns are separated across three tiers:
 ├── flake.nix               # Composable import-tree builder (addPath over modules/hosts/profiles)
 ├── flake.lock
 ├── lib/                    # Non-module helpers (derivations, pure data)
-│   ├── custom-scripts.nix  # Battery-alert, llm-init, etc.
-│   ├── openclaude.nix      # Claude npm package derivation
+│   ├── custom-scripts.nix  # Battery-alert, system-stats, audio-selector
 │   └── avina/site-config.nix  # Avina domain constants
 ├── modules/
 │   ├── flake/              # Host assembly files and flake output wiring
@@ -103,13 +102,12 @@ nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
 - **Validate:** Run `.agents/scripts/preflight.sh <changed files>`. This runs
   lint checks and `nix flake check --impure`.
 
-### Isolated AI/LLM Projects
-Nix-Nexus manages the global environment. Project-level AI toolchains use the **`llm-init`** script instead. This script bridges host GPU drivers to isolated Nix shells.
+### Developer Tooling
+Nix-Nexus manages the global environment. Developer tooling (AI coding agents, MCP servers, HashiCorp and Kubernetes CLIs, `llm-init`) lives in the separate `nix-devshell` flake. Call it on demand:
 ```bash
-# Inside a project directory
-llm-init
-direnv allow
+nix develop git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#hashicorp
 ```
+Only the `hermes` host consumes it as a flake input. See [docs/devshell.md](./docs/devshell.md).
 
 ---
 
@@ -125,7 +123,8 @@ direnv allow
 - [**Matrix Reference**](./hosts/avina/PROTOCOL_REFERENCE.md): Specifications for the Matrix 2.0 stack and hybrid ingress architecture.
 - [**Hardware Guide**](./docs/hardware.md): OLED optimizations, AMD P-State, and hybrid GPU management.
 - [**CachyOS Kernel**](./docs/cachyos-kernel.md): CachyOS kernel setup, ZFS integration, and BBR3 tuning.
-- [**Package Inventory**](./docs/packages.md): Pinned DevOps tool versions.
+- [**Package Inventory**](./docs/packages.md): Pinned non-development package inputs.
+- [**Developer Tooling**](./docs/devshell.md): How to call the nix-devshell flake.
 - [**Storage Management**](./docs/storage.md): CephFS mounting and ZFS dataset strategies.
 - [**Terminal & Multiplexing**](./docs/terminal.md): Kitty/Tmux configuration and Bash aliases.
 - [**Standalone Migration**](./docs/non-nixos.md): Moving dotfiles to Nix on non-NixOS hosts.

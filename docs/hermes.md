@@ -1,7 +1,8 @@
 # Hermes: AI Agent Gateway
 
 Hermes is a NixOS LXC host (`hermes`). It runs the
-[hermes-agent](https://github.com/numtide/llm-agents.nix) gateway as a user-level
+[hermes-agent](https://github.com/numtide/llm-agents.nix) gateway (vendored in
+the `nix-devshell` flake) as a user-level
 systemd service for the `groot` user. The gateway connects to Matrix. It exposes
 an AI agent that uses a local LLM on Petunia.
 
@@ -198,9 +199,11 @@ systemctl --user restart hermes-gateway
 
 ## context-mode plugin
 
-`hosts/hermes/llm-agents-overlay.nix` and `hosts/hermes/groot-hm.nix` package
-`context-mode-hermes` (a hermes-agent plugin) and `context-mode` (its
-companion Node CLI). Nix only puts the plugin on `PYTHONPATH` and the CLI on
+The `nix-devshell` flake packages `context-mode-hermes` (a hermes-agent
+plugin, bundled into its `overlays.hermes-agent`) and `context-mode` (its
+companion Node CLI, in `overlays.default`). `hosts/hermes/llm-agents-overlay.nix`
+and `hosts/hermes/mcp-overlay.nix` apply those overlays, and
+`hosts/hermes/groot-hm.nix` installs the CLI. Nix only puts the plugin on `PYTHONPATH` and the CLI on
 `PATH`. Activation needs a manual edit to `/home/groot/.hermes/config.yaml`.
 This file stays hand-owned for the same reason given in "Runtime config"
 above.
@@ -241,7 +244,7 @@ The plugin creates state that Nix does not declare or manage:
 
 | Component | Path |
 |---|---|
-| hermes-agent package | `pkgs.llm-agents.hermes-agent` (via `hermes-mcp-overlay`) |
+| hermes-agent package | `pkgs.llm-agents.hermes-agent` (nix-devshell `overlays.hermes-agent`, via `llm-agents-hermes`) |
 | Python environment | Assembled in `hosts/hermes/home.nix` |
 | NixOS assembly | `modules/flake/nixos-hermes.nix` |
 | Host config | `hosts/hermes/default.nix` |

@@ -512,7 +512,17 @@ Current hosts and their assembly structure:
 | `nix-nexus.tpm2.users` | `modules/core/tpm2.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.theme.*` | `modules/desktop/theme.nix` | `hosts/sweet16/default.nix` |
 | `nix-nexus.kernel.cachyos.*` | `modules/hardware/kernel/cachyos.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
-| `nix-nexus.user.dev.*` (Home Manager) | `modules/user/dev-home.nix` | `modules/user/home.nix`, `hosts/dualie/home.nix`, `hosts/forge/home.nix`, `hosts/rk3588/home.nix` |
+| `nix-nexus.user.herdr.claudeIntegration.enable` (Home Manager) | `modules/user/herdr-claude-home.nix` | `modules/user/home.nix`, `hosts/forge/home.nix` |
+
+**Developer tooling lives in nix-devshell.** The `nix-devshell` flake
+(`git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell`, local
+copy `~/workspace/nix-devshell`) owns the MCP servers, AI coding agents,
+HashiCorp and Kubernetes CLIs, openclaude, context-mode, the vendored
+hermes-agent, `llm-init`, and `rocm-init`. Single-home rule: nothing in that
+set is duplicated here. Only the `hermes` host consumes it as a flake input
+(`hosts/hermes/mcp-overlay.nix`, `hosts/hermes/llm-agents-overlay.nix`,
+`hosts/hermes/groot-hm.nix`). Every other host calls its devShells on demand.
+See `docs/devshell.md`.
 
 ---
 
@@ -604,6 +614,7 @@ docs/
 ├── petunia-sbom.md             ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
 ├── secrets.md                  ← sops-nix / secretspec / Vault layering, TPM2 posture per host
 ├── permafrost-host.md          ← permafrost microvm host module: bridge, NAT, kvm policy, store settings
+├── devshell.md                 ← how to call nix-devshell (devShells, devenv, hermes input)
 ├── hermes.md                   ← Hermes LXC host: hermes-agent gateway, Matrix, Petunia-backed LLM
 ├── upgrading.md                ← routine updates, major release upgrades, rollback, auto-upgrades
 └── _archive/                   ← historical planning docs, not part of the doc index (superpowers/)
@@ -613,14 +624,8 @@ hosts/avina/
 lib/
 ├── authorized-keys.nix         ← TPM-sealed SSH public keys, per host
 ├── avina/site-config.nix       ← Avina domain constants
-├── context-mode.nix            ← context-mode npm package derivation
-├── context-mode-hermes.nix     ← hermes-agent Python plugin package for context-mode
-├── context-mode-lock.json      ← npm lockfile for context-mode.nix
-├── custom-scripts.nix          ← battery-alert, llm-init, and other helper scripts
-├── hermes-agent/               ← vendored hermes-agent package, patch, version-check hook
+├── custom-scripts.nix          ← battery-alert, system-stats, audio-selector helper scripts
 ├── keymap.nix                  ← shared tmux/fish multiplexer keymap actions
-├── openclaude.nix              ← Claude npm package derivation
-├── openclaude-lock.json        ← npm lockfile for openclaude.nix
 ├── pinned-pkgs.nix             ← helper to instantiate a pinned nixpkgs flake input
 ├── print-server/               ← CUPS print-server OCI image: image.nix, cupsd/cups-files conf, entrypoint.sh
 ├── shell-aliases.nix           ← bash/fish shared shell aliases

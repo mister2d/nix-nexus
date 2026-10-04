@@ -341,7 +341,6 @@ find these files.
 - `lib/keymap.nix` — the canonical multiplexer keymap plus `renderTmux` and
   `renderHerdr`. Both `programs.tmux` and herdr read their bindings from this
   one source
-- `lib/openclaude.nix` — npm package derivation
 - `lib/avina/site-config.nix` — pure data attrset for avina domain constants
 
 Do not place module logic in `lib/`. Do not place pure helper logic in

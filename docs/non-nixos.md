@@ -48,7 +48,7 @@ Import your preferred `nix-nexus` modules:
   imports = [
     ../../modules/user/bash.nix
     ../../modules/user/neovim-home.nix
-    ../../modules/user/dev-home.nix
+    ../../modules/user/direnv-home.nix
   ];
   home.username = "groot";
   home.homeDirectory = "/home/groot";
@@ -75,10 +75,10 @@ Nix-built binaries (like PyTorch or llama.cpp) expect libraries in the Nix
 store. Your GPU drivers live in the host OS (for example
 `/usr/lib/x86_64-linux-gnu`).
 
-Use the **`llm-init`** tool from the `dev-home` profile to bridge this gap:
+Use the **`llm-init`** tool from the `nix-devshell` flake to bridge this gap:
 ```bash
 mkdir my-ai-project && cd my-ai-project
-llm-init
+nix develop git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#llm-agents --command llm-init
 direnv allow
 ```
 The generated environment maps your host's native NVIDIA drivers into your
@@ -86,14 +86,7 @@ isolated Nix shell. This gives full GPU acceleration for LLM workloads on
 non-NixOS hosts.
 
 ## 6. Adapting to Older Hardware
-When you deploy to older servers (for example Ivy Bridge Xeons) without
-modern instruction sets like **AVX2**, you can disable heavy workstation
-tools and keep your core shell environment:
-
-```nix
-nix-nexus.user.dev = {
-  enable = true;
-  enableMcpServers = false; # Disables packages requiring AVX2
-  enableLlmAgents = false;  # Disables packages requiring modern instructions
-};
-```
+Older servers (for example Ivy Bridge Xeons) lack modern instruction sets
+like **AVX2**. The standalone profile installs no developer tooling, so
+nothing here needs disabling. Call the `nix-devshell` shells only on hosts
+that can run them. See [devshell.md](./devshell.md).

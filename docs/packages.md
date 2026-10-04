@@ -3,30 +3,18 @@
 This document lists the software packages `nix-nexus` manages. It states each package's use case and role in the environment.
 
 ## Core Development & DevOps Tools
-These tools use pinned versions. This keeps deployments fully reproducible.
-
-| Package | Version | Description | Use Case |
-|:---:|:---:|:--- |:--- |
-| **Nomad** | 1.10.5 | HashiCorp workload orchestrator. | Managing containerized and non-containerized cluster workloads. |
-| **Vault** | 1.21.1 | Identity-based secrets management. | Securely storing and accessing API keys, passwords, and certificates. |
-| **Consul** | 1.22.1 | Service networking platform. | Service discovery, configuration, and segmentation. |
-| **Terraform** | 1.14.5 | Infrastructure as Code (IaC) tool. | Declarative provisioning of cloud and on-prem resources. |
-| **Talosctl** | 1.11.5 | CLI for Talos Linux. | Management and maintenance of Talos-based Kubernetes clusters. |
-| **Helm** | 3.19.1 | Package manager for Kubernetes. | Managing complex Kubernetes applications via charts. |
-| **Omnictl** | 1.3.4 | CLI for Sidero Omni. | Provisioning and managing bare-metal Kubernetes infrastructure. |
-| **TFLint** | 0.59.1 | Terraform linter. | Detecting errors and enforcing best practices in HCL code. |
-| **Freelens** | 1.6.1 | Kubernetes IDE (Lens). | Graphical interface for real-time cluster monitoring and management. |
-| **Kubelogin-OIDC** | 1.34.2 | kubectl credential plugin. | OIDC authentication for Kubernetes clusters. |
-| **Kubectl-Rook-Ceph** | 0.9.4 | kubectl plugin for Rook. | Direct management of Rook-Ceph storage clusters from the CLI. |
-| **Kubectl-Doctor** | 0.3.1 | Cluster triage tool. | Rapid scanning and debugging of Kubernetes cluster health. |
-| **Butane** | 0.25.1 | Ignition config transpiler. | Converting human-readable Butane configs to machine-readable Ignition. |
-| **Envsubst** | 1.4.3 | Environment variable substitution. | Templating configuration files with dynamic environment data. |
+nix-nexus no longer carries these. HashiCorp tools, Kubernetes and Talos CLIs,
+MCP servers, AI coding agents, and the general development toolchain live in
+the `nix-devshell` flake with their pinned versions. Enter a shell on demand
+instead of installing them in the user environment. See
+[devshell.md](./devshell.md) for the call recipes.
 
 ## System Integration & Storage
 | Package | Version | Description | Use Case |
 |:---:|:---:|:--- |:--- |
 | **Ceph-Client** | 19.2.3 | Native Ceph storage client. | Enabling the host to mount and interact with Ceph storage clusters. |
 | **IPMITool** | Unstable | IPMI management utility. | Out-of-band management of server hardware. |
+| **Signalbackup-Tools** | Unstable | Signal backup utility. | Inspecting and exporting Signal backups. |
 
 ## Environment & Productivity
 | Package | Description | Use Case |
@@ -36,7 +24,6 @@ These tools use pinned versions. This keeps deployments fully reproducible.
 | **Kitty** | GPU-accelerated terminal. | Fast, feature-rich terminal with ligatures and Nerd Font. |
 | **Bash** | Standard UNIX shell. | Custom prompt, git integration, and HashiCorp completions. |
 | **Librewolf** | Privacy-focused browser. | Secure web browsing with telemetry disabled. |
-| **Meld** | Visual diff and merge tool. | Comparing files and directories; resolving git conflicts. |
 | **Television** | Fuzzy finder TUI. | Blazingly fast file and channel navigation (managed via Home Manager). |
 | **Krita** | Professional painting/drawing tool. | Digital art and visual asset creation. |
 | **MQTT Explorer** | MQTT client and visualization. | Monitoring and debugging MQTT message buses (Home Automation/IoT). |
@@ -59,9 +46,9 @@ Never run `nix-channel --update` in this project. `flake.lock` locks all depende
 The command depends on where `flake.nix` defines the package.
 
 #### Scenario A: The package has its own Flake Input
-Some packages come from a specific repository, for example `opencode` or `gemini-cli`. Update these in isolation. You do not touch the rest of the system.
-*   **Target:** `inputs.llm-agents`
-*   **Command:** `nix flake update llm-agents`
+Some packages come from a specific repository, for example `herdr`. Update these in isolation. You do not touch the rest of the system.
+*   **Target:** `inputs.herdr`
+*   **Command:** `nix flake update herdr`
 
 #### Scenario B: The package is part of the standard system (nixpkgs)
 Some packages come from the primary NixOS repository, for example `tmux`, `git`, or `bash`. Update these by bumping the entire `nixpkgs` input. You cannot update these packages alone.
@@ -69,13 +56,16 @@ Some packages come from the primary NixOS repository, for example `tmux`, `git`,
 *   **Command:** `nix flake update nixpkgs`
 
 #### Scenario C: Updating a Hard-Pinned Version
-Some packages are hard pinned, for example `nomad` and `terraform`. A hard-pinned input points to one fixed commit. It never moves on its own. Update it by changing the commit hash in `flake.nix` by hand.
+Some packages are hard pinned, for example `vlc` and `ceph`. A hard-pinned input points to one fixed commit. It never moves on its own. Update it by changing the commit hash in `flake.nix` by hand.
 1.  Find the new hash on [NixHub.io](https://www.nixhub.io).
 2.  Update `flake.nix`:
     ```nix
-    pkgs-nomad.url = "github:nixos/nixpkgs/<NEW_COMMIT_HASH>";
+    pkgs-vlc.url = "github:nixos/nixpkgs/<NEW_COMMIT_HASH>";
     ```
-3.  Run: `nix flake update pkgs-nomad`
+3.  Run: `nix flake update pkgs-vlc`
+
+Pins for developer tooling (`nomad`, `terraform`, `vault`, and so on) are
+maintained in the nix-devshell repository, not here.
 
 ### 2. Soft Pinning (Version Assertions)
 **Used for:** The Matrix 2.0 stack (Synapse, MAS, LiveKit, Vault) in `modules/services/matrix/versions.nix`.

@@ -81,7 +81,7 @@ These inputs have no hard release coupling. Update them when you need new
 features or bug fixes from them:
 
 `flake-parts`, `import-tree`, `devenv`, `pre-commit-hooks`, `nixos-hardware`,
-`mcp-servers-nix`, `llm-agents`, `niri`, `dms`, `disko`,
+`nix-devshell` (hermes only), `niri`, `dms`, `disko`,
 `nix-cachyos-kernel`
 
 ### Category 4 — Intentionally pinned inputs (do NOT update without review)
@@ -92,12 +92,7 @@ available at the new commit. Update the inline comment too:
 
 | Input | Pinned for |
 |---|---|
-| `pkgs-nomad` | nomad |
-| `pkgs-hashicorp` | vault, consul, helm, envsubst, ipmitool |
-| `pkgs-terraform` | terraform, mqtt-explorer, prusa-slicer, super-slicer |
-| `pkgs-talos` | talosctl, tflint, omnictl, signalbackup, kubelogin-oidc, kubectl-rook-ceph |
 | `pkgs-vlc` | vlc |
-| `pkgs-apps` | meld, butane |
 | `pkgs-ceph` | ceph |
 | `nixpkgs-chrome` | google-chrome (specific version) |
 
@@ -117,7 +112,7 @@ updates. It does not change the release.
 # Update all inputs except intentionally pinned ones:
 nix flake update nixpkgs pkgs-stable home-manager home-manager-unstable \
   nixpkgs-unstable nixvim flake-parts import-tree devenv pre-commit-hooks \
-  nixos-hardware mcp-servers-nix llm-agents niri dms disko \
+  nixos-hardware nix-devshell niri dms disko \
   nix-cachyos-kernel
 
 # Or update everything at once (includes pinned — review the diff carefully):
@@ -203,7 +198,7 @@ nix flake update nixpkgs pkgs-stable home-manager nixvim
 ```
 
 This resolves the new branch heads. It writes them to `flake.lock`. The
-intentionally pinned inputs, such as `pkgs-nomad` and `pkgs-hashicorp`,
+intentionally pinned inputs, such as `pkgs-vlc` and `pkgs-ceph`,
 stay untouched.
 
 ### 3. Evaluate the full tree
