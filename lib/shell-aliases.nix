@@ -22,4 +22,9 @@
   tup = "sudo tailscale up";
   tdown = "sudo tailscale down";
   tstatus = "tailscale status";
+
+  # Enter the nix-devshell "full" devenv shell by git reference, no local
+  # clone required. Works from any directory, regardless of that
+  # directory's own repo-declared shell.
+  devenv-devshell = "nix develop --refresh git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#full";
 }
