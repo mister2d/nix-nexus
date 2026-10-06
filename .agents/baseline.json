@@ -22,7 +22,7 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/i2wfmhixb964w3gwwvj8r87qcarvizk4-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/9s2w0m3xb034jkn2r398wzp7fm5kxxbw-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-06T14:37:05Z",
+  "recorded": "2026-10-06T16:45:04Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "d1e9aa33134f056f017f25a369b7b4179dfec8b3",
-  "signoff": ".agents/signoff/2026-10-06-context-mode-hermes-register-fix.md"
+  "signed_off_through": "12010e01f7f5469a17fd18833740288cfd76380a",
+  "signoff": ".agents/signoff/2026-10-06-hermes-matrix-initial-sync-filter.md"
 }
