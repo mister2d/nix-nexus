@@ -9,6 +9,10 @@ _: {
         inputs.noctalia.homeModules.default
       ];
 
+      # Home Manager master ships its own programs.noctalia; the flake's
+      # module is the one this repo configures.
+      disabledModules = [ "programs/noctalia" ];
+
       # Compositor-agnostic Noctalia v5 shell configuration.
       # Provides: bar, launcher, notifications, wallpaper, polkit, OSD,
       # screenshots, session actions.
