@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/9x6xj518070d6q7jx65d2hhymk3hamkk-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/95v6n0zksq4516ylx8a6mf9xvfknipnp-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/4qjrn5hfxfvabl56zms9719apih3bz07-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/0k8r8rp0vskpcccan10jm949zww49n4m-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-06T16:45:04Z",
+  "recorded": "2026-10-06T19:37:44Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "12010e01f7f5469a17fd18833740288cfd76380a",
-  "signoff": ".agents/signoff/2026-10-06-hermes-matrix-initial-sync-filter.md"
+  "signed_off_through": "56d2bb68107d210886a00116bc2ce84c320eb3c9",
+  "signoff": ".agents/signoff/2026-10-06-sweet16-zram-swap-diagnostics.md"
 }
