@@ -18,7 +18,7 @@ often confuse these three things at first. Treat them as separate layers:
 
 | Layer | What it configures | Where it lives | Applied by |
 |---|---|---|---|
-| **Dev shell** | *Your tools while working on this repo* — formatters, linters, `sops`, `age` | `modules/flake/checks.nix` | entering the directory (direnv) or `nix develop --impure` |
+| **Dev shell** | *Your tools while working on this repo* — formatters, linters, `sops`, `age` | `modules/flake/checks.nix` | `nix develop --impure` |
 | **NixOS system** | A whole machine — kernel, services, users, packages | `modules/`, `hosts/`, `profiles/` | `deploy-host.sh <host>` |
 | **Home Manager** | One user's environment — shell config, aliases, dotfiles | same tree, `homeManager` modules | same deploy, or `home-manager switch` on standalone hosts |
 
@@ -65,13 +65,6 @@ You need Nix with flakes enabled. On a non-NixOS machine see
 ```bash
 git clone <this repo>
 cd nix-nexus
-direnv allow          # if you use direnv — recommended
-```
-
-With direnv, you enter the dev shell automatically when you `cd` in.
-Without direnv, run this command every time:
-
-```bash
 nix develop --impure
 ```
 

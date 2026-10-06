@@ -23,7 +23,7 @@ Devenv 2.0 is part of our Nix Flake architecture:
 
 1.  **Flake Input:** Devenv is pinned as a flake input (`github:cachix/devenv`) in our root `flake.nix`.
 2.  **Host install:** `modules/user/devenv-home.nix` (`user-devenv-home`) installs the locked `devenv` binary and direnv on sweet16, petunia, dualie, forge, and rk3588, so nix-devshell is callable from the CLI.
-3.  **Contributor shell:** The repository devshell (`modules/flake/checks.nix`, entered through direnv or `nix develop --impure`) provides the locked `devenv` binary.
+3.  **Contributor shell:** The repository devshell (`modules/flake/checks.nix`, entered through `nix develop --impure`) provides the locked `devenv` binary.
 4.  **Other projects:** The general development toolchain, including `devenv` and `devbox`, comes from the `nix-devshell` flake (the host `devenv` binary still comes from item 2). See [devshell.md](./devshell.md).
 
 *Note: New projects should default to Devenv.*
@@ -102,7 +102,7 @@ keeps `devShells.default` a real flake output. `nix develop`,
 `git-hooks.hooks` (nixfmt, deadnix, statix) sets up the pre-commit checks.
 `claude.code.hooks` and `claude.code.mcpServers` generate
 `.claude/settings.json` and `.mcp.json` as store-path symlinks on shell
-entry. `.envrc` activates the shell through `use flake --impure`. The
+entry. Enter the shell with `nix develop --impure`. The
 `--impure` flag is required. devenv's flakeModule reads `devenv.root` from
 `$PWD` through `builtins.getEnv "PWD"`, and this repo does not declare a
 `devenv-root` flake input.

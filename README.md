@@ -96,7 +96,7 @@ nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
 **New here? Start with the [Development Workflow guide](./docs/workflow.md).** It describes the full loop: find, edit, lint, validate, sign off, and deploy. It assumes no Nix knowledge.
 
 ### Standardized Environment
-- **Activate:** Run `direnv allow`, or run `nix develop --impure`. This command
+- **Activate:** Run `nix develop --impure`. This command
   also installs git hooks automatically. `--impure` is required. See the
   workflow guide for details.
 - **Validate:** Run `.agents/scripts/preflight.sh <changed files>`. This runs
