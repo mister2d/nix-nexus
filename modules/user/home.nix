@@ -54,6 +54,7 @@ _: {
         homeManagerModules.user-audio-effects
         homeManagerModules.user-audio-routing
         homeManagerModules.user-devenv-home
+        homeManagerModules.user-claude-vllm-home
         homeManagerModules.user-herdr-home
       ];
 
