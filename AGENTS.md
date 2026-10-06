@@ -587,13 +587,19 @@ lines. None of them indicates a defect.
 2. `warning: The check omitted these incompatible systems: aarch64-linux`.
    `modules/flake/systems.nix` declares both `x86_64-linux` and
    `aarch64-linux`. Without `--all-systems`, `nix flake check` evaluates only
-   the current system and reports the other one as omitted.
+   the current system and reports the other one as omitted. Do not add
+   `--all-systems`: it builds aarch64 derivations, which this x86_64 host
+   cannot do.
 3. `evaluation warning: The package 'devenv-up' is deprecated...`. The devenv
    2.2.0 flake module emits this line unconditionally for its default package.
 4. `evaluation warning: The package 'devenv-test' is deprecated...`. Same
    source as line 3.
 
 Treat any other warning as a defect and investigate it before you proceed.
+A `stdenv.isLinux is deprecated` or `stdenv.isDarwin is deprecated` warning
+means a flake input is stale. Find the source with
+`NIX_ABORT_ON_WARN=1 nix eval --impure --show-trace <attr>`, then update that
+input. A sub-input updates with `nix flake update <input>/<sub-input>`.
 
 ---
 
