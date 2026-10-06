@@ -79,6 +79,32 @@ _: {
         virtualization.microvm.enable = true;
       };
 
+      # Swap is compressed RAM only; no disk swap device.
+      zramSwap = {
+        enable = true;
+        algorithm = "zstd";
+        memoryPercent = 50;
+        priority = 100;
+      };
+
+      boot.kernel.sysctl = {
+        "vm.swappiness" = 100;
+        "vm.page-cluster" = 0;
+      };
+
+      # earlyoom acts before the kernel stalls; sshd, tailscaled and Hyprland
+      # are protected, nix and node are preferred victims.
+      services.earlyoom = {
+        freeMemThreshold = 15;
+        freeSwapThreshold = 40;
+        extraArgs = [
+          "--avoid"
+          "(^|/)(sshd|tailscaled|Hyprland)$"
+          "--prefer"
+          "(^|/)(nix|node)$"
+        ];
+      };
+
       # Prevent NVMe from entering ps 4 (9500µs exit latency). Caps at ps 3 (1200µs) for ZFS.
       boot.kernelParams = [ "nvme_core.default_ps_max_latency_us=9000" ];
 

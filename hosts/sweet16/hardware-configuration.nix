@@ -76,8 +76,6 @@ _: {
         };
       };
 
-      swapDevices = [ { device = "/dev/zvol/cake/swap"; } ];
-
       # Networking
       networking.useDHCP = lib.mkDefault true;
       # networking.interfaces.wlp0s20f3.useDHCP = lib.mkDefault true;

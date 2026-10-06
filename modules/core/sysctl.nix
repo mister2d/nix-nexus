@@ -11,15 +11,15 @@ _: {
     in
     {
       boot.kernel.sysctl = lib.mkIf (!config.boot.isContainer) {
-        "vm.swappiness" = swappiness;
-        "vm.vfs_cache_pressure" = vfsCachePressure;
-        "vm.min_free_kbytes" = minFreeKbytes;
+        "vm.swappiness" = lib.mkDefault swappiness;
+        "vm.vfs_cache_pressure" = lib.mkDefault vfsCachePressure;
+        "vm.min_free_kbytes" = lib.mkDefault minFreeKbytes;
       };
 
       services.earlyoom = {
         enable = true;
-        freeMemThreshold = 5;
-        freeSwapThreshold = 10;
+        freeMemThreshold = lib.mkDefault 5;
+        freeSwapThreshold = lib.mkDefault 10;
       };
     };
 }
