@@ -54,10 +54,10 @@ _: {
       networking.hostName = "sweet16";
 
       # Limit parallel build jobs to avoid memory exhaustion (16-thread, 32GB RAM).
-      # Each heavy job (LLVM, Chromium) can consume 2-4GB. Caps at ps3 to keep
-      # ZFS ARC responsive during builds.
+      # Each heavy job (LLVM, Chromium) can consume 2-4GB; 4 jobs x 2 cores
+      # keeps the ZFS ARC responsive during builds.
       nix.settings = {
-        max-jobs = 8;
+        max-jobs = 4;
         cores = 2;
       };
 
@@ -90,6 +90,12 @@ _: {
       boot.kernel.sysctl = {
         "vm.swappiness" = 100;
         "vm.page-cluster" = 0;
+      };
+
+      # Memory-bounded slice for agent workloads: throttled at 18G, hard-capped at 22G.
+      systemd.slices.agents.sliceConfig = {
+        MemoryHigh = "18G";
+        MemoryMax = "22G";
       };
 
       # earlyoom acts before the kernel stalls; sshd, tailscaled and Hyprland
