@@ -22,7 +22,7 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/jiz1dg8arvdl5sbqw02rncdirbfvz6d7-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/x4a7lapxggcs6v6dl7cnlarqmgn85r98-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-05T07:35:11Z",
+  "recorded": "2026-10-06T14:10:51Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "ce08a9c1a8933c7539cdb0be682076400b6ef4b8",
-  "signoff": ".agents/signoff/2026-10-05-devenv-devshell-alias.md"
+  "signed_off_through": "1e3c68c12278ad2247ee4ec0c68bb4f4fefd5c5d",
+  "signoff": ".agents/signoff/2026-10-06-hermes-agent-2026-9-24.md"
 }
