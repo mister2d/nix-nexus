@@ -1146,11 +1146,11 @@
         "pkgs-terraform": "pkgs-terraform"
       },
       "locked": {
-        "lastModified": 1791297087,
-        "narHash": "sha256-XzMAaiB/PDI4HtdZwYfY5Bxbn/IQukyqoqKY+Lnno5E=",
+        "lastModified": 1791304740,
+        "narHash": "sha256-Evydj6rPvYys6hvgCDZXloh8ZYs3rGluWNWs4Pz8GlQ=",
         "ref": "refs/heads/main",
-        "rev": "45f33ee3435e4632878e6a0b021255ce26c805b3",
-        "revCount": 21,
+        "rev": "0e7ea601d6c63329e388beceea5d8f29443080b5",
+        "revCount": 22,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell"
       },
