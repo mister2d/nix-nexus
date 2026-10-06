@@ -908,11 +908,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1791123389,
-        "narHash": "sha256-4ln1QbTLlSC6Wo0Jus/YZuueOBBNhTSa9KMSnco+j8M=",
+        "lastModified": 1791293500,
+        "narHash": "sha256-3hwJd2/vG/VYV1P/g7oDgdbNsWODhN5F//Od+hPMm2k=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "8cfa9c9514e86f3b88856958b4692e7312b96598",
+        "rev": "0e11b7bcba1d74ef8ea10bfdfb1e1a5811a21087",
         "type": "github"
       },
       "original": {
@@ -969,11 +969,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784034644,
-        "narHash": "sha256-SLHR64tjv0nFnEX376h8kG+edPeBBzCNEvh7GFE9INI=",
+        "lastModified": 1791290260,
+        "narHash": "sha256-SO+7Gpoo1uSqdM52/YjZMHlh5s7sHGKHfyuzf3tVzB8=",
         "owner": "natsukium",
         "repo": "mcp-servers-nix",
-        "rev": "fc8000cb10d4e56487ec2277d21f04932682f1af",
+        "rev": "94f673a08662cbedaa56e46d00b7aa2ddc4319a5",
         "type": "github"
       },
       "original": {
@@ -1146,11 +1146,11 @@
         "pkgs-terraform": "pkgs-terraform"
       },
       "locked": {
-        "lastModified": 1791295446,
-        "narHash": "sha256-SFEM+WIINqDn9gkxkSA4ghbhxOlZ+8eTZ75noDyXjko=",
+        "lastModified": 1791297087,
+        "narHash": "sha256-XzMAaiB/PDI4HtdZwYfY5Bxbn/IQukyqoqKY+Lnno5E=",
         "ref": "refs/heads/main",
-        "rev": "cdbdd4403cc2975ffc02efee2596000139e501ce",
-        "revCount": 17,
+        "rev": "45f33ee3435e4632878e6a0b021255ce26c805b3",
+        "revCount": 21,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell"
       },
