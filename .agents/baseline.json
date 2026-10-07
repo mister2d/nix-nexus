@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/fincjnddfnhf15qg2kaasj3mr1h4ayli-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/81xci0gxkgyrf2rhanxz2811qgfn46z3-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/c67933ai9526n3z8360ggr2rysx3wbll-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/k5mhxhq6vv06jyls99n2fw4a665558kf-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-06T19:56:08Z",
+  "recorded": "2026-10-07T21:00:19Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "c9edae92ab7093687f5501261d45b2ec75e0624b",
-  "signoff": ".agents/signoff/2026-10-06-vault-home-hm-module.md"
+  "signed_off_through": "c9fd5725714417b66fad0a9b2d8a91419538fa51",
+  "signoff": ".agents/signoff/2026-10-07-vault-helper-mkdir-fix.md"
 }
