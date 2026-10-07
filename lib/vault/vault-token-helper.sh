@@ -15,7 +15,7 @@ case "${1:-}" in
     store)
         umask 077
         # shellcheck disable=SC2174
-        mkdir -p -m 700"$(dirname "$token_file")"
+        mkdir -p -m 700 "$(dirname "$token_file")"
         tmp="$(mktemp "$token_file.XXXXXX")"
         cat >"$tmp"
         mv -f "$tmp" "$token_file"
