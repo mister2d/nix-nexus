@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/iyy4ccf830nq01bzdnbvfxjfx8vw1rs7-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/g0jmj7nlsv5yqwaadh29ap9mqarijxbc-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/0bh698jmjfspnmqngplj6srhp61l0574-home-manager-generation.drv",
+      "drv": "/nix/store/mw4fy0mc5h9pqg575a0zqzxhiprd1gzn-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/0yy3zsg34frdsyv2qjipr82dcb7fcx29-home-manager-generation.drv",
+      "drv": "/nix/store/z06hshg1lznlar1yyw52c82c6r87agby-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/9s2w0m3xb034jkn2r398wzp7fm5kxxbw-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/l5n66k0vaglpyz5bi1z84kk5mdn88983-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/81xci0gxkgyrf2rhanxz2811qgfn46z3-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/45947hkwzv1iaic7596kldkxlnynl16j-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/k5mhxhq6vv06jyls99n2fw4a665558kf-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/5apjlkqy6ah4hilfm6gk37paba319byq-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-07T21:00:19Z",
+  "recorded": "2026-10-08T09:03:14Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "c9fd5725714417b66fad0a9b2d8a91419538fa51",
-  "signoff": ".agents/signoff/2026-10-07-vault-helper-mkdir-fix.md"
+  "signed_off_through": "5f564cfc42694b0293f3b83f5e373ce1938bd51c",
+  "signoff": ".agents/signoff/2026-10-08-nix-nexus-mcp-gateway-and-devshell-latest.md"
 }
