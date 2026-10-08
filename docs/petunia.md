@@ -61,16 +61,20 @@ journalctl -b | grep -i 'cryptsetup\|tpm'
 ## Dual R9700 GPU Setup
 
 Petunia has two physically identical RDNA4 R9700 GPUs. `modules/hardware/petunia/rdna4.nix`
-wires both cards into ROCm/HIP. This file holds the full graphics and compute config: amdgpu
-KMS, kernel params, the ROCm runtime, the `/opt/rocm` symlink, LACT, and diagnostics.
-The HIP/Vulkan build toolchain stays out of the system closure. Inference projects pull
-`github:tenarches/nix-rdna4` devShells (`llama-rocm` and `llama-vulkan`) directly instead.
+wires both cards into ROCm/HIP through the `nix-rdna4` flake input. The file imports the
+`rdna4-full` and `rdna4-dual` NixOS modules and applies the `rocm-sysroot` overlay. Those
+modules provide amdgpu KMS, kernel params, the ROCm runtime, the `/opt/rocm` symlink, LACT,
+udev rules, and diagnostics. The HIP/Vulkan build toolchain stays out of the system closure
+(`rdna4.buildEnv.enable` stays off). Inference projects pull `github:tenarches/nix-rdna4`
+devShells (`llama-rocm` and `llama-vulkan`) directly instead.
 
 Key settings in `rdna4.nix`:
-- `ROCR_VISIBLE_DEVICES=0,1`
-- `HCC_AMDGPU_TARGET=gfx1201,gfx1201`
-- `pcie_bus_config=performance` kernel param. This raises inter-GPU DMA throughput on the
-  X570 x8/x8 link.
+- `rdna4.dualGpu.enable = true`: `ROCR_VISIBLE_DEVICES=0,1`, `HCC_AMDGPU_TARGET=gfx1201`, and
+  the `pcie_bus_config=performance` kernel param. The param raises inter-GPU DMA throughput on
+  the X570 x8/x8 link.
+- `rdna4.limits.enable = true`: memlock unlimited and nofile 65536 for the `render` and `video`
+  groups, and `vm.max_map_count=1048576`. PAM limits apply to login sessions only; a systemd
+  service needs `LimitMEMLOCK` and `LimitNOFILE` in its own unit.
 
 ### Verify both GPUs visible
 
