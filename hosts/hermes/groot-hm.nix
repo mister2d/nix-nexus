@@ -33,14 +33,9 @@ _: {
 
             # agentic use packages
             context-mode
-            context7-mcp
-            github-mcp-server
             unstablePkgs.github-cli
-            unstablePkgs.mcp-nixos
             unstablePkgs.tirith
             unstablePkgs.chromium
-            mcp-server-time
-            terraform-mcp-server
           ];
           imports = [
             inputs.nixvim.homeModules.nixvim
