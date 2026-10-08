@@ -59,6 +59,15 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+
+    # RDNA4 GPU platform modules (amdgpu, ROCm sysroot, dual-GPU, limits).
+    rdna4 = {
+      url = "github:tenarches/nix-rdna4";
+      inputs = {
+        nixpkgs.follows = "nixpkgs-unstable";
+        flake-parts.follows = "flake-parts";
+      };
+    };
     sops-nix = {
       url = "github:Mic92/sops-nix";
       inputs.nixpkgs.follows = "nixpkgs";

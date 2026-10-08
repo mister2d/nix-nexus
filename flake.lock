@@ -1776,6 +1776,29 @@
         "type": "github"
       }
     },
+    "rdna4": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1791462105,
+        "narHash": "sha256-b7wVeLwZUTLENhZWMWnfKfGee4fe1LTvTT0CXbG0huE=",
+        "owner": "tenarches",
+        "repo": "nix-rdna4",
+        "rev": "6bcd696fa59c6bc026d6b1bf08d894f9686fa4bf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tenarches",
+        "repo": "nix-rdna4",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "devenv": "devenv",
@@ -1801,6 +1824,7 @@
         "pkgs-vivaldi-codecs": "pkgs-vivaldi-codecs",
         "pkgs-vlc": "pkgs-vlc",
         "pre-commit-hooks": "pre-commit-hooks",
+        "rdna4": "rdna4",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
         "stylix-unstable": "stylix-unstable"
