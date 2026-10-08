@@ -99,8 +99,8 @@
           };
 
           mcpServers.nixos-tools = {
-            type = "stdio";
-            command = "mcp-nixos";
+            type = "http";
+            url = "http://petunia.home.lan:8080/mcp";
           };
         };
       };
