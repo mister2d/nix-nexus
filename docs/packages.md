@@ -4,7 +4,7 @@ This document lists the software packages `nix-nexus` manages. It states each pa
 
 ## Core Development & DevOps Tools
 nix-nexus no longer carries these. HashiCorp tools, Kubernetes and Talos CLIs,
-MCP servers, AI coding agents, and the general development toolchain live in
+AI coding agents, and the general development toolchain live in
 the `nix-devshell` flake with their pinned versions. Enter a shell on demand
 instead of installing them in the user environment. See
 [devshell.md](./devshell.md) for the call recipes.

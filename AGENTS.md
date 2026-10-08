@@ -62,6 +62,10 @@ Manager.** Training data can be months behind nixpkgs. An attribute path,
 option name, or package version from memory can be wrong. Nixpkgs can rename,
 remove, or split it. Always check it first.
 
+`nixos-tools` is the centralized gateway MCP server at
+`http://petunia.home.lan:8080/mcp` (http transport), configured in
+`modules/flake/checks.nix`. It is not a locally-installed binary.
+
 ### When to use it
 
 | Situation | What to query |
@@ -516,8 +520,8 @@ Current hosts and their assembly structure:
 
 **Developer tooling lives in nix-devshell.** The `nix-devshell` flake
 (`git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell`, local
-copy `~/workspace/nix-devshell`) owns the MCP servers, AI coding agents,
-HashiCorp and Kubernetes CLIs, openclaude, context-mode, the vendored
+copy `~/workspace/nix-devshell`) owns AI coding agents, HashiCorp and
+Kubernetes CLIs, openclaude, context-mode, the vendored
 hermes-agent, `llm-init`, and `rocm-init`. Single-home rule: nothing in that
 set is duplicated here. Only the `hermes` host consumes it as a flake input
 (`hosts/hermes/mcp-overlay.nix`, `hosts/hermes/llm-agents-overlay.nix`,

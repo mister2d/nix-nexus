@@ -1,8 +1,8 @@
 # Developer Tooling: nix-devshell
 
-nix-nexus does not install developer tooling. AI coding agents, MCP servers,
-HashiCorp and Kubernetes CLIs, openclaude, `llm-init`, and the general
-development toolchain live in the separate `nix-devshell` flake:
+nix-nexus does not install developer tooling. AI coding agents, HashiCorp
+and Kubernetes CLIs, openclaude, `llm-init`, and the general development
+toolchain live in the separate `nix-devshell` flake:
 
 - Remote: `git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell`
 - Local copy: `~/workspace/nix-devshell`
@@ -17,7 +17,6 @@ FLAKE=git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell
 nix develop $FLAKE#hashicorp     # nomad, vault, consul, terraform, tflint, envsubst
 nix develop $FLAKE#talos         # talosctl, omnictl, helm, kubelogin-oidc, kubectl-rook-ceph
 nix develop $FLAKE#llm-agents    # claude, opencode, openclaude, llm-init, rocm-init
-nix develop $FLAKE#mcp           # MCP servers
 nix develop $FLAKE#full          # everything above plus devenv, devbox, uv, nodejs, meld, butane
 ```
 
@@ -54,7 +53,7 @@ nix-nexus's `nixpkgs-unstable`, `flake-parts`, and `import-tree`.
 
 | File | Use |
 |---|---|
-| `hosts/hermes/mcp-overlay.nix` | applies `overlays.default` (MCP servers with build fixes, context-mode) |
+| `hosts/hermes/mcp-overlay.nix` | applies `overlays.default` (context-mode) |
 | `hosts/hermes/llm-agents-overlay.nix` | imports `nixosModules.dev-hermes-agent` (vendored hermes-agent plus the context-mode-hermes plugin) |
 | `hosts/hermes/groot-hm.nix` | uses `overlays.buildFixes` for the unstable package set |
 

@@ -103,7 +103,7 @@ nix run home-manager/release-26.05 -- switch --flake .#groot@dualie -b bak
   lint checks and `nix flake check --impure`.
 
 ### Developer Tooling
-Nix-Nexus manages the global environment. Developer tooling (AI coding agents, MCP servers, HashiCorp and Kubernetes CLIs, `llm-init`) lives in the separate `nix-devshell` flake. Call it on demand:
+Nix-Nexus manages the global environment. Developer tooling (AI coding agents, HashiCorp and Kubernetes CLIs, `llm-init`) lives in the separate `nix-devshell` flake. Call it on demand:
 ```bash
 nix develop git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#hashicorp
 ```
