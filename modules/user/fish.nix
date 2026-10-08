@@ -39,6 +39,33 @@ _: {
           h-ls = "history --show-time=\"[%F %T] \" | bat -l log";
           h-de = "history --show-time=\"[%F %T] \" delete";
         };
+
+        functions = {
+          # Enter the nix-devshell devShell by git reference, no local clone
+          # required. --latest overrides llm-agents to the upstream flake
+          # tip for a bleeding-edge agent-harness CLI escape hatch,
+          # bypassing nix-devshell's own committed flake.lock pin.
+          devenv-devshell = ''
+            set -l shell full
+            set -l latest 0
+            for arg in $argv
+                switch $arg
+                    case --latest
+                        set latest 1
+                    case '*'
+                        set shell $arg
+                end
+            end
+            if test $latest -eq 1
+                nix develop --refresh --no-write-lock-file \
+                    --override-input llm-agents github:numtide/llm-agents.nix \
+                    "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#$shell"
+            else
+                nix develop --refresh \
+                    "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#$shell"
+            end
+          '';
+        };
       };
     };
 }

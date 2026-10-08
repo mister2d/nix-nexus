@@ -127,6 +127,30 @@ _: {
           # Prepend to PROMPT_COMMAND to preserve other hooks (like direnv)
           PROMPT_COMMAND="set_bash_prompt''${PROMPT_COMMAND:+; ''${PROMPT_COMMAND}}"
 
+          # ------------------------------------------------------------------
+          # devenv-devshell: enter the nix-devshell devShell by git reference,
+          # no local clone required. --latest overrides llm-agents to the
+          # upstream flake tip for a bleeding-edge agent-harness CLI escape
+          # hatch, bypassing nix-devshell's own committed flake.lock pin.
+          # ------------------------------------------------------------------
+          devenv-devshell() {
+            local shell="full" latest=0
+            for arg in "$@"; do
+              case "$arg" in
+                --latest) latest=1 ;;
+                *) shell="$arg" ;;
+              esac
+            done
+            if [ "$latest" -eq 1 ]; then
+              nix develop --refresh --no-write-lock-file \
+                --override-input llm-agents github:numtide/llm-agents.nix \
+                "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#''${shell}"
+            else
+              nix develop --refresh \
+                "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell#''${shell}"
+            fi
+          }
+
           # HashiCorp Completions (Dynamic Nix Paths)
           # These are only enabled if the packages are available in the current profile.
           # We use 'command -v' to find the actual location in the Nix store.
