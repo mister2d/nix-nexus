@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/45947hkwzv1iaic7596kldkxlnynl16j-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/76f9pswqg6xqpl9wygs6w6qvrq14yn9h-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-08T09:03:14Z",
+  "recorded": "2026-10-08T18:47:12Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "5f564cfc42694b0293f3b83f5e373ce1938bd51c",
-  "signoff": ".agents/signoff/2026-10-08-nix-nexus-mcp-gateway-and-devshell-latest.md"
+  "signed_off_through": "05dd56235554b5eebc082f6cdbb2aabf6a79ba7c",
+  "signoff": ".agents/signoff/2026-10-08-nix-nexus-petunia-rdna4-adoption.md"
 }
