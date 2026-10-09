@@ -83,6 +83,63 @@ lspci -vv | grep -A5 "VGA\|3D"
 rocminfo | grep -A3 "Agent "   # should list two gfx1201 agents
 ```
 
+### GPU power profile
+
+`modules/hardware/petunia/gpu-power.nix` declares the LACT default profile through
+`services.lact.settings`: both R9700 cards run a 230 W cap and a -75 mV voltage offset.
+`lactd` re-applies it on every start and GPU reload, and the card limits are 210 W minimum,
+300 W stock, 330 W maximum, with a -200 mV to 0 mV offset range.
+
+`gpu-profile` switches profiles (source: `lib/petunia/gpu-profile.sh`):
+
+```bash
+gpu-profile status                          # cap, limits, offset, performance level, lactd state
+gpu-profile default                         # declared profile (230 W, -75 mV), lactd running
+gpu-profile stock                           # 300 W, no offset, lactd stopped
+gpu-profile custom --cap 250 --offset -60   # guarded values, lactd stopped
+```
+
+`stock` and `custom` stop `lactd` and write sysfs directly, because the LACT CLI cannot set a
+voltage offset and the NixOS-rendered config is read-only. They last until
+`gpu-profile default` or a reboot. A reboot returns to the declared profile.
+
+`custom` refuses values outside these limits:
+- The cap must sit inside the driver range. A cap above stock needs `--over-stock`.
+- Positive offsets are refused, and so are offsets outside the card range.
+- An offset below -100 mV needs `--force`. Below -80 mV it warns.
+- An offset below -50 mV needs a cap under stock. Community reports of instability come from
+  undervolting with uncapped boost.
+
+The 230 W / -75 mV pair sits between the 210 W / -80 mV recipe published for the R9700 and
+typical RX 9070 XT results (same die). Long-duration R9700 data does not exist, so run a
+sustained load test before you treat other values as safe for 24/7 use.
+
+---
+
+## Model storage and swap
+
+Models and the Hugging Face hub cache live on dedicated XFS partitions, mounted by partition
+UUID in `modules/hardware/petunia/model-storage.nix`:
+
+| Mount | Device | Notes |
+|---|---|---|
+| `/data/huggingface/models` | Phison E12 (`nvme2n1p1`), whole drive, 477 GiB | The n-gram table is mmap'd from here, so a page fault reads 4 KiB instead of a 1 MiB ZFS record. |
+| `/data/huggingface/hub` | Micron 2400 (`nvme1n1p3`), 633 GiB | Source checkpoints. The NTFS "Data" partition (`nvme1n1p1`) was shrunk to 950 GiB to make room. |
+
+Both mounts use `noatime,nofail,x-systemd.device-timeout=10s`, and `services.fstrim` is on.
+The pool (`petunia/data`) keeps both directories as empty mount points. The prefix-cache
+kvcache stays under `/data/llm-cache` on the encrypted pool because it holds conversation
+content.
+
+Swap is zram first (zstd, 25% of RAM, priority 100) from the shared `core-zram-swap` module,
+with the 66 GiB random-key LUKS swap on the Micron (`nvme1n1p2`) as overflow at priority 10.
+`vm.swappiness` is 100 and `vm.page-cluster` is 0, the same as sweet16.
+
+`hosts/petunia/migrate-storage.sh` performed the one-time live migration (NTFS shrink, new
+partitions, copies with checksum verification, Windows profile backup). It is kept as a record.
+The Windows profile backup lives in the ZFS dataset `petunia/backup` at `/backup/windows-profile`.
+OneDrive files in it are zero-filled placeholders; the real files exist only in the cloud.
+
 ---
 
 ## Rebuild procedure

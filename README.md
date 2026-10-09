@@ -132,5 +132,5 @@ The `devenv` CLI and direnv remain installed on sweet16, petunia, dualie, forge,
 - [**Permafrost Host Module**](./docs/permafrost-host.md): The microvm bridge, NAT, kvm policy, and store settings behind the permafrost sandbox on sweet16.
 - [**Hermes**](./docs/hermes.md): This guide covers the AI agent gateway LXC host: hermes-agent, Matrix connection, and Petunia-backed LLM.
 - [**Secrets Management**](./docs/secrets.md): sops-nix, secretspec, Vault layering, and TPM2 posture per host.
-- [**Petunia**](./docs/petunia.md): This guide covers host-specific operations: TPM2 auto-unlock, dual GPU, and the rebuild procedure.
+- [**Petunia**](./docs/petunia.md): This guide covers host-specific operations: TPM2 auto-unlock, dual GPU and power profile, model storage and swap, and the rebuild procedure.
 - [**Petunia Inference SBOM**](./docs/petunia-sbom.md): ROCm, HIP, Vulkan, and Mesa version inventory for the inference stack.
