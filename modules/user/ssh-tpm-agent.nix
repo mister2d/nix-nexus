@@ -20,6 +20,19 @@ _: {
     let
       bin = lib.getExe' pkgs.ssh-tpm-agent "ssh-tpm-agent";
 
+      # The agent exits 1 when serving identities if a *-cert.pub in its key
+      # directory is not a parseable certificate (for instance a renewal that
+      # wrote the text "null"). Moving it aside lets the agent start with the
+      # bare key until the next renewal.
+      dropBadCerts = pkgs.writeShellScript "drop-bad-ssh-certs" ''
+        for cert in "$1"/*-cert.pub; do
+          [ -e "$cert" ] || continue
+          ${lib.getExe' pkgs.openssh "ssh-keygen"} -L -f "$cert" >/dev/null 2>&1 && continue
+          echo "ignoring unparseable certificate $cert" >&2
+          ${lib.getExe' pkgs.coreutils "mv"} -f "$(${lib.getExe' pkgs.coreutils "readlink"} -f "$cert")" "$cert.bad"
+        done
+      '';
+
       instances = {
         ssh-tpm-agent = {
           keyDir = "${config.home.homeDirectory}/.ssh/tpm";
@@ -101,7 +114,10 @@ _: {
             Type = "simple";
             # The agent exits non-zero if its key directory is absent.
             # A fresh host is in this state before any key exists.
-            ExecStartPre = "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}";
+            ExecStartPre = [
+              "${lib.getExe' pkgs.coreutils "mkdir"} -p -m 0700 ${inst.keyDir}"
+              "${dropBadCerts} ${inst.keyDir}"
+            ];
             ExecStart = "${bin} --key-dir ${inst.keyDir}";
             Environment = [ "SSH_TPM_AUTH_SOCK=%t/${name}.sock" ];
             SuccessExitStatus = 2;
