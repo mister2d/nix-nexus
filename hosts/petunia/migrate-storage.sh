@@ -29,7 +29,7 @@ if [[ -z ${MIG_IN_NIX:-} ]]; then
   [[ $EUID -eq 0 ]] || die "run as root"
   exec env MIG_IN_NIX=1 nix shell \
     nixpkgs#ntfs3g nixpkgs#xfsprogs nixpkgs#gptfdisk nixpkgs#parted \
-    nixpkgs#rsync nixpkgs#util-linux nixpkgs#psmisc \
+    nixpkgs#rsync nixpkgs#util-linux nixpkgs#lsof \
     -c bash "$(readlink -f "$0")" "$@"
 fi
 mkdir -p "$BACKUP_DIR" "$MNT"
@@ -38,6 +38,13 @@ part() { echo "$1-part$2"; }  # by-id partition path
 partuuid_of() { blkid -s PARTUUID -o value "$(readlink -f "$1")"; }
 sector_info() { sgdisk -i "$2" "$1"; }  # disk, partnum
 sgfield() { sector_info "$1" "$2" | sed -n "s/^$3: *//p" | head -1; }
+
+# Abort if any process has a file open under the directory (lsof +D, not fuser -m,
+# which reports the whole filesystem including the kernel mount entry).
+busy() {
+  local out; out=$(lsof +D "$1" 2>/dev/null || true)
+  [[ -z $out ]] || { echo "$out" | head; die "processes hold $1; stop them first"; }
+}
 
 require_swap_intact() {
   [[ $(partuuid_of "$(part "$MICRON" 2)") == "$SWAP_PARTUUID" ]] || die "Micron p2 is not the swap partition"
@@ -166,7 +173,7 @@ copy_to() {
   [[ $(blkid -s TYPE -o value "$dev") == xfs ]] || die "$label is not xfs"
   mkdir -p "$mp"; findmnt -rn "$mp" >/dev/null || run mount -o noatime "$dev" "$mp"
   findmnt -rn "$HF/$name" -t xfs >/dev/null && die "$HF/$name is already the new filesystem"
-  fuser -vm "$HF/$name" 2>&1 | grep -q . && { fuser -vm "$HF/$name"; die "processes hold $HF/$name; stop them first"; } || true
+  busy "$HF/$name"
   need=$(du -sB1 "$HF/$name" | cut -f1); avail=$(df -B1 --output=avail "$mp" | tail -1)
   (( need < avail )) || die "$HF/$name ($need B) does not fit on $label ($avail B)"
   run rsync -aHAX --info=progress2 "$HF/$name/" "$mp/"
@@ -179,7 +186,7 @@ copy_to() {
 # swap_in <name> <label> : move pool copy aside, leave an empty mountpoint, unmount temp
 swap_in() {
   local name=$1 label=$2
-  fuser -vm "$HF/$name" 2>&1 | grep -q . && die "processes hold $HF/$name"
+  busy "$HF/$name"
   [[ ! -e $HF/$name.old ]] || die "$HF/$name.old already exists"
   run mv "$HF/$name" "$HF/$name.old"
   run mkdir "$HF/$name"
