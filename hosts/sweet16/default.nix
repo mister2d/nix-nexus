@@ -1,6 +1,6 @@
 # Host: sweet16 (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.sweet16-default
-# Composes: sweet16-hardware, hardware-z16, core-tpm2, core-microvm-host, hardware-kernel-cachyos, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, core-diagnostics.
+# Composes: sweet16-hardware, hardware-z16, core-tpm2, core-microvm-host, hardware-kernel-cachyos, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, core-diagnostics, core-zram-swap.
 _: {
   flake.modules.nixos.sweet16-default =
     {
@@ -48,6 +48,9 @@ _: {
 
         # Crash diagnostics
         nixosModules.core-diagnostics
+
+        # Compressed RAM swap; no disk swap device.
+        nixosModules.core-zram-swap
       ];
 
       # Machine-specific overrides
@@ -77,19 +80,6 @@ _: {
 
         # Host side of the permafrost microvm sandbox.
         virtualization.microvm.enable = true;
-      };
-
-      # Swap is compressed RAM only; no disk swap device.
-      zramSwap = {
-        enable = true;
-        algorithm = "zstd";
-        memoryPercent = 50;
-        priority = 100;
-      };
-
-      boot.kernel.sysctl = {
-        "vm.swappiness" = 100;
-        "vm.page-cluster" = 0;
       };
 
       # Memory-bounded slice for agent workloads: throttled at 18G, hard-capped at 22G.

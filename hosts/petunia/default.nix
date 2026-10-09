@@ -1,6 +1,6 @@
 # Host: petunia (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.petunia-default
-# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb.
+# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap.
 _: {
   flake.modules.nixos.petunia-default =
     { nixosModules, ... }:
@@ -42,7 +42,12 @@ _: {
 
         # Unprivileged OpenRGB SDK server
         nixosModules.services-openrgb
+
+        # Compressed RAM swap ahead of the disk swap device
+        nixosModules.core-zram-swap
       ];
+
+      zramSwap.memoryPercent = 25;
 
       # Machine-specific overrides
       networking.hostName = "petunia";
@@ -71,6 +76,7 @@ _: {
       swapDevices = [
         {
           device = "/dev/disk/by-partuuid/5eacdc8e-39ba-435a-8283-bb0e290e7846";
+          priority = 10;
           randomEncryption = {
             enable = true;
             allowDiscards = true;
