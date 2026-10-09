@@ -129,6 +129,11 @@ cmd_shrink_data() {
 # new_partition <disk> <label> <size-GiB|max>  -> creates GPT partition + xfs, prints dev
 new_xfs_partition() {
   local disk=$1 label=$2 gib=$3 fs_start fs_end best=0 n
+  # A blank disk has no label for parted to list free space from.
+  if [[ -z $(blkid -p -s PTTYPE -o value "$disk" 2>/dev/null) ]]; then
+    [[ -z $(lsblk -no NAME "$disk" | sed 1d) ]] || die "$disk has no label but has partitions"
+    run sgdisk -o "$disk" >&2
+  fi
   # Largest free region, MiB aligned.
   while IFS=: read -r _ s e _; do
     s=${s%s}; e=${e%s}
@@ -267,7 +272,18 @@ cmd_phison_wipe() {
   say "Created $dev (PARTUUID $(partuuid_of "$dev")) — record it for nix"
 }
 
+# Re-entry after phison-wipe stopped between the wipe and the new partition.
+cmd_phison_format() {
+  [[ $(blockdev --getsize64 "$PHISON") -lt 520000000000 ]] || die "Phison size unexpected"
+  [[ -z $(lsblk -no NAME "$PHISON" | sed 1d) ]] || die "Phison still has partitions; use phison-wipe"
+  lsblk -no MOUNTPOINTS "$PHISON" | grep -q . && die "Phison is mounted"
+  confirm "Create the XFS 'models' partition on the blank Phison?"
+  local dev; dev=$(new_xfs_partition "$PHISON" models max | tail -1)
+  say "Created $dev (PARTUUID $(partuuid_of "$dev")) — record it for nix"
+}
+
 case ${1:-} in
+  phison-format)  shift; cmd_phison_format "$@" ;;
   preflight)      shift; cmd_preflight "$@" ;;
   shrink-data)    shift; cmd_shrink_data "$@" ;;
   make-hub)       shift; cmd_make_hub "$@" ;;
@@ -277,5 +293,5 @@ case ${1:-} in
   phison-wipe)    shift; cmd_phison_wipe "$@" ;;
   copy-models)    shift; cmd_copy_models "$@" ;;
   finish-models)  shift; cmd_finish_models "$@" ;;
-  *) sed -n '2,8p' "$0"; echo; echo "usage: $0 preflight | shrink-data <GiB> | make-hub <GiB> | copy-hub | finish-hub | backup [estimate|run|verify] | phison-wipe | copy-models | finish-models"; exit 2 ;;
+  *) sed -n '2,8p' "$0"; echo; echo "usage: $0 preflight | shrink-data <GiB> | make-hub <GiB> | copy-hub | finish-hub | backup [estimate|run|verify] | phison-wipe | phison-format | copy-models | finish-models"; exit 2 ;;
 esac
