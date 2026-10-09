@@ -135,8 +135,8 @@ Swap is zram first (zstd, 25% of RAM, priority 100) from the shared `core-zram-s
 with the 66 GiB random-key LUKS swap on the Micron (`nvme1n1p2`) as overflow at priority 10.
 `vm.swappiness` is 100 and `vm.page-cluster` is 0, the same as sweet16.
 
-`hosts/petunia/migrate-storage.sh` performed the one-time live migration (NTFS shrink, new
-partitions, copies with checksum verification, Windows profile backup). It is kept as a record.
+A one-time live migration (NTFS shrink, new partitions, checksum-verified copies) moved the
+data; the script is not kept in the repo (see git history of `hosts/petunia/migrate-storage.sh`).
 The Windows profile backup lives in the ZFS dataset `petunia/backup` at `/backup/windows-profile`.
 OneDrive files in it are zero-filled placeholders; the real files exist only in the cloud.
 
