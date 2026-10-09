@@ -206,9 +206,9 @@ cmd_backup() {
   [[ $(partuuid_of "$dev") == "$WIN_PARTUUID" ]] || die "Phison p4 is not the Windows partition"
   mkdir -p "$MNT/win"
   findmnt -rn "$MNT/win" >/dev/null || run mount -t ntfs3 -o ro "$dev" "$MNT/win"
-  local src="$MNT/win/Users/ddukes"
+  local src="$MNT/win/Users/${WIN_USER:-Dana Dukes}"
   [[ -d $src ]] || die "$src not found"
-  local dst=/backup/windows-ddukes
+  local dst=/backup/windows-profile
   local ex=(
     --exclude='AppData/Local/Temp' --exclude='AppData/Local/CrashDumps'
     --exclude='AppData/Local/D3DSCache' --exclude='AppData/Local/Packages'
@@ -241,7 +241,7 @@ cmd_backup() {
       say "Second pass must list nothing"
       local d; d=$(rsync -rtlnci "${ex[@]}" "$src/" "$dst/" | grep -v '^\.d' || true)
       [[ -z $d ]] || { echo "$d" | head; die "backup differs from source"; }
-      (cd "$dst" && find . -type f -print0 | sort -z | xargs -0 sha256sum >/backup/windows-ddukes.SHA256SUMS)
+      (cd "$dst" && find . -type f -print0 | sort -z | xargs -0 sha256sum >/backup/windows-profile.SHA256SUMS)
       run zfs snapshot "petunia/backup@verified-$(date +%Y%m%d)"
       echo "Backup verified: $(find "$dst" -type f | wc -l) files, $(du -sh "$dst" | cut -f1)."
       echo "Inspect $dst yourself before running: phison-wipe"
@@ -254,7 +254,7 @@ cmd_backup() {
 cmd_phison_wipe() {
   [[ $(partuuid_of "$(part "$PHISON" 4)") == "$WIN_PARTUUID" ]] || die "Phison layout changed"
   zfs list -H -t snapshot -o name | grep -q '^petunia/backup@verified-' || die "no verified backup snapshot"
-  [[ -s /backup/windows-ddukes.SHA256SUMS ]] || die "no backup manifest"
+  [[ -s /backup/windows-profile.SHA256SUMS ]] || die "no backup manifest"
   findmnt -rn "$MNT/win" >/dev/null && run umount "$MNT/win"
   lsblk -no MOUNTPOINTS "$PHISON" | grep -q . && die "Phison has mounted partitions"
   echo "This DESTROYS Windows on $PHISON (477 GiB). GPT backup: $BACKUP_DIR/phison-gpt.bak"
