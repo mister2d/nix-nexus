@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/gmksly25gs59jxxkkzycpm2cswxm010h-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/rl1whjbrrryb46h27xaa7184c0j2drr7-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-09T06:05:51Z",
+  "recorded": "2026-10-09T08:56:43Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "f74d3121e245cb7d736a8cf5379bad080f9311b9",
-  "signoff": ".agents/signoff/2026-10-09-petunia-gpu-power-profile.md"
+  "signed_off_through": "790853d2e4e4c3209b87828bafbabd464e1c6e80",
+  "signoff": ".agents/signoff/2026-10-09-petunia-gpu-drop-offset.md"
 }
