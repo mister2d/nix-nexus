@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/rl1whjbrrryb46h27xaa7184c0j2drr7-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/yf5v7sivqsxj0s6ysk1ldig99fy2m537-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/5apjlkqy6ah4hilfm6gk37paba319byq-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/9gwn8p5d87cy4qgc6dvkd5ayi8nzcrdw-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-09T08:56:43Z",
+  "recorded": "2026-10-09T17:10:00Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "790853d2e4e4c3209b87828bafbabd464e1c6e80",
-  "signoff": ".agents/signoff/2026-10-09-petunia-gpu-drop-offset.md"
+  "signed_off_through": "bd12f7649feb36e44c48d191eb3a405ef59a1684",
+  "signoff": ".agents/signoff/2026-10-09-tpm-agent-bad-cert-and-gpu-keep-awake.md"
 }
