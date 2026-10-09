@@ -1,7 +1,7 @@
 # gpu-profile: switch the R9700 power profile on petunia.
 #
 #   gpu-profile status
-#   gpu-profile default                     declared profile (LACT: 230 W cap, -75 mV)
+#   gpu-profile default                     declared profile (LACT: 230 W cap, no offset)
 #   gpu-profile stock                       stock cap, no voltage offset, LACT stopped
 #   gpu-profile custom --cap W --offset mV  guarded values written to sysfs, LACT stopped
 #                      [--over-stock] [--force]

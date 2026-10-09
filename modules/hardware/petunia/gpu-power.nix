@@ -1,5 +1,5 @@
 # Merged into: flake.modules.nixos.hardware-petunia
-# Configures: R9700 power profile (230 W cap, -75 mV) via LACT, and the gpu-profile helper.
+# Configures: R9700 power profile (230 W cap, no voltage offset) via LACT, and the gpu-profile helper.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.hardware-petunia =
@@ -12,7 +12,6 @@ _: {
       ];
       tuned = {
         power_cap = 230.0;
-        voltage_offset = -75;
       };
     in
     {

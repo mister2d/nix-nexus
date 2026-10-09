@@ -86,7 +86,8 @@ rocminfo | grep -A3 "Agent "   # should list two gfx1201 agents
 ### GPU power profile
 
 `modules/hardware/petunia/gpu-power.nix` declares the LACT default profile through
-`services.lact.settings`: both R9700 cards run a 230 W cap and a -75 mV voltage offset.
+`services.lact.settings`: both R9700 cards run a 230 W cap with no voltage offset. A -75 mV offset was dropped after
+the 230 W / -75 mV profile coincided with GPU page faults and a broken overdrive table.
 `lactd` re-applies it on every start and GPU reload, and the card limits are 210 W minimum,
 300 W stock, 330 W maximum, with a -200 mV to 0 mV offset range.
 
@@ -94,7 +95,7 @@ rocminfo | grep -A3 "Agent "   # should list two gfx1201 agents
 
 ```bash
 gpu-profile status                          # cap, limits, offset, performance level, lactd state
-gpu-profile default                         # declared profile (230 W, -75 mV), lactd running
+gpu-profile default                         # declared profile (230 W, no offset), lactd running
 gpu-profile stock                           # 300 W, no offset, lactd stopped
 gpu-profile custom --cap 250 --offset -60   # guarded values, lactd stopped
 ```
@@ -110,9 +111,8 @@ voltage offset and the NixOS-rendered config is read-only. They last until
 - An offset below -50 mV needs a cap under stock. Community reports of instability come from
   undervolting with uncapped boost.
 
-The 230 W / -75 mV pair sits between the 210 W / -80 mV recipe published for the R9700 and
-typical RX 9070 XT results (same die). Long-duration R9700 data does not exist, so run a
-sustained load test before you treat other values as safe for 24/7 use.
+Long-duration R9700 data does not exist, so run a sustained load test before you treat
+any offset as safe for 24/7 use.
 
 ---
 
