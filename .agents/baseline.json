@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/76f9pswqg6xqpl9wygs6w6qvrq14yn9h-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/6w2by4ayimfs34hj42gp4cj1wdd4kg8f-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-08T18:47:12Z",
+  "recorded": "2026-10-09T05:21:50Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "05dd56235554b5eebc082f6cdbb2aabf6a79ba7c",
-  "signoff": ".agents/signoff/2026-10-08-nix-nexus-petunia-rdna4-adoption.md"
+  "signed_off_through": "71612024e42accd65c1231348a236f9209ba9956",
+  "signoff": ".agents/signoff/2026-10-09-petunia-zram-and-xfs-model-storage.md"
 }
