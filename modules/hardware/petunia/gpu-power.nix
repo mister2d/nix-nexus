@@ -1,5 +1,5 @@
 # Merged into: flake.modules.nixos.hardware-petunia
-# Configures: R9700 power profile (230 W cap, no voltage offset) via LACT, and the gpu-profile helper.
+# Configures: R9700 power profile (230 W cap, no voltage offset) via LACT, GPU runtime-PM off, and the gpu-profile helper.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.hardware-petunia =
@@ -31,6 +31,13 @@ _: {
           }) gpuIds
         );
       };
+
+      # A runtime-suspended card answers EBUSY on its power and overdrive sysfs
+      # files, so cap writes and gpu-profile status fail, and every resume
+      # re-runs a failing overdrive upload. Keep both R9700 cards awake.
+      services.udev.extraRules = ''
+        ACTION=="add", SUBSYSTEM=="pci", ATTR{vendor}=="0x1002", ATTR{device}=="0x7551", ATTR{power/control}="on"
+      '';
 
       # gpu-profile {status|default|stock|custom ...}: stock and custom values
       # go through sysfs with lactd stopped; default hands control back to lactd.

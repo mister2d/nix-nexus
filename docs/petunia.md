@@ -86,9 +86,12 @@ rocminfo | grep -A3 "Agent "   # should list two gfx1201 agents
 ### GPU power profile
 
 `modules/hardware/petunia/gpu-power.nix` declares the LACT default profile through
-`services.lact.settings`: both R9700 cards run a 230 W cap with no voltage offset. A -75 mV offset was dropped after
-the 230 W / -75 mV profile coincided with GPU page faults and a broken overdrive table.
-`lactd` re-applies it on every start and GPU reload, and the card limits are 210 W minimum,
+`services.lact.settings`: both R9700 cards run a 230 W cap with no voltage offset. A -75 mV
+offset was dropped: the driver rejects overdrive table uploads on this kernel, so the offset
+could not be applied or verified reliably. A udev rule keeps both cards out of runtime
+suspend (`power/control=on`), because a suspended card answers `EBUSY` on its power sysfs
+files. `lactd` re-applies the profile on every start and GPU reload. The card limits are
+210 W minimum,
 300 W stock, 330 W maximum, with a -200 mV to 0 mV offset range.
 
 `gpu-profile` switches profiles (source: `lib/petunia/gpu-profile.sh`):
