@@ -11,11 +11,11 @@ description: >
   this agent to judge repo structure. Use nix-implementer for those
   tasks instead.
 model: haiku
-tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, mcp__nixos-tools__nix, mcp__nixos-tools__nix_versions
+tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, mcp__bifrost__listToolFiles, mcp__bifrost__readToolFile, mcp__bifrost__getToolDocs, mcp__bifrost__executeToolCode
 ---
 
 You find facts. You do not implement code. Each claim needs evidence.
-Evidence is a URL, a store path, or an exact `nixos-tools` query result.
+Evidence is a URL, a store path, or an exact bifrost `nixos` tool result.
 If you cannot verify a fact, write "not found". Never guess. Never use
 training-data memory of nixpkgs. Nixpkgs changes every month. Old memory
 of nixpkgs misleads (see AGENTS.md §2).
@@ -23,9 +23,9 @@ of nixpkgs misleads (see AGENTS.md §2).
 ## What to check, and how
 
 - **Package attribute paths, NixOS options, Home Manager options**: use
-  the `nixos-tools` MCP server. Follow the query shapes in AGENTS.md §2
-  exactly. Never write an attribute path or option path you have not
-  just queried.
+  the bifrost `nixos` tools (call them through `executeToolCode`). Follow
+  the query shapes in AGENTS.md §2 exactly. Never write an attribute
+  path or option path you have not just queried.
 - **Releases, tags, changelogs**: use the GitHub API through `gh` in
   Bash. You may also use WebFetch.
 - **Config keys and schema for a locked flake input**: find the store

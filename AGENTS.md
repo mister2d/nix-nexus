@@ -7,7 +7,7 @@
 > host.
 >
 > **If you are not a Nix or NixOS expert, that is normal.** This document and
-> the `docs/` guides tell you what to do. Use the `nixos-tools` MCP server for
+> the `docs/` guides tell you what to do. Use the bifrost `nixos` tools (§2) for
 > facts about NixOS. Facts include package names, option paths, versions, and
 > Home Manager options. Do not trust training-data memory of nixpkgs. Training
 > data can be months behind nixpkgs.
@@ -24,8 +24,8 @@ wins**. Stop. Report the conflict. Do not improvise.
 | Dendritic pattern | `https://github.com/mightyiam/dendritic` | `flake.modules.*` namespace, deferred module merge semantics |
 | flake-parts manual | `https://flake.parts/` | Option namespacing, `perSystem`, module system rules |
 | import-tree README | `https://github.com/vic/import-tree` | Builder API: `addPath`, `filter`, `result` |
-| NixOS manual | Use `nixos-tools` MCP (see §2) | NixOS options, module patterns, `lib.*` functions |
-| Home Manager manual | Use `nixos-tools` MCP (see §2) | HM options and module patterns |
+| NixOS manual | Use the bifrost `nixos` tools (see §2) | NixOS options, module patterns, `lib.*` functions |
+| Home Manager manual | Use the bifrost `nixos` tools (see §2) | HM options and module patterns |
 
 Use the `fetch` MCP tool. Read any authority URL again before you make
 structural changes. Do not trust training-data memory of these projects.
@@ -55,58 +55,74 @@ need wiring in `flake.nix`.
 
 ---
 
-## 2. The nixos-tools MCP server — your factual grounding tool
+## 2. The bifrost `nixos` tools — your factual grounding tool
 
-**Use `nixos-tools` before you state any fact about nixpkgs, NixOS, or Home
-Manager.** Training data can be months behind nixpkgs. An attribute path,
-option name, or package version from memory can be wrong. Nixpkgs can rename,
-remove, or split it. Always check it first.
+**Use the bifrost `nixos` tools before you state any fact about nixpkgs,
+NixOS, or Home Manager.** Training data can be months behind nixpkgs. An
+attribute path, option name, or package version from memory can be wrong.
+Nixpkgs can rename, remove, or split it. Always check it first.
 
-`nixos-tools` is the centralized gateway MCP server at
-`http://petunia.home.lan:8080/mcp` (http transport), configured in
-`modules/flake/checks.nix`. It is not a locally-installed binary.
+The `nixos` tools are one backend of the bifrost gateway MCP server at
+`http://petunia.home.lan:8080/mcp` (http transport, MCP server name
+`bifrost`, configured in `modules/flake/checks.nix`). The standalone
+`nixos-tools` server no longer exists. Bifrost runs in code mode: it exposes
+four tools, and the `nixos` tools are called from inside one of them.
+
+| Bifrost tool | Use |
+|---|---|
+| `listToolFiles` | list the backend stubs (`servers/nixos.pyi`, and others) |
+| `readToolFile` | read `servers/nixos.pyi` to confirm tool names and parameters |
+| `getToolDocs` | full docs for one tool (`server: nixos`, `tool: nix`) |
+| `executeToolCode` | run Starlark that calls `nixos.nix(...)` and `nixos.nix_versions(...)` |
+
+Starlark is not Python: `for`/`if` at top level must sit inside a function.
+Tool results are dicts or text, so `print(result)` first to see the shape.
 
 ### When to use it
 
-| Situation | What to query |
+| Situation | What to call |
 |---|---|
-| Adding a package — need the exact attribute path | `nix` → `action: search`, `query: <package-name>` |
-| Enabling a NixOS service — need the option path | `nix` → `action: search`, `type: options`, `query: <service-name>` |
-| Adding a Home Manager option | `nix` → `action: search`, `source: home-manager`, `query: <topic>` |
-| Checking which nixpkgs channel has a version | `nix_versions` → `package: <attr>`, `version: <ver>` |
-| Looking up NixOS wiki guidance | `nix` → `action: search`, `source: nixos-wiki`, `query: <topic>` |
-| Finding nix.dev tutorials or examples | `nix` → `action: search`, `source: nix.dev`, `query: <topic>` |
-| Confirming a package is in the binary cache | `nix` → `action: cache`, `query: <attr>` |
+| Adding a package — need the exact attribute path | `nixos.nix(action="search", query="<package-name>")` |
+| Enabling a NixOS service — need the option path | `nixos.nix(action="search", type="options", query="<service-name>")` |
+| Adding a Home Manager option | `nixos.nix(action="search", source="home-manager", query="<topic>")` |
+| Checking which nixpkgs channel has a version | `nixos.nix_versions(package="<attr>", version="<ver>")` |
+| Looking up NixOS wiki guidance | `nixos.nix(action="search", source="nixos-wiki", query="<topic>")` |
+| Finding nix.dev tutorials or examples | `nixos.nix(action="search", source="nix.dev", query="<topic>")` |
+| Confirming a package is in the binary cache | `nixos.nix(action="cache", query="<attr>")` |
 
-### Concrete query examples (copy these shapes exactly)
+### Concrete query examples (pass as `code` to `executeToolCode`)
 
-```json
-// Find a package by name
-{ "action": "search", "query": "tailscale" }
+```python
+# Find a package by name
+print(nixos.nix(action="search", query="tailscale"))
 
-// Find a NixOS option for a service
-{ "action": "search", "type": "options", "query": "services.synapse" }
+# Find a NixOS option for a service
+print(nixos.nix(action="search", type="options", query="services.synapse"))
 
-// Find a Home Manager option
-{ "action": "search", "source": "home-manager", "query": "programs.git" }
+# Find a Home Manager option
+print(nixos.nix(action="search", source="home-manager", query="programs.git"))
 
-// Check version history — which nixpkgs commit shipped version X?
-// nix_versions tool:
-{ "package": "tailscale", "version": "1.80.0" }
+# Check version history — which nixpkgs commit shipped version X?
+print(nixos.nix_versions(package="tailscale", version="1.80.0"))
 
-// Check binary cache availability
-{ "action": "cache", "query": "python312" }
+# Check binary cache availability
+print(nixos.nix(action="cache", query="python312"))
 
-// Read the NixOS wiki page on a topic
-{ "action": "search", "source": "nixos-wiki", "query": "ZFS" }
+# Read the NixOS wiki page on a topic
+print(nixos.nix(action="search", source="nixos-wiki", query="ZFS"))
 
-// Find nix.dev tutorials
-{ "action": "search", "source": "nix.dev", "query": "flake inputs" }
+# Find nix.dev tutorials
+print(nixos.nix(action="search", source="nix.dev", query="flake inputs"))
 ```
 
+Option search is fuzzy: a query for a generic path such as `environment.etc`
+returns unrelated options that merely mention it. Query the most specific
+path you have, and confirm the exact name appears in the results. A name that
+is only mentioned in a description is not a match.
+
 Before you write a package attribute path, a NixOS option path, or a Home
-Manager option path, check it with `nixos-tools` in this session. If you have
-not checked it, stop. Check it first.
+Manager option path, check it with the bifrost `nixos` tools in this session.
+If you have not checked it, stop. Check it first.
 
 ---
 
@@ -277,9 +293,9 @@ Follow these rules on every task and every commit:
    session, you do not know its contents. Use `Read` before you edit a file.
    Use `ls` before you state a directory structure.
 
-2. **Verify with `nixos-tools` before you write any package or option path.**
+2. **Verify with the bifrost `nixos` tools before you write any package or option path.**
    Never write `pkgs.somePackage` or `services.something.enable` from memory.
-   Query `nixos-tools` first (see §2).
+   Query the bifrost `nixos` tools first (see §2).
 
 3. **Make one logical change per commit.** Do not batch unrelated edits. Lint
    and verify the closure for each commit.
@@ -452,7 +468,7 @@ Ask these questions:
 Follow these steps when a new capability needs a new flake input.
 1. Add the input to the `inputs` attrset in `flake.nix`.
 2. Use `inputs.nixpkgs.follows = "nixpkgs"` if the input takes a nixpkgs.
-   This step avoids dependency duplication. Verify with `nixos-tools` if you
+   This step avoids dependency duplication. Verify with the bifrost `nixos` tools if you
    are unsure.
 3. Run `nix flake update <input-name>` to pin the input.
 4. Commit `flake.nix` and `flake.lock` together.
@@ -486,7 +502,7 @@ this codebase.
 | Hard-coding module paths in `flake.nix` | `flake.nix` must be a pass-through | Add the file under `modules/`, `hosts/`, or `profiles/` |
 | Writing `with pkgs;` in module files | `statix` flags it; creates implicit scope | Use explicit `pkgs.packageName` |
 | Skipping pre-commit hooks (`--no-verify`) | Allows formatting and lint violations to accumulate | Fix the underlying issue |
-| Trusting training-data for nixpkgs attribute paths | Nixpkgs drifts monthly; wrong paths cause eval failures | Query `nixos-tools` MCP first |
+| Trusting training-data for nixpkgs attribute paths | Nixpkgs drifts monthly; wrong paths cause eval failures | Query the bifrost `nixos` tools first |
 | Modules that mutate other modules via `mkForce` without justification | Creates hidden coupling; breaks composability | Prefer explicit option values at the host assembly level |
 
 ---

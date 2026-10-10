@@ -212,7 +212,7 @@ This evaluates every host configuration. Common failures on a major upgrade:
 - **Renamed options**: a NixOS module changed structure. Check the release
   notes. Update the option path in the relevant module file.
 - **Removed packages**: a package was renamed or moved. Use the
-  `nixos-tools` MCP (`action: search, query: <package>`) to find the new
+  bifrost `nixos` tools (`nixos.nix(action="search", query="<package>")`) to find the new
   attribute path.
 - **Home Manager version mismatch**: if `home-manager.url` still points to
   the old release branch, update it. See step 1.

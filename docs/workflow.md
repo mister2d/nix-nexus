@@ -194,7 +194,7 @@ Look up the name. Do not guess it:
 nix eval --raw nixpkgs#ripgrep.name        # does this attribute exist?
 ```
 
-Inside an AI session, the `nixos-tools` MCP server does this directly for
+Inside an AI session, the bifrost `nixos` tools (AGENTS.md §2) do this directly for
 you. Either way, verify the name before you write it.
 
 ---
