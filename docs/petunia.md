@@ -7,9 +7,12 @@ running a CachyOS server kernel with LUKS2-on-ZFS full-disk encryption.
 
 ## TPM2 Auto-Unlock (LUKS2)
 
-Petunia uses TPM2 to unseal the LUKS2 keyslot at boot. No passphrase is needed, so reboots run
-unattended. The token sits in the LUKS2 header at keyslot 1. Keyslot 0 keeps the passphrase as
-a fallback.
+Petunia uses TPM2 to unseal the keyslots of two LUKS2 volumes at boot: `crypted` (root pool,
+`/dev/nvme0n1p2`, unsealed in the initrd) and `data` (XFS `/data`, `/dev/nvme1n1p3`, unsealed in
+stage 2 through `/etc/crypttab` in `modules/hardware/petunia/encrypted-data.nix`). No passphrase
+is needed, so reboots run unattended. Each token sits in its LUKS2 header at keyslot 1. Keyslot 0
+keeps the passphrase as a fallback. A failed unseal of `data` does not block boot: `/data` is
+absent and the machine boots.
 
 ### Current state
 
@@ -33,7 +36,8 @@ label `disk-main-DISK_LUKS` instead. Always reference the partition directly:
 
 ```bash
 systemd-cryptenroll /dev/nvme0n1p2
-# Expected output:
+systemd-cryptenroll /dev/nvme1n1p3
+# Expected output for each:
 # SLOT TYPE
 #    0 password
 #    1 tpm2
@@ -44,16 +48,18 @@ systemd-cryptenroll /dev/nvme0n1p2
 ```bash
 # Remove the old TPM2 token
 systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme0n1p2
+systemd-cryptenroll --wipe-slot=tpm2 /dev/nvme1n1p3
 
 # Enroll a new token bound to the new firmware measurement
 systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0 /dev/nvme0n1p2
+systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0 /dev/nvme1n1p3
 ```
 
 ### Verify auto-unlock after reboot
 
 ```bash
 journalctl -b | grep -i 'cryptsetup\|tpm'
-# "Finished Cryptography Setup for crypted." with no passphrase prompt = success
+# "Finished Cryptography Setup for crypted." and "... for data." with no passphrase prompt = success
 ```
 
 ---
@@ -121,18 +127,19 @@ any offset as safe for 24/7 use.
 
 ## Model storage and swap
 
-Models and the Hugging Face hub cache live on dedicated XFS partitions, mounted by partition
-UUID in `modules/hardware/petunia/model-storage.nix`:
+`/data` is XFS on the LUKS2 volume `data` (`nvme1n1p3`, Micron 2400, 633 GiB), declared in
+`modules/hardware/petunia/encrypted-data.nix`. The Hugging Face hub cache, the prefix-cache
+kvcache (`/data/llm-cache`), and the other caches are directories on it, so conversation content
+is encrypted at rest. The models drive stays a separate unencrypted XFS mount, by partition UUID,
+in `modules/hardware/petunia/model-storage.nix`:
 
 | Mount | Device | Notes |
 |---|---|---|
 | `/data/huggingface/models` | Phison E12 (`nvme2n1p1`), whole drive, 477 GiB | The n-gram table is mmap'd from here, so a page fault reads 4 KiB instead of a 1 MiB ZFS record. |
-| `/data/huggingface/hub` | Micron 2400 (`nvme1n1p3`), 633 GiB | Source checkpoints. The NTFS "Data" partition (`nvme1n1p1`) was shrunk to 950 GiB to make room. |
+| `/data` | LUKS2 `data` on Micron 2400 (`nvme1n1p3`), 633 GiB | Hub cache, kvcache and the other caches. Public weights are not secret, but the cache holds conversations. |
 
 Both mounts use `noatime,nofail,x-systemd.device-timeout=10s`, and `services.fstrim` is on.
-The pool (`petunia/data`) keeps both directories as empty mount points. The prefix-cache
-kvcache stays under `/data/llm-cache` on the encrypted pool because it holds conversation
-content.
+`data` opens with `discard`, so fstrim reaches the drive through dm-crypt.
 
 Swap is zram first (zstd, 25% of RAM, priority 100) from the shared `core-zram-swap` module,
 with the 66 GiB random-key LUKS swap on the Micron (`nvme1n1p2`) as overflow at priority 10.

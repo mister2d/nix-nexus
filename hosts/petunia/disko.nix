@@ -1,6 +1,6 @@
 # Host: petunia (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.petunia-disko
-# Configures: ZFS-on-LUKS disk layout (root, nix, home, data, var datasets) via disko.
+# Configures: ZFS-on-LUKS disk layout (root, nix, home, var datasets) via disko.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
   flake.modules.nixos.petunia-disko = _: {
@@ -82,20 +82,6 @@ _: {
                 mountpoint = "legacy";
                 # Standard recordsize is good for general use and coding
                 recordsize = "128k";
-              };
-            };
-            # Specialized dataset for AI Models and Datasets (Large Files)
-            data = {
-              type = "zfs_fs";
-              mountpoint = "/data";
-              mountOptions = [ "nofail" ];
-              options = {
-                mountpoint = "legacy";
-                # Optimized for large sequential reads (Model Weights, Datasets)
-                recordsize = "1M";
-                # Large models are often already compressed or incompressible (weights),
-                # but lz4 handles this with negligible overhead.
-                compression = "lz4";
               };
             };
             var = {
