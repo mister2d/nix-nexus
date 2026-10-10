@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-10T18:36:57Z",
+  "recorded": "2026-10-10T18:58:04Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "52fb8ccc501195bd921f2500f1119a7aa44c973e",
-  "signoff": ".agents/signoff/2026-10-10-petunia-encrypted-data.md"
+  "signed_off_through": "62e269c762904707acc10c38ac5667c9dfcaec79",
+  "signoff": ".agents/signoff/2026-10-10-bifrost-nixos-tools-docs.md"
 }
