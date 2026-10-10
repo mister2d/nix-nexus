@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/g0jmj7nlsv5yqwaadh29ap9mqarijxbc-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/v1fygsyqw2xzj5n0lshcdcpmcl44c8zj-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/mw4fy0mc5h9pqg575a0zqzxhiprd1gzn-home-manager-generation.drv",
+      "drv": "/nix/store/v4gmhr84a3y36f9k5fri912rzg121q5p-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/z06hshg1lznlar1yyw52c82c6r87agby-home-manager-generation.drv",
+      "drv": "/nix/store/zbsc396pifxixs3pyvp24gxd19g98w3c-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/l5n66k0vaglpyz5bi1z84kk5mdn88983-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/f0vdmk39245cgmjy08144hidsc4vhawp-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/yf5v7sivqsxj0s6ysk1ldig99fy2m537-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/azskfhzwm5fd45icgdw2wq7b382j3bzw-nixos-system-petunia-26.11.20260922.6774f7b.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/9gwn8p5d87cy4qgc6dvkd5ayi8nzcrdw-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/s7a5qaf7c6fxsmiqnnrqbasn1plhc3w1-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-09T17:10:00Z",
+  "recorded": "2026-10-10T07:02:02Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "bd12f7649feb36e44c48d191eb3a405ef59a1684",
-  "signoff": ".agents/signoff/2026-10-09-tpm-agent-bad-cert-and-gpu-keep-awake.md"
+  "signed_off_through": "f2da584941ed7763dbf092805ace513b09ebde84",
+  "signoff": ".agents/signoff/2026-10-10-herdr-v0-9-3.md"
 }
