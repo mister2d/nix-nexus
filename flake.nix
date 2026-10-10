@@ -14,7 +14,7 @@
     # the nixpkgs-unstable input. rust-overlay is a herdr sub-input and
     # follows nixpkgs.
     herdr = {
-      url = "github:herdrdev/herdr/v0.9.0";
+      url = "github:herdrdev/herdr/v0.9.3";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
