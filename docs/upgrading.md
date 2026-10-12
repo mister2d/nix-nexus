@@ -163,6 +163,9 @@ upgrades the entire fleet to a new stable branch.
 > `https://nixos.org/manual/nixos/stable/release-notes`. Note any breaking
 > changes, renamed options, or modules that need configuration updates.
 
+On each major NixOS upgrade, compare `nixVersions.latest` to the Nix pin in
+`modules/core/nix.nix` and bump the pin deliberately.
+
 ### 1. Update release-tracked inputs in `flake.nix`
 
 Open `flake.nix`. Update every URL that contains the current release tag.
