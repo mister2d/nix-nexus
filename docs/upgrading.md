@@ -81,7 +81,7 @@ These inputs have no hard release coupling. Update them when you need new
 features or bug fixes from them:
 
 `flake-parts`, `import-tree`, `devenv`, `pre-commit-hooks`, `nixos-hardware`,
-`nix-devshell` (hermes only), `niri`, `dms`, `disko`,
+`nix-devshell` (hermes only), `niri`, `disko`,
 `nix-cachyos-kernel`
 
 ### Category 4 — Intentionally pinned inputs (do NOT update without review)
@@ -112,7 +112,7 @@ updates. It does not change the release.
 # Update all inputs except intentionally pinned ones:
 nix flake update nixpkgs pkgs-stable home-manager home-manager-unstable \
   nixpkgs-unstable nixvim flake-parts import-tree devenv pre-commit-hooks \
-  nixos-hardware nix-devshell niri dms disko \
+  nixos-hardware nix-devshell niri disko \
   nix-cachyos-kernel
 
 # Or update everything at once (includes pinned — review the diff carefully):
