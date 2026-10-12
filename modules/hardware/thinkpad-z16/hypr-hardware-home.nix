@@ -12,11 +12,15 @@ _: {
         ];
       };
 
+      # External display: ViewSonic VP3481 ultrawide, matched by EDID
+      # description so connector renumbering does not matter.
+      externalDisplay = "desc:ViewSonic Corporation VP3481 VR5193900227";
+
       # Workspaces 1-5 on the laptop panel, 6-10 on the external display.
       # The first workspace of each monitor is its default.
       workspaceRule = n: {
         workspace = toString n;
-        monitor = if n <= 5 then "eDP-1" else "DP-1";
+        monitor = if n <= 5 then "eDP-1" else externalDisplay;
         persistent = true;
       };
       workspaceRules = map (
@@ -27,11 +31,11 @@ _: {
       wayland.windowManager.hyprland.settings = {
         # ── Monitor Configuration ──────────────────────────────────────────
         # eDP-1: 3840×2400 OLED, scale 1.20, 10-bit output for HDR10.
-        # DP-1:  External ultrawide 3440×1440, to the right.
+        # External: ViewSonic VP3481 ultrawide 3440×1440, to the right.
         # Catchall: any other connected output at preferred mode.
         monitor = [
-          # DP-1 offset = 3840 / 1.20 = 3200 scaled units.
-          # @60 matches the EDID — the panel only reports 60.00Hz.
+          # External offset = 3840 / 1.20 = 3200 scaled units.
+          # @59.97 matches the EDID — the panel only reports 59.97Hz.
           {
             output = "eDP-1";
             mode = "3840x2400@60";
@@ -40,8 +44,8 @@ _: {
             bitdepth = 10;
           }
           {
-            output = "DP-1";
-            mode = "3440x1440@144";
+            output = externalDisplay;
+            mode = "3440x1440@59.97";
             position = "3200x0";
             scale = 1.0;
           }
