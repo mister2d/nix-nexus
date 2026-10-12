@@ -1,5 +1,5 @@
 # Registry key: flake.modules.homeManager.desktop-hyprland-home
-# Configures: Hyprland keybindings, workspace binds, and exec-once startup.
+# Configures: Hyprland keybindings, workspace binds, and startup commands (Lua config).
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
   flake.modules.homeManager.desktop-hyprland-home =
@@ -16,11 +16,26 @@ _: {
 
       mod = "SUPER";
 
-      # Noctalia IPC helper — produces the exec string for Hyprland bind directives.
-      # Hyprland's exec takes a plain string. niri's spawn takes listOf str.
+      luaStr = lib.generators.toLua { };
+      inherit (lib.generators) mkLuaInline;
+
+      # Noctalia IPC helper — produces the command string for hl.dsp.exec_cmd.
       noc = cmd: "noctalia msg ${cmd}";
 
       inherit (config.lib.stylix.colors) base05;
+
+      # hl.bind(keys, dispatcher, opts). `dsp` is a Lua expression.
+      mkBindRaw = keys: dsp: opts: {
+        _args = [
+          keys
+          (mkLuaInline dsp)
+        ]
+        ++ lib.optional (opts != { }) opts;
+      };
+      # Bind with the main modifier.
+      mkBind = keys: mkBindRaw "${mod} + ${keys}";
+
+      exec = cmd: "hl.dsp.exec_cmd(${luaStr cmd})";
 
       # Workspace switch + move binds for 1–10, generated to avoid repetition.
       # Workspace 10 uses key "0", matching sway's $mod+0 = workspace 10.
@@ -28,15 +43,66 @@ _: {
         lib.genList (
           i:
           let
-            num = i + 1;
-            key = if num == 10 then "0" else toString num;
+            num = toString (i + 1);
+            key = if i == 9 then "0" else num;
           in
           [
-            "${mod}, ${key}, workspace, ${toString num}"
-            "${mod} SHIFT, ${key}, movetoworkspace, ${toString num}"
+            (mkBind key "hl.dsp.focus({ workspace = ${num} })" { })
+            (mkBind "SHIFT + ${key}" "hl.dsp.window.move({ workspace = ${num} })" { })
           ]
         ) 10
       );
+
+      # Vim keys and arrow keys, each mapped to a Hyprland direction.
+      directions = {
+        h = "left";
+        j = "down";
+        k = "up";
+        l = "right";
+        left = "left";
+        down = "down";
+        up = "up";
+        right = "right";
+      };
+      focusBinds = lib.mapAttrsToList (
+        key: dir: mkBind key "hl.dsp.focus({ direction = \"${dir}\" })" { }
+      ) directions;
+      moveBinds = lib.mapAttrsToList (
+        key: dir: mkBind "SHIFT + ${key}" "hl.dsp.window.move({ direction = \"${dir}\" })" { }
+      ) directions;
+
+      mkEnv = name: value: {
+        _args = [
+          name
+          value
+        ];
+      };
+
+      startupCommands = [
+        # Noctalia: bar, launcher, notifications, wallpaper, polkit, OSD.
+        "noctalia"
+        # Network manager tray (Noctalia's tray widget hosts it).
+        "nm-applet --indicator"
+        # Clipboard history.
+        "${pkgs.wl-clipboard}/bin/wl-paste -t text --watch ${pkgs.clipman}/bin/clipman store --no-persist"
+        # Battery alert script.
+        "${customScripts.battery-alert}/bin/battery-alert"
+        # EasyEffects: two races to win —
+        # 1. WAYLAND_DISPLAY is not in the systemd env until the start hook runs,
+        #    so the service crashes on first start. reset-failed clears that.
+        # 2. Noctalia's StatusNotifierWatcher may not be on the session bus
+        #    yet. Poll until it is before restarting so the tray icon lands.
+        "bash -c 'until busctl --user status org.kde.StatusNotifierWatcher &>/dev/null; do sleep 0.2; done; systemctl --user reset-failed easyeffects.service; systemctl --user start easyeffects.service'"
+      ];
+
+      # Layer rule for a Noctalia surface: blur with transparent regions
+      # ignored so input does not bleed through.
+      noctaliaLayerRule = namespace: {
+        match.namespace = "^noctalia-${namespace}$";
+        blur = true;
+        ignore_alpha = 0.0;
+      };
+
       # Vivaldi from unstable, paired with the codecs build that exports
       # av_dynamic_hdr_smpte2094_app5_to_t35
       vivaldi = (pin.pinned inputs.nixpkgs-unstable).vivaldi.override {
@@ -55,7 +121,7 @@ _: {
         # its embedded hyprland input with this package regardless.
         package = (pin.pinned inputs.nixpkgs-unstable).hyprland;
         xwayland.enable = true;
-        configType = "hyprlang";
+        configType = "lua";
 
         systemd = {
           enable = true;
@@ -74,279 +140,399 @@ _: {
         };
 
         settings = {
-          # ── Variables ─────────────────────────────────────────────────────
-          "$mod" = mod;
-          "$terminal" = "${pkgs.kitty}/bin/kitty";
-          "$terminal2" = "${pkgs.ghostty}/bin/ghostty";
-
           # ── Environment variables ──────────────────────────────────────────
           env = [
-            "GDK_BACKEND,wayland"
-            "QT_QPA_PLATFORM,wayland;xcb"
-            "QT_WAYLAND_DISABLE_WINDOWDECORATION,1"
-            "ELECTRON_OZONE_PLATFORM_HINT,wayland"
-            "NIXOS_OZONE_WL,1"
-            "MOZ_ENABLE_WAYLAND,1"
-            "SDL_VIDEODRIVER,wayland"
-            "XDG_CURRENT_DESKTOP,Hyprland"
-            "XDG_SESSION_TYPE,wayland"
-            "XDG_SESSION_DESKTOP,Hyprland"
+            (mkEnv "GDK_BACKEND" "wayland")
+            (mkEnv "QT_QPA_PLATFORM" "wayland;xcb")
+            (mkEnv "QT_WAYLAND_DISABLE_WINDOWDECORATION" "1")
+            (mkEnv "ELECTRON_OZONE_PLATFORM_HINT" "wayland")
+            (mkEnv "NIXOS_OZONE_WL" "1")
+            (mkEnv "MOZ_ENABLE_WAYLAND" "1")
+            (mkEnv "SDL_VIDEODRIVER" "wayland")
+            (mkEnv "XDG_CURRENT_DESKTOP" "Hyprland")
+            (mkEnv "XDG_SESSION_TYPE" "wayland")
+            (mkEnv "XDG_SESSION_DESKTOP" "Hyprland")
           ];
 
           # ── Startup ───────────────────────────────────────────────────────
           # HM's systemd integration injects dbus-update-activation-environment
-          # and portal restart as exec-once entries before these. The Wayland
-          # environment is ready before any exec-once entry runs.
-          exec-once = [
-            # Noctalia: bar, launcher, notifications, wallpaper, polkit, OSD.
-            "noctalia"
-            # Network manager tray (Noctalia's tray widget hosts it).
-            "nm-applet --indicator"
-            # Clipboard history.
-            "${pkgs.wl-clipboard}/bin/wl-paste -t text --watch ${pkgs.clipman}/bin/clipman store --no-persist"
-            # Battery alert script.
-            "${customScripts.battery-alert}/bin/battery-alert"
-            # EasyEffects: two races to win —
-            # 1. WAYLAND_DISPLAY is not in the systemd env until exec-once runs,
-            #    so the service crashes on first start. reset-failed clears that.
-            # 2. Noctalia's StatusNotifierWatcher may not be on the session bus
-            #    yet. Poll until it is before restarting so the tray icon lands.
-            "bash -c 'until busctl --user status org.kde.StatusNotifierWatcher &>/dev/null; do sleep 0.2; done; systemctl --user reset-failed easyeffects.service; systemctl --user start easyeffects.service'"
-          ];
-
-          # ── General ───────────────────────────────────────────────────────
-          general = {
-            gaps_in = 5;
-            gaps_out = 10;
-            border_size = 2;
-            resize_on_border = true;
-            allow_tearing = false;
-            layout = "dwindle";
+          # and portal restart in its own hyprland.start hook. The Wayland
+          # environment is ready before any command here runs.
+          on = {
+            _args = [
+              "hyprland.start"
+              (mkLuaInline ''
+                function()
+                ${lib.concatMapStrings (cmd: "  hl.exec_cmd(${luaStr cmd})\n") startupCommands}end
+              '')
+            ];
           };
 
-          # ── Decoration ────────────────────────────────────────────────────
-          decoration = {
-            rounding = 10;
-            active_opacity = 1.0;
-            inactive_opacity = 1.0;
-            fullscreen_opacity = 1.0;
-
-            blur = {
-              enabled = false;
-              size = 8;
-              passes = 3;
-              new_optimizations = true;
-              xray = false;
-              ignore_opacity = true;
-              vibrancy = 0.15;
-              vibrancy_darkness = 0.5;
+          config = {
+            # ── General ─────────────────────────────────────────────────────
+            general = {
+              gaps_in = 5;
+              gaps_out = 10;
+              border_size = 2;
+              resize_on_border = true;
+              allow_tearing = false;
+              layout = "dwindle";
             };
 
-            shadow = {
-              enabled = false;
-              range = 8;
-              render_power = 3;
-              color_inactive = "rgba(00000033)";
+            # ── Decoration ──────────────────────────────────────────────────
+            decoration = {
+              rounding = 10;
+              active_opacity = 1.0;
+              inactive_opacity = 1.0;
+              fullscreen_opacity = 1.0;
+
+              blur = {
+                enabled = false;
+                size = 8;
+                passes = 3;
+                new_optimizations = true;
+                xray = false;
+                ignore_opacity = true;
+                vibrancy = 0.15;
+                vibrancy_darkness = 0.5;
+              };
+
+              shadow = {
+                enabled = false;
+                range = 8;
+                render_power = 3;
+                color_inactive = "rgba(00000033)";
+              };
+
+              dim_inactive = true;
+              dim_strength = 0.1;
             };
 
-            dim_inactive = true;
-            dim_strength = 0.1;
+            animations.enabled = true;
+
+            # ── Input ───────────────────────────────────────────────────────
+            input = {
+              kb_layout = "us";
+              repeat_delay = 300;
+              repeat_rate = 20;
+              touchpad = {
+                natural_scroll = true;
+                tap_to_click = true;
+                tap_and_drag = true;
+                drag_lock = false;
+                disable_while_typing = true;
+                middle_button_emulation = true;
+                clickfinger_behavior = true;
+                scroll_factor = 1.0;
+              };
+              follow_mouse = 1;
+              sensitivity = 0.0;
+              accel_profile = lib.mkDefault "adaptive";
+            };
+
+            # ── Gestures ────────────────────────────────────────────────────
+            gestures = {
+              workspace_swipe_invert = true;
+              workspace_swipe_min_speed_to_force = 30;
+            };
+
+            # ── Layout ──────────────────────────────────────────────────────
+            dwindle.preserve_split = true;
+            master.new_status = "master";
+
+            # ── Misc ────────────────────────────────────────────────────────
+            misc = {
+              force_default_wallpaper = 0;
+              disable_hyprland_logo = true;
+              disable_splash_rendering = true;
+              mouse_move_enables_dpms = true;
+              key_press_enables_dpms = true;
+              enable_swallow = true;
+              swallow_regex = "^(kitty|ghostty)$";
+            };
+
+            # ── Render / Color Management / HDR ─────────────────────────────
+            # INTENTIONALLY ABSENT HERE. These are display-hardware-specific
+            # (OLED HDR capability) and live in hardware-z16-hypr-home.nix.
           };
 
           # ── Animations ────────────────────────────────────────────────────
-          animations = {
-            enabled = true;
-            bezier = [
-              "myBezier, 0.05, 0.9, 0.1, 1.05"
-              "linear, 0.0, 0.0, 1.0, 1.0"
-              "easeOut, 0.0, 0.0, 0.2, 1.0"
-            ];
-            animation = [
-              "windows, 1, 4, myBezier"
-              "windowsOut, 1, 4, default, popin 80%"
-              "border, 1, 6, default"
-              "borderangle, 1, 8, linear, loop"
-              "fade, 1, 4, default"
-              "workspaces, 1, 4, easeOut, slide"
-              "layers, 1, 3, easeOut, slide"
-            ];
-          };
-
-          # ── Input ─────────────────────────────────────────────────────────
-          input = {
-            kb_layout = "us";
-            repeat_delay = 300;
-            repeat_rate = 20;
-            touchpad = {
-              natural_scroll = true;
-              tap-to-click = true;
-              tap-and-drag = true;
-              drag_lock = false;
-              disable_while_typing = true;
-              middle_button_emulation = true;
-              clickfinger_behavior = true;
-              scroll_factor = 1.0;
-            };
-            follow_mouse = 1;
-            sensitivity = 0.0;
-            accel_profile = lib.mkDefault "adaptive";
-          };
-
-          # ── Gestures ──────────────────────────────────────────────────────
-          gestures = {
-            workspace_swipe_invert = true;
-            workspace_swipe_min_speed_to_force = 30;
-          };
-
-          # ── Layout ────────────────────────────────────────────────────────
-          dwindle = {
-            preserve_split = true;
-          };
-          master.new_status = "master";
-
-          # ── Misc ──────────────────────────────────────────────────────────
-          misc = {
-            force_default_wallpaper = 0;
-            disable_hyprland_logo = true;
-            disable_splash_rendering = true;
-            mouse_move_enables_dpms = true;
-            key_press_enables_dpms = true;
-            enable_swallow = true;
-            swallow_regex = "^(kitty|ghostty)$";
-          };
-
-          # ── Render / Color Management / HDR ───────────────────────────────
-          # INTENTIONALLY ABSENT HERE. These are display-hardware-specific
-          # (OLED HDR capability) and live in hardware-z16-hypr-home.nix.
+          curve = [
+            {
+              _args = [
+                "myBezier"
+                {
+                  type = "bezier";
+                  points = [
+                    [
+                      0.05
+                      0.9
+                    ]
+                    [
+                      0.1
+                      1.05
+                    ]
+                  ];
+                }
+              ];
+            }
+            {
+              _args = [
+                "linear"
+                {
+                  type = "bezier";
+                  points = [
+                    [
+                      0.0
+                      0.0
+                    ]
+                    [
+                      1.0
+                      1.0
+                    ]
+                  ];
+                }
+              ];
+            }
+            {
+              _args = [
+                "easeOut"
+                {
+                  type = "bezier";
+                  points = [
+                    [
+                      0.0
+                      0.0
+                    ]
+                    [
+                      0.2
+                      1.0
+                    ]
+                  ];
+                }
+              ];
+            }
+          ];
+          animation = [
+            {
+              leaf = "windows";
+              enabled = true;
+              speed = 4;
+              bezier = "myBezier";
+            }
+            {
+              leaf = "windowsOut";
+              enabled = true;
+              speed = 4;
+              bezier = "default";
+              style = "popin 80%";
+            }
+            {
+              leaf = "border";
+              enabled = true;
+              speed = 6;
+              bezier = "default";
+            }
+            {
+              leaf = "borderangle";
+              enabled = true;
+              speed = 8;
+              bezier = "linear";
+              style = "loop";
+            }
+            {
+              leaf = "fade";
+              enabled = true;
+              speed = 4;
+              bezier = "default";
+            }
+            {
+              leaf = "workspaces";
+              enabled = true;
+              speed = 4;
+              bezier = "easeOut";
+              style = "slide";
+            }
+            {
+              leaf = "layers";
+              enabled = true;
+              speed = 3;
+              bezier = "easeOut";
+              style = "slide";
+            }
+          ];
 
           # ── Layer rules for Noctalia surfaces ─────────────────────────────
           # Noctalia publishes named wlr-layer-shell surfaces. These rules apply
           # blur and transparency effects via Hyprland's compositor pipeline.
-          # ignorezero: prevents input bleed-through behind transparent regions.
-          layerrule = [
-            "blur on, match:namespace ^noctalia-backdrop$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-backdrop$"
-            "blur on, match:namespace ^noctalia-bar-main$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-bar-main$"
-            "blur on, match:namespace ^noctalia-notification$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-notification$"
-            "blur on, match:namespace ^noctalia-panel$"
-            "ignore_alpha 0.0, match:namespace ^noctalia-panel$"
+          layer_rule = map noctaliaLayerRule [
+            "backdrop"
+            "bar-main"
+            "notification"
+            "panel"
           ];
 
           # ── Window rules ──────────────────────────────────────────────────
-          windowrule = [
-            "float on, match:class ^(.*)$, match:title ^(Open File|Open Folder|Save File|Save As)$"
-            "float on, match:class ^(pavucontrol)$"
-            "float on, match:class ^(nm-connection-editor)$"
-            "float on, match:class ^(wdisplays)$"
-            "immediate on, match:fullscreen 1"
-            "immediate on, match:class ^(steam_app_).*$"
-            "float on, match:class ^(steam)$, match:title ^(Steam)$"
-            "size 850 640, match:class ^(steam)$, match:title ^(Steam)$"
-            "float on, match:class ^(steam)$, match:title ^(Friends List)$"
-            "size 300 650, match:class ^(steam)$, match:title ^(Friends List)$"
+          window_rule = [
+            {
+              match = {
+                class = "^(.*)$";
+                title = "^(Open File|Open Folder|Save File|Save As)$";
+              };
+              float = true;
+            }
+            {
+              match.class = "^(pavucontrol)$";
+              float = true;
+            }
+            {
+              match.class = "^(nm-connection-editor)$";
+              float = true;
+            }
+            {
+              match.class = "^(wdisplays)$";
+              float = true;
+            }
+            {
+              match.fullscreen = true;
+              immediate = true;
+            }
+            {
+              match.class = "^(steam_app_).*$";
+              immediate = true;
+            }
+            {
+              match = {
+                class = "^(steam)$";
+                title = "^(Steam)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                class = "^(steam)$";
+                title = "^(Steam)$";
+              };
+              size = [
+                850
+                640
+              ];
+            }
+            {
+              match = {
+                class = "^(steam)$";
+                title = "^(Friends List)$";
+              };
+              float = true;
+            }
+            {
+              match = {
+                class = "^(steam)$";
+                title = "^(Friends List)$";
+              };
+              size = [
+                300
+                650
+              ];
+            }
           ];
 
           # ── Keybindings ───────────────────────────────────────────────────
           # Noctalia owns: panels, volume, brightness, screenshots, session.
           bind = [
             # ── Noctalia panels ──
-            "$mod, D, exec, ${noc "panel-toggle launcher"}"
-            "$mod, S, exec, ${noc "panel-toggle control-center"}"
-            "$mod, COMMA, exec, ${noc "settings-toggle"}"
-            "$mod, Escape, exec, ${noc "panel-toggle session"}"
-            "$mod SHIFT, L, exec, ${noc "session lock"}"
+            (mkBind "D" (exec (noc "panel-toggle launcher")) { })
+            (mkBind "S" (exec (noc "panel-toggle control-center")) { })
+            (mkBind "COMMA" (exec (noc "settings-toggle")) { })
+            (mkBind "Escape" (exec (noc "panel-toggle session")) { })
+            (mkBind "SHIFT + L" (exec (noc "session lock")) { })
 
             # ── Applications ──
-            "$mod, RETURN, exec, $terminal"
-            "$mod SHIFT, RETURN, exec, $terminal2"
-            "$mod SHIFT, B, exec, ${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi'"
-            "$mod CTRL, B, exec, google-chrome-stable --ozone-platform=wayland"
-            "$mod SHIFT, D, exec, ${pkgs.wdisplays}/bin/wdisplays"
-            "$mod SHIFT, A, exec, audio-selector sink"
-            "$mod SHIFT, M, exec, audio-selector source"
-            "$mod ALT, E, exec, ${pkgs.bash}/bin/bash -c 'BEMOJI_PICKER_CMD=\"${pkgs.fuzzel}/bin/fuzzel --dmenu --width 40 --lines 10\" ${pkgs.bemoji}/bin/bemoji -n -c'"
-            "$mod SHIFT, V, exec, ${vivaldi}/bin/vivaldi --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported"
+            (mkBind "RETURN" (exec "${pkgs.kitty}/bin/kitty") { })
+            (mkBind "SHIFT + RETURN" (exec "${pkgs.ghostty}/bin/ghostty") { })
+            (mkBind "SHIFT + B"
+              (exec "${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi'")
+              { }
+            )
+            (mkBind "CTRL + B" (exec "google-chrome-stable --ozone-platform=wayland") { })
+            (mkBind "SHIFT + D" (exec "${pkgs.wdisplays}/bin/wdisplays") { })
+            (mkBind "SHIFT + A" (exec "audio-selector sink") { })
+            (mkBind "SHIFT + M" (exec "audio-selector source") { })
+            (mkBind "ALT + E"
+              (exec "${pkgs.bash}/bin/bash -c 'BEMOJI_PICKER_CMD=\"${pkgs.fuzzel}/bin/fuzzel --dmenu --width 40 --lines 10\" ${pkgs.bemoji}/bin/bemoji -n -c'")
+              { }
+            )
+            (mkBind "SHIFT + V"
+              (exec "${vivaldi}/bin/vivaldi --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported")
+              { }
+            )
 
             # ── Window management ──
-            "$mod, Q, killactive"
-            "$mod SHIFT, E, exit"
-            "$mod, F, fullscreen"
-            "$mod SHIFT, SPACE, togglefloating"
-            "$mod, P, pseudo"
-            "$mod, E, layoutmsg, togglesplit"
-            "$mod, R, submap, resize"
-
-            # ── Focus — Vim keys ──
-            "$mod, h, movefocus, l"
-            "$mod, j, movefocus, d"
-            "$mod, k, movefocus, u"
-            "$mod, l, movefocus, r"
-
-            # ── Focus — Arrow keys ──
-            "$mod, left, movefocus, l"
-            "$mod, down, movefocus, d"
-            "$mod, up, movefocus, u"
-            "$mod, right, movefocus, r"
-
-            # ── Move — Vim keys ──
-            "$mod SHIFT, h, movewindow, l"
-            "$mod SHIFT, j, movewindow, d"
-            "$mod SHIFT, k, movewindow, u"
-            "$mod SHIFT, l, movewindow, r"
-
-            # ── Move — Arrow keys ──
-            "$mod SHIFT, left, movewindow, l"
-            "$mod SHIFT, down, movewindow, d"
-            "$mod SHIFT, up, movewindow, u"
-            "$mod SHIFT, right, movewindow, r"
+            (mkBind "Q" "hl.dsp.window.close()" { })
+            (mkBind "SHIFT + E" "hl.dsp.exit()" { })
+            (mkBind "F" "hl.dsp.window.fullscreen({ mode = \"fullscreen\", action = \"toggle\" })" { })
+            (mkBind "SHIFT + SPACE" "hl.dsp.window.float({ action = \"toggle\" })" { })
+            (mkBind "P" "hl.dsp.window.pseudo()" { })
+            (mkBind "E" "hl.dsp.layout(\"togglesplit\")" { })
+            (mkBind "R" "hl.dsp.submap(\"resize\")" { })
 
             # ── Screenshots — Noctalia handles capture and clipboard ──
-            ", Print, exec, ${noc "screenshot-region"}"
-            "SHIFT, Print, exec, ${noc "screenshot-fullscreen"}"
+            (mkBindRaw "Print" (exec (noc "screenshot-region")) { })
+            (mkBindRaw "SHIFT + Print" (exec (noc "screenshot-fullscreen")) { })
           ]
-          ++ wsBinds;
-
+          # Focus and move — Vim keys and arrow keys.
+          ++ focusBinds
+          ++ moveBinds
+          ++ wsBinds
           # Mouse binds
-          bindm = [
-            "$mod, mouse:272, movewindow"
-            "$mod, mouse:273, resizewindow"
-          ];
-
+          ++ [
+            (mkBind "mouse:272" "hl.dsp.window.drag()" { mouse = true; })
+            (mkBind "mouse:273" "hl.dsp.window.resize()" { mouse = true; })
+          ]
           # Repeat binds — Noctalia owns volume and brightness OSD
-          binde = [
-            ", XF86AudioRaiseVolume, exec, ${noc "volume-up"}"
-            ", XF86AudioLowerVolume, exec, ${noc "volume-down"}"
-            ", XF86MonBrightnessUp, exec, ${noc "brightness-up"}"
-            ", XF86MonBrightnessDown, exec, ${noc "brightness-down"}"
-          ];
-
+          ++ [
+            (mkBindRaw "XF86AudioRaiseVolume" (exec (noc "volume-up")) { repeating = true; })
+            (mkBindRaw "XF86AudioLowerVolume" (exec (noc "volume-down")) { repeating = true; })
+            (mkBindRaw "XF86MonBrightnessUp" (exec (noc "brightness-up")) { repeating = true; })
+            (mkBindRaw "XF86MonBrightnessDown" (exec (noc "brightness-down")) { repeating = true; })
+          ]
           # Locked binds (active on lockscreen)
-          bindl = [
+          ++ [
             # Noctalia owns mute OSD
-            ", XF86AudioMute, exec, ${noc "volume-mute"}"
+            (mkBindRaw "XF86AudioMute" (exec (noc "volume-mute")) { locked = true; })
             # Mic mute: no Noctalia IPC. pamixer handles this directly.
-            ", XF86AudioMicMute, exec, ${pkgs.pamixer}/bin/pamixer --default-source -t"
+            (mkBindRaw "XF86AudioMicMute" (exec "${pkgs.pamixer}/bin/pamixer --default-source -t") {
+              locked = true;
+            })
           ];
         };
 
-        # Resize submap (raw hyprlang, cleaner than settings.submaps for this).
-        extraConfig = ''
-          submap = resize
-          binde = , right,  resizeactive, 20 0
-          binde = , left,   resizeactive, -20 0
-          binde = , up,     resizeactive, 0 -20
-          binde = , down,   resizeactive, 0 20
-          binde = , l,      resizeactive, 20 0
-          binde = , h,      resizeactive, -20 0
-          binde = , k,      resizeactive, 0 -20
-          binde = , j,      resizeactive, 0 20
-          bind  = , escape, submap, reset
-          bind  = , return, submap, reset
-          bind  = $mod, R,  submap, reset
-          submap = reset
-        '';
+        # ── Resize submap ───────────────────────────────────────────────────
+        submaps.resize.settings.bind = [
+          (mkBindRaw "right" "hl.dsp.window.resize({ x = 20, y = 0, relative = true })" {
+            repeating = true;
+          })
+          (mkBindRaw "left" "hl.dsp.window.resize({ x = -20, y = 0, relative = true })" {
+            repeating = true;
+          })
+          (mkBindRaw "up" "hl.dsp.window.resize({ x = 0, y = -20, relative = true })" {
+            repeating = true;
+          })
+          (mkBindRaw "down" "hl.dsp.window.resize({ x = 0, y = 20, relative = true })" {
+            repeating = true;
+          })
+          (mkBindRaw "l" "hl.dsp.window.resize({ x = 20, y = 0, relative = true })" { repeating = true; })
+          (mkBindRaw "h" "hl.dsp.window.resize({ x = -20, y = 0, relative = true })" {
+            repeating = true;
+          })
+          (mkBindRaw "k" "hl.dsp.window.resize({ x = 0, y = -20, relative = true })" {
+            repeating = true;
+          })
+          (mkBindRaw "j" "hl.dsp.window.resize({ x = 0, y = 20, relative = true })" { repeating = true; })
+          (mkBindRaw "escape" "hl.dsp.submap(\"reset\")" { })
+          (mkBindRaw "return" "hl.dsp.submap(\"reset\")" { })
+          (mkBind "R" "hl.dsp.submap(\"reset\")" { })
+        ];
       };
 
       # -----------------------------------------------------------------------

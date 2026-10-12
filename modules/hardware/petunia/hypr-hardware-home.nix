@@ -4,6 +4,14 @@
 _: {
   flake.modules.homeManager.hardware-petunia-hypr-home =
     { lib, ... }:
+    let
+      mkEnv = name: value: {
+        _args = [
+          name
+          value
+        ];
+      };
+    in
     {
       wayland.windowManager.hyprland.settings = {
         # ── Monitor Configuration ──────────────────────────────────────────
@@ -11,23 +19,36 @@ _: {
         # Preferred mode lets Hyprland use each display's native resolution.
         # Verify connector names after first boot: hyprctl monitors
         monitor = [
-          "DP-3,preferred,0x0,1"
-          "DP-4,preferred,auto-right,1"
-          ",preferred,auto,1"
+          {
+            output = "DP-3";
+            mode = "preferred";
+            position = "0x0";
+            scale = 1;
+          }
+          {
+            output = "DP-4";
+            mode = "preferred";
+            position = "auto-right";
+            scale = 1;
+          }
+          {
+            output = "";
+            mode = "preferred";
+            position = "auto";
+            scale = 1;
+          }
         ];
 
         # ── AMD GPU Environment ───────────────────────────────────────────
         # Additive to the env list in desktop-hyprland-home.nix.
         env = lib.mkAfter [
-          "LIBVA_DRIVER_NAME,radeonsi"
-          "VDPAU_DRIVER,radeonsi"
+          (mkEnv "LIBVA_DRIVER_NAME" "radeonsi")
+          (mkEnv "VDPAU_DRIVER" "radeonsi")
         ];
 
         # ── Input Overrides ───────────────────────────────────────────────
         # Desktop workstation: flat mouse acceleration, no touchpad overrides.
-        input = {
-          accel_profile = "flat";
-        };
+        config.input.accel_profile = "flat";
       };
 
       home.sessionVariables = {
