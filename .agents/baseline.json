@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/v1fygsyqw2xzj5n0lshcdcpmcl44c8zj-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/xkbir0xk81s4dhba6i65ck6cwcb8kqqj-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/v4gmhr84a3y36f9k5fri912rzg121q5p-home-manager-generation.drv",
+      "drv": "/nix/store/j310x4nlqnq8xfsa98yq2jza1r6l7bip-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/zbsc396pifxixs3pyvp24gxd19g98w3c-home-manager-generation.drv",
+      "drv": "/nix/store/dn9b2j2ani9adg1m2xadiaj9kxvc5xn2-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/f0vdmk39245cgmjy08144hidsc4vhawp-nixos-system-unnamed-lxc-proxmox-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/540wd8fc9n7w68rniwnxryzk50viggic-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/5y1pz3g9s69g9i8lrj4yhlzyn21r0cwl-nixos-system-petunia-26.11.20260922.6774f7b.drv",
+      "drv": "/nix/store/1s4fa6a2nz93f5df0g7s39lx59cck2kh-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/s7a5qaf7c6fxsmiqnnrqbasn1plhc3w1-nixos-system-sweet16-26.05.20260717.293d6ab.drv",
+      "drv": "/nix/store/1ybjrfm66fcbi28zh9k42gd0yzwldl50-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-10T18:58:04Z",
+  "recorded": "2026-10-12T14:20:43Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "62e269c762904707acc10c38ac5667c9dfcaec79",
-  "signoff": ".agents/signoff/2026-10-10-bifrost-nixos-tools-docs.md"
+  "signed_off_through": "f1a596d0700ea9a0facb092e2141dc04365d76d1",
+  "signoff": ".agents/signoff/2026-10-12-full-flake-update-hyprland-lua.md"
 }
