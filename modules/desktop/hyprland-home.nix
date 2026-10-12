@@ -374,6 +374,13 @@ _: {
 
           # ── Window rules ──────────────────────────────────────────────────
           window_rule = [
+            # Clients such as kitty request maximize on start; Hyprland would
+            # otherwise honor it and overlay siblings instead of tiling.
+            {
+              name = "suppress-maximize-events";
+              match.class = ".*";
+              suppress_event = "maximize";
+            }
             {
               match = {
                 class = "^(.*)$";
