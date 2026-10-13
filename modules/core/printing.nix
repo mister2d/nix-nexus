@@ -5,10 +5,17 @@
 # (ipp://print-server.service.consul:631), which spools jobs even while the
 # physical printer is off. Printer provisioning uses nixpkgs' own mechanism:
 # systemd.services.cups (ExecStartPost) on nixpkgs 26.11+ (petunia), and a
-# separate ensure-printers.service on nixpkgs 26.05 (sweet16).
+# separate ensure-printers.service on nixpkgs 26.05 (sweet16). Both units wait
+# for network-online.target and retry every 10s for about a minute, so the
+# Consul DNS name can resolve late in boot.
 _: {
   flake.modules.nixos.core-printing =
-    { pkgs, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     {
       services = {
         printing = {
@@ -32,7 +39,28 @@ _: {
         };
       };
 
-      systemd.services.cups.aliases = [ "printing.service" ];
+      systemd.services =
+        let
+          retryUntilOnline = {
+            wants = [ "network-online.target" ];
+            after = [ "network-online.target" ];
+            startLimitIntervalSec = 120;
+            startLimitBurst = 10;
+            serviceConfig.RestartSec = 10;
+          };
+        in
+        {
+          cups = retryUntilOnline // {
+            aliases = [ "printing.service" ];
+          };
+        }
+        // lib.optionalAttrs (lib.versionOlder config.system.nixos.release "26.11") {
+          ensure-printers = retryUntilOnline // {
+            serviceConfig = retryUntilOnline.serviceConfig // {
+              Restart = "on-failure";
+            };
+          };
+        };
 
       hardware.printers = {
         ensurePrinters = [
