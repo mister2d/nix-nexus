@@ -1,26 +1,17 @@
 # Registry key: flake.modules.homeManager.user-ceph-mount
-# Configures: the ceph_mount_ctl script and its pinned Ceph package set.
+# Configures: the ceph_mount_ctl script.
 # Imported by: modules/user/home.nix (user-home).
 _: {
   flake.modules.homeManager.user-ceph-mount =
-    {
-      pkgs,
-      inputs,
-      ...
-    }:
+    { pkgs, ... }:
 
     let
-      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
-
-      # Ceph packages from pinned input for stability
-      ceph-pkgs = pin.pinned inputs.pkgs-ceph;
-
       ceph-mount-ctl = pkgs.writeShellApplication {
         name = "ceph_mount_ctl";
         runtimeInputs = with pkgs; [
           jq
-          ceph-pkgs.ceph # Provides 'ceph-fuse'
-          ceph-pkgs.ceph-client # Provides 'ceph', 'rados', 'rbd' and other essential tools
+          ceph # Provides 'ceph-fuse'
+          ceph-client # Provides 'ceph', 'rados', 'rbd' and other essential tools
           pass
           util-linux
           fuse # Provides 'fusermount'

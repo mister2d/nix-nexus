@@ -23,14 +23,12 @@ _: {
       mqtt-explorer-pkg = unstable-pkgs.mqtt-explorer;
       super-slicer-pkg = unstable-pkgs.super-slicer;
       prusa-slicer-pkg = unstable-pkgs.prusa-slicer;
-      vlc-pkg = (pin.pinned inputs.pkgs-vlc).vlc;
+      vlc-pkg = unstable-pkgs.vlc;
       signalbackup-tools-pkg = unstable-pkgs.signalbackup-tools;
 
-      # Vivaldi from unstable, paired with the codecs build that exports
-      # av_dynamic_hdr_smpte2094_app5_to_t35
+      # Vivaldi from unstable with proprietary codecs
       vivaldi = unstable-pkgs.vivaldi.override {
         proprietaryCodecs = true;
-        inherit (pin.pinned inputs.pkgs-vivaldi-codecs) vivaldi-ffmpeg-codecs;
       };
 
       # Handle slicer conflicts by joining them with symlinkJoin

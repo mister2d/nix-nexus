@@ -103,11 +103,9 @@ _: {
         ignore_alpha = 0.0;
       };
 
-      # Vivaldi from unstable, paired with the codecs build that exports
-      # av_dynamic_hdr_smpte2094_app5_to_t35
+      # Vivaldi from unstable with proprietary codecs
       vivaldi = (pin.pinned inputs.nixpkgs-unstable).vivaldi.override {
         proprietaryCodecs = true;
-        inherit (pin.pinned inputs.pkgs-vivaldi-codecs) vivaldi-ffmpeg-codecs;
       };
     in
     {

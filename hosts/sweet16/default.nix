@@ -5,7 +5,6 @@ _: {
   flake.modules.nixos.sweet16-default =
     {
       pkgs,
-      inputs,
       nixosModules,
       ...
     }:
@@ -114,20 +113,13 @@ _: {
         hugepageMode = "madvise";
       };
 
-      environment.systemPackages =
-        let
-          pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
-
-          # Use pinned Ceph input for consistency
-          ceph-pkgs = pin.pinned inputs.pkgs-ceph;
-        in
-        [
-          # Ceph Integration:
-          # - ceph: Provides 'ceph-fuse' for user-space mounts
-          # - ceph-client: Provides 'ceph', 'rados', 'rbd' and other essential tools
-          ceph-pkgs.ceph
-          ceph-pkgs.ceph-client
-        ];
+      environment.systemPackages = [
+        # Ceph Integration:
+        # - ceph: Provides 'ceph-fuse' for user-space mounts
+        # - ceph-client: Provides 'ceph', 'rados', 'rbd' and other essential tools
+        pkgs.ceph
+        pkgs.ceph-client
+      ];
 
       # Host ID for ZFS (needs to be unique and persistent)
       networking.hostId = "efca0213";
