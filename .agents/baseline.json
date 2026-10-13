@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/pqh9627x7i3zzlbddkw13nsb973hspwz-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/b5p2bxndgnr1gyb2pkiad64d9kq49pfq-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/dvdwnlw9ym8bw94qy6q1jscfnjcwv2z7-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/hkh8367mz34zsdml956zrsdsc0hxdzbg-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-13T06:47:40Z",
+  "recorded": "2026-10-13T08:00:15Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "807334455395068e8d94fe04b8dc40933cf2555f",
-  "signoff": ".agents/signoff/2026-10-13-cups-network-online.md"
+  "signed_off_through": "73f7982cacae3fdb0bf121b266f3f2a14d37dda9",
+  "signoff": ".agents/signoff/2026-10-13-unpin-vlc-ceph-vivaldi-codecs.md"
 }
