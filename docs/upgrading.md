@@ -92,8 +92,6 @@ available at the new commit. Update the inline comment too:
 
 | Input | Pinned for |
 |---|---|
-| `pkgs-vlc` | vlc |
-| `pkgs-ceph` | ceph |
 | `nixpkgs-chrome` | google-chrome (specific version) |
 
 See `docs/packages.md` for the pinned version details.
@@ -201,7 +199,7 @@ nix flake update nixpkgs pkgs-stable home-manager nixvim
 ```
 
 This resolves the new branch heads. It writes them to `flake.lock`. The
-intentionally pinned inputs, such as `pkgs-vlc` and `pkgs-ceph`,
+intentionally pinned inputs, such as `nixpkgs-chrome`,
 stay untouched.
 
 ### 3. Evaluate the full tree

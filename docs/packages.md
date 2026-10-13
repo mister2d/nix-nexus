@@ -12,7 +12,7 @@ instead of installing them in the user environment. See
 ## System Integration & Storage
 | Package | Version | Description | Use Case |
 |:---:|:---:|:--- |:--- |
-| **Ceph-Client** | 19.2.3 | Native Ceph storage client. | Enabling the host to mount and interact with Ceph storage clusters. |
+| **Ceph-Client** | 20.2.4 | Native Ceph storage client. | Enabling the host to mount and interact with Ceph storage clusters. |
 | **IPMITool** | Unstable | IPMI management utility. | Out-of-band management of server hardware. |
 | **Signalbackup-Tools** | Unstable | Signal backup utility. | Inspecting and exporting Signal backups. |
 
@@ -56,13 +56,13 @@ Some packages come from the primary NixOS repository, for example `tmux`, `git`,
 *   **Command:** `nix flake update nixpkgs`
 
 #### Scenario C: Updating a Hard-Pinned Version
-Some packages are hard pinned, for example `vlc` and `ceph`. A hard-pinned input points to one fixed commit. It never moves on its own. Update it by changing the commit hash in `flake.nix` by hand.
+Some packages are hard pinned, for example `google-chrome`. A hard-pinned input points to one fixed commit. It never moves on its own. Update it by changing the commit hash in `flake.nix` by hand.
 1.  Find the new hash on [NixHub.io](https://www.nixhub.io).
 2.  Update `flake.nix`:
     ```nix
-    pkgs-vlc.url = "github:nixos/nixpkgs/<NEW_COMMIT_HASH>";
+    nixpkgs-chrome.url = "github:nixos/nixpkgs/<NEW_COMMIT_HASH>";
     ```
-3.  Run: `nix flake update pkgs-vlc`
+3.  Run: `nix flake update nixpkgs-chrome`
 
 Pins for developer tooling (`nomad`, `terraform`, `vault`, and so on) are
 maintained in the nix-devshell repository, not here.
