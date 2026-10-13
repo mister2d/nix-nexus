@@ -13,6 +13,10 @@ judgment calls. See `AGENTS.md` §12.
 All closure comparisons use clean `git+file:$PWD?rev=<rev>#...` evaluations
 of a committed rev. They never use the dirty working tree.
 
+Run every script from the repository root, as `.agents/scripts/<name>.sh`.
+The eval helper builds the flake URL from `$PWD`, so a script started from
+inside `.agents/scripts/` reports EVAL_FAILURE for every config.
+
 `groot@rk3588` (aarch64) reports `N/A` on non-aarch64 hosts. This is not a
 failure.
 
