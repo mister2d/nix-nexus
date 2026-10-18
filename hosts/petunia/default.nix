@@ -1,6 +1,6 @@
 # Host: petunia (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.petunia-default
-# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap.
+# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities.
 _: {
   flake.modules.nixos.petunia-default =
     { nixosModules, ... }:
@@ -20,6 +20,9 @@ _: {
         # inactive, so PCR 7 is meaningless). Accepted risk on a
         # physically-controlled desktop — see docs/secrets.md.
         nixosModules.core-tpm2
+
+        # Fixed-uid agent identities (pdh-pi, agent) with no TPM access
+        nixosModules.core-agent-identities
 
         # Core System Profile (Every machine gets this)
         nixosModules.workstation-default
