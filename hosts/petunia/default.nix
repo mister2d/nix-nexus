@@ -1,6 +1,6 @@
 # Host: petunia (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.petunia-default
-# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore.
+# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore, core-agent-ssh-target.
 _: {
   flake.modules.nixos.petunia-default =
     { nixosModules, ... }:
@@ -26,6 +26,9 @@ _: {
 
         # TPM2-sealed credential directory and delivery self-test
         nixosModules.core-credstore
+
+        # Certificate-only restricted SSH login for the agent identity
+        nixosModules.core-agent-ssh-target
 
         # Core System Profile (Every machine gets this)
         nixosModules.workstation-default
