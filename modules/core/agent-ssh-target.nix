@@ -12,9 +12,14 @@ _: {
       trusted = config.nix.settings.trusted-users;
     in
     {
-      environment.etc."ssh/authorized_principals.d/agent".text = ''
-        agent
-      '';
+      # A copied file (mode != symlink), not the default /etc/static symlink into /nix/store: sshd StrictModes
+      # refuses a principals file whose resolved path crosses the group-writable /nix/store directory.
+      environment.etc."ssh/authorized_principals.d/agent" = {
+        mode = "0644";
+        text = ''
+          agent
+        '';
+      };
 
       services.openssh.extraConfig = lib.mkAfter ''
         Match User agent
