@@ -1,5 +1,5 @@
 # Flake assembly for petunia. Sets flake.nixosConfigurations.petunia.
-# Composes overlays-global, sops, disko, nixos-hardware AMD/SSD modules, petunia-default, home-manager-unstable, stylix-unstable, hm-ddukes-petunia.
+# Composes overlays-global, sops, disko, nixos-hardware AMD/SSD modules, petunia-default, home-manager-unstable, stylix-unstable, hm-ddukes-petunia, hm-agent-petunia.
 { inputs, config, ... }:
 let
   homeManagerModules = config.flake.modules.homeManager;
@@ -25,6 +25,7 @@ in
       inputs.home-manager-unstable.nixosModules.home-manager
       inputs.stylix-unstable.nixosModules.stylix
       nixos.hm-ddukes-petunia
+      nixos.hm-agent-petunia
     ];
   };
 }
