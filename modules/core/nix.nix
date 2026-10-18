@@ -6,8 +6,40 @@ let
 in
 _: {
   flake.modules.nixos.core-nix =
-    { pkgs, ... }:
     {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
+    let
+      cacheSettings = [
+        "substituters"
+        "extra-substituters"
+        "trusted-substituters"
+        "trusted-public-keys"
+        "extra-trusted-public-keys"
+      ];
+      bannedCache = [
+        "xuyh0120"
+        "lantian"
+      ];
+      offenders = lib.concatMap (
+        name:
+        builtins.filter (entry: lib.any (b: lib.hasInfix b entry) bannedCache) (
+          config.nix.settings.${name} or [ ]
+        )
+      ) cacheSettings;
+    in
+    {
+      # Fails evaluation if the compromised CachyOS cache is configured.
+      assertions = [
+        {
+          assertion = offenders == [ ];
+          message = "Compromised binary cache configured (attic.xuyh0120.win/lantian, reported 2026-10-18, see docs/cachyos-kernel.md): ${builtins.concatStringsSep ", " offenders}";
+        }
+      ];
+
       nix.package = pkgs.nixVersions.nix_2_35;
 
       nix.settings = {
