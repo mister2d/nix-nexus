@@ -41,10 +41,13 @@ The TPM is never reachable by these identities. On both hosts
 tss user defaults to root). Only `tss` members, such as users in
 `nix-nexus.tpm2.users`, can open it. A service holding sealed credentials
 gets them from PID 1 through `LoadCredentialEncrypted=` and needs no device
-access. The pi-durable unit already sets `PrivateDevices=true`.
+access. pi-durable cannot use that path, so a root unseal unit (see
+"Sealed delivery to pi-durable") holds the TPM access instead. The
+pi-durable unit already sets `PrivateDevices=true`.
 
 Residual exposure: the service must hold the unsealed secret_id in memory
-and in `/run/credentials/<unit>` (tmpfs, readable only by the unit). Root
+and as a file on tmpfs (`/run/credstore-unsealed/<name>`, root-0600, read by
+PID 1 and passed on via `/run/credentials/<unit>`). Root
 on the host is out of scope. Limit the blast radius on the Vault side
 (vault-config repo, not part of this repository): bind `secret_id_bound_cidrs`
 and `token_bound_cidrs` to the host addresses, set a finite `secret_id_ttl`
@@ -92,17 +95,53 @@ visible inside the unit. Confirm the attempt did not move the lockout
 counter: compare `tpm2_getcap properties-variable` before and after.
 Delete the blob afterwards.
 
-## Open design gap: sealed delivery to pi-durable
+## Sealed delivery to pi-durable
 
-The pi-durable module delivers every credential with plain
-`LoadCredential=` file paths and never uses `LoadCredentialEncrypted=`.
-Systemd list values concatenate, so adding a `LoadCredentialEncrypted`
-entry on the host sits beside the plain secret_id entry and does not
-replace it. Sealed delivery needs either a host override of
-`serviceConfig.LoadCredential` or an upstream pi-durable change. Until this
-is resolved, the plain credential file must be a root-owned file outside the
-Nix store, and the TPM isolation argument applies only to credentials
-delivered through the credstore.
+The pi-durable module delivers every credential with plain `LoadCredential=`
+file paths read by PID 1 as root, and never uses `LoadCredentialEncrypted=`.
+Systemd list values concatenate, so a host-side `LoadCredentialEncrypted`
+entry would sit beside the plain entry rather than replace it.
+
+`nix-nexus.secrets.credstore.unseal.<name>` bridges the two. Each entry
+defines `credstore-unseal-<name>.service`, a root oneshot with
+`RemainAfterExit` that runs `systemd-creds decrypt --name=<credentialName>`
+on the sealed blob and writes `/run/credstore-unsealed/<name>` (mode 0600,
+tmpfs, atomic rename). The unit has TPM access (no `PrivateDevices`), an
+empty capability bounding set, `ProtectSystem=strict`, and only
+`/run/credstore-unsealed` writable. `ExecStop` removes the file. Every unit
+in `consumers` gains `requires` and `after` on the unseal unit, and the
+unseal unit is `partOf` the consumers, so stopping or restarting a consumer
+removes and recreates the plaintext. The blob defaults to
+`/var/lib/credstore.encrypted/<name>` and `credentialName` defaults to
+`<name>`; an assertion requires `credentialName` to equal the blob file
+name, matching `seal-credential NAME`.
+
+pi-durable `credentials.secretIdFile` must point at
+`/run/credstore-unsealed/<name>`. Future host snippet:
+
+```nix
+services.pi-durable = {
+  enable = true;
+  vault.addr = "https://vault.example:8200";
+  instances.pi = {
+    # model.name, ssh.host and ssh.knownHosts as required
+    credentials = {
+      roleIdFile = "/var/lib/pi-durable-pi/role_id";
+      secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
+      databaseUrlFile = "/var/lib/pi-durable-pi/database_url";
+      socketTokenFile = "/var/lib/pi-durable-pi/socket_token";
+    };
+  };
+};
+nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [ "pi-durable-pi.service" ];
+```
+
+Residual: while the consumer is up the plaintext sits root-0600 on tmpfs in
+`/run/credstore-unsealed`, which is equivalent to the exposure of
+`/run/credentials/<unit>`. Root on the host remains out of scope. An
+upstream pi-durable `secretIdEncryptedFile` option (delivering via
+`LoadCredentialEncrypted=`) would be the cleaner long-term fix and would
+make the bridge unnecessary.
 
 Enabling pi-durable also differs from the original plan: there is no
 per-instance `enable`. Set `services.pi-durable.enable = true`,
