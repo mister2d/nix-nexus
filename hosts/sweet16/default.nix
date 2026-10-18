@@ -1,6 +1,6 @@
 # Host: sweet16 (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.sweet16-default
-# Composes: sweet16-hardware, hardware-z16, core-tpm2, core-microvm-host, hardware-kernel-cachyos, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, core-diagnostics, core-zram-swap, core-agent-identities.
+# Composes: sweet16-hardware, hardware-z16, core-tpm2, core-microvm-host, hardware-kernel-cachyos, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, core-diagnostics, core-zram-swap, core-agent-identities, core-credstore.
 _: {
   flake.modules.nixos.sweet16-default =
     {
@@ -31,6 +31,9 @@ _: {
 
         # Fixed-uid agent identities (pdh-pi, agent) with no TPM access
         nixosModules.core-agent-identities
+
+        # TPM2-sealed credential directory and delivery self-test
+        nixosModules.core-credstore
 
         # Core System Profile (Every machine gets this)
         nixosModules.workstation-default
