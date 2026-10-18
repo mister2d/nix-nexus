@@ -527,7 +527,7 @@ Current hosts and their assembly structure:
 |---|---|---|
 | `nix-nexus.zfs.*` | `modules/core/zfs.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.networking.tailscale.homeSSIDs` | `modules/core/networking.nix` | `hosts/sweet16/default.nix` |
-| `nix-nexus.virtualization.microvm.*` | `modules/core/microvm-host.nix` | `hosts/sweet16/default.nix` |
+| `nix-nexus.virtualization.microvm.*` | `modules/core/microvm-host.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.secrets.sops.*` | `modules/core/sops.nix` | `hosts/avina/default.nix`, `hosts/hermes/secrets.nix` |
 | `nix-nexus.tpm2.users` | `modules/core/tpm2.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.secrets.credstore.*` | `modules/core/credstore.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |

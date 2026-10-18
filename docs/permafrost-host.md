@@ -48,7 +48,8 @@ defaults of `bridge.name`, `bridge.address`, `bridge.prefixLength` and
 
 ## Host consumer
 
-`hosts/sweet16/default.nix` imports `nixosModules.core-microvm-host` and sets
+`hosts/sweet16/default.nix` and `hosts/petunia/default.nix` import
+`nixosModules.core-microvm-host` and set
 `nix-nexus.virtualization.microvm.enable = true`. No other host in the fleet
 imports this module.
 

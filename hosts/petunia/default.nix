@@ -1,6 +1,6 @@
 # Host: petunia (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.petunia-default
-# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore, core-agent-ssh-target.
+# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, core-microvm-host, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore, core-agent-ssh-target.
 _: {
   flake.modules.nixos.petunia-default =
     { nixosModules, ... }:
@@ -20,6 +20,10 @@ _: {
         # inactive, so PCR 7 is meaningless). Accepted risk on a
         # physically-controlled desktop — see docs/secrets.md.
         nixosModules.core-tpm2
+
+        # petunia runs permafrost microvm guests. The bridge, NAT and kvm
+        # policy come from core-microvm-host.
+        nixosModules.core-microvm-host
 
         # Fixed-uid agent identities (pdh-pi, agent) with no TPM access
         nixosModules.core-agent-identities
@@ -65,18 +69,23 @@ _: {
       # from services-openrgb). List-merges with core-users.
       users.users.ddukes.extraGroups = [ "openrgb" ];
 
-      # CachyOS server kernel: EEVDF scheduler, 300Hz timer, no preemption, x86_64-v3 ISA.
-      # processorOpt requires a local build (~45 min on the 5600X). ZFS wires in via zfs-cachyos.
-      nix-nexus.kernel.cachyos = {
-        enable = true;
-        variant = "server";
-        processorOpt = "x86_64-v3";
-        enableZfs = true;
-        enableCustomBuild = true;
-      };
+      nix-nexus = {
+        # CachyOS server kernel: EEVDF scheduler, 300Hz timer, no preemption, x86_64-v3 ISA.
+        # processorOpt requires a local build (~45 min on the 5600X). ZFS wires in via zfs-cachyos.
+        kernel.cachyos = {
+          enable = true;
+          variant = "server";
+          processorOpt = "x86_64-v3";
+          enableZfs = true;
+          enableCustomBuild = true;
+        };
 
-      # Userspace TPM access for ssh-tpm-agent and tpm2-pkcs11.
-      nix-nexus.tpm2.users = [ "ddukes" ];
+        # Userspace TPM access for ssh-tpm-agent and tpm2-pkcs11.
+        tpm2.users = [ "ddukes" ];
+
+        # Host side of the permafrost microvm sandbox.
+        virtualization.microvm.enable = true;
+      };
 
       # Host ID for ZFS (needs to be unique and persistent)
       # Generated randomly for petunia
