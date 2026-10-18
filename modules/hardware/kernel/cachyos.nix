@@ -1,5 +1,5 @@
 # Registry key: flake.modules.nixos.hardware-kernel-cachyos
-# Configures: the CachyOS kernel variant, ZFS wiring, and its binary cache.
+# Configures: the CachyOS kernel variant and ZFS wiring. The kernel and zfs_cachyos build locally; no substituter is configured for them.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # Options: nix-nexus.kernel.cachyos.*
 _: {
@@ -240,22 +240,6 @@ _: {
           boot.zfs.package = lib.mkIf cfg.enableZfs config.boot.kernelPackages.zfs_cachyos;
 
         })
-
-        # Binary cache substituter. This block sits outside cfg.enable so the
-        # first nixos-rebuild hits the cache regardless of the enable state.
-        # Upstream publishes one cache, fed by the same Hydra CI that builds
-        # the kernels and the ABI-paired zfs_cachyos:
-        # https://github.com/xddxdd/nix-cachyos-kernel#binary-cache
-        {
-          nix.settings = {
-            substituters = lib.mkAfter [
-              "https://attic.xuyh0120.win/lantian"
-            ];
-            trusted-public-keys = lib.mkAfter [
-              "lantian:EeAUQ+W+6r7EtwnmYjeVwx5kOGEBpjlBfPlzGlTNvHc="
-            ];
-          };
-        }
       ];
     };
 }

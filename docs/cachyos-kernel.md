@@ -7,7 +7,7 @@ Two hosts use the CachyOS kernel. Each host runs a variant tuned to its workload
 
 | Host | Variant | Scheduler | Timer | Preemption | CPU arch | Build |
 |------|---------|-----------|-------|------------|----------|-------|
-| sweet16 | `linux-cachyos-bore-x86_64-v3` | BORE | 1000Hz | full dynamic | x86_64-v3 | binary cache |
+| sweet16 | `linux-cachyos-bore-x86_64-v3` | BORE | 1000Hz | full dynamic | x86_64-v3 | local build |
 | petunia | `linux-cachyos-server` + x86_64-v3 | EEVDF | 300Hz | full | x86_64-v3 | local (from source) |
 
 ---
@@ -158,7 +158,7 @@ $ cat /sys/kernel/mm/transparent_hugepage/enabled
 
 **Why it matters:**
 - Standard NixOS ZFS (`zfs`) builds against vanilla nixpkgs kernel headers. A kernel ABI mismatch causes ZFS module load failure at boot.
-- The same upstream Hydra CI that builds the kernel also builds `zfs_cachyos`. This guarantees ABI pairing. The binary cache hit comes from `https://attic.xuyh0120.win/lantian`.
+- The same upstream Hydra CI that builds the kernel also builds `zfs_cachyos`. This guarantees ABI pairing. The build is local, because no trusted binary cache exists for it (see Binary Cache and Build Notes).
 - The CachyOS ZFS build includes the same `CACHY` config flag. This enables ZFS code paths that interact with CachyOS-specific kernel internals, mainly the ADIOS I/O scheduler hooks.
 
 **ZFS tuning active on sweet16:**
@@ -451,14 +451,8 @@ pool: petunia  state: ONLINE  errors: No known data errors
 
 # Binary Cache and Build Notes
 
-The `hardware-kernel-cachyos` module adds one substituter unconditionally, outside `mkIf cfg.enable`. This keeps the cache active before the kernel turns on. This supports a two-phase deployment. Phase 1 activates the cache. Phase 2 enables the kernel, so it downloads rather than builds.
+No CachyOS binary cache is configured. The upstream cache `https://attic.xuyh0120.win/lantian` (key `lantian:EeAUQ+W+...`) was removed on 2026-10-18 after it was reported compromised. The kernel and `zfs_cachyos` build locally. The `lantian` key must not return to `trusted-public-keys`. Do not add a replacement or mirror (for example `cache.xinux.uz`) without a fresh review.
 
-| Cache | Purpose |
-|-------|---------|
-| `https://attic.xuyh0120.win/lantian` | Upstream cache for CachyOS kernel and ZFS closures |
-
-This is the only cache the upstream project publishes ([README](https://github.com/xddxdd/nix-cachyos-kernel#binary-cache)). The Hydra CI that builds both the kernels and `zfs_cachyos` feeds this cache. Upstream also lists a third-party mirror, `https://cache.xinux.uz`, under an explicit no-guarantee disclaimer. This config does not set it up.
-
-**sweet16 (bore, x86_64-v3):** Upstream Hydra CI pre-builds this. `overlays.pinned` locks the store hash to the cache entry. This is always a binary download, with no local build required.
+**sweet16 (bore, x86_64-v3):** Builds locally. `overlays.pinned` still locks the source revision.
 
 **petunia (server, x86_64-v3):** No pre-built binary exists for `linux-cachyos-server` with `processorOpt = "x86_64-v3"`. The kernel and ZFS module build from source on the host. On a 12-thread Ryzen 5 5600X the build takes about 99 minutes. The `overlays.pinned` overlay still downloads the base kernel source from cache. Only the compilation step runs locally.
