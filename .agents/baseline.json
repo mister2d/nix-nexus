@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/fy079pddschiz3kjl58ya2643xv6x9vk-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/c761mw8z8zmv1caxs5gxhy5yf8ajg3mz-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/4x43rnalxdhnq7ankmcr1f8rbla1bqf1-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/zvj78i8jmcg71xzxwmdvm0v6pgwmlimy-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-18T17:29:43Z",
+  "recorded": "2026-10-18T19:43:50Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "f1637f83e2856351be630f0547bc2e3e9238041a",
-  "signoff": ".agents/signoff/2026-10-18-remove-compromised-cachyos-cache.md"
+  "signed_off_through": "091983232aef09854b2aad001b4d190c586422eb",
+  "signoff": ".agents/signoff/2026-10-18-agent-principals-file-copy.md"
 }
