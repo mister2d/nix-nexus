@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-18T21:00:26Z",
+  "recorded": "2026-10-18T22:34:26Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "48a8930be1363e2605afff7b66533145efc97fdd",
-  "signoff": ".agents/signoff/2026-10-18-petunia-microvm-host.md"
+  "signed_off_through": "420b5a4170e7e46b120b98888950703b5e0f952b",
+  "signoff": ".agents/signoff/2026-10-18-cache-guard-assertion.md"
 }
