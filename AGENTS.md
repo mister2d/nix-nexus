@@ -530,6 +530,7 @@ Current hosts and their assembly structure:
 | `nix-nexus.virtualization.microvm.*` | `modules/core/microvm-host.nix` | `hosts/sweet16/default.nix` |
 | `nix-nexus.secrets.sops.*` | `modules/core/sops.nix` | `hosts/avina/default.nix`, `hosts/hermes/secrets.nix` |
 | `nix-nexus.tpm2.users` | `modules/core/tpm2.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
+| `nix-nexus.secrets.credstore.*` | `modules/core/credstore.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.theme.*` | `modules/desktop/theme.nix` | `hosts/sweet16/default.nix` |
 | `nix-nexus.kernel.cachyos.*` | `modules/hardware/kernel/cachyos.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.user.herdr.claudeIntegration.enable` (Home Manager) | `modules/user/herdr-claude-home.nix` | `modules/user/home.nix`, `hosts/forge/home.nix` |
@@ -641,6 +642,7 @@ docs/
 ├── devenv.md                   ← declarative dev environments
 ├── petunia.md                  ← TPM2 auto-unlock, dual GPU, rebuild procedure
 ├── petunia-sbom.md             ← petunia inference stack SBOM (ROCm, HIP, Vulkan, Mesa versions)
+├── pi-durable-host.md          ← pi-durable host plumbing: agent identities (9100-9199), credstore, SSH target, sealing runbook
 ├── secrets.md                  ← sops-nix / secretspec / Vault layering, TPM2 posture per host
 ├── permafrost-host.md          ← permafrost microvm host module: bridge, NAT, kvm policy, store settings
 ├── devshell.md                 ← how to call nix-devshell (devShells, devenv, hermes input)

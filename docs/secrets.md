@@ -303,6 +303,14 @@ TPM path fails. On petunia this question does not arise at all. Its
 keyslot is PCR-0 only with no PIN. A policy session carrying no
 authValue does not feed the DA counter.
 
+### Sealed service credentials
+
+A system service that must not touch the TPM itself receives a
+TPM2-sealed credential through `LoadCredentialEncrypted=`. PID 1 unseals
+it at unit start. The blobs live in `/var/lib/credstore.encrypted`
+(`core-credstore`, `nix-nexus.secrets.credstore.*`). See
+`docs/pi-durable-host.md` for the sealing runbook and trust boundary.
+
 ### Hosts without a TPM
 
 avina and hermes are Proxmox LXC. dualie, forge, and rk3588 are non-NixOS.

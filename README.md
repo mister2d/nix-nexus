@@ -133,4 +133,5 @@ The `devenv` CLI and direnv remain installed on sweet16, petunia, dualie, forge,
 - [**Hermes**](./docs/hermes.md): This guide covers the AI agent gateway LXC host: hermes-agent, Matrix connection, and Petunia-backed LLM.
 - [**Secrets Management**](./docs/secrets.md): sops-nix, secretspec, Vault layering, and TPM2 posture per host.
 - [**Petunia**](./docs/petunia.md): This guide covers host-specific operations: TPM2 auto-unlock, dual GPU and power profile, model storage and swap, and the rebuild procedure.
+- [**pi-durable Host Plumbing**](./docs/pi-durable-host.md): Agent identities, TPM2-sealed credstore, restricted SSH target, and sealing runbook for petunia and sweet16.
 - [**Petunia Inference SBOM**](./docs/petunia-sbom.md): ROCm, HIP, Vulkan, and Mesa version inventory for the inference stack.
