@@ -1577,6 +1577,32 @@
         "type": "github"
       }
     },
+    "pi-durable": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "import-tree": [
+          "import-tree"
+        ],
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792366699,
+        "narHash": "sha256-qlRQtyD6SiPLccWd0MilLqC4RDFNWtIR28n+Ws2NxGs=",
+        "ref": "refs/heads/main",
+        "rev": "0185b3bc9707e07014a78f8e9864b15177846a58",
+        "revCount": 15,
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
+      }
+    },
     "pkgs-apps": {
       "locked": {
         "lastModified": 1767151656,
@@ -1737,6 +1763,7 @@
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvim": "nixvim",
         "noctalia": "noctalia",
+        "pi-durable": "pi-durable",
         "pkgs-stable": "pkgs-stable",
         "pre-commit-hooks": "pre-commit-hooks",
         "rdna4": "rdna4",
