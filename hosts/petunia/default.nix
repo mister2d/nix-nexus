@@ -1,6 +1,6 @@
 # Host: petunia (NixOS x86_64 workstation).
 # Registry key: flake.modules.nixos.petunia-default
-# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, core-microvm-host, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore, core-agent-ssh-target.
+# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, core-microvm-host, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore, core-agent-ssh-target, services-pi-durable.
 _: {
   flake.modules.nixos.petunia-default =
     { nixosModules, ... }:
@@ -33,6 +33,9 @@ _: {
 
         # Certificate-only restricted SSH login for the agent identity
         nixosModules.core-agent-ssh-target
+
+        # pi-durable harness instance (execution guest started by hand)
+        nixosModules.services-pi-durable
 
         # Core System Profile (Every machine gets this)
         nixosModules.workstation-default

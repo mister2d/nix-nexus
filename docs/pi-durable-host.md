@@ -2,14 +2,15 @@
 
 This guide covers the host-side groundwork for running pi-durable. The
 modules below provision identities, a TPM2-sealed credential directory, and
-a restricted SSH target. They do not enable pi-durable. The pi-durable
-module (its own repo) does that.
+a restricted SSH target. They do not enable pi-durable. `services-pi-durable`
+enables it on petunia using the pi-durable module (its own repo).
 
 | Registry key | File | Provides |
 |---|---|---|
 | `core-agent-identities` | `modules/core/agent-identities.nix` | users and groups `pdh-pi` (9100), `agent` (9101) |
 | `core-credstore` | `modules/core/credstore.nix` | `/var/lib/credstore.encrypted`, `seal-credential`, `credstore-selftest.service` |
 | `core-agent-ssh-target` | `modules/core/agent-ssh-target.nix` | `Match User agent` sshd block, principals file |
+| `services-pi-durable` | `modules/services/pi-durable/default.nix` | harness instance `pi`, credentials directory, socket token unit |
 | `user-agent-home` | `modules/user/agent-home.nix` | bash, tmux, herdr profile for `agent` |
 | `hm-agent-<host>` | `hosts/<host>/agent-hm.nix` | Home Manager wiring for `agent` |
 
@@ -116,25 +117,9 @@ removes and recreates the plaintext. The blob defaults to
 `<name>`; an assertion requires `credentialName` to equal the blob file
 name, matching `seal-credential NAME`.
 
-pi-durable `credentials.secretIdFile` must point at
-`/run/credstore-unsealed/<name>`. Future host snippet:
-
-```nix
-services.pi-durable = {
-  enable = true;
-  vault.addr = "https://vault.example:8200";
-  instances.pi = {
-    # model.name, ssh.host and ssh.knownHosts as required
-    credentials = {
-      roleIdFile = "/var/lib/pi-durable-pi/role_id";
-      secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
-      databaseUrlFile = "/var/lib/pi-durable-pi/database_url";
-      socketTokenFile = "/var/lib/pi-durable-pi/socket_token";
-    };
-  };
-};
-nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [ "pi-durable-pi.service" ];
-```
+pi-durable `credentials.secretIdFile` points at
+`/run/credstore-unsealed/pidurable-secret-id`. The real wiring is described
+in "petunia wiring" below.
 
 Residual: while the consumer is up the plaintext sits root-0600 on tmpfs in
 `/run/credstore-unsealed`, which is equivalent to the exposure of
@@ -143,11 +128,79 @@ upstream pi-durable `secretIdEncryptedFile` option (delivering via
 `LoadCredentialEncrypted=`) would be the cleaner long-term fix and would
 make the bridge unnecessary.
 
-Enabling pi-durable also differs from the original plan: there is no
-per-instance `enable`. Set `services.pi-durable.enable = true`,
-`services.pi-durable.vault.addr`, and define `instances.pi` with `model.name`,
-`ssh.host`, `ssh.knownHosts`, and the `credentials.*File` paths
-(`roleIdFile`, `secretIdFile`, `databaseUrlFile`, `socketTokenFile`).
+There is no per-instance `enable`: set `services.pi-durable.enable = true`.
+
+## petunia wiring
+
+`services-pi-durable` (`modules/services/pi-durable/default.nix`) imports
+`inputs.pi-durable.nixosModules.default` and defines instance `pi` on
+petunia only. sweet16 keeps its sealed secret_id idle.
+
+| Setting | Value |
+|---|---|
+| `vault.addr` | `https://vault.service.consul:8200` |
+| `model` | provider `anthropic`, name `claude-sonnet-5-5` (default, confirm the intended model id) |
+| `database.credsPath` | `database/creds/pidurable-pi-owner` |
+| `ssh` | host `192.168.33.10`, `knownHosts = null` (allowed inside 192.168.33.0/24), `signPath = ssh-client-signer/sign/agentrole` |
+| `guest.unit` | unset |
+
+### Guest start is staged
+
+With `guest.unit` unset the harness never starts the execution guest. Start
+the permafrost guest by hand (`sudo nix run .#permafrost start`) before the
+first harness call; while it is down, calls fail. Starting the guest from
+the harness needs a microvm.nix host unit on petunia plus a polkit rule,
+which is a separate follow-up.
+
+### Credentials directory
+
+`/var/lib/pi-durable-creds` is `root:root 0700`, outside the unit's
+`StateDirectory` (`/var/lib/pi-durable-pi`, created by systemd at first
+start). PID 1 reads these files as root and passes them on via
+`LoadCredential=`.
+
+| File | Origin |
+|---|---|
+| `database_url` | created by tmpfiles (`f`, written only when absent) with the non-secret URL `postgresql://pidurable-db.service.consul:5432/pidurable?sslmode=verify-full&sslnegotiation=direct`; Vault supplies user and password |
+| `role_id` | created by hand, see below; not committed |
+| `socket_token` | generated once by `pi-durable-socket-token.service` |
+| `/run/credstore-unsealed/pidurable-secret-id` | TPM2 unseal bridge, see above |
+
+Create `role_id` as root before the first start. Read it without printing it
+into logs or shell history:
+
+```
+umask 077
+vault read -field=role_id auth/approle/role/pidurable-pi/role-id > /var/lib/pi-durable-creds/role_id
+```
+
+`pi-durable-pi.service` fails to start until this file exists.
+
+### Socket token
+
+`pi-durable-socket-token.service` is a root oneshot ordered before and
+required by `pi-durable-pi.service`. It runs only while
+`/var/lib/pi-durable-creds/socket_token` is absent and writes 32 random
+bytes as hex with `umask 077`, then sets `root:pdh-pi 0640`. Members of
+`pdh-pi` can read the token they must present to the socket. That group
+already grants socket access, so the read adds no authority. To rotate,
+delete the file and restart `pi-durable-pi.service`.
+
+### TLS trust (open risk)
+
+pi-durable sets no CA option: Vault calls use Node `fetch`, and Postgres
+uses `pg` with the URL only, so both rely on Node's bundled CA list, which
+does not contain the homelab CA. `NODE_EXTRA_CA_CERTS` is not set here
+because no CA file that anchors the Vault and `pidurable-db` leaf chains is
+known to be on petunia (the repo's `certs/int_cert.crt` is the intermediate
+only, and the signer of the leaves was not verified).
+`security.pki.certificateFiles` feeds only the OpenSSL bundle, not Node. If
+the first start shows certificate errors, verify the chain with
+`openssl s_client -connect vault.service.consul:8200` and
+`openssl s_client -starttls postgres -connect pidurable-db.service.consul:5432`,
+then add `NODE_EXTRA_CA_CERTS` to `systemd.services.pi-durable-pi.environment`
+with the full chain, and supply a Postgres root cert via `PGSSLROOTCERT`.
+Resolution of `*.service.consul` on petunia is likewise unverified.
 
 ## SSH target
 
