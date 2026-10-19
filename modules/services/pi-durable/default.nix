@@ -57,26 +57,40 @@
 
       nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [ "pi-durable-pi.service" ];
 
-      systemd.tmpfiles.rules = [
-        "d ${credsDir} 0700 root root -"
-        # Non-secret URL; the user and password come from Vault database/creds.
-        "f ${credsDir}/database_url 0600 root root - postgresql://pidurable-db.service.consul:5432/pidurable?sslmode=verify-full&sslnegotiation=direct"
-      ];
+      systemd = {
+        tmpfiles.rules = [
+          "d ${credsDir} 0700 root root -"
+          # Non-secret URL; the user and password come from Vault database/creds.
+          "f ${credsDir}/database_url 0600 root root - postgresql://pidurable-db.service.consul:5432/pidurable?sslmode=verify-full&sslnegotiation=direct"
+          # AppRole role_id of pidurable-pi: a Terraform output of vault-config,
+          # not a secret (the secret_id is the credential). "f+" rewrites the
+          # file on every activation so a changed value takes effect; update
+          # this value if the role is recreated.
+          "f+ ${credsDir}/role_id 0600 root root - 0856cc2e-a616-90cf-fad1-f27e1f53dddc"
+        ];
 
-      # Generated once on first start. root:pdh-pi 0640 lets members of the
-      # socket group read the token they must present; that group already
-      # grants access to the socket, so the read adds no authority. The
-      # harness itself receives the token through LoadCredential.
-      systemd.services.pi-durable-socket-token = {
-        description = "Generate the pi-durable socket token";
-        before = [ "pi-durable-pi.service" ];
-        requiredBy = [ "pi-durable-pi.service" ];
-        after = [ "systemd-tmpfiles-setup.service" ];
-        unitConfig.ConditionPathExists = "!${socketTokenFile}";
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-          ExecStart = generateSocketToken;
+        services = {
+          # Node ignores the system CA store. This bundle includes
+          # certs/int_cert.crt (intermediate and root) via
+          # security.pki.certificateFiles in core-security.
+          pi-durable-pi.environment.NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
+
+          # Generated once on first start. root:pdh-pi 0640 lets members of the
+          # socket group read the token they must present; that group already
+          # grants access to the socket, so the read adds no authority. The
+          # harness itself receives the token through LoadCredential.
+          pi-durable-socket-token = {
+            description = "Generate the pi-durable socket token";
+            before = [ "pi-durable-pi.service" ];
+            requiredBy = [ "pi-durable-pi.service" ];
+            after = [ "systemd-tmpfiles-setup.service" ];
+            unitConfig.ConditionPathExists = "!${socketTokenFile}";
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              ExecStart = generateSocketToken;
+            };
+          };
         };
       };
     };

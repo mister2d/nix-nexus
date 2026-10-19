@@ -162,19 +162,9 @@ start). PID 1 reads these files as root and passes them on via
 | File | Origin |
 |---|---|
 | `database_url` | created by tmpfiles (`f`, written only when absent) with the non-secret URL `postgresql://pidurable-db.service.consul:5432/pidurable?sslmode=verify-full&sslnegotiation=direct`; Vault supplies user and password |
-| `role_id` | created by hand, see below; not committed |
+| `role_id` | written by tmpfiles (`f+`, rewritten on activation) with the non-secret AppRole role_id of `pidurable-pi`, a Terraform output of vault-config; update the value in the module if the role is recreated |
 | `socket_token` | generated once by `pi-durable-socket-token.service` |
 | `/run/credstore-unsealed/pidurable-secret-id` | TPM2 unseal bridge, see above |
-
-Create `role_id` as root before the first start. Read it without printing it
-into logs or shell history:
-
-```
-umask 077
-vault read -field=role_id auth/approle/role/pidurable-pi/role-id > /var/lib/pi-durable-creds/role_id
-```
-
-`pi-durable-pi.service` fails to start until this file exists.
 
 ### Socket token
 
@@ -186,21 +176,25 @@ bytes as hex with `umask 077`, then sets `root:pdh-pi 0640`. Members of
 already grants socket access, so the read adds no authority. To rotate,
 delete the file and restart `pi-durable-pi.service`.
 
-### TLS trust (open risk)
+### TLS trust
 
-pi-durable sets no CA option: Vault calls use Node `fetch`, and Postgres
-uses `pg` with the URL only, so both rely on Node's bundled CA list, which
-does not contain the homelab CA. `NODE_EXTRA_CA_CERTS` is not set here
-because no CA file that anchors the Vault and `pidurable-db` leaf chains is
-known to be on petunia (the repo's `certs/int_cert.crt` is the intermediate
-only, and the signer of the leaves was not verified).
-`security.pki.certificateFiles` feeds only the OpenSSL bundle, not Node. If
-the first start shows certificate errors, verify the chain with
-`openssl s_client -connect vault.service.consul:8200` and
-`openssl s_client -starttls postgres -connect pidurable-db.service.consul:5432`,
-then add `NODE_EXTRA_CA_CERTS` to `systemd.services.pi-durable-pi.environment`
-with the full chain, and supply a Postgres root cert via `PGSSLROOTCERT`.
-Resolution of `*.service.consul` on petunia is likewise unverified.
+pi-durable sets no CA option: Vault calls use Node `fetch` and Postgres uses
+`pg`, and Node ignores the system store. The unit sets
+`NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`. NixOS generates
+that bundle from `security.pki`, and it includes `certs/int_cert.crt`
+(intermediate and root) through `security.pki.certificateFiles` in
+`core-security`.
+
+### Name resolution
+
+Consul DNS is each host's first resolver hop, so `*.service.consul` names
+(`vault.service.consul`, `pidurable-db.service.consul`) resolve on petunia.
+
+### Scope
+
+The guest is started by hand (see "Guest start is staged"). Model discovery
+through bifrost and Anthropic subscription models are future scope; the
+model name `claude-sonnet-5-5` is a placeholder.
 
 ## SSH target
 
