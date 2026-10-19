@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/xhr847gmkldyfnpb9njh6fd90jcimpxf-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/nnc9rrf4cccqq8ysg33fk929nia6j0lc-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-18T22:34:26Z",
+  "recorded": "2026-10-19T00:26:00Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "420b5a4170e7e46b120b98888950703b5e0f952b",
-  "signoff": ".agents/signoff/2026-10-18-cache-guard-assertion.md"
+  "signed_off_through": "ff58941db94e139c57f6aae22913333a4fbe3c90",
+  "signoff": ".agents/signoff/2026-10-19-pi-durable-wiring.md"
 }
