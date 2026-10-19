@@ -2,6 +2,7 @@
 # Registry key: flake.modules.nixos.services-pi-durable
 # Imports the module from the pi-durable flake input and supplies the host
 # side: credential directory, socket token generator, unseal bridge entry.
+# The instance uses the gateway provider (bifrost on petunia) with image tools.
 # The execution guest is started by hand; guest.unit stays unset.
 # See docs/pi-durable-host.md.
 { inputs, ... }:
@@ -33,9 +34,19 @@
 
         instances.pi = {
           model = {
-            provider = "anthropic";
-            # Default pending confirmation of the intended model id.
-            name = "claude-sonnet-5-5";
+            provider = "gateway";
+            name = "radiance/Qwen3.8-MXFP4";
+            # Same id as the agent model: radiance/Qwen3.8 aliases it, and a
+            # distinct id would make llama-swap unload and reload the model.
+            subagentName = "radiance/Qwen3.8-MXFP4";
+          };
+
+          gateway.baseUrl = "http://petunia.home.lan:8080";
+
+          images = {
+            enable = true;
+            recommendedChatModel = "radiance/Qwen3.8-Imagine-Turbo";
+            defaultModel = "turbo";
           };
 
           database.credsPath = "database/creds/pidurable-pi-owner";

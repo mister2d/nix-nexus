@@ -139,7 +139,9 @@ petunia only. sweet16 keeps its sealed secret_id idle.
 | Setting | Value |
 |---|---|
 | `vault.addr` | `https://vault.service.consul:8200` |
-| `model` | provider `anthropic`, name `claude-sonnet-5-5` (default, confirm the intended model id) |
+| `model` | provider `gateway`, name and `subagentName` `radiance/Qwen3.8-MXFP4` |
+| `gateway.baseUrl` | `http://petunia.home.lan:8080` (plain http is accepted for `.lan` names) |
+| `images` | enabled; `recommendedChatModel` `radiance/Qwen3.8-Imagine-Turbo`, `defaultModel` `turbo` |
 | `database.credsPath` | `database/creds/pidurable-pi-owner` |
 | `ssh` | host `192.168.33.10`, `knownHosts = null` (allowed inside 192.168.33.0/24), `signPath = ssh-client-signer/sign/agentrole` |
 | `guest.unit` | unset |
@@ -190,11 +192,26 @@ that bundle from `security.pki`, and it includes `certs/int_cert.crt`
 Consul DNS is each host's first resolver hop, so `*.service.consul` names
 (`vault.service.consul`, `pidurable-db.service.consul`) resolve on petunia.
 
+### Gateway provider and image tools
+
+With `model.provider = "gateway"` the service reads the model catalog from
+`GET /v1/models` on the gateway (bifrost on petunia, port 8080) and refuses
+to start when the catalog is unreachable or does not list the default model
+with tool support; the log names the nearest ids. The unit restarts with
+back-off until the gateway answers. The agent and subagent use one id, so
+llama-swap never unloads and reloads the model. No `gateway.keyFile` is set;
+bifrost needs no key here.
+
+`images.enable` exposes the `qwen_image` tools served by the bifrost MCP
+endpoint (`/mcp`). It requires the gateway provider.
+
 ### Scope
 
-The guest is started by hand (see "Guest start is staged"). Model discovery
-through bifrost and Anthropic subscription models are future scope; the
-model name `claude-sonnet-5-5` is a placeholder.
+The guest is started by hand (see "Guest start is staged"). Anthropic
+subscription models are future scope: they need a separate anthropic
+instance with its own uid, schema, AppRole and sealed secret_id. The
+`pi-durable-login-<instance>` command and its OAuth state directory exist
+only for anthropic instances, so neither exists for instance `pi`.
 
 ## SSH target
 
