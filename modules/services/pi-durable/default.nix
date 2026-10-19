@@ -41,6 +41,11 @@
             subagentName = "radiance/Qwen3.8-MXFP4";
           };
 
+          # Node ignores the system CA store. This bundle includes
+          # certs/int_cert.crt (intermediate and root) via
+          # security.pki.certificateFiles in core-security.
+          caBundleFile = "/etc/ssl/certs/ca-certificates.crt";
+
           gateway.baseUrl = "http://petunia.home.lan:8080";
 
           images = {
@@ -81,11 +86,6 @@
         ];
 
         services = {
-          # Node ignores the system CA store. This bundle includes
-          # certs/int_cert.crt (intermediate and root) via
-          # security.pki.certificateFiles in core-security.
-          pi-durable-pi.environment.NODE_EXTRA_CA_CERTS = "/etc/ssl/certs/ca-certificates.crt";
-
           # Generated once on first start. root:pdh-pi 0640 lets members of the
           # socket group read the token they must present; that group already
           # grants access to the socket, so the read adds no authority. The

@@ -181,8 +181,10 @@ delete the file and restart `pi-durable-pi.service`.
 ### TLS trust
 
 pi-durable sets no CA option: Vault calls use Node `fetch` and Postgres uses
-`pg`, and Node ignores the system store. The unit sets
-`NODE_EXTRA_CA_CERTS=/etc/ssl/certs/ca-certificates.crt`. NixOS generates
+`pg`, and Node ignores the system store. The instance option
+`caBundleFile = "/etc/ssl/certs/ca-certificates.crt"` makes the module set
+`NODE_EXTRA_CA_CERTS` for the service; the host does not override the unit
+environment. NixOS generates
 that bundle from `security.pki`, and it includes `certs/int_cert.crt`
 (intermediate and root) through `security.pki.certificateFiles` in
 `core-security`.
@@ -204,6 +206,12 @@ bifrost needs no key here.
 
 `images.enable` exposes the `qwen_image` tools served by the bifrost MCP
 endpoint (`/mcp`). It requires the gateway provider.
+
+### Operator commands
+
+`pi-durable-attach-pi` drives the instance (`models`, `new`, `send`, `list`,
+`purge`). Run it with `sudo`: the socket token is `root:pdh-pi 0640` and the
+operator is not in `pdh-pi`. The service creates `ssh.cwd` itself.
 
 ### Scope
 
