@@ -8,7 +8,7 @@
 { inputs, ... }:
 {
   flake.modules.nixos.services-pi-durable =
-    { pkgs, ... }:
+    { config, pkgs, ... }:
     let
       credsDir = "/var/lib/pi-durable-creds";
       socketTokenFile = "${credsDir}/socket_token";
@@ -31,77 +31,101 @@
     {
       imports = [ inputs.pi-durable.nixosModules.default ];
 
-      services.pi-durable = {
-        enable = true;
-        vault.addr = "https://vault.service.consul:8200";
+      services = {
+        pi-durable = {
+          enable = true;
+          vault.addr = "https://vault.service.consul:8200";
 
-        instances.pi = {
-          model = {
-            provider = "gateway";
-            name = "radiance/Qwen3.8-MXFP4";
-            # Same id as the agent model: radiance/Qwen3.8 aliases it, and a
-            # distinct id would make llama-swap unload and reload the model.
-            subagentName = "radiance/Qwen3.8-MXFP4";
-          };
-
-          # Node ignores the system CA store. This bundle includes
-          # certs/int_cert.crt (intermediate and root) via
-          # security.pki.certificateFiles in core-security.
-          caBundleFile = "/etc/ssl/certs/ca-certificates.crt";
-
-          gateway.baseUrl = "http://petunia.home.lan:8080";
-
-          images = {
-            enable = true;
-            recommendedChatModel = "radiance/Qwen3.8-Imagine-Turbo";
-            defaultModel = "turbo";
-          };
-
-          database.credsPath = "database/creds/pidurable-pi-owner";
-
-          ssh = {
-            host = "192.168.33.10";
-            knownHosts = null;
-            signPath = "ssh-client-signer/sign/agentrole";
-          };
-
-          # Named tokens. The files hold sha256 hashes only; the token texts stay
-          # in /root/pi-durable-tokens. Add or remove tokens by editing the
-          # files and running systemctl reload pi-durable-pi (SIGHUP).
-          tokens = {
-            r4b-viewer = {
-              role = "viewer";
-              hashFile = "${tokensDir}/r4b-viewer.sha256";
+          instances.pi = {
+            model = {
+              provider = "gateway";
+              name = "radiance/Qwen3.8-MXFP4";
+              # Same id as the agent model: radiance/Qwen3.8 aliases it, and a
+              # distinct id would make llama-swap unload and reload the model.
+              subagentName = "radiance/Qwen3.8-MXFP4";
             };
-            r4b-operator = {
-              role = "operator";
-              hashFile = "${tokensDir}/r4b-operator.sha256";
+
+            # Node ignores the system CA store. This bundle includes
+            # certs/int_cert.crt (intermediate and root) via
+            # security.pki.certificateFiles in core-security.
+            caBundleFile = "/etc/ssl/certs/ca-certificates.crt";
+
+            gateway.baseUrl = "http://petunia.home.lan:8080";
+
+            images = {
+              enable = true;
+              recommendedChatModel = "radiance/Qwen3.8-Imagine-Turbo";
+              defaultModel = "turbo";
+            };
+
+            database.credsPath = "database/creds/pidurable-pi-owner";
+
+            ssh = {
+              host = "192.168.33.10";
+              knownHosts = null;
+              signPath = "ssh-client-signer/sign/agentrole";
+            };
+
+            # Named tokens. The files hold sha256 hashes only; the token texts stay
+            # in /root/pi-durable-tokens. Add or remove tokens by editing the
+            # files and running systemctl reload pi-durable-pi (SIGHUP).
+            tokens = {
+              r4b-viewer = {
+                role = "viewer";
+                hashFile = "${tokensDir}/r4b-viewer.sha256";
+              };
+              r4b-operator = {
+                role = "operator";
+                hashFile = "${tokensDir}/r4b-operator.sha256";
+              };
+            };
+
+            credentials = {
+              roleIdFile = "${credsDir}/role_id";
+              secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
+              databaseUrlFile = "${credsDir}/database_url";
+              inherit socketTokenFile;
             };
           };
+        };
 
-          credentials = {
+        # Browser bridge for the instance. HAProxy is its only client; the
+        # loopback origin stays for tests through an ssh forward.
+        pi-durable-web = {
+          enable = true;
+          bridges.pi = {
+            listen = {
+              address = "127.0.0.1";
+              port = 8787;
+            };
+            allowedOrigins = [
+              "https://${config.networking.fqdn}"
+              "http://127.0.0.1:8787"
+            ];
+            trustProxy = true;
+          };
+        };
+
+        # Front door: TLS on 443 with a certificate from Vault PKI. The renewer
+        # logs in with the same AppRole as the harness.
+        pi-durable-haproxy = {
+          enable = true;
+          openFirewall = true;
+          tls.vault = {
+            address = "https://vault.service.consul:8200";
             roleIdFile = "${credsDir}/role_id";
             secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
-            databaseUrlFile = "${credsDir}/database_url";
-            inherit socketTokenFile;
+            caFile = "/etc/ssl/certs/ca-certificates.crt";
           };
+          # Serves the bridge named "pi" on the host fqdn.
+          instances.pi = { };
         };
       };
 
-      # Browser bridge for the instance, loopback only. Reach it through an ssh
-      # forward until the front door is enabled.
-      services.pi-durable-web = {
-        enable = true;
-        bridges.pi = {
-          listen = {
-            address = "127.0.0.1";
-            port = 8787;
-          };
-          allowedOrigins = [ "http://127.0.0.1:8787" ];
-        };
-      };
-
-      nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [ "pi-durable-pi.service" ];
+      nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [
+        "pi-durable-pi.service"
+        "pi-durable-haproxy-renewer.service"
+      ];
 
       systemd = {
         tmpfiles.rules = [

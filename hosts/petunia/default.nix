@@ -66,7 +66,6 @@ _: {
       zramSwap.memoryPercent = 25;
 
       # Machine-specific overrides
-      networking.hostName = "petunia";
 
       # Grants ddukes direct OpenRGB device access (group-scoped udev rules
       # from services-openrgb). List-merges with core-users.
@@ -90,9 +89,15 @@ _: {
         virtualization.microvm.enable = true;
       };
 
-      # Host ID for ZFS (needs to be unique and persistent)
-      # Generated randomly for petunia
-      networking.hostId = "4e1a0d9b";
+      networking = {
+        hostName = "petunia";
+        # The pi-durable front door certificate is issued for the fqdn, and the
+        # PKI role only issues for .home.lan names.
+        domain = "home.lan";
+        # Host ID for ZFS (needs to be unique and persistent)
+        # Generated randomly for petunia
+        hostId = "4e1a0d9b";
+      };
 
       swapDevices = [
         {
