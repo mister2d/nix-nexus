@@ -12,6 +12,9 @@
     let
       credsDir = "/var/lib/pi-durable-creds";
       socketTokenFile = "${credsDir}/socket_token";
+      # Hash files of the named tokens. Readable by the service user by path
+      # (not through LoadCredential), so the directory is not under credsDir.
+      tokensDir = "/var/lib/pi-durable-tokens";
 
       generateSocketToken = pkgs.writeShellScript "pi-durable-socket-token" ''
         set -euo pipefail
@@ -62,6 +65,20 @@
             signPath = "ssh-client-signer/sign/agentrole";
           };
 
+          # Named tokens. The files hold sha256 hashes only; the token texts stay
+          # in /root/pi-durable-tokens. Add or remove tokens by editing the
+          # files and running systemctl reload pi-durable-pi (SIGHUP).
+          tokens = {
+            r4b-viewer = {
+              role = "viewer";
+              hashFile = "${tokensDir}/r4b-viewer.sha256";
+            };
+            r4b-operator = {
+              role = "operator";
+              hashFile = "${tokensDir}/r4b-operator.sha256";
+            };
+          };
+
           credentials = {
             roleIdFile = "${credsDir}/role_id";
             secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
@@ -76,6 +93,7 @@
       systemd = {
         tmpfiles.rules = [
           "d ${credsDir} 0700 root root -"
+          "d ${tokensDir} 0750 root pdh-pi -"
           # Non-secret URL; the user and password come from Vault database/creds.
           "f ${credsDir}/database_url 0600 root root - postgresql://pidurable-db.service.consul:5432/pidurable?sslmode=verify-full&sslnegotiation=direct"
           # AppRole role_id of pidurable-pi: a Terraform output of vault-config,
