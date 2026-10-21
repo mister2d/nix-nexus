@@ -78,6 +78,11 @@
                 role = "operator";
                 hashFile = "${tokensDir}/r4b-operator.sha256";
               };
+              # Held by pi-durable-trigger-ops; its conversations are read-only.
+              r4b-trigger = {
+                role = "operator";
+                hashFile = "${tokensDir}/r4b-trigger.sha256";
+              };
             };
 
             credentials = {
