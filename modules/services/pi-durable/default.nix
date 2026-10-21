@@ -83,6 +83,12 @@
                 role = "operator";
                 hashFile = "${tokensDir}/r4b-trigger.sha256";
               };
+              # An agent-kind approver: it must not decide high-risk requests.
+              r4b-agent = {
+                role = "operator";
+                approver = "agent";
+                hashFile = "${tokensDir}/r4b-agent.sha256";
+              };
             };
 
             credentials = {
