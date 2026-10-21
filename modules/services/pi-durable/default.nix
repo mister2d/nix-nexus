@@ -88,6 +88,19 @@
         };
       };
 
+      # Browser bridge for the instance, loopback only. Reach it through an ssh
+      # forward until the front door is enabled.
+      services.pi-durable-web = {
+        enable = true;
+        bridges.pi = {
+          listen = {
+            address = "127.0.0.1";
+            port = 8787;
+          };
+          allowedOrigins = [ "http://127.0.0.1:8787" ];
+        };
+      };
+
       nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [ "pi-durable-pi.service" ];
 
       systemd = {
