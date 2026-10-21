@@ -106,6 +106,28 @@
           };
         };
 
+        # Webhook source "alerts": signed JSON events start read-only
+        # conversations on the instance. Secret and token files live outside
+        # the store (provisioned by hand, root only).
+        pi-durable-trigger = {
+          enable = true;
+          services.ops = {
+            target = {
+              harness = "pi";
+              tokenFile = "/root/pi-durable-tokens/trigger.token";
+            };
+            webhooks.alerts = {
+              secretFile = "/root/pi-durable-tokens/hook_alerts.secret";
+              fields = {
+                message = "message";
+                id = "id";
+              };
+              eventIdPath = "id";
+              template = "Ops event {{id}}: {{message}}. Reply with one short sentence that acknowledges it. Use no tools.";
+            };
+          };
+        };
+
         # Front door: TLS on 443 with a certificate from Vault PKI. The renewer
         # logs in with the same AppRole as the harness.
         pi-durable-haproxy = {
@@ -117,8 +139,8 @@
             secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
             caFile = "/etc/ssl/certs/ca-certificates.crt";
           };
-          # Serves the bridge named "pi" on the host fqdn.
-          instances.pi = { };
+          # Serves the bridge named "pi" and the trigger service "ops" on the host fqdn.
+          instances.pi.triggerName = "ops";
         };
       };
 
