@@ -207,6 +207,28 @@ bifrost needs no key here.
 `images.enable` exposes the `qwen_image` tools served by the bifrost MCP
 endpoint (`/mcp`). It requires the gateway provider.
 
+### Named tokens, web bridge, front door and trigger
+
+The instance declares two operator tokens and a viewer token (`r4b-viewer`,
+`r4b-operator`, `r4b-trigger`). The harness reads only their sha256 hashes
+from `/var/lib/pi-durable-tokens` (`root:pdh-pi`, files 0640). The token texts
+and the webhook secret sit in `/root/pi-durable-tokens` (root only, outside the
+store). Make a hash line with `pi-durable-attach-pi hash-token --token-file
+<file> <name> <role>`. Rotating a hash file takes effect with
+`systemctl reload pi-durable-pi`; a switch does not restart the harness, so a
+new token entry in the configuration needs `systemctl restart pi-durable-pi`
+once.
+
+`pi-durable-web-pi` listens on 127.0.0.1:8787 behind the HAProxy front door on
+`https://petunia.home.lan` (port 443, opened in the firewall). The fqdn comes
+from `networking.domain = "home.lan"`; NixOS therefore maps `petunia.home.lan`
+to 127.0.0.2 in `/etc/hosts` on petunia itself. The certificate comes from
+Vault PKI (`pki_int_homelab/issue/home-lan`) through the renewer, with the
+harness AppRole (shared; five wrong logins lock both for 15 minutes). The
+renewer reads the unsealed secret id through the credstore bridge. The trigger
+service `ops` accepts HMAC-signed `POST /hook/alerts` and starts read-only
+conversations on the instance.
+
 ### Operator commands
 
 `pi-durable-attach-pi` drives the instance (`models`, `new`, `send`, `list`,
