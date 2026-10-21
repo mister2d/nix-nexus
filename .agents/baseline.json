@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/qkhrf9jpwk02308q5hnf237nhwqrcjyc-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/6ayb21pzkb2jfz9ccf9w24ynyh2lnjxi-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-21T02:29:30Z",
+  "recorded": "2026-10-21T02:39:44Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "ede335cbac7fb0b908b83ccde4352df5a98aa9e5",
-  "signoff": ".agents/signoff/2026-10-21-pi-durable-front-door.md"
+  "signed_off_through": "f54bad4420451fc6dc8e54e25c1460c66370646c",
+  "signoff": ".agents/signoff/2026-10-21-pi-durable-trigger.md"
 }
