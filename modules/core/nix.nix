@@ -3,6 +3,7 @@
 # Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 let
   gib = n: n * 1024 * 1024 * 1024;
+  bincache = import ../../lib/bincache.nix;
 in
 _: {
   flake.modules.nixos.core-nix =
@@ -48,12 +49,14 @@ _: {
           "flakes"
         ];
 
+        # The internal cache is tried first; the upstream caches stay as fallback.
         substituters = [
+          bincache.url
           "https://cache.nixos.org"
           "https://devenv.cachix.org"
           "https://nix-amd-ai.cachix.org"
         ];
-        trusted-public-keys = [
+        trusted-public-keys = bincache.publicKeys ++ [
           "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
           "devenv.cachix.org-1:w1cLUi8dv3hnoSPGAuibQv+f9TZLr6cv/Hm9XgU50cw="
           "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ="

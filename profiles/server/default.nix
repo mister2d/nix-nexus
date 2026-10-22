@@ -11,6 +11,7 @@ _: {
     {
       imports = [
         nixosModules.core-nix
+        nixosModules.core-nix-signing
         nixosModules.core-security
         nixosModules.core-sops
         nixosModules.core-sshd

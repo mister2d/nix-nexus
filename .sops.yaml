@@ -20,6 +20,16 @@ keys:
   - &host_hermes age13t7zyrha0e25mrtvunqk0yeew9wwjhh4v05kj4g6v3r385lnucqsl2l62c
 
 creation_rules:
+  # Fleet-wide secrets: readable by the admin and every NixOS host.
+  - path_regex: secrets/common\.yaml$
+    key_groups:
+      - age:
+          - *admin_ddukes
+          - *host_avina
+          - *host_sweet16
+          - *host_petunia
+          - *host_hermes
+
   # Per-host files: readable by the admin and by that host alone.
   - path_regex: secrets/avina\.yaml$
     key_groups:

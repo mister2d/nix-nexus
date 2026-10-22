@@ -70,6 +70,20 @@ sops secrets/<host>.yaml
 `sops-install-secrets.service` is a `oneshot` in `sysinit.target` with
 `RemainAfterExit = true`. Ordering after it is safe for the whole boot.
 
+### Common builder key (fleet-wide signing)
+
+`secrets/common.yaml` holds secrets shared by every NixOS host
+(`.sops.yaml` rule `secrets/common\.yaml$`). It carries `builder-key`, the Nix
+signing key behind `modules/core/nix-signing.nix`. To enable:
+
+```bash
+sops secrets/common.yaml     # add:  builder-key: |  <contents of .secrets/builder.key>
+```
+
+Set `nix-nexus.nix.signing.enable = true;` on each host that signs and pushes.
+The file must exist first: the module references it by path. Put the public
+keys (`.secrets/cache.pub`, `.secrets/builder.pub`) in `lib/bincache.nix`.
+
 ### Onboarding a host
 
 ```bash

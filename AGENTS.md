@@ -532,6 +532,7 @@ Current hosts and their assembly structure:
 | `nix-nexus.tpm2.users` | `modules/core/tpm2.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.secrets.credstore.*` | `modules/core/credstore.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.theme.*` | `modules/desktop/theme.nix` | `hosts/sweet16/default.nix` |
+| `nix-nexus.nix.signing.enable` | `modules/core/nix-signing.nix` | none yet (set after `secrets/common.yaml` exists) |
 | `nix-nexus.kernel.cachyos.*` | `modules/hardware/kernel/cachyos.nix` | `hosts/sweet16/default.nix`, `hosts/petunia/default.nix` |
 | `nix-nexus.user.herdr.claudeIntegration.enable` (Home Manager) | `modules/user/herdr-claude-home.nix` | `modules/user/home.nix`, `hosts/forge/home.nix` |
 

@@ -28,6 +28,15 @@ Enable Flakes and the modern Nix CLI in `/etc/nix/nix.conf`:
 experimental-features = nix-command flakes
 ```
 
+### Use the internal binary cache
+Add the cache and its public keys (the contents of `.secrets/cache.pub` and
+`.secrets/builder.pub`) to `/etc/nix/nix.conf`, then restart `nix-daemon`:
+```bash
+extra-substituters = https://bincache.service.internal.novuscotia.com
+extra-trusted-public-keys = <cache.pub> <builder.pub>
+```
+Home Manager cannot manage the daemon's `nix.conf`, so this stays manual.
+
 ## 3. Adopting the Host into Nix-Nexus
 
 ### Define the Target
