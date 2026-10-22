@@ -71,7 +71,8 @@ set -euo pipefail
 push="$1"
 top="$(readlink -f /run/current-system)"
 nix store sign -k /run/secrets/builder-key -r "$top" >&2
-nix copy --to "$push" "$top" >&2
+# Few connections: the proxy answers 499/504 to large NARs under 25-way parallel upload.
+nix copy --option http-connections 4 --to "$push" "$top" >&2
 echo "$top"
 REMOTE
 ); then
