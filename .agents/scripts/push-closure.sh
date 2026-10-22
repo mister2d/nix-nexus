@@ -7,7 +7,7 @@
 #
 # Pipeline: cert-check.sh -> ssh probe -> on the host: resolve /run/current-system,
 # `nix store sign -r` with /run/secrets/builder-key, `nix copy --to` bincache ->
-# `nix path-info --store` check that the toplevel is present. The key is only
+# `nix path-info --store` check from the caller that the toplevel is present. The key is only
 # referenced by path on the host; its contents never leave it.
 #
 # Exit codes: 0 = success, 1 = cert-check failed, 2 = ssh unreachable,
@@ -82,7 +82,8 @@ END=$(date +%s)
 echo "pushed ${TOPLEVEL} in $((END - START))s"
 
 echo "-- stage: cache check --"
-if ! ssh "$TARGET" nix path-info --store "$CACHE" "$TOPLEVEL"; then
+# Checked from here, not the host: the host's own client reported a pushed path as invalid.
+if ! nix path-info --store "$CACHE" "$TOPLEVEL"; then
   echo "push-closure: ${TOPLEVEL} is absent from the cache." >&2
   exit 4
 fi
