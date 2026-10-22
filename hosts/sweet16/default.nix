@@ -73,6 +73,8 @@ _: {
       };
 
       nix-nexus = {
+        nix.signing.enable = true;
+
         # Desktop theme, from the lib/themes registry.
         theme.name = "catppuccin-mocha";
 

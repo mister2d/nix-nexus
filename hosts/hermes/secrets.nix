@@ -19,6 +19,7 @@ _: {
     in
     {
       nix-nexus.secrets.sops.hostFile = ../../secrets/hermes.yaml;
+      nix-nexus.nix.signing.enable = true;
 
       # Only the sensitive values are encrypted. Everything else stays visible
       # in the templates below so endpoints and toggles remain reviewable.

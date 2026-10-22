@@ -38,6 +38,7 @@ _: {
       # Encrypted secrets for this host. Decrypted at activation with an age key
       # derived from /etc/ssh/ssh_host_ed25519_key.
       nix-nexus.secrets.sops.hostFile = ../../secrets/avina.yaml;
+      nix-nexus.nix.signing.enable = true;
 
       sops.secrets = {
         # sops-nix seeds the AppRole role-id and secret-id vault-agent reads
