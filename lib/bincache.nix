@@ -3,8 +3,8 @@
 {
   url = "https://bincache.service.internal.novuscotia.com";
 
-  # Public signing keys, one `name:base64` string each: the contents of
-  # .secrets/cache.pub (keys the cache re-signs pass-through paths with) and
-  # .secrets/builder.pub (keys our fleet signs pushed paths with).
-  publicKeys = [ ];
+  publicKeys = [
+    "bincache.service.internal.novuscotia.com-1:IfblfHmVT0hAl2tniKiPPlXO8qOTP2mqP5LoHSSXyeQ="
+    "builder-1:Ks4W6vv/Y3yZz5d/0D5SUTM3zarq1XRBjoUrB7pV5oM="
+  ];
 }
