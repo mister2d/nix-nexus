@@ -682,6 +682,7 @@ lib/
     ├── deploy-host.sh          ← cert-check → ssh probe → nixos-rebuild → verify
     ├── verify-generation.sh    ← remote system profile check
     ├── push-image.sh           ← build + push a flake OCI-image package to the registry
+    ├── push-closure.sh         ← sign + push a host's running closure to the internal bincache
     ├── hook-commit-reminder.sh ← PostToolUse(Bash) hook: nudge validation after a commit
     └── hook-push-guard.sh      ← PreToolUse(Bash) hook: block push without a sign-off record
 modules/flake/
@@ -745,6 +746,7 @@ output format, exit codes). Summary:
 | `deploy-host.sh` | cert-check → ssh probe → `nixos-rebuild --target-host` → generation verify |
 | `verify-generation.sh` | remote system profile vs. expected toplevel |
 | `push-image.sh` | build a flake OCI-image package and push it to the registry |
+| `push-closure.sh` | sign a host's running system closure with the builder key and push it to bincache |
 
 ### Mechanical hooks
 
