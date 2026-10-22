@@ -40,6 +40,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 CACHE="https://bincache.service.internal.novuscotia.com"
+# ncps accepts PUT only under /upload/.
+PUSH="${CACHE}/upload?compression=zstd"
 TARGET="root@${HOST}.home.lan"
 
 echo "== push-closure: ${HOST} =="
@@ -64,12 +66,12 @@ fi
 
 echo "-- stage: sign and push --"
 START=$(date +%s)
-if ! TOPLEVEL=$(ssh "$TARGET" bash -s -- "$CACHE" <<'REMOTE'
+if ! TOPLEVEL=$(ssh "$TARGET" bash -s -- "$PUSH" <<'REMOTE'
 set -euo pipefail
-cache="$1"
+push="$1"
 top="$(readlink -f /run/current-system)"
 nix store sign -k /run/secrets/builder-key -r "$top" >&2
-nix copy --to "$cache" "$top" >&2
+nix copy --to "$push" "$top" >&2
 echo "$top"
 REMOTE
 ); then

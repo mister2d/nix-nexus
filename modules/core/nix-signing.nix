@@ -20,7 +20,7 @@ _: {
         [ -n "''${OUT_PATHS:-}" ] || exit 0
         # A failed push never fails the build.
         ${pkgs.coreutils}/bin/timeout 120 \
-          ${config.nix.package}/bin/nix copy --to ${lib.escapeShellArg bincache.url} $OUT_PATHS \
+          ${config.nix.package}/bin/nix copy --to ${lib.escapeShellArg bincache.pushUrl} $OUT_PATHS \
           || echo "bincache-push: push failed, continuing" >&2
         exit 0
       '';
