@@ -17,7 +17,7 @@ _: {
       keyFile = "${config.sops.defaultSymlinkPath}/builder-key";
       pushHook = import ../../lib/bincache-push.nix {
         inherit pkgs lib keyFile;
-        nix = pkgs.nixVersions.nix_2_35;
+        nix = import ../../lib/nix-package.nix pkgs;
       };
     in
     {

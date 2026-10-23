@@ -658,6 +658,7 @@ lib/
 ├── avina/site-config.nix       ← Avina domain constants
 ├── custom-scripts.nix          ← battery-alert, system-stats, audio-selector helper scripts
 ├── keymap.nix                  ← shared tmux/fish multiplexer keymap actions
+├── nix-package.nix             ← the one Nix version for NixOS nix.package and standalone HM hosts
 ├── pinned-pkgs.nix             ← helper to instantiate a pinned nixpkgs flake input
 ├── print-server/               ← CUPS print-server OCI image: image.nix, cupsd/cups-files conf, entrypoint.sh
 ├── shell-aliases.nix           ← bash/fish shared shell aliases

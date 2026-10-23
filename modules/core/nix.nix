@@ -41,7 +41,7 @@ _: {
         }
       ];
 
-      nix.package = pkgs.nixVersions.nix_2_35;
+      nix.package = import ../../lib/nix-package.nix pkgs;
 
       nix.settings = {
         experimental-features = [

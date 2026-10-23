@@ -62,6 +62,29 @@ stable paths. The root daemon's `nix.conf` is manual:
    the daemon cannot read it: `secret-key-files` then makes builds fail, and the
    hook logs "push failed". Linger (step 4) avoids both.
 
+### Match the fleet's Nix version
+
+`lib/nix-package.nix` is the one place that names the Nix version. The NixOS
+hosts use it for `nix.package`. `user-standalone-home` uses it for `nix.package`
+and `home.packages`, so after a `home-manager switch` the `nix` client in
+`~/.nix-profile` matches the fleet.
+
+The daemon is separate. The upstream installer runs the root profile's Nix, and
+Home Manager does not touch it. After a version bump in `lib/nix-package.nix`,
+upgrade the daemon by hand on each standalone host:
+
+```bash
+p=$(nix build --no-link --print-out-paths \
+  '.#homeConfigurations."groot@dualie".config.nix.package')
+sudo -i nix-env --install "$p"
+sudo systemctl daemon-reload && sudo systemctl restart nix-daemon
+nix --version; sudo -i nix --version     # both report the fleet version
+```
+
+`/etc/systemd/system/nix-daemon.service` links into the root profile, so the
+restart picks up the new binary. Build the path as a user with a working
+cache; `sudo nix-env` only installs the finished store path.
+
 ## 3. Adopting the Host into Nix-Nexus
 
 ### Define the Target
