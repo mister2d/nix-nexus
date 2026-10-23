@@ -13,23 +13,11 @@ _: {
     }:
     let
       cfg = config.nix-nexus.nix.signing;
-      bincache = import ../../lib/bincache.nix;
-
-      pushHook = pkgs.writeShellScript "bincache-push" ''
-        set -u
-        [ -n "''${OUT_PATHS:-}" ] || exit 0
-        # ncps accepts only paths signed with a trusted upload key, and the closure of an
-        # output includes dependencies that carry only upstream signatures. Sign the closure first.
-        # A failed push never fails the build.
-        {
-          ${config.nix.package}/bin/nix store sign \
-            --key-file ${config.sops.secrets.builder-key.path} --recursive $OUT_PATHS \
-          && ${pkgs.coreutils}/bin/timeout 600 \
-            ${config.nix.package}/bin/nix copy --option http-connections 4 \
-              --to ${lib.escapeShellArg bincache.pushUrl} $OUT_PATHS
-        } || echo "bincache-push: push failed, continuing" >&2
-        exit 0
-      '';
+      pushHook = import ../../lib/bincache-push.nix {
+        inherit pkgs lib;
+        nix = config.nix.package;
+        keyFile = config.sops.secrets.builder-key.path;
+      };
     in
     {
       options.nix-nexus.nix.signing.enable = lib.mkEnableOption ''

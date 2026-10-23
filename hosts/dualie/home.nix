@@ -1,6 +1,6 @@
 # Host: dualie (Debian x86_64, standalone Home Manager).
 # Registry key: flake.modules.homeManager.dualie-home
-# Composes: user-standalone-home.
+# Composes: user-standalone-home, user-bincache-home.
 _: {
   flake.modules.homeManager.dualie-home =
     {
@@ -16,7 +16,10 @@ _: {
       unstable-pkgs = pin.pinned inputs.nixpkgs-unstable;
     in
     {
-      imports = [ homeManagerModules.user-standalone-home ];
+      imports = [
+        homeManagerModules.user-standalone-home
+        homeManagerModules.user-bincache-home
+      ];
 
       # Home Configuration
       home = {

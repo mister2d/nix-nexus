@@ -37,6 +37,31 @@ extra-trusted-public-keys = <cache.pub> <builder.pub>
 ```
 Home Manager cannot manage the daemon's `nix.conf`, so this stays manual.
 
+#### Building and pushing from dualie
+
+dualie also signs what it builds and pushes it to bincache. Home Manager
+(`user-bincache-home`) provides the key through sops-nix and the hook script at
+stable paths. The root daemon's `nix.conf` is manual:
+
+1. Generate the age key as `groot` and send the public key line (`age1...`) to
+   whoever maintains `.sops.yaml`: `mkdir -p ~/.config/sops/age && age-keygen -o ~/.config/sops/age/keys.txt`
+   (use `nix shell nixpkgs#age`). Never share the file itself.
+2. The maintainer adds it as a recipient for `secrets/common.yaml` in
+   `.sops.yaml` and runs `sops updatekeys secrets/common.yaml`.
+3. Apply the Home Manager config: `home-manager switch --flake .#groot@dualie`.
+4. Keep the user manager running without a login session, so the key exists
+   whenever a build runs: `sudo loginctl enable-linger groot`.
+5. Add to `/etc/nix/nix.conf`, then `sudo systemctl restart nix-daemon`:
+   ```
+   substituters = https://bincache.service.internal.novuscotia.com https://cache.nixos.org
+   trusted-public-keys = <cache.pub> <builder.pub> cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+   secret-key-files = /mnt/ironhide/home/groot/.config/sops-nix/secrets/builder-key
+   post-build-hook = /mnt/ironhide/home/groot/.local/share/nix-nexus/bincache-push
+   ```
+   The key is a symlink into `$XDG_RUNTIME_DIR`. If the user manager is not running,
+   the daemon cannot read it: `secret-key-files` then makes builds fail, and the
+   hook logs "push failed". Linger (step 4) avoids both.
+
 ## 3. Adopting the Host into Nix-Nexus
 
 ### Define the Target
