@@ -6,12 +6,12 @@
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/lrgzzs1p0skyy6fnjkqp5v4h0nd5h27v-home-manager-generation.drv",
+      "drv": "/nix/store/0jjy03bl2clphjann19fnlf42hbyyjck-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/dn9b2j2ani9adg1m2xadiaj9kxvc5xn2-home-manager-generation.drv",
+      "drv": "/nix/store/8z83n3llb92la92fz3swgkkhr0va9yzh-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-23T02:41:19Z",
+  "recorded": "2026-10-23T15:33:19Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "dddfa163cf6ed8588a82588cdd3a8d9c9dc05baa",
-  "signoff": ".agents/signoff/2026-10-23-dualie-bincache-push.md"
+  "signed_off_through": "ee70a7d2e70a684ec1159e70f04db1b516deb393",
+  "signoff": ".agents/signoff/2026-10-23-nix-package-shared.md"
 }
