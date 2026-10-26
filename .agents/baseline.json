@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/fz3fsmrcjw582vwrcdkk6jjvdhjl0qrg-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/xxmj99crbfbc1xrjibdlmvmz7rhpvvdf-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/0jjy03bl2clphjann19fnlf42hbyyjck-home-manager-generation.drv",
+      "drv": "/nix/store/2wfhp6sn1zcd1h1dszjnnvkqcwfsbam9-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/8z83n3llb92la92fz3swgkkhr0va9yzh-home-manager-generation.drv",
+      "drv": "/nix/store/afv06a3mijz135nynwb7m9rwvvw90f6a-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/v0ywpfncwcd8h801nzcdh4dl6zia4wjr-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/h6731j0sgqgsipr0p3a5ps954vl0i8bx-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/m41nwz29gcj0v5m7z25jq79w3rpq5dy5-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/6p5zd4f90pl3jzs8r0dvph060xmn676v-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/czz0azamrv6krwi5r4v0ablvh2i523nq-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/1mfidg13zr9gmavy7p76j21ngilavkwm-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-23T15:33:19Z",
+  "recorded": "2026-10-26T02:32:15Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "ee70a7d2e70a684ec1159e70f04db1b516deb393",
-  "signoff": ".agents/signoff/2026-10-23-nix-package-shared.md"
+  "signed_off_through": "22a520ee3badfdea90b4cbb71e0df74c21007aea",
+  "signoff": ".agents/signoff/2026-10-26-xdg-base-dirs.md"
 }
