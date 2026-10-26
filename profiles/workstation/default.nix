@@ -16,6 +16,7 @@ _: {
         nixosModules.core-nix
         nixosModules.core-nix-signing
         nixosModules.core-security
+        nixosModules.core-session
         nixosModules.core-sops
         nixosModules.core-sshd
         nixosModules.core-sysctl
