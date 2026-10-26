@@ -1,7 +1,7 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/xxmj99crbfbc1xrjibdlmvmz7rhpvvdf-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/vw3zpqaajlnid1d6207m9hc4gsbwlg73-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/h6731j0sgqgsipr0p3a5ps954vl0i8bx-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/yac7kxn3ghf4i6abx3nmzl1a9hk7flgf-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/6p5zd4f90pl3jzs8r0dvph060xmn676v-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/bbplaawlwi781s7cblr0d2zdh43clbb9-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/1mfidg13zr9gmavy7p76j21ngilavkwm-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/y0kd3sfmzgqz1wwyd2j0mygp34d2yk0f-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-26T02:32:15Z",
+  "recorded": "2026-10-26T02:49:34Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "22a520ee3badfdea90b4cbb71e0df74c21007aea",
-  "signoff": ".agents/signoff/2026-10-26-xdg-base-dirs.md"
+  "signed_off_through": "f06f8811ce807e4928904de4846f574ccf415c53",
+  "signoff": ".agents/signoff/2026-10-26-xdg-base-dirs-home-fix.md"
 }
