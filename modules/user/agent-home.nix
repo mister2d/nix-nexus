@@ -16,6 +16,7 @@ _: {
         homeManagerModules.user-bash
         homeManagerModules.user-terminal-home
         homeManagerModules.user-herdr-home
+        homeManagerModules.user-xdg
       ];
 
       home.stateVersion = "25.11";

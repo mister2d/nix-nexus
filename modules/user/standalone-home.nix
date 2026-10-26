@@ -17,6 +17,7 @@ _: {
         homeManagerModules.user-television-home
         homeManagerModules.user-devenv-home
         homeManagerModules.user-herdr-home
+        homeManagerModules.user-xdg
       ];
 
       # Same Nix version as the NixOS fleet (lib/nix-package.nix). Home Manager's nix.package only

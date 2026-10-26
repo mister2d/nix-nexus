@@ -55,6 +55,7 @@ _: {
         homeManagerModules.user-vault-home
         homeManagerModules.user-claude-vllm-home
         homeManagerModules.user-herdr-home
+        homeManagerModules.user-xdg
       ];
 
       nix-nexus.user.herdr.claudeIntegration.enable = true;
