@@ -1,5 +1,5 @@
 # Registry key: flake.modules.homeManager.desktop-hyprland-home
-# Configures: Hyprland keybindings, workspace binds, and startup commands (Lua config).
+# Configures: Hyprland keybindings, workspace binds, startup commands (Lua config), and the xdg-terminal-exec terminal preference list.
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
   flake.modules.homeManager.desktop-hyprland-home =
@@ -453,7 +453,7 @@ _: {
             (mkBind "SHIFT + L" (exec (noc "session lock")) { })
 
             # ── Applications ──
-            (mkBind "RETURN" (exec "${lib.getExe config.programs.ghostty.package}") { })
+            (mkBind "RETURN" (exec "${lib.getExe config.xdg.terminal-exec.package}") { })
             (mkBind "SHIFT + RETURN" (exec "${pkgs.kitty}/bin/kitty") { })
             (mkBind "SHIFT + B"
               (exec "${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi'")
@@ -537,6 +537,19 @@ _: {
           (mkBindRaw "escape" "hl.dsp.submap(\"reset\")" { })
           (mkBindRaw "return" "hl.dsp.submap(\"reset\")" { })
           (mkBind "R" "hl.dsp.submap(\"reset\")" { })
+        ];
+      };
+
+      # -----------------------------------------------------------------------
+      # Default terminal — xdg-terminal-exec
+      # Ordered preference list that the keybind, launchers and Terminal=true
+      # desktop entries all follow.
+      # -----------------------------------------------------------------------
+      xdg.terminal-exec = {
+        enable = true;
+        settings.default = [
+          "com.mitchellh.ghostty.desktop"
+          "kitty.desktop"
         ];
       };
 
