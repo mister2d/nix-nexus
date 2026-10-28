@@ -64,7 +64,10 @@ _: {
             window-padding-x = 10;
             window-padding-y = 10;
             window-decoration = false;
-            gtk-tabs-location = "top";
+            # Tmux windows act as tabs and tmux renders the tab bar
+            gtk-tabs-location = "hidden";
+            # Keeps the block cursor at the prompt instead of a bar
+            shell-integration-features = "no-cursor";
 
             # Mouse behavior
             # Selecting copies to both the primary selection and the system clipboard
