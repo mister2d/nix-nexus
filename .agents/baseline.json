@@ -6,12 +6,12 @@
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/9p4vs23nya4f4rxr4b8gkb2ixms5jcd9-home-manager-generation.drv",
+      "drv": "/nix/store/4pws13h1qp217wp0r38rpahf8dhq15aq-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/03v0nbdxw5w87146dh9i0zk5s83ry7dx-home-manager-generation.drv",
+      "drv": "/nix/store/1lm1s7f748ya6j9dpqmikd7jj128i6ms-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/g08filb4vy7jgk2l1vkdl3gyb7x71xz6-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/l58gimssg5syjwpyqg51493p0ns1xrlp-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/41f55gli4v0wsc5vqsbsf21v8qdrdgp0-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/lvkd3da2k1zjmcy5lmj76qf5xvc6kmpw-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/vjrbvmy5m23lgwfg0z0xcabaq5sl108x-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/b1bf7308pp4cvzbqbvcf8g6ifjjbkbbm-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-28T16:46:28Z",
+  "recorded": "2026-10-28T18:46:03Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "e5babe28f8db56942694d5b0e69b30b71ed5fb6f",
-  "signoff": ".agents/signoff/2026-10-28-ghostty-default-terminal.md"
+  "signed_off_through": "e798beaff7c0317f4c8739b08e12a0f474932b46",
+  "signoff": ".agents/signoff/2026-10-28-ghostty-unbind-tabs.md"
 }
