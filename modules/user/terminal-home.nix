@@ -68,6 +68,22 @@ _: {
             gtk-tabs-location = "hidden";
             # Keeps the block cursor at the prompt instead of a bar
             shell-integration-features = "no-cursor";
+            # Every default tab keybind is unbound, so the keys pass through to tmux
+            keybind = map (t: "${t}=unbind") (
+              [
+                "ctrl+shift+t"
+                "ctrl+tab"
+                "ctrl+shift+tab"
+                "ctrl+shift+arrow_left"
+                "ctrl+shift+arrow_right"
+                "ctrl+page_up"
+                "ctrl+page_down"
+                "ctrl+shift+page_up"
+                "ctrl+shift+page_down"
+              ]
+              ++ lib.genList (i: "alt+${toString (i + 1)}") 9
+              ++ lib.genList (i: "alt+digit_${toString (i + 1)}") 8
+            );
 
             # Mouse behavior
             # Selecting copies to both the primary selection and the system clipboard
