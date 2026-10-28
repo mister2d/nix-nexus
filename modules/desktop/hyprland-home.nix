@@ -123,7 +123,9 @@ _: {
 
         systemd = {
           enable = true;
+          # PATH is exported because xdph finds hyprctl on the inherited PATH.
           variables = [
+            "PATH"
             "WAYLAND_DISPLAY"
             "HYPRLAND_INSTANCE_SIGNATURE"
             "XDG_CURRENT_DESKTOP"
