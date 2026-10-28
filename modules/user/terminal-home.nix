@@ -3,7 +3,12 @@
 # Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
   flake.modules.homeManager.user-terminal-home =
-    { pkgs, lib, ... }:
+    {
+      pkgs,
+      lib,
+      inputs,
+      ...
+    }:
 
     let
       keymap = import ../../lib/keymap.nix { inherit lib; };
@@ -46,13 +51,15 @@ _: {
 
         ghostty = {
           enable = true;
+          # ghostty comes from its own flake input, pinned to a tagged release.
+          package = inputs.ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default;
           settings = {
             term = "xterm-256color";
 
             cursor-style = "block";
             cursor-style-blink = true;
 
-            scrollback-limit = 100000;
+            scrollback-limit-lines = 100000;
 
             window-padding-x = 10;
             window-padding-y = 10;
@@ -60,7 +67,8 @@ _: {
             gtk-tabs-location = "top";
 
             # Mouse behavior
-            copy-on-select = "clipboard";
+            # Selecting copies to both the primary selection and the system clipboard
+            copy-on-select = "both";
             # Right-click pastes from the clipboard instead of opening a context menu
             right-click-action = "paste";
             # Shift always extends the selection, even while a program such as tmux

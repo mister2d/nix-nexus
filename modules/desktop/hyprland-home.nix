@@ -454,7 +454,7 @@ _: {
 
             # ── Applications ──
             (mkBind "RETURN" (exec "${pkgs.kitty}/bin/kitty") { })
-            (mkBind "SHIFT + RETURN" (exec "${pkgs.ghostty}/bin/ghostty") { })
+            (mkBind "SHIFT + RETURN" (exec "${lib.getExe config.programs.ghostty.package}") { })
             (mkBind "SHIFT + B"
               (exec "${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi'")
               { }
