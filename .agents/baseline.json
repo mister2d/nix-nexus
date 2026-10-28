@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/vw3zpqaajlnid1d6207m9hc4gsbwlg73-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/k0b2ng9y5n9zqdq47cb881jl94yi3bzy-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/2wfhp6sn1zcd1h1dszjnnvkqcwfsbam9-home-manager-generation.drv",
+      "drv": "/nix/store/jdj4bysjc9zx9m9ixjmf97jscqq86dqy-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/afv06a3mijz135nynwb7m9rwvvw90f6a-home-manager-generation.drv",
+      "drv": "/nix/store/d9bm7g0ckxzih5dvbgk0y101sc984sqj-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/yac7kxn3ghf4i6abx3nmzl1a9hk7flgf-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/jznyjckiyy7ch5gx88wq7qg3qcv2jlw7-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/bbplaawlwi781s7cblr0d2zdh43clbb9-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/bm0wwj1j0cwp72k7dp16ha96kyd7al2k-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/y0kd3sfmzgqz1wwyd2j0mygp34d2yk0f-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/sb1jj6pa1nji5ay255al6ipg50lzssa0-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-26T02:49:34Z",
+  "recorded": "2026-10-28T13:43:47Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "f06f8811ce807e4928904de4846f574ccf415c53",
-  "signoff": ".agents/signoff/2026-10-26-xdg-base-dirs-home-fix.md"
+  "signed_off_through": "1ac395d6ae00e7fc1f500a08ddca6fd1fb01b7d9",
+  "signoff": ".agents/signoff/2026-10-28-dds-and-ghostty-1-4-0.md"
 }
