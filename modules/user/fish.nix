@@ -45,7 +45,7 @@ _: {
           # required. --latest overrides llm-agents to the upstream flake
           # tip for a bleeding-edge agent-harness CLI escape hatch,
           # bypassing nix-devshell's own committed flake.lock pin.
-          devenv-devshell = ''
+          dds = ''
             set -l shell full
             set -l latest 0
             for arg in $argv

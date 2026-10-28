@@ -128,12 +128,12 @@ _: {
           PROMPT_COMMAND="set_bash_prompt''${PROMPT_COMMAND:+; ''${PROMPT_COMMAND}}"
 
           # ------------------------------------------------------------------
-          # devenv-devshell: enter the nix-devshell devShell by git reference,
+          # dds: enter the nix-devshell devShell by git reference,
           # no local clone required. --latest overrides llm-agents to the
           # upstream flake tip for a bleeding-edge agent-harness CLI escape
           # hatch, bypassing nix-devshell's own committed flake.lock pin.
           # ------------------------------------------------------------------
-          devenv-devshell() {
+          dds() {
             local shell="full" latest=0
             for arg in "$@"; do
               case "$arg" in
