@@ -18,6 +18,12 @@
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
 
+    # ghostty — terminal emulator. Pinned to a tagged release and built from
+    # its own flake. inputs.nixpkgs.follows is intentionally absent: the build
+    # needs Zig 0.17 from ghostty's own nixpkgs and zig-overlay, and
+    # ghostty.cachix.org only hits without the override.
+    ghostty.url = "github:ghostty-org/ghostty/v1.4.0";
+
     # ── Home Manager ────────────────────────────────────────────────────────
     home-manager = {
       url = "github:nix-community/home-manager/release-26.05";
