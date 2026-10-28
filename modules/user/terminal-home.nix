@@ -101,14 +101,22 @@ _: {
             # Setting default-command to bash ensures it starts a non-login shell.
             set -g default-command "${pkgs.bash}/bin/bash"
 
-            # OLED High-Contrast Status Bar
-            set -g status-style bg=black,fg=white
-            set -g status-left "#[fg=cyan,bold] #S #[default]| "
-            set -g status-right "#[fg=magenta] %Y-%m-%d #[fg=cyan]%H:%M:%S "
-            set -g window-status-current-style bg=cyan,fg=black,bold
+            # Powerline status bar. Colors come from the @pl_* user options so
+            # a theme only has to override the options, not the formats.
+            set -g @pl_bg black
+            set -g @pl_fg white
+            set -g @pl_accent cyan
+            set -g @pl_alt magenta
+            set -g @pl_muted colour236
+            set -g status-style "bg=#{@pl_bg},fg=#{@pl_fg}"
+            set -g status-left-length 40
+            set -g status-left "#[fg=#{@pl_bg},bg=#{@pl_accent},bold] #S #[fg=#{@pl_accent},bg=#{@pl_bg},nobold]"
+            set -g status-right "#[fg=#{@pl_muted},bg=#{@pl_bg}]#[fg=#{@pl_fg},bg=#{@pl_muted}] %Y-%m-%d #[fg=#{@pl_accent},bg=#{@pl_muted}]#[fg=#{@pl_bg},bg=#{@pl_accent},bold] %H:%M:%S "
+            set -g window-status-style "fg=#{@pl_fg},bg=#{@pl_bg}"
             set -g window-status-format " #I:#W "
-            set -g window-status-current-style bg=cyan,fg=black,bold
-            set -g window-status-current-format " #I:#W "
+            set -g window-status-current-style "fg=#{@pl_bg},bg=#{@pl_alt},bold"
+            set -g window-status-current-format "#[fg=#{@pl_bg},bg=#{@pl_alt}]#[fg=#{@pl_bg},bg=#{@pl_alt},bold] #I:#W #[fg=#{@pl_alt},bg=#{@pl_bg},nobold]"
+            set -g window-status-separator ""
 
             ${keymap.renderTmux keymap.multiplexer}
 

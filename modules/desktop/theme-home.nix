@@ -96,16 +96,18 @@ _: {
           inactive_tab_background ${base01}
         '';
 
-        # terminal-home's tmux extraConfig carries the non-stylix fallback
-        # colors. stylix's tmux target stays disabled above because
-        # extraConfig is types.lines. This mkAfter block restates only the
-        # color-bearing directives. tmux parses top to bottom and the last
-        # directive wins, as in the kitty block above.
+        # terminal-home's tmux extraConfig defines the powerline formats and
+        # fallback colors through the @pl_* user options. stylix's tmux target
+        # stays disabled above because extraConfig is types.lines. This
+        # mkAfter block overrides the options and the pane borders. tmux
+        # parses top to bottom and the last directive wins, as in the kitty
+        # block above.
         tmux.extraConfig = lib.mkAfter ''
-          set -g status-style bg=${base00},fg=${base05}
-          set -g status-left "#[fg=${base0D},bold] #S #[default]| "
-          set -g status-right "#[fg=${base0E}] %Y-%m-%d #[fg=${base0C}]%H:%M:%S "
-          set -g window-status-current-style bg=${base0D},fg=${base00},bold
+          set -g @pl_bg '${base00}'
+          set -g @pl_fg '${base05}'
+          set -g @pl_accent '${base0D}'
+          set -g @pl_alt '${base0E}'
+          set -g @pl_muted '${base02}'
           set -g pane-border-style fg='${base02}'
           set -g pane-active-border-style fg='${base0C}'
         '';
