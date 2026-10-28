@@ -246,7 +246,7 @@ _: {
               mouse_move_enables_dpms = true;
               key_press_enables_dpms = true;
               enable_swallow = true;
-              swallow_regex = "^(kitty|ghostty)$";
+              swallow_regex = "^(kitty|com\\.mitchellh\\.ghostty)$";
             };
 
             # ── Render / Color Management / HDR ─────────────────────────────
@@ -453,8 +453,8 @@ _: {
             (mkBind "SHIFT + L" (exec (noc "session lock")) { })
 
             # ── Applications ──
-            (mkBind "RETURN" (exec "${pkgs.kitty}/bin/kitty") { })
-            (mkBind "SHIFT + RETURN" (exec "${lib.getExe config.programs.ghostty.package}") { })
+            (mkBind "RETURN" (exec "${lib.getExe config.programs.ghostty.package}") { })
+            (mkBind "SHIFT + RETURN" (exec "${pkgs.kitty}/bin/kitty") { })
             (mkBind "SHIFT + B"
               (exec "${pkgs.bash}/bin/bash -c 'if command -v gpu-launch >/dev/null; then exec gpu-launch google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; else exec google-chrome-stable --ozone-platform=wayland --disable-features=ExtensionManifestV2Unsupported; fi'")
               { }
