@@ -1359,6 +1359,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-hyprland": {
+      "locked": {
+        "lastModified": 1793198515,
+        "narHash": "sha256-qcfcATosdU5GU+4JqQ89C1xRvUCbQFHPh01iuHWCRfo=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ca053bb97d1d25b09242b30afe974fffc55737c3",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "ca053bb97d1d25b09242b30afe974fffc55737c3",
+        "type": "github"
+      }
+    },
     "nixpkgs-lib": {
       "locked": {
         "lastModified": 1790477367,
@@ -1835,6 +1851,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_6",
         "nixpkgs-chrome": "nixpkgs-chrome",
+        "nixpkgs-hyprland": "nixpkgs-hyprland",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "nixvim": "nixvim",
         "noctalia": "noctalia",

@@ -115,9 +115,9 @@ _: {
       wayland.windowManager.hyprland = {
         enable = true;
         # Matches programs.hyprland.package in desktop-hyprland.nix (NixOS).
-        # portalPackage stays at its own default: finalPortalPackage overrides
-        # its embedded hyprland input with this package regardless.
-        package = (pin.pinned inputs.nixpkgs-unstable).hyprland;
+        package = (pin.pinned inputs.nixpkgs-hyprland).hyprland;
+        # The NixOS module (programs.hyprland.portalPackage) installs the one xdph.
+        portalPackage = null;
         xwayland.enable = true;
         configType = "lua";
 

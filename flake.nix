@@ -118,6 +118,8 @@
     # Each pin preserves a working version of one or more packages.
     pkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11"; # Matrix stack (avina)
     nixpkgs-chrome.url = "github:nixos/nixpkgs/fa56d7d6de78f5a7f997b0ea2bc6efd5868ad9e8"; # google-chrome
+    # hyprland 0.57.0 + xdph 1.5.0 from nixpkgs PR #580006; drop once it reaches nixos-unstable.
+    nixpkgs-hyprland.url = "github:NixOS/nixpkgs/ca053bb97d1d25b09242b30afe974fffc55737c3";
   };
 
   outputs =

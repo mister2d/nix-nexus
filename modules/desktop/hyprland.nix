@@ -11,17 +11,17 @@ _: {
     }:
     let
       pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
-      unstablePkgs = pin.pinned inputs.nixpkgs-unstable;
+      hyprlandPkgs = pin.pinned inputs.nixpkgs-hyprland;
     in
     {
       # Both hosts need Hyprland >= 0.56 for render.cm_auto_hdr and related
-      # HDR/color-management settings. nixos-26.05 ships 0.55.4, which lacks
-      # them, so both packages come from nixpkgs-unstable regardless of which
-      # nixpkgs channel the host's system builds from.
+      # HDR/color-management settings. Both packages (hyprland 0.57.0, xdph
+      # 1.5.0) come from the nixpkgs-hyprland pin regardless of which nixpkgs
+      # channel the host's system builds from.
       programs.hyprland = {
         enable = true;
-        package = lib.mkDefault unstablePkgs.hyprland;
-        portalPackage = lib.mkDefault unstablePkgs.xdg-desktop-portal-hyprland;
+        package = lib.mkDefault hyprlandPkgs.hyprland;
+        portalPackage = lib.mkDefault hyprlandPkgs.xdg-desktop-portal-hyprland;
         withUWSM = false;
         xwayland.enable = true;
         systemd.setPath.enable = false;
