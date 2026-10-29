@@ -6,16 +6,20 @@ _: {
     {
       pkgs,
       lib,
+      inputs,
       ...
     }:
 
     let
       keymap = import ../../lib/keymap.nix { inherit lib; };
+      pin = import ../../lib/pinned-pkgs.nix { inherit pkgs; };
     in
     {
       programs = {
         kitty = {
           enable = true;
+          # kitty tracks nixpkgs-unstable on every host.
+          package = (pin.pinned inputs.nixpkgs-unstable).kitty;
           settings = {
             # Standard terminfo for broad compatibility
             term = "xterm-256color";
