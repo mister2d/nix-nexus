@@ -75,7 +75,7 @@ copy mode and to a mouse drag-selection alike. The terminal emulator
 receives them even when tmux runs on a remote host over SSH.
 
 To bypass tmux and use the terminal emulator's own selection, hold `Shift`
-while dragging. This works in both Kitty and Ghostty.
+while dragging. This works in both Kitty.
 
 #### Saving History to a File
 To capture a large amount of logs from a pane:

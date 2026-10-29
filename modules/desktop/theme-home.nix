@@ -1,5 +1,5 @@
 # Merged into: flake.modules.homeManager.desktop-theme-home
-# Configures: stylix HM targets for kitty, ghostty, gtk, qt, and the cursor.
+# Configures: stylix HM targets for kitty, gtk, qt, and the cursor.
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
   # These stylix.targets options only exist in the HM option tree on hosts
@@ -55,22 +55,16 @@ _: {
           tmux.enable = false;
 
           kitty.enable = true;
-          ghostty.enable = true;
           btop.enable = true;
           gtk.enable = true;
           qt.enable = true;
           hyprland.enable = true;
           hyprlock.enable = true;
 
-          # OLED: keep terminals true black on themes that opt in via the registry's
-          # trueBlackTerminal flag (lib/themes). Scoped to the terminals — a global
-          # stylix.override.base00 would also move noctalia surfaces, GTK/Qt
-          # backgrounds and btop.
-          #
-          # Ghostty reads colors.base00 directly when building its theme, so this
-          # override genuinely reaches the rendered config. Kitty has no equivalent
-          # override — see programs.kitty.extraConfig below for why.
-          ghostty.colors.override = lib.optionalAttrs theme.trueBlackTerminal { base00 = "000000"; };
+          # OLED: kitty stays true black on themes that opt in via the registry's
+          # trueBlackTerminal flag (lib/themes), handled in programs.kitty.extraConfig
+          # below. A global stylix.override.base00 would also move noctalia
+          # surfaces, GTK/Qt backgrounds and btop.
         };
 
       programs = {

@@ -109,7 +109,7 @@ _: {
       };
     in
     {
-      # GTK4 apps (ghostty) scale fonts by this; keep at 1.0.
+      # GTK4 apps scale fonts by this; keep at 1.0.
       dconf.settings."org/gnome/desktop/interface".text-scaling-factor = 1.0;
 
       # -----------------------------------------------------------------------
@@ -251,7 +251,7 @@ _: {
               mouse_move_enables_dpms = true;
               key_press_enables_dpms = true;
               enable_swallow = true;
-              swallow_regex = "^(kitty|com\\.mitchellh\\.ghostty)$";
+              swallow_regex = "^(kitty)$";
             };
 
             # ── Render / Color Management / HDR ─────────────────────────────
@@ -553,7 +553,6 @@ _: {
       xdg.terminal-exec = {
         enable = true;
         settings.default = [
-          "com.mitchellh.ghostty.desktop"
           "kitty.desktop"
         ];
       };

@@ -1,12 +1,11 @@
 # Registry key: flake.modules.homeManager.user-terminal-home
-# Configures: Kitty, Ghostty, and Tmux terminal defaults and keybindings.
+# Configures: Kitty and Tmux terminal defaults and keybindings.
 # Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
   flake.modules.homeManager.user-terminal-home =
     {
       pkgs,
       lib,
-      inputs,
       ...
     }:
 
@@ -46,54 +45,6 @@ _: {
             # Tab Bar (High Contrast)
             tab_bar_edge = "top";
             tab_bar_style = "powerline";
-          };
-        };
-
-        ghostty = {
-          enable = true;
-          # ghostty comes from its own flake input, pinned to a tagged release.
-          package = inputs.ghostty.packages.${pkgs.stdenv.hostPlatform.system}.default;
-          settings = {
-            term = "xterm-256color";
-
-            cursor-style = "block";
-            cursor-style-blink = true;
-
-            scrollback-limit-lines = 100000;
-
-            window-padding-x = 10;
-            window-padding-y = 10;
-            window-decoration = false;
-            # Tmux windows act as tabs and tmux renders the tab bar
-            gtk-tabs-location = "hidden";
-            # Keeps the block cursor at the prompt instead of a bar
-            shell-integration-features = "no-cursor";
-            # Every default tab keybind is unbound, so the keys pass through to tmux
-            keybind = map (t: "${t}=unbind") (
-              [
-                "ctrl+shift+t"
-                "ctrl+tab"
-                "ctrl+shift+tab"
-                "ctrl+shift+arrow_left"
-                "ctrl+shift+arrow_right"
-                "ctrl+page_up"
-                "ctrl+page_down"
-                "ctrl+shift+page_up"
-                "ctrl+shift+page_down"
-              ]
-              ++ lib.genList (i: "alt+${toString (i + 1)}") 9
-              ++ lib.genList (i: "alt+digit_${toString (i + 1)}") 8
-            );
-
-            # Mouse behavior
-            # Selecting copies to both the primary selection and the system clipboard
-            copy-on-select = "both";
-            # Right-click pastes from the clipboard instead of opening a context menu
-            right-click-action = "paste";
-            # Shift always extends the selection, even while a program such as tmux
-            # has mouse reporting enabled
-            mouse-shift-capture = "never";
-            mouse-hide-while-typing = true;
           };
         };
 
@@ -147,8 +98,8 @@ _: {
             bind-key -n MouseDown3Pane paste-buffer
 
             # Copies leave tmux over OSC 52, which also works across SSH.
-            # terminal-features matches the outer terminal's TERM, which kitty and
-            # ghostty both set to xterm-256color.
+            # terminal-features matches the outer terminal's TERM, which kitty
+            # sets to xterm-256color.
             set -g set-clipboard on
             set -as terminal-features ',xterm-256color:clipboard'
 

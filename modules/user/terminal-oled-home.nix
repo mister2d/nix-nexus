@@ -1,5 +1,5 @@
 # Registry key: flake.modules.homeManager.user-terminal-oled-home
-# Configures: the true-black OLED color palette for Kitty and Ghostty.
+# Configures: the true-black OLED color palette for Kitty.
 # Imported by: modules/user/standalone-home.nix (user-standalone-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
   flake.modules.homeManager.user-terminal-oled-home =
@@ -80,40 +80,6 @@ _: {
               color14
               color15
               ;
-          };
-        };
-
-        ghostty = {
-          settings = {
-            font-family = "JetBrainsMono Nerd Font";
-            font-size = 14;
-
-            inherit (colors) background foreground;
-            cursor-color = colors.cursor;
-            cursor-text = colors.cursor_text_color;
-            selection-background = colors.selection_background;
-            selection-foreground = colors.selection_foreground;
-
-            palette = [
-              "0=${colors.color0}"
-              "1=${colors.color1}"
-              "2=${colors.color2}"
-              "3=${colors.color3}"
-              "4=${colors.color4}"
-              "5=${colors.color5}"
-              "6=${colors.color6}"
-              "7=${colors.color7}"
-              "8=${colors.color8}"
-              "9=${colors.color9}"
-              "10=${colors.color10}"
-              "11=${colors.color11}"
-              "12=${colors.color12}"
-              "13=${colors.color13}"
-              "14=${colors.color14}"
-              "15=${colors.color15}"
-            ];
-
-            background-opacity = 1.0;
           };
         };
       };
