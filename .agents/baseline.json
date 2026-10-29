@@ -1,17 +1,17 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/k0b2ng9y5n9zqdq47cb881jl94yi3bzy-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/8kc6zv6f9y5z1qq5ma17rh9r3wiavvsh-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/4pws13h1qp217wp0r38rpahf8dhq15aq-home-manager-generation.drv",
+      "drv": "/nix/store/nwyh574pxpz300w140h848pq02algyb8-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
     "groot@forge": {
-      "drv": "/nix/store/1lm1s7f748ya6j9dpqmikd7jj128i6ms-home-manager-generation.drv",
+      "drv": "/nix/store/ynq82wgbxmnlv0vg6j5cg2n1x7lf5w4z-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/l58gimssg5syjwpyqg51493p0ns1xrlp-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/98q5fp3nrpw9nypp0jln7k6yigcp4lz2-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/msyvw06mr439msps31vspfjvnww9b9mv-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/k8fk5isbfbh2xsfbvjqmq71jgkhsnsil-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/2101k3bf82kga5r5hnqa5zfw1zylvbx2-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/jf3r4rmy1gf266jn3lkvk34n44l7x4ah-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-10-29T00:08:51Z",
+  "recorded": "2026-10-29T00:49:56Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "554825315ba7d7d9744ce6e5977396b706d64193",
-  "signoff": ".agents/signoff/2026-10-29-gtk-text-scaling.md"
+  "signed_off_through": "85dff3fba59b89db6884418187a8137ada19bfac",
+  "signoff": ".agents/signoff/2026-10-29-remove-ghostty-kitty-unstable.md"
 }
