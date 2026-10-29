@@ -109,6 +109,9 @@ _: {
       };
     in
     {
+      # GTK4 apps (ghostty) scale fonts by this; keep at 1.0.
+      dconf.settings."org/gnome/desktop/interface".text-scaling-factor = 1.0;
+
       # -----------------------------------------------------------------------
       # Hyprland compositor
       # -----------------------------------------------------------------------
