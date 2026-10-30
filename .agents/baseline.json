@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/k8fk5isbfbh2xsfbvjqmq71jgkhsnsil-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/zdirdvr2vp7xv8x6hr5n7przb4qn136h-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-29T00:49:56Z",
+  "recorded": "2026-10-30T05:21:21Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "85dff3fba59b89db6884418187a8137ada19bfac",
-  "signoff": ".agents/signoff/2026-10-29-remove-ghostty-kitty-unstable.md"
+  "signed_off_through": "50cdc9cb6e1dfdd3a0e71e0313a189563a68e08b",
+  "signoff": ".agents/signoff/2026-10-30-bifrost-front-door-petunia.md"
 }
