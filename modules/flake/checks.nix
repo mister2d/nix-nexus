@@ -100,7 +100,7 @@
 
           mcpServers.bifrost = {
             type = "http";
-            url = "http://petunia.home.lan:8080/mcp";
+            url = "https://inference.home.lan/mcp";
           };
         };
       };

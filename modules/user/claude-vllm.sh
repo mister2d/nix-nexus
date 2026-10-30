@@ -13,7 +13,7 @@ Usage: claude-vllm [--env | --help] [claude args...]
 Anything else is passed to claude. --model is added unless you pass one.
 
 Environment (defaults in brackets):
-  BIFROST_HOST [petunia.home.lan]  BIFROST_PORT [8080]
+  BIFROST_HOST [inference.home.lan]  BIFROST_PORT [443]
   BIFROST_MODEL [vllm/Qwen3.8-MXFP4]
   BIFROST_AUTH_TOKEN [dummy]
   MAX_THINKING_TOKENS [131072]  CLAUDE_CODE_MAX_CONTEXT_TOKENS [262144]
@@ -21,13 +21,13 @@ Environment (defaults in brackets):
 USAGE
 }
 
-host="${BIFROST_HOST:-petunia.home.lan}"
-port="${BIFROST_PORT:-8080}"
+host="${BIFROST_HOST:-inference.home.lan}"
+port="${BIFROST_PORT:-443}"
 model="${BIFROST_MODEL:-vllm/Qwen3.8-MXFP4}"
 token="${BIFROST_AUTH_TOKEN:-dummy}"
 
 declare -A claude_env=(
-  [ANTHROPIC_BASE_URL]="http://${host}:${port}/anthropic"
+  [ANTHROPIC_BASE_URL]="https://${host}:${port}/anthropic"
   [ANTHROPIC_API_KEY]="$token"
   [ANTHROPIC_AUTH_TOKEN]="$token"
   [MAX_THINKING_TOKENS]="${MAX_THINKING_TOKENS:-131072}"
