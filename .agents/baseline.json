@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-30T05:21:21Z",
+  "recorded": "2026-10-30T06:08:02Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "50cdc9cb6e1dfdd3a0e71e0313a189563a68e08b",
-  "signoff": ".agents/signoff/2026-10-30-bifrost-front-door-petunia.md"
+  "signed_off_through": "0089ed4ce994f92271d0ac67d6a625a1d47c6a40",
+  "signoff": ".agents/signoff/2026-10-30-nix-bifrost-main.md"
 }
