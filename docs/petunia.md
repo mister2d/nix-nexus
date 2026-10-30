@@ -152,15 +152,29 @@ OneDrive files in it are zero-filled placeholders; the real files exist only in 
 
 ---
 
-## Bifrost HTTPS front door
+## Unified HTTPS edge
 
-The `nix-bifrost` flake input (branch `https-front-door`) provides
+The `nix-bifrost` flake input (branch `unified-edge`) provides
 `nixosModules.bifrost-front-door`, wrapped by the registry key
 `services-bifrost-front-door` (`modules/services/bifrost-front-door/default.nix`).
-HAProxy terminates TLS on port 8443 (opened in the firewall) and routes to
-Bifrost (`127.0.0.1:8080`) and qwen-image (`/pictures` to `127.0.0.1:8004`).
-A cert agent pulls the certificate from Vault PKI using an AppRole whose
+One HAProxy terminates TLS on port 443 with one certificate (CN
+`petunia.home.lan`, SANs for the four service names). It routes by Host:
+
+| Host | Upstream |
+|---|---|
+| `inference.home.lan` | Bifrost `127.0.0.1:8080` |
+| `radiance.home.lan` | radiance `127.0.0.1:8000` |
+| `pictures.home.lan` | qwen-image-mcp `127.0.0.1:8004` (`/mcp` denied) |
+| `pi.home.lan` | pi-durable web `127.0.0.1:8787`; `/hook` to the trigger service `127.0.0.1:9811` |
+| `petunia.home.lan` | `/stats` and `/metrics` of HAProxy; every other path answers 421 |
+
+The edge replaces `pi-durable-haproxy` and the old :8443 front door. The
+access log is JSON in the journal (`journalctl -u bifrost-front-door -o cat`).
+The Vault PKI role `home-lan` must allow all five names. A cert agent pulls
+the certificate using an AppRole whose
 role_id and secret_id are TPM2-sealed in `/var/lib/credstore.encrypted`.
+Follow-up: `modules/core/networking.nix` still opens 8000, 8080 and 8443
+fleet-wide; backends are on loopback, so remove them there later.
 
 Seal the AppRole credentials as root on petunia:
 

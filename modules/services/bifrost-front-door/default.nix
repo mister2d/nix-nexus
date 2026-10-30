@@ -1,5 +1,8 @@
-# Bifrost HTTPS front door.
+# Unified HTTPS edge for petunia (one HAProxy on :443, one certificate).
 # Registry key: flake.modules.nixos.services-bifrost-front-door
+# Host routes: inference (bifrost), radiance, pictures (qwen-image-mcp), pi
+# (pi-durable web bridge and webhooks). petunia.home.lan itself serves only
+# /stats and /metrics; every other path answers 421. Backends bind loopback.
 # Imports the module from the nix-bifrost flake input and points the Vault
 # AppRole credentials at the core-credstore directory. The files are sealed by
 # hand with systemd-creds (--name=role_id / --name=secret_id, TPM2 PCR 0).
@@ -17,6 +20,49 @@
       services.bifrost-front-door = {
         enable = true;
         openFirewall = true;
+        listen.port = 443;
+        extraNames = [
+          "inference.home.lan"
+          "pictures.home.lan"
+          "pi.home.lan"
+          "radiance.home.lan"
+        ];
+        defaultRoutes.enable = false;
+        stats.enable = true;
+        prometheus.enable = true;
+        routes = {
+          inference = {
+            host = "inference.home.lan";
+            upstream.port = 8080;
+            healthCheck.path = "/health";
+            serverTimeoutSeconds = 900;
+          };
+          radiance = {
+            host = "radiance.home.lan";
+            upstream.port = 8000;
+            serverTimeoutSeconds = 900;
+          };
+          pictures = {
+            host = "pictures.home.lan";
+            upstream.port = 8004;
+            healthCheck.path = "/healthz";
+            serverTimeoutSeconds = 120;
+            denyPaths = [ "/mcp" ];
+          };
+          pi = {
+            host = "pi.home.lan";
+            upstream.port = 8787;
+            serverTimeoutSeconds = 3600;
+          };
+          # Signed webhooks go to the pi-durable trigger service "ops".
+          pi-hooks = {
+            host = "pi.home.lan";
+            pathPrefix = "/hook";
+            stripPrefix = false;
+            upstream.port = 9811;
+            serverTimeoutSeconds = 60;
+          };
+        };
         tls.vault.credentials = {
           roleIdEncryptedFile = "${credsDir}/bifrost-front-door.role_id";
           secretIdEncryptedFile = "${credsDir}/bifrost-front-door.secret_id";

@@ -36,7 +36,7 @@ _: {
 
         # pi-durable harness instance (execution guest started by hand)
         nixosModules.services-pi-durable
-        # Bifrost HTTPS front door on :8443
+        # Unified HTTPS edge on :443 (host routes for inference, radiance, pictures, pi)
         nixosModules.services-bifrost-front-door
 
         # Core System Profile (Every machine gets this)
