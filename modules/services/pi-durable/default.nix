@@ -39,10 +39,10 @@
           instances.pi = {
             model = {
               provider = "gateway";
-              name = "radiance/Qwen3.8-MXFP4";
+              name = "radiance/Qwen3.8";
               # Same id as the agent model: radiance/Qwen3.8 aliases it, and a
               # distinct id would make llama-swap unload and reload the model.
-              subagentName = "radiance/Qwen3.8-MXFP4";
+              subagentName = "radiance/Qwen3.8";
             };
 
             # Node ignores the system CA store. This bundle includes
