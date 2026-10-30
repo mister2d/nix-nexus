@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-30T21:38:36Z",
+  "recorded": "2026-10-30T22:06:02Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "a40ae31d88405d3b0ea5fa4ffa165acd9d2f0a4a",
-  "signoff": ".agents/signoff/2026-10-30-radiance-slot-pool.md"
+  "signed_off_through": "2b2c8d25b0c979719abd60567a736066b8ce4c16",
+  "signoff": ".agents/signoff/2026-10-30-nix-bifrost-main-unified-edge.md"
 }
