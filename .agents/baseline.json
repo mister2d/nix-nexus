@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/w8sil99dglfdkznvwzzga6cw1w5nip6g-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/q3w424cgmm8w9bkyr6209y87jvj2n6z3-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-30T21:01:35Z",
+  "recorded": "2026-10-30T21:38:36Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "9cb795844e8c154b48633a38ede37d0c9a3c271e",
-  "signoff": ".agents/signoff/2026-10-30-edge-health-checks.md"
+  "signed_off_through": "a40ae31d88405d3b0ea5fa4ffa165acd9d2f0a4a",
+  "signoff": ".agents/signoff/2026-10-30-radiance-slot-pool.md"
 }
