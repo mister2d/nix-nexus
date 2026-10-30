@@ -37,9 +37,13 @@
             healthCheck.path = "/health";
             serverTimeoutSeconds = 900;
           };
+          # llama-swap starts radiance on 8000, or on 8002 for the GPU pair
+          # profiles; the backup port follows it there.
           radiance = {
             host = "radiance.home.lan";
             upstream.port = 8000;
+            upstream.backupPorts = [ 8002 ];
+            healthCheck.path = "/health";
             serverTimeoutSeconds = 900;
           };
           pictures = {
@@ -52,6 +56,7 @@
           pi = {
             host = "pi.home.lan";
             upstream.port = 8787;
+            healthCheck.path = "/healthz";
             serverTimeoutSeconds = 3600;
           };
           # Signed webhooks go to the pi-durable trigger service "ops".
@@ -60,6 +65,7 @@
             pathPrefix = "/hook";
             stripPrefix = false;
             upstream.port = 9811;
+            healthCheck.path = "/healthz";
             serverTimeoutSeconds = 60;
           };
         };

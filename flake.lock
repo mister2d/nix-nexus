@@ -1110,11 +1110,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1793381901,
-        "narHash": "sha256-kRfdvkkFolJi8hqejItxxgSddIVyBxeyLh34MPaKMSw=",
+        "lastModified": 1793393633,
+        "narHash": "sha256-eK+nxZhISfs+qp/xstSPlE4PGjXwDu/lOmZCap9enLg=",
         "ref": "unified-edge",
-        "rev": "a13fa31d7147ee0601d5d38320b6c5a375ac7003",
-        "revCount": 48,
+        "rev": "319d0101522e9eb1308ce8b4821e77ccf0287d2f",
+        "revCount": 50,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git"
       },
