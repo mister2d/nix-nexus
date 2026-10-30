@@ -152,6 +152,31 @@ OneDrive files in it are zero-filled placeholders; the real files exist only in 
 
 ---
 
+## Bifrost HTTPS front door
+
+The `nix-bifrost` flake input (branch `https-front-door`) provides
+`nixosModules.bifrost-front-door`, wrapped by the registry key
+`services-bifrost-front-door` (`modules/services/bifrost-front-door/default.nix`).
+HAProxy terminates TLS on port 8443 (opened in the firewall) and routes to
+Bifrost (`127.0.0.1:8080`) and qwen-image (`/pictures` to `127.0.0.1:8004`).
+A cert agent pulls the certificate from Vault PKI using an AppRole whose
+role_id and secret_id are TPM2-sealed in `/var/lib/credstore.encrypted`.
+
+Seal the AppRole credentials as root on petunia:
+
+```bash
+systemd-creds encrypt --with-key=tpm2 --tpm2-pcrs=0 --name=role_id - \
+  /var/lib/credstore.encrypted/bifrost-front-door.role_id
+systemd-creds encrypt --with-key=tpm2 --tpm2-pcrs=0 --name=secret_id - \
+  /var/lib/credstore.encrypted/bifrost-front-door.secret_id
+```
+
+Each command reads the secret from stdin. The `seal-credential` helper cannot
+be used: it embeds the file name as the credential name. Vault AppRole and
+policy setup is in the nix-bifrost `docs/front-door-runbook.md`.
+
+---
+
 ## Rebuild procedure
 
 Petunia builds itself. Push to GitHub first, then run the rebuild on the host.

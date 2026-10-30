@@ -108,6 +108,15 @@
       };
     };
 
+    # Bifrost HTTPS front door NixOS module. Consumed by petunia (services-bifrost-front-door).
+    nix-bifrost = {
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git?ref=https-front-door";
+      inputs = {
+        flake-parts.follows = "flake-parts";
+        import-tree.follows = "import-tree";
+      };
+    };
+
     # ── Pinned nixpkgs snapshots ─────────────────────────────────────────────
     # Each pin preserves a working version of one or more packages.
     pkgs-stable.url = "github:nixos/nixpkgs/nixos-25.11"; # Matrix stack (avina)

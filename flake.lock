@@ -136,6 +136,23 @@
         "type": "github"
       }
     },
+    "bifrost-src": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1792539171,
+        "narHash": "sha256-qkAn7D/fZkCumpwjD11gSF5MSUKZqQ2/HojYxJJJcCg=",
+        "owner": "maximhq",
+        "repo": "bifrost",
+        "rev": "a05ea20e68bf116a35e9f05b1a3d749624b3935e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "maximhq",
+        "repo": "bifrost",
+        "rev": "a05ea20e68bf116a35e9f05b1a3d749624b3935e",
+        "type": "github"
+      }
+    },
     "bun2nix": {
       "inputs": {
         "flake-parts": [
@@ -278,6 +295,29 @@
         "type": "github"
       }
     },
+    "decisions-mcp": {
+      "inputs": {
+        "flake-parts": [
+          "nix-bifrost",
+          "flake-parts"
+        ],
+        "import-tree": "import-tree_2",
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1790946374,
+        "narHash": "sha256-8RbZ4xfc5/2ACTLdqdZzUPyEW/ViPQR7ob7bu3aL5Zk=",
+        "ref": "refs/heads/main",
+        "rev": "f1ff5a8e0e8e7f2ccf884253f4028138a651a9af",
+        "revCount": 7,
+        "type": "git",
+        "url": "https://code.novuscotia.com/novuscotia-ops/nix-routermcp.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "https://code.novuscotia.com/novuscotia-ops/nix-routermcp.git"
+      }
+    },
     "devenv": {
       "inputs": {
         "cachix": "cachix",
@@ -315,7 +355,7 @@
         "git-hooks": "git-hooks_2",
         "nix": "nix_2",
         "nixd": "nixd_2",
-        "nixpkgs": "nixpkgs_3",
+        "nixpkgs": "nixpkgs_5",
         "rust-overlay": "rust-overlay_3"
       },
       "locked": {
@@ -904,6 +944,21 @@
         "type": "github"
       }
     },
+    "import-tree_2": {
+      "locked": {
+        "lastModified": 1788467110,
+        "narHash": "sha256-ljEMTXP/rH0tOvDzc9gzwww6KcHRPRnEHzd9lK48V7s=",
+        "owner": "denful",
+        "repo": "import-tree",
+        "rev": "eb1b52eaecc57f7c136d07ae8a93e724dfecac46",
+        "type": "github"
+      },
+      "original": {
+        "owner": "denful",
+        "repo": "import-tree",
+        "type": "github"
+      }
+    },
     "llm-agents": {
       "inputs": {
         "bun2nix": "bun2nix",
@@ -1042,11 +1097,38 @@
         "type": "github"
       }
     },
+    "nix-bifrost": {
+      "inputs": {
+        "bifrost-src": "bifrost-src",
+        "decisions-mcp": "decisions-mcp",
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "import-tree": [
+          "import-tree"
+        ],
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1793335850,
+        "narHash": "sha256-GLLr3RoqgvvokPvpr1TrVRCYm0nwQmGOfT64WiB399Y=",
+        "ref": "https-front-door",
+        "rev": "47356926c27f44ef378acfb51030f0458df4957b",
+        "revCount": 46,
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git"
+      },
+      "original": {
+        "ref": "https-front-door",
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git"
+      }
+    },
     "nix-cachyos-kernel": {
       "inputs": {
         "flake-compat": "flake-compat_2",
         "flake-parts": "flake-parts_3",
-        "nixpkgs": "nixpkgs_2"
+        "nixpkgs": "nixpkgs_4"
       },
       "locked": {
         "lastModified": 1790564970,
@@ -1246,7 +1328,7 @@
     },
     "nixos-hardware": {
       "inputs": {
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": "nixpkgs_6"
       },
       "locked": {
         "lastModified": 1791721963,
@@ -1412,6 +1494,38 @@
     },
     "nixpkgs_2": {
       "locked": {
+        "lastModified": 1790822859,
+        "narHash": "sha256-69xHQhAeMAD2wDXO7T2pcOZIF9Sga2W+JkmY2a11Ops=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "c59305bab2065cfecc4944690d9eedbb56f3a9fa",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1793201686,
+        "narHash": "sha256-sutjApEHkWe/QBWMhSsMlBpA9v/4cTPRz9hvmnLqvGc=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fa5a02b323cb12c87c545e1512f1e492c21ad60",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7fa5a02b323cb12c87c545e1512f1e492c21ad60",
+        "type": "github"
+      }
+    },
+    "nixpkgs_4": {
+      "locked": {
         "lastModified": 1790505892,
         "narHash": "sha256-/pAz2XfqHS//WRn2xRjoqes7Z92qZ0Q1gufZZ3PtuwA=",
         "owner": "NixOS",
@@ -1426,7 +1540,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_3": {
+    "nixpkgs_5": {
       "inputs": {
         "nixpkgs-src": "nixpkgs-src_2"
       },
@@ -1445,7 +1559,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
+    "nixpkgs_6": {
       "locked": {
         "lastModified": 1789546076,
         "narHash": "sha256-vWkSk5bbfTqdtMoSgD9FshACO8JCvXTFi+3cqEp0mH0=",
@@ -1458,7 +1572,7 @@
         "url": "https://channels.nixos.org/nixos-unstable/nixexprs.tar.xz"
       }
     },
-    "nixpkgs_5": {
+    "nixpkgs_7": {
       "locked": {
         "lastModified": 1791662279,
         "narHash": "sha256-xI8L+UwJLIg75yVJwLPsY+AUEP1teCT3FyuvodyJu2Y=",
@@ -1474,7 +1588,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_6": {
+    "nixpkgs_8": {
       "locked": {
         "lastModified": 1789749394,
         "narHash": "sha256-cFTsMQz8Hzn8MT49oaeLSHg62tE86NykugCWkeM2ypk=",
@@ -1490,7 +1604,7 @@
         "type": "github"
       }
     },
-    "nixpkgs_7": {
+    "nixpkgs_9": {
       "locked": {
         "lastModified": 1787900134,
         "narHash": "sha256-5GWj0FI2uOwKNpXkmpWrSFDe1rCaNBCUQ8d+HDtFQPI=",
@@ -1506,7 +1620,7 @@
     "nixvim": {
       "inputs": {
         "flake-parts": "flake-parts_6",
-        "nixpkgs": "nixpkgs_6",
+        "nixpkgs": "nixpkgs_8",
         "systems": "systems_2"
       },
       "locked": {
@@ -1526,7 +1640,7 @@
     },
     "noctalia": {
       "inputs": {
-        "nixpkgs": "nixpkgs_7"
+        "nixpkgs": "nixpkgs_9"
       },
       "locked": {
         "lastModified": 1788454679,
@@ -1770,11 +1884,12 @@
         "import-tree": "import-tree",
         "mk-shell-bin": "mk-shell-bin",
         "niri": "niri",
+        "nix-bifrost": "nix-bifrost",
         "nix-cachyos-kernel": "nix-cachyos-kernel",
         "nix-devshell": "nix-devshell",
         "nix2container": "nix2container_2",
         "nixos-hardware": "nixos-hardware",
-        "nixpkgs": "nixpkgs_5",
+        "nixpkgs": "nixpkgs_7",
         "nixpkgs-chrome": "nixpkgs-chrome",
         "nixpkgs-hyprland": "nixpkgs-hyprland",
         "nixpkgs-unstable": "nixpkgs-unstable",
