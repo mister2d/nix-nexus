@@ -140,7 +140,7 @@ petunia only. sweet16 keeps its sealed secret_id idle.
 |---|---|
 | `vault.addr` | `https://vault.service.consul:8200` |
 | `model` | provider `gateway`, name and `subagentName` `radiance/Qwen3.8-MXFP4` |
-| `gateway.baseUrl` | `http://petunia.home.lan:8080` (plain http is accepted for `.lan` names) |
+| `gateway.baseUrl` | `https://inference.home.lan` (unified edge; CA from `caBundleFile`) |
 | `images` | enabled; `recommendedChatModel` `radiance/Qwen3.8-Imagine-Turbo`, `defaultModel` `turbo` |
 | `database.credsPath` | `database/creds/pidurable-pi-owner` |
 | `ssh` | host `192.168.33.10`, `knownHosts = null` (allowed inside 192.168.33.0/24), `signPath = ssh-client-signer/sign/agentrole` |
@@ -197,7 +197,7 @@ Consul DNS is each host's first resolver hop, so `*.service.consul` names
 ### Gateway provider and image tools
 
 With `model.provider = "gateway"` the service reads the model catalog from
-`GET /v1/models` on the gateway (bifrost on petunia, port 8080) and refuses
+`GET /v1/models` on the gateway (bifrost on petunia, behind the edge on `https://inference.home.lan`) and refuses
 to start when the catalog is unreachable or does not list the default model
 with tool support; the log names the nearest ids. The unit restarts with
 back-off until the gateway answers. The agent and subagent use one id, so
@@ -219,15 +219,15 @@ store). Make a hash line with `pi-durable-attach-pi hash-token --token-file
 new token entry in the configuration needs `systemctl restart pi-durable-pi`
 once.
 
-`pi-durable-web-pi` listens on 127.0.0.1:8787 behind the HAProxy front door on
-`https://petunia.home.lan` (port 443, opened in the firewall). The fqdn comes
-from `networking.domain = "home.lan"`; NixOS therefore maps `petunia.home.lan`
-to 127.0.0.2 in `/etc/hosts` on petunia itself. The certificate comes from
-Vault PKI (`pki_int_homelab/issue/home-lan`) through the renewer, with the
-harness AppRole (shared; five wrong logins lock both for 15 minutes). The
-renewer reads the unsealed secret id through the credstore bridge. The trigger
-service `ops` accepts HMAC-signed `POST /hook/alerts` and starts read-only
-conversations on the instance.
+`pi-durable-web-pi` listens on 127.0.0.1:8787 behind the unified edge
+(`services-bifrost-front-door`) on `https://pi.home.lan` (port 443, opened in
+the firewall). The pi-durable HAProxy and its Node renewer are off on
+petunia. The edge certificate comes from Vault PKI through the nix-bifrost
+cert agent and has its own sealed AppRole. The web bridge allows the origin
+`https://pi.home.lan` and trusts the proxy headers. The trigger service `ops`
+accepts HMAC-signed `POST /hook/alerts` through the edge route `pi-hooks`
+(`pi.home.lan/hook`, to 127.0.0.1:9811) and starts read-only conversations on
+the instance.
 
 ### Operator commands
 

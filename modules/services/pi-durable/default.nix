@@ -8,7 +8,7 @@
 { inputs, ... }:
 {
   flake.modules.nixos.services-pi-durable =
-    { config, pkgs, ... }:
+    { pkgs, ... }:
     let
       credsDir = "/var/lib/pi-durable-creds";
       socketTokenFile = "${credsDir}/socket_token";
@@ -50,7 +50,7 @@
             # security.pki.certificateFiles in core-security.
             caBundleFile = "/etc/ssl/certs/ca-certificates.crt";
 
-            gateway.baseUrl = "http://petunia.home.lan:8080";
+            gateway.baseUrl = "https://inference.home.lan";
 
             images = {
               enable = true;
@@ -100,7 +100,7 @@
           };
         };
 
-        # Browser bridge for the instance. HAProxy is its only client; the
+        # Browser bridge for the instance. The unified edge (bifrost-front-door) is its only client; the
         # loopback origin stays for tests through an ssh forward.
         pi-durable-web = {
           enable = true;
@@ -110,7 +110,7 @@
               port = 8787;
             };
             allowedOrigins = [
-              "https://${config.networking.fqdn}"
+              "https://pi.home.lan"
               "http://127.0.0.1:8787"
             ];
             trustProxy = true;
@@ -138,26 +138,12 @@
             };
           };
         };
-
-        # Front door: TLS on 443 with a certificate from Vault PKI. The renewer
-        # logs in with the same AppRole as the harness.
-        pi-durable-haproxy = {
-          enable = true;
-          openFirewall = true;
-          tls.vault = {
-            address = "https://vault.service.consul:8200";
-            roleIdFile = "${credsDir}/role_id";
-            secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
-            caFile = "/etc/ssl/certs/ca-certificates.crt";
-          };
-          # Serves the bridge named "pi" and the trigger service "ops" on the host fqdn.
-          instances.pi.triggerName = "ops";
-        };
+        # TLS for pi.home.lan comes from the unified edge (services-bifrost-front-door),
+        # which replaced pi-durable-haproxy and its Node renewer on petunia.
       };
 
       nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [
         "pi-durable-pi.service"
-        "pi-durable-haproxy-renewer.service"
       ];
 
       systemd = {
