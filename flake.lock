@@ -1112,14 +1112,13 @@
       "locked": {
         "lastModified": 1793335850,
         "narHash": "sha256-GLLr3RoqgvvokPvpr1TrVRCYm0nwQmGOfT64WiB399Y=",
-        "ref": "https-front-door",
+        "ref": "refs/heads/main",
         "rev": "47356926c27f44ef378acfb51030f0458df4957b",
         "revCount": 46,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git"
       },
       "original": {
-        "ref": "https-front-door",
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git"
       }

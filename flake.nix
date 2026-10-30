@@ -110,7 +110,7 @@
 
     # Bifrost HTTPS front door NixOS module. Consumed by petunia (services-bifrost-front-door).
     nix-bifrost = {
-      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git?ref=https-front-door";
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git";
       inputs = {
         flake-parts.follows = "flake-parts";
         import-tree.follows = "import-tree";
