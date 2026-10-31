@@ -183,8 +183,8 @@ access log is JSON in the journal (`journalctl -u bifrost-front-door -o cat`).
 The Vault PKI role `home-lan` must allow all five names. A cert agent pulls
 the certificate using an AppRole whose
 role_id and secret_id are TPM2-sealed in `/var/lib/credstore.encrypted`.
-Follow-up: `modules/core/networking.nix` still opens 8000, 8080 and 8443
-fleet-wide; backends are on loopback, so remove them there later.
+The fleet firewall (`modules/core/networking.nix`) does not open 8000, 8080 or
+8443: every backend binds loopback and the edge is the only LAN listener.
 
 Seal the AppRole credentials as root on petunia:
 

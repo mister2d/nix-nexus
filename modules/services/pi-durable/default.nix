@@ -160,6 +160,11 @@
         ];
 
         services = {
+          # The harness reads the model catalog through the edge
+          # (https://inference.home.lan) when it starts; start it after HAProxy
+          # so a switch that starts both does not fail it once.
+          pi-durable-pi.after = [ "bifrost-front-door.service" ];
+
           # Generated once on first start. root:pdh-pi 0640 lets members of the
           # socket group read the token they must present; that group already
           # grants access to the socket, so the read adds no authority. The
