@@ -139,9 +139,10 @@ petunia only. sweet16 keeps its sealed secret_id idle.
 | Setting | Value |
 |---|---|
 | `vault.addr` | `https://vault.service.consul:8200` |
-| `model` | provider `gateway`, name and `subagentName` `radiance/Qwen3.8-MXFP4` |
+| `model` | provider `gateway`, name and `subagentName` `radiance/Qwen3.8` |
 | `gateway.baseUrl` | `https://inference.home.lan` (unified edge; CA from `caBundleFile`) |
-| `images` | enabled; `recommendedChatModel` `radiance/Qwen3.8-Imagine-Turbo`, `defaultModel` `turbo` |
+| `mcp` | module defaults: enabled with the gateway provider, path `/mcp`, `startupWaitSeconds` 120 |
+| `decisions` | module defaults: provider `gateway`, model `openrouter/~typesafe/jev-latest`, `deadlineMs` 3000, `defaultMode` `auto` |
 | `database.credsPath` | `database/creds/pidurable-pi-owner` |
 | `ssh` | host `192.168.33.10`, `knownHosts = null` (allowed inside 192.168.33.0/24), `signPath = ssh-client-signer/sign/agentrole` |
 | `guest.unit` | unset |
@@ -194,7 +195,7 @@ that bundle from `security.pki`, and it includes `certs/int_cert.crt`
 Consul DNS is each host's first resolver hop, so `*.service.consul` names
 (`vault.service.consul`, `pidurable-db.service.consul`) resolve on petunia.
 
-### Gateway provider and image tools
+### Gateway provider, MCP bridge and decisions
 
 With `model.provider = "gateway"` the service reads the model catalog from
 `GET /v1/models` on the gateway (bifrost on petunia, behind the edge on `https://inference.home.lan`) and refuses
@@ -204,13 +205,19 @@ back-off until the gateway answers. The agent and subagent use one id, so
 llama-swap never unloads and reloads the model. No `gateway.keyFile` is set;
 bifrost needs no key here.
 
-`images.enable` exposes the `qwen_image` tools served by the bifrost MCP
-endpoint (`/mcp`). It requires the gateway provider.
+`mcp` offers the tools of the bifrost MCP endpoint (`/mcp`) to the model; the
+service reads the tool list at start and waits up to 120 s for it. It needs
+the gateway provider. `decisions` sends each tool call in mode `auto` to the
+gateway decisions API (`/v1/decisions`, model `openrouter/~typesafe/jev-latest`,
+3000 ms deadline); a call the service cannot decide waits for a person.
+`pi-durable-pi` starts after and wants `bifrost-front-door.service`, since the
+catalog, tool list and decisions all go through the edge.
 
 ### Named tokens, web bridge, front door and trigger
 
-The instance declares two operator tokens and a viewer token (`r4b-viewer`,
-`r4b-operator`, `r4b-trigger`). The harness reads only their sha256 hashes
+The instance declares a viewer token (`r4b-viewer`), an operator token
+(`r4b-operator`) and two agent tokens (`r4b-trigger`, `r4b-agent`; an agent
+token cannot set yolo or answer an ask). The harness reads only their sha256 hashes
 from `/var/lib/pi-durable-tokens` (`root:pdh-pi`, files 0640). The token texts
 and the webhook secret sit in `/root/pi-durable-tokens` (root only, outside the
 store). Make a hash line with `pi-durable-attach-pi hash-token --token-file
@@ -224,10 +231,11 @@ once.
 the firewall). The pi-durable HAProxy and its Node renewer are off on
 petunia. The edge certificate comes from Vault PKI through the nix-bifrost
 cert agent and has its own sealed AppRole. The web bridge allows the origin
-`https://pi.home.lan` and trusts the proxy headers. The trigger service `ops`
+`https://pi.home.lan`, trusts the proxy headers and lets the page load
+pictures from `https://pictures.home.lan` (`pictureOrigins`). The trigger service `ops`
 accepts HMAC-signed `POST /hook/alerts` through the edge route `pi-hooks`
-(`pi.home.lan/hook`, to 127.0.0.1:9811) and starts read-only conversations on
-the instance.
+(`pi.home.lan/hook`, to 127.0.0.1:9811) and starts conversations in auto mode
+with an agent token (`target.tokenName = "r4b-trigger"`) on the instance.
 
 ### Operator commands
 

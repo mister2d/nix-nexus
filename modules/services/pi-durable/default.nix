@@ -2,7 +2,7 @@
 # Registry key: flake.modules.nixos.services-pi-durable
 # Imports the module from the pi-durable flake input and supplies the host
 # side: credential directory, socket token generator, unseal bridge entry.
-# The instance uses the gateway provider (bifrost on petunia) with image tools.
+# The instance uses the gateway provider (bifrost on petunia) with MCP gateway tools and the decision layer.
 # The execution guest is started by hand; guest.unit stays unset.
 # See docs/pi-durable-host.md.
 { inputs, ... }:
@@ -52,12 +52,6 @@
 
             gateway.baseUrl = "https://inference.home.lan";
 
-            images = {
-              enable = true;
-              recommendedChatModel = "radiance/Qwen3.8-Imagine-Turbo";
-              defaultModel = "turbo";
-            };
-
             database.credsPath = "database/creds/pidurable-pi-owner";
 
             ssh = {
@@ -78,15 +72,16 @@
                 role = "operator";
                 hashFile = "${tokensDir}/r4b-operator.sha256";
               };
-              # Held by pi-durable-trigger-ops; its conversations are read-only.
+              # Held by pi-durable-trigger-ops.
               r4b-trigger = {
                 role = "operator";
+                agent = true;
                 hashFile = "${tokensDir}/r4b-trigger.sha256";
               };
-              # An agent-kind approver: it must not decide high-risk requests.
+              # Agent token: cannot set yolo or answer an ask.
               r4b-agent = {
                 role = "operator";
-                approver = "agent";
+                agent = true;
                 hashFile = "${tokensDir}/r4b-agent.sha256";
               };
             };
@@ -104,6 +99,7 @@
         # loopback origin stays for tests through an ssh forward.
         pi-durable-web = {
           enable = true;
+          pictureOrigins = [ "https://pictures.home.lan" ];
           bridges.pi = {
             listen = {
               address = "127.0.0.1";
@@ -117,8 +113,8 @@
           };
         };
 
-        # Webhook source "alerts": signed JSON events start read-only
-        # conversations on the instance. Secret and token files live outside
+        # Webhook source "alerts": signed JSON events start
+        # conversations in auto mode under an agent token. Secret and token files live outside
         # the store (provisioned by hand, root only).
         pi-durable-trigger = {
           enable = true;
@@ -126,6 +122,7 @@
             target = {
               harness = "pi";
               tokenFile = "/root/pi-durable-tokens/trigger.token";
+              tokenName = "r4b-trigger";
             };
             webhooks.alerts = {
               secretFile = "/root/pi-durable-tokens/hook_alerts.secret";
@@ -160,10 +157,13 @@
         ];
 
         services = {
-          # The harness reads the model catalog through the edge
-          # (https://inference.home.lan) when it starts; start it after HAProxy
-          # so a switch that starts both does not fail it once.
-          pi-durable-pi.after = [ "bifrost-front-door.service" ];
+          # The harness reads the model catalog and the MCP tool list through
+          # the edge (https://inference.home.lan) when it starts, and sends
+          # decisions through it; start it after the edge.
+          pi-durable-pi = {
+            after = [ "bifrost-front-door.service" ];
+            wants = [ "bifrost-front-door.service" ];
+          };
 
           # Generated once on first start. root:pdh-pi 0640 lets members of the
           # socket group read the token they must present; that group already
