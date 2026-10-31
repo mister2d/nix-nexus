@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-10-31T02:13:22Z",
+  "recorded": "2026-10-31T02:22:31Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "d1627152cebb19a1be845871c18a992f57f55e6c",
-  "signoff": ".agents/signoff/2026-10-31-edge-followups.md"
+  "signed_off_through": "468ae2a00ac14e8403f6104cb7686b96aca11156",
+  "signoff": ".agents/signoff/2026-10-31-nix-bifrost-main-edge-followups.md"
 }
