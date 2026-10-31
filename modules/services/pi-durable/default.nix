@@ -52,6 +52,11 @@
 
             gateway.baseUrl = "https://inference.home.lan";
 
+            # Passive until the jev classifier stops denying correct calls: the
+            # verdicts are recorded (journal, verdict chip) but every call runs and
+            # nobody is asked. Set "enforce" (the default) to let a deny block.
+            decisions.enforcement = "passive";
+
             database.credsPath = "database/creds/pidurable-pi-owner";
 
             ssh = {

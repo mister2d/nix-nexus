@@ -142,7 +142,7 @@ petunia only. sweet16 keeps its sealed secret_id idle.
 | `model` | provider `gateway`, name and `subagentName` `radiance/Qwen3.8` |
 | `gateway.baseUrl` | `https://inference.home.lan` (unified edge; CA from `caBundleFile`) |
 | `mcp` | module defaults: enabled with the gateway provider, path `/mcp`, `startupWaitSeconds` 120 |
-| `decisions` | module defaults: provider `gateway`, model `openrouter/~typesafe/jev-latest`, `deadlineMs` 3000, `defaultMode` `auto` |
+| `decisions` | `enforcement` `passive`; otherwise module defaults: provider `gateway`, model `openrouter/~typesafe/jev-latest`, `deadlineMs` 3000, `defaultMode` `auto` |
 | `database.credsPath` | `database/creds/pidurable-pi-owner` |
 | `ssh` | host `192.168.33.10`, `knownHosts = null` (allowed inside 192.168.33.0/24), `signPath = ssh-client-signer/sign/agentrole` |
 | `guest.unit` | unset |
@@ -209,7 +209,11 @@ bifrost needs no key here.
 service reads the tool list at start and waits up to 120 s for it. It needs
 the gateway provider. `decisions` sends each tool call in mode `auto` to the
 gateway decisions API (`/v1/decisions`, model `openrouter/~typesafe/jev-latest`,
-3000 ms deadline); a call the service cannot decide waits for a person.
+3000 ms deadline). `enforcement` is `passive` for now, because the classifier
+denies too many correct calls: the verdicts are recorded (journal lines with
+`enforcement=passive`, the verdict chip `passive: would deny`), but every call
+runs, and a call the service cannot decide runs without an ask. With
+`enforce`, a deny blocks the call and an undecided call waits for a person.
 `pi-durable-pi` starts after and wants `bifrost-front-door.service`, since the
 catalog, tool list and decisions all go through the edge.
 
