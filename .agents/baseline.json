@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/icppbwh4zpw58ps36x6d82ad99i138p0-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/7p7kbrjv3ik6zzdyjnkbf3vsaf9xbw8l-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-01T15:34:08Z",
+  "recorded": "2026-11-01T15:46:31Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "dff9ddb9c73d13326b32db18ceaaaf51a67003ff",
-  "signoff": ".agents/signoff/2026-11-01-pi-durable-sops-tokens.md"
+  "signed_off_through": "4594599136d64d60b4de683b8a216bbedc13ca5f",
+  "signoff": ".agents/signoff/2026-11-01-petunia-sops-systemd-activation.md"
 }
