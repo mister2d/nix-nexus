@@ -91,6 +91,10 @@ _: {
 
         # Host side of the permafrost microvm sandbox.
         virtualization.microvm.enable = true;
+
+        # Encrypted secrets for this host (pi-durable tokens and secrets). Decrypted at
+        # activation with an age key derived from /etc/ssh/ssh_host_ed25519_key.
+        secrets.sops.hostFile = ../../secrets/petunia.yaml;
       };
 
       networking = {

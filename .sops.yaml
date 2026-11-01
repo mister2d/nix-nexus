@@ -53,6 +53,13 @@ creation_rules:
           - *admin_ddukes
           - *host_petunia
 
+  # Texts of the pi-durable named tokens (people, tests, agents): admin only. The host
+  # gets their hashes through secrets/petunia.yaml. See scripts/pi-durable-token.
+  - path_regex: secrets/pi-durable-clients\.yaml$
+    key_groups:
+      - age:
+          - *admin_ddukes
+
   - path_regex: secrets/hermes\.yaml$
     key_groups:
       - age:

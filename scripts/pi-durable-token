@@ -1,0 +1,127 @@
+#!/usr/bin/env bash
+# pi-durable-token — make and rotate the pi-durable tokens and secrets of petunia, in sops.
+#
+# Two files hold everything (see docs/pi-durable-host.md, "Tokens and secrets"):
+#   secrets/petunia.yaml             host + admin. What the host needs: the hash of every named
+#                                    token, and the texts that programs on the host present
+#                                    (socket token, trigger token, webhook secrets).
+#   secrets/pi-durable-clients.yaml  admin only. The text of every named token, so a person or a
+#                                    test can get theirs again. The host can never read it.
+# The role of a token is declared in modules/services/pi-durable/default.nix, not here.
+#
+# Usage (inside `nix develop --impure`, from the repository root):
+#   scripts/pi-durable-token token <name> [<host-key>]
+#       New random text for named token <name>: the text goes to the clients file, its hash to
+#       pi-durable/token-hashes/<name> in the host file. With <host-key> (for example
+#       trigger-token) the text also goes to pi-durable/<host-key> in the host file, for a
+#       program on the host that presents it. Rotating is the same command.
+#   scripts/pi-durable-token secret <host-key>
+#       New random value at pi-durable/<host-key> in the host file (socket-token,
+#       hook-alerts-secret). Its users must get the new value too.
+#   scripts/pi-durable-token export <name> <file>
+#       Write the text of named token <name> to <file> (mode 600, created new). Nothing is printed.
+#   scripts/pi-durable-token check
+#       For every token in the clients file: does the hash in the host file match? Prints names
+#       and ok/MISMATCH only.
+#
+# No value is ever printed, put in an argument, or written outside the sops files and the
+# export file: values move through pipes and shell variables only.
+set -euo pipefail
+umask 077
+
+HOST_FILE=secrets/petunia.yaml
+CLIENTS_FILE=secrets/pi-durable-clients.yaml
+NAME_RE='^[A-Za-z0-9._-]{1,32}$'
+KEY_RE='^[a-z0-9-]{1,48}$'
+
+die() {
+	echo "pi-durable-token: $*" >&2
+	exit 1
+}
+
+command -v sops >/dev/null || die "sops is not on PATH: run inside nix develop --impure"
+[ -f .sops.yaml ] || die "run from the repository root"
+
+# 32 random bytes as 64 hex characters.
+random_hex() {
+	head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n'
+}
+
+# Create an encrypted file with an empty map when it does not exist yet (no secret in it).
+ensure_file() {
+	local file="$1"
+	[ -f "$file" ] && return 0
+	printf '{}\n' | sops encrypt --input-type yaml --output-type yaml --filename-override "$file" /dev/stdin >"$file.tmp"
+	mv "$file.tmp" "$file"
+}
+
+# set_value FILE INDEX  (value on stdin, a plain string without quotes or newlines)
+set_value() {
+	local file="$1" index="$2" v=""
+	# The last line may have no newline: read then fails, but v holds it.
+	IFS= read -r v || [ -n "$v" ] || die "no value on stdin"
+	printf '"%s"' "$v" | sops set --value-stdin "$file" "$index"
+}
+
+hash_of() {
+	printf 'sha256:%s' "$(printf '%s' "$1" | sha256sum | cut -d' ' -f1)"
+}
+
+cmd="${1:-}"
+case "$cmd" in
+token)
+	name="${2:-}"
+	host_key="${3:-}"
+	[[ "$name" =~ $NAME_RE ]] || die "token name must be 1 to 32 of A-Z a-z 0-9 . _ -"
+	[ -z "$host_key" ] || [[ "$host_key" =~ $KEY_RE ]] || die "host key must be 1 to 48 of a-z 0-9 -"
+	ensure_file "$HOST_FILE"
+	ensure_file "$CLIENTS_FILE"
+	tok="$(random_hex)"
+	printf '%s\n' "$tok" | set_value "$CLIENTS_FILE" "[\"$name\"]"
+	hash_of "$tok" | set_value "$HOST_FILE" "[\"pi-durable\"][\"token-hashes\"][\"$name\"]"
+	[ -z "$host_key" ] || printf '%s\n' "$tok" | set_value "$HOST_FILE" "[\"pi-durable\"][\"$host_key\"]"
+	unset tok
+	echo "token $name: new text in $CLIENTS_FILE, hash in $HOST_FILE${host_key:+, text at pi-durable/$host_key}"
+	;;
+secret)
+	host_key="${2:-}"
+	[[ "$host_key" =~ $KEY_RE ]] || die "host key must be 1 to 48 of a-z 0-9 -"
+	ensure_file "$HOST_FILE"
+	random_hex | set_value "$HOST_FILE" "[\"pi-durable\"][\"$host_key\"]"
+	echo "secret pi-durable/$host_key: new value in $HOST_FILE"
+	;;
+export)
+	name="${2:-}"
+	out="${3:-}"
+	[[ "$name" =~ $NAME_RE ]] || die "token name must be 1 to 32 of A-Z a-z 0-9 . _ -"
+	[ -n "$out" ] || die "usage: export <name> <file>"
+	[ ! -e "$out" ] || [ -f "$out" ] || die "$out exists and is not a regular file"
+	tmp="$(mktemp "$(dirname "$out")/.pi-token.XXXXXX")"
+	trap 'rm -f "$tmp"' EXIT
+	# stderr goes away: an error path of sops can print the value.
+	sops decrypt --extract "[\"$name\"]" "$CLIENTS_FILE" >"$tmp" 2>/dev/null || die "no token $name in $CLIENTS_FILE"
+	chmod 600 "$tmp"
+	mv "$tmp" "$out"
+	trap - EXIT
+	echo "token $name: written to $out (mode 600)"
+	;;
+check)
+	names="$(sops decrypt --output-type json "$CLIENTS_FILE" 2>/dev/null | python3 -c 'import json,sys; print("\n".join(json.load(sys.stdin)))')" || die "cannot read $CLIENTS_FILE"
+	status=0
+	while IFS= read -r name; do
+		[ -n "$name" ] || continue
+		tok="$(sops decrypt --extract "[\"$name\"]" "$CLIENTS_FILE" 2>/dev/null)"
+		have="$(sops decrypt --extract "[\"pi-durable\"][\"token-hashes\"][\"$name\"]" "$HOST_FILE" 2>/dev/null || true)"
+		if [ "$(hash_of "$tok")" = "$have" ]; then echo "$name ok"; else
+			echo "$name MISMATCH"
+			status=1
+		fi
+	done <<<"$names"
+	unset tok
+	exit "$status"
+	;;
+*)
+	sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'
+	exit 2
+	;;
+esac

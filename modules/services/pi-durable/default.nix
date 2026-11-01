@@ -1,32 +1,43 @@
 # pi-durable harness instance "pi".
 # Registry key: flake.modules.nixos.services-pi-durable
 # Imports the module from the pi-durable flake input and supplies the host
-# side: credential directory, socket token generator, unseal bridge entry.
+# side: credential directory, tokens and secrets from sops, unseal bridge entry.
 # The instance uses the gateway provider (bifrost on petunia) with MCP gateway tools and the decision layer.
 # The execution guest is started by hand; guest.unit stays unset.
 # See docs/pi-durable-host.md.
 { inputs, ... }:
 {
   flake.modules.nixos.services-pi-durable =
-    { pkgs, ... }:
+    { config, lib, ... }:
     let
       credsDir = "/var/lib/pi-durable-creds";
-      socketTokenFile = "${credsDir}/socket_token";
       # Hash files of the named tokens. Readable by the service user by path
       # (not through LoadCredential), so the directory is not under credsDir.
       tokensDir = "/var/lib/pi-durable-tokens";
 
-      generateSocketToken = pkgs.writeShellScript "pi-durable-socket-token" ''
-        set -euo pipefail
-        umask 077
-        tmp="$(${pkgs.coreutils}/bin/mktemp ${credsDir}/.socket_token.XXXXXX)"
-        ${pkgs.coreutils}/bin/head -c 32 /dev/urandom \
-          | ${pkgs.coreutils}/bin/od -An -tx1 \
-          | ${pkgs.coreutils}/bin/tr -d ' \n' > "$tmp"
-        ${pkgs.coreutils}/bin/chown root:pdh-pi "$tmp"
-        ${pkgs.coreutils}/bin/chmod 0640 "$tmp"
-        ${pkgs.coreutils}/bin/mv "$tmp" ${socketTokenFile}
-      '';
+      # Named tokens and what they may do. Every value lives in sops
+      # (secrets/petunia.yaml, see docs/pi-durable-host.md "Tokens and
+      # secrets"); scripts/pi-durable-token makes and rotates them. A name
+      # added here needs its hash in the host file first: the build checks
+      # that every declared key exists.
+      namedTokens = {
+        r4b-viewer.role = "viewer";
+        r4b-operator.role = "operator";
+        # Purges sessions.
+        r4b-admin.role = "admin";
+        # Held by pi-durable-trigger-ops (its text is pi-durable/trigger-token).
+        r4b-trigger = {
+          role = "operator";
+          agent = true;
+        };
+        # Agent token: cannot set yolo or answer an ask.
+        r4b-agent = {
+          role = "operator";
+          agent = true;
+        };
+      };
+      hashKey = name: "pi-durable/token-hashes/${name}";
+      secretPath = key: config.sops.secrets.${key}.path;
     in
     {
       imports = [ inputs.pi-durable.nixosModules.default ];
@@ -74,37 +85,15 @@
             # 30 days, and at once when their session is purged.
             uploads.retainDays = 30;
 
-            # Named tokens. The files hold sha256 hashes only; the token texts stay
-            # in /root/pi-durable-tokens. Add or remove tokens by editing the
-            # files and running systemctl reload pi-durable-pi (SIGHUP).
-            tokens = {
-              r4b-viewer = {
-                role = "viewer";
-                hashFile = "${tokensDir}/r4b-viewer.sha256";
-              };
-              r4b-operator = {
-                role = "operator";
-                hashFile = "${tokensDir}/r4b-operator.sha256";
-              };
-              # Held by pi-durable-trigger-ops.
-              r4b-trigger = {
-                role = "operator";
-                agent = true;
-                hashFile = "${tokensDir}/r4b-trigger.sha256";
-              };
-              # Agent token: cannot set yolo or answer an ask.
-              r4b-agent = {
-                role = "operator";
-                agent = true;
-                hashFile = "${tokensDir}/r4b-agent.sha256";
-              };
-            };
+            # The hash files are sops secrets linked into tokensDir. A rotated
+            # hash reloads the harness (SIGHUP); a new name restarts it.
+            tokens = lib.mapAttrs (name: t: t // { hashFile = secretPath (hashKey name); }) namedTokens;
 
             credentials = {
               roleIdFile = "${credsDir}/role_id";
               secretIdFile = "/run/credstore-unsealed/pidurable-secret-id";
               databaseUrlFile = "${credsDir}/database_url";
-              inherit socketTokenFile;
+              socketTokenFile = secretPath "pi-durable/socket-token";
             };
           };
         };
@@ -128,18 +117,18 @@
         };
 
         # Webhook source "alerts": signed JSON events start
-        # conversations in auto mode under an agent token. Secret and token files live outside
-        # the store (provisioned by hand, root only).
+        # conversations in auto mode under an agent token. The token and the
+        # webhook secret come from sops.
         pi-durable-trigger = {
           enable = true;
           services.ops = {
             target = {
               harness = "pi";
-              tokenFile = "/root/pi-durable-tokens/trigger.token";
+              tokenFile = secretPath "pi-durable/trigger-token";
               tokenName = "r4b-trigger";
             };
             webhooks.alerts = {
-              secretFile = "/root/pi-durable-tokens/hook_alerts.secret";
+              secretFile = secretPath "pi-durable/hook-alerts-secret";
               fields = {
                 message = "message";
                 id = "id";
@@ -152,6 +141,33 @@
         # TLS for pi.home.lan comes from the unified edge (services-bifrost-front-door),
         # which replaced pi-durable-haproxy and its Node renewer on petunia.
       };
+
+      # The tokens and secrets of the instance. Paths outside /run/secrets for
+      # the files the harness or pi-durable-attach read by path: they refuse a
+      # file whose directory other users can enter, and /run/secrets.d is 0751.
+      # The trigger service reads its files through LoadCredential.
+      sops.secrets =
+        lib.mapAttrs' (
+          name: _:
+          lib.nameValuePair (hashKey name) {
+            path = "${tokensDir}/${name}.sha256";
+            group = "pdh-pi";
+            mode = "0440";
+            reloadUnits = [ "pi-durable-pi.service" ];
+          }
+        ) namedTokens
+        // {
+          # The legacy admin token of the socket. Members of pdh-pi may read
+          # it; that group already opens the socket.
+          "pi-durable/socket-token" = {
+            path = "${credsDir}/socket_token";
+            group = "pdh-pi";
+            mode = "0440";
+            restartUnits = [ "pi-durable-pi.service" ];
+          };
+          "pi-durable/trigger-token".restartUnits = [ "pi-durable-trigger-ops.service" ];
+          "pi-durable/hook-alerts-secret".restartUnits = [ "pi-durable-trigger-ops.service" ];
+        };
 
       nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [
         "pi-durable-pi.service"
@@ -175,26 +191,13 @@
           # the edge (https://inference.home.lan) when it starts, and sends
           # decisions through it; start it after the edge.
           pi-durable-pi = {
-            after = [ "bifrost-front-door.service" ];
+            after = [
+              "bifrost-front-door.service"
+              "sops-install-secrets.service"
+            ];
             wants = [ "bifrost-front-door.service" ];
           };
-
-          # Generated once on first start. root:pdh-pi 0640 lets members of the
-          # socket group read the token they must present; that group already
-          # grants access to the socket, so the read adds no authority. The
-          # harness itself receives the token through LoadCredential.
-          pi-durable-socket-token = {
-            description = "Generate the pi-durable socket token";
-            before = [ "pi-durable-pi.service" ];
-            requiredBy = [ "pi-durable-pi.service" ];
-            after = [ "systemd-tmpfiles-setup.service" ];
-            unitConfig.ConditionPathExists = "!${socketTokenFile}";
-            serviceConfig = {
-              Type = "oneshot";
-              RemainAfterExit = true;
-              ExecStart = generateSocketToken;
-            };
-          };
+          pi-durable-trigger-ops.after = [ "sops-install-secrets.service" ];
         };
       };
     };

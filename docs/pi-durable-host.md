@@ -166,18 +166,8 @@ start). PID 1 reads these files as root and passes them on via
 |---|---|
 | `database_url` | created by tmpfiles (`f`, written only when absent) with the non-secret URL `postgresql://pidurable-db.service.consul:5432/pidurable?sslmode=verify-full&sslnegotiation=direct`; Vault supplies user and password |
 | `role_id` | written by tmpfiles (`f+`, rewritten on activation) with the non-secret AppRole role_id of `pidurable-pi`, a Terraform output of vault-config; update the value in the module if the role is recreated |
-| `socket_token` | generated once by `pi-durable-socket-token.service` |
+| `socket_token` | sops secret `pi-durable/socket-token`, linked here (see "Tokens and secrets") |
 | `/run/credstore-unsealed/pidurable-secret-id` | TPM2 unseal bridge, see above |
-
-### Socket token
-
-`pi-durable-socket-token.service` is a root oneshot ordered before and
-required by `pi-durable-pi.service`. It runs only while
-`/var/lib/pi-durable-creds/socket_token` is absent and writes 32 random
-bytes as hex with `umask 077`, then sets `root:pdh-pi 0640`. Members of
-`pdh-pi` can read the token they must present to the socket. That group
-already grants socket access, so the read adds no authority. To rotate,
-delete the file and restart `pi-durable-pi.service`.
 
 ### TLS trust
 
@@ -217,18 +207,47 @@ runs, and a call the service cannot decide runs without an ask. With
 `pi-durable-pi` starts after and wants `bifrost-front-door.service`, since the
 catalog, tool list and decisions all go through the edge.
 
-### Named tokens, web bridge, front door and trigger
+### Tokens and secrets
 
-The instance declares a viewer token (`r4b-viewer`), an operator token
-(`r4b-operator`) and two agent tokens (`r4b-trigger`, `r4b-agent`; an agent
-token cannot set yolo or answer an ask). The harness reads only their sha256 hashes
-from `/var/lib/pi-durable-tokens` (`root:pdh-pi`, files 0640). The token texts
-and the webhook secret sit in `/root/pi-durable-tokens` (root only, outside the
-store). Make a hash line with `pi-durable-attach-pi hash-token --token-file
-<file> <name> <role>`. Rotating a hash file takes effect with
-`systemctl reload pi-durable-pi`; a switch does not restart the harness, so a
-new token entry in the configuration needs `systemctl restart pi-durable-pi`
-once.
+Every pi-durable token and secret of the instance is in sops. Nothing is made
+by hand on the host.
+
+| sops file | Readers | Holds |
+|---|---|---|
+| `secrets/petunia.yaml` | admin, petunia (host key) | `pi-durable/token-hashes/<name>` for every named token; `pi-durable/socket-token` (the `legacy` admin token of the socket); `pi-durable/trigger-token` (text of `r4b-trigger`); `pi-durable/hook-alerts-secret` |
+| `secrets/pi-durable-clients.yaml` | admin only | the text of every named token |
+
+The named tokens and their roles are `namedTokens` in
+`modules/services/pi-durable/default.nix`: `r4b-viewer` (viewer),
+`r4b-operator` (operator), `r4b-admin` (admin, purges), and the agent tokens
+`r4b-trigger` and `r4b-agent` (an agent token cannot set yolo or answer an
+ask). The module declares one sops secret per name and points `hashFile` at
+it, so a name without a hash in the host file fails the build.
+
+Where the files land: the hashes as links in `/var/lib/pi-durable-tokens`
+(`root:pdh-pi`, dir 0750, files 0440), the socket token as a link at
+`/var/lib/pi-durable-creds/socket_token` (0440 `root:pdh-pi`). The harness and
+`pi-durable-attach` refuse a file whose directory other users can enter, and
+`/run/secrets.d` is 0751, so these two keep their own directories. The
+trigger service reads its token and the webhook secret from `/run/secrets`
+through `LoadCredential`.
+
+`scripts/pi-durable-token` (inside `nix develop --impure`) makes and rotates
+them. It never prints a value:
+
+```bash
+scripts/pi-durable-token token r4b-operator              # new text + hash; rotating is the same
+scripts/pi-durable-token token r4b-trigger trigger-token  # also the text for the trigger service
+scripts/pi-durable-token secret hook-alerts-secret        # new value; the webhook sender needs it too
+scripts/pi-durable-token export r4b-operator ~/pi.token   # the text, mode 600, for a person or a test
+scripts/pi-durable-token check                            # every hash matches its text
+```
+
+Then commit and deploy. A changed hash reloads `pi-durable-pi` (SIGHUP); the
+socket token restarts it; the trigger token and the webhook secret restart
+`pi-durable-trigger-ops`. A new name changes the unit and restarts the harness.
+
+### Web bridge, front door and trigger
 
 `pi-durable-web-pi` listens on 127.0.0.1:8787 behind the unified edge
 (`services-bifrost-front-door`) on `https://pi.home.lan` (port 443, opened in
