@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-01T15:46:31Z",
+  "recorded": "2026-11-01T16:25:35Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "4594599136d64d60b4de683b8a216bbedc13ca5f",
-  "signoff": ".agents/signoff/2026-11-01-petunia-sops-systemd-activation.md"
+  "signed_off_through": "9853bac029b72e0d97400137e41041a023e05618",
+  "signoff": ".agents/signoff/2026-11-01-flake-registry-option.md"
 }
