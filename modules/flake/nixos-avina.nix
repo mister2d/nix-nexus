@@ -2,8 +2,8 @@
 # Composes overlays-global, sops, avina-default, matrix-pin-stable, home-manager, hm-ddukes-avina.
 { inputs, config, ... }:
 let
-  homeManagerModules = config.flake.modules.homeManager;
-  inherit (config.flake.modules) nixos;
+  homeManagerModules = config.modules.homeManager;
+  inherit (config.modules) nixos;
 in
 {
   flake.nixosConfigurations.avina = inputs.nixpkgs.lib.nixosSystem {

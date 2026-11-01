@@ -3,7 +3,7 @@
 # Filesystems and swap are now managed declaratively via 'disko.nix'.
 
 _: {
-  flake.modules.nixos.petunia-hardware =
+  modules.nixos.petunia-hardware =
     {
       lib,
       modulesPath,

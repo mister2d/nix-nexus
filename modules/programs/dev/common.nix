@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.development-default
+# Merged into: modules.nixos.development-default
 # Configures: base CLI, networking, and productivity packages for every host.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.development-default =
+  modules.nixos.development-default =
     { pkgs, ... }:
     {
       environment.systemPackages = with pkgs; [

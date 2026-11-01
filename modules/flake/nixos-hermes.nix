@@ -2,8 +2,8 @@
 # Composes overlays-global, sops, hermes-mcp-overlay, hermes-default, llm-agents-hermes, home-manager, hm-groot-hermes.
 { inputs, config, ... }:
 let
-  homeManagerModules = config.flake.modules.homeManager;
-  inherit (config.flake.modules) nixos;
+  homeManagerModules = config.modules.homeManager;
+  inherit (config.modules) nixos;
 in
 {
   flake.nixosConfigurations.hermes = inputs.nixpkgs.lib.nixosSystem {

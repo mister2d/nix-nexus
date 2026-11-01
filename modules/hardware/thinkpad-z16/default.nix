@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.hardware-z16
+# Merged into: modules.nixos.hardware-z16
 # Configures: kernel packages, boot parameters, fingerprint auth, and battery thresholds.
 # Imported by: hosts/sweet16/default.nix (sweet16-default).
 _: {
-  flake.modules.nixos.hardware-z16 =
+  modules.nixos.hardware-z16 =
     {
       lib,
       pkgs,

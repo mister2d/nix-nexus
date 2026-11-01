@@ -2,7 +2,7 @@
 # We provide a template matching the intended ZFS+LUKS layout.
 
 _: {
-  flake.modules.nixos.sweet16-hardware =
+  modules.nixos.sweet16-hardware =
     {
       config,
       lib,

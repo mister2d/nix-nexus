@@ -1,8 +1,8 @@
 # Host: avina (NixOS x86_64 Proxmox LXC server).
-# Registry key: flake.modules.homeManager.avina-home
+# Registry key: modules.homeManager.avina-home
 # Composes: user-bash, user-fish, user-neovim-home, user-herdr-home, user-xdg.
 _: {
-  flake.modules.homeManager.avina-home =
+  modules.homeManager.avina-home =
     { homeManagerModules, ... }:
     {
       imports = [

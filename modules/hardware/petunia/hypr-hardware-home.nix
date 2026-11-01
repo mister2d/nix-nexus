@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.hardware-petunia-hypr-home
+# Registry key: modules.homeManager.hardware-petunia-hypr-home
 # Configures: Hyprland monitor layout and AMD GPU environment for petunia.
 # Imported by: hosts/petunia/home.nix (petunia-home).
 _: {
-  flake.modules.homeManager.hardware-petunia-hypr-home =
+  modules.homeManager.hardware-petunia-hypr-home =
     { lib, ... }:
     let
       mkEnv = name: value: {

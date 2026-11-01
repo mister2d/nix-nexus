@@ -1,8 +1,8 @@
 # Host: petunia (NixOS x86_64 workstation).
-# Registry key: flake.modules.nixos.hm-ddukes-petunia
+# Registry key: modules.nixos.hm-ddukes-petunia
 # Composes: core-home-manager, petunia-home.
 _: {
-  flake.modules.nixos.hm-ddukes-petunia =
+  modules.nixos.hm-ddukes-petunia =
     {
       inputs,
       homeManagerModules,

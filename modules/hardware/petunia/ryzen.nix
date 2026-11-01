@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.hardware-petunia
+# Merged into: modules.nixos.hardware-petunia
 # Configures: Ryzen 5600X boot modules, microcode, sound, and network interfaces.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.hardware-petunia = _: {
+  modules.nixos.hardware-petunia = _: {
     # Core Hardware Support for Ryzen Desktop (AM4/X570)
     # Optimized for Ryzen 5 5600X (Zen 3) + Gigabyte X570 AORUS MASTER
 

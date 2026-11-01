@@ -1,11 +1,11 @@
-# Merged into: flake.modules.homeManager.user-herdr-home
+# Merged into: modules.homeManager.user-herdr-home
 # Configures: herdr's Claude Code session-resume hook and settings.json merge.
 # Options: nix-nexus.user.herdr.claudeIntegration.enable (default off; sweet16, petunia, forge enable it).
 # Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/avina/home.nix (avina-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 # The hook script comes from the pinned herdr package, not a hand-copied file.
 # settings.json is merged, not replaced, since Claude Code writes its own keys there.
 _: {
-  flake.modules.homeManager.user-herdr-home =
+  modules.homeManager.user-herdr-home =
     {
       pkgs,
       lib,

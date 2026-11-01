@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.user-television-home
+# Registry key: modules.homeManager.user-television-home
 # Configures: the television (tv) fuzzy finder, its keybindings, and custom channels.
 # Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
-  flake.modules.homeManager.user-television-home = _: {
+  modules.homeManager.user-television-home = _: {
     # Television: Blazingly fast general purpose fuzzy finder TUI.
     # This module manages the global 'tv' configuration, specialized cable channels,
     # and seamless shell integration for a modern, high-performance CLI workflow.

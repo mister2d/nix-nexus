@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.user-bash
+# Registry key: modules.homeManager.user-bash
 # Configures: Bash packages, aliases, history options, and the custom prompt.
 # Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/avina/home.nix (avina-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
-  flake.modules.homeManager.user-bash =
+  modules.homeManager.user-bash =
     { pkgs, ... }:
 
     let

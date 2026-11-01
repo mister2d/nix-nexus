@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.services-matrix
+# Merged into: modules.nixos.services-matrix
 # Configures: the LiveKit SFU, its built-in TURN server, and the JWT token service.
 # Imported by: hosts/avina/default.nix (avina-default).
 _: {
-  flake.modules.nixos.services-matrix =
+  modules.nixos.services-matrix =
     {
       matrixDomain,
       rtcDomain,

@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.services-matrix
+# Merged into: modules.nixos.services-matrix
 # Configures: HAProxy routing, TLS termination, and static ToS/well-known servers.
 # Imported by: hosts/avina/default.nix (avina-default).
 _: {
-  flake.modules.nixos.services-matrix =
+  modules.nixos.services-matrix =
     {
       pkgs,
       lib,

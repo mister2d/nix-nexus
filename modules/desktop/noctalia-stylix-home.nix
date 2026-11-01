@@ -1,10 +1,10 @@
-# Merged into: flake.modules.homeManager.desktop-noctalia-home
+# Merged into: modules.homeManager.desktop-noctalia-home
 # Configures: the noctalia "stylix" custom palette from the active base16 scheme.
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 # Mirrors the dark-variant role mapping in upstream stylix/modules/noctalia/hm.nix.
 # The light variant comes from the theme registry, not from the upstream module.
 _: {
-  flake.modules.homeManager.desktop-noctalia-home =
+  modules.homeManager.desktop-noctalia-home =
     {
       config,
       osConfig,

@@ -2,13 +2,13 @@
 # consumers.sh — recursively find which hosts reach a registry key or flake input name.
 #
 # Usage: consumers.sh <name>...
-#   name   a flake.modules.{nixos,homeManager} registry key (e.g. desktop-noctalia-home)
+#   name   a modules.{nixos,homeManager} registry key (e.g. desktop-noctalia-home)
 #          or a flake input name (e.g. noctalia)
 #
 # Greps modules/, hosts/, profiles/ for occurrences of "<name>" used as a
 # dotted reference (e.g. `nixosModules.<name>`, `homeManagerModules.<name>`,
 # `inputs.<name>`), excluding the line(s) that merely *define* the key under
-# `flake.modules.nixos.<name>` / `flake.modules.homeManager.<name>`. When a
+# `modules.nixos.<name>` / `modules.homeManager.<name>`. When a
 # consuming file is itself a host file (hosts/<host>/...), that host is
 # reported directly. When the consuming file is a module/profile that itself
 # registers under other key(s), those keys are recursively resolved until
@@ -35,7 +35,7 @@ QUEUE=("$@")
 
 find_consumer_files() {
   local name="$1"
-  local def_pattern="flake\.modules\.(nixos|homeManager)\.${name}[[:space:]]*="
+  local def_pattern="(?<![\w.])modules\.(nixos|homeManager)\.${name}[[:space:]]*="
   local ref_pattern="(?<=\.)${name}(?![A-Za-z0-9_-])"
 
   grep -rlP "$ref_pattern" modules hosts profiles 2>/dev/null | while read -r f; do
@@ -52,8 +52,8 @@ find_consumer_files() {
 
 get_registered_keys() {
   local f="$1"
-  grep -oP 'flake\.modules\.(nixos|homeManager)\.[A-Za-z0-9_-]+' "$f" 2>/dev/null \
-    | sed -E 's/^flake\.modules\.(nixos|homeManager)\.//' \
+  grep -oP '(?<![\w.])modules\.(nixos|homeManager)\.[A-Za-z0-9_-]+' "$f" 2>/dev/null \
+    | sed -E 's/^modules\.(nixos|homeManager)\.//' \
     | sort -u
 }
 

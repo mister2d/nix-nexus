@@ -1,10 +1,10 @@
-# Registry key: flake.modules.homeManager.user-agent-home
+# Registry key: modules.homeManager.user-agent-home
 # Configures: Home Manager profile for the agent identity: bash, tmux, and herdr.
 # Imported by: hosts/sweet16/agent-hm.nix (hm-agent-sweet16), hosts/petunia/agent-hm.nix (hm-agent-petunia).
 # The profile carries no secrets and no path to the TPM. The assertions fail the build if the
 # ssh-tpm-agent socket, the Vault token helper, or an SSH agent socket variable is configured.
 _: {
-  flake.modules.homeManager.user-agent-home =
+  modules.homeManager.user-agent-home =
     {
       config,
       lib,

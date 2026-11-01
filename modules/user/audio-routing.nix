@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.user-audio-routing
+# Registry key: modules.homeManager.user-audio-routing
 # Configures: EasyEffects dconf settings for default input/output device tracking.
 # Imported by: modules/user/home.nix (user-home).
 _: {
-  flake.modules.homeManager.user-audio-routing = {
+  modules.homeManager.user-audio-routing = {
     # EasyEffects dconf settings: Logic for hardware tracking
     # Configures EasyEffects to dynamically track the default system source and
     # process only the default playback/capture streams. This prevents stale

@@ -1,4 +1,4 @@
-# Registry key: flake.modules.homeManager.user-audio-effects
+# Registry key: modules.homeManager.user-audio-effects
 # Configures: the EasyEffects daemon, Z16 impulse responses, and preset assets.
 # Imported by: modules/user/home.nix (user-home).
 { lib, ... }:
@@ -31,7 +31,7 @@ let
 
 in
 {
-  flake.modules.homeManager.user-audio-effects = {
+  modules.homeManager.user-audio-effects = {
     # Enable the EasyEffects Daemon in the background
     services.easyeffects = {
       enable = true;

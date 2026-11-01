@@ -1,10 +1,10 @@
-# Registry key: flake.modules.nixos.core-tpm2
+# Registry key: modules.nixos.core-tpm2
 # Configures: TPM2 support for LUKS auto-unlock via systemd-cryptenroll.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # Options: nix-nexus.tpm2.users
 # See docs/secrets.md for per-host TPM2 enrollment posture.
 _: {
-  flake.modules.nixos.core-tpm2 =
+  modules.nixos.core-tpm2 =
     { config, lib, ... }:
     {
       options.nix-nexus.tpm2.users = lib.mkOption {

@@ -1,8 +1,8 @@
-# Registry key: flake.modules.nixos.services-openrgb
+# Registry key: modules.nixos.services-openrgb
 # Configures: OpenRGB, its udev group rules, and the dedicated service user.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.services-openrgb =
+  modules.nixos.services-openrgb =
     { pkgs, ... }:
     let
       # OpenRGB's shipped udev rules tag matching devices with

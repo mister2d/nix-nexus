@@ -44,7 +44,7 @@ Pick a kebab-case name. Follow the
 ```nix
 # modules/services/syncthing.nix
 _: {
-  flake.modules.nixos.services-syncthing =
+  modules.nixos.services-syncthing =
     { pkgs, lib, ... }:
     {
       services.syncthing = {
@@ -102,7 +102,7 @@ One or more users opt into it by name.
 ```nix
 # modules/user/starship-home.nix
 _: {
-  flake.modules.homeManager.user-starship-home =
+  modules.homeManager.user-starship-home =
     { pkgs, ... }:
     {
       programs.starship = {
@@ -127,7 +127,7 @@ Add the name to the `imports` list of the relevant
 ```nix
 # hosts/sweet16/home.nix (excerpt)
 _: {
-  flake.modules.homeManager.sweet16-home =
+  modules.homeManager.sweet16-home =
     { homeManagerModules, ... }:
     {
       imports = [
@@ -165,7 +165,7 @@ module:
 ```nix
 # hosts/myserver/default.nix
 _: {
-  flake.modules.nixos.myserver-default =
+  modules.nixos.myserver-default =
     { pkgs, nixosModules, ... }:
     {
       imports = [ nixosModules.server-default ];
@@ -193,7 +193,7 @@ the account managed in one place:
 ```nix
 # modules/core/alice.nix
 _: {
-  flake.modules.nixos.core-alice =
+  modules.nixos.core-alice =
     { pkgs, ... }:
     {
       users.users.alice = {
@@ -225,7 +225,7 @@ imports = [
 ```nix
 # hosts/<hostname>/alice-hm.nix
 _: {
-  flake.modules.nixos.hm-alice-myhostname =
+  modules.nixos.hm-alice-myhostname =
     { inputs, homeManagerModules, ... }:
     {
       home-manager = {
@@ -249,7 +249,7 @@ _: {
 ```nix
 # hosts/<hostname>/alice-home.nix
 _: {
-  flake.modules.homeManager.myhostname-alice-home =
+  modules.homeManager.myhostname-alice-home =
     { pkgs, homeManagerModules, ... }:
     {
       imports = [
@@ -273,8 +273,8 @@ _: {
 # modules/flake/nixos-myhostname.nix
 { inputs, config, ... }:
 let
-  hm    = config.flake.modules.homeManager;
-  nixos = config.flake.modules.nixos;
+  hm    = config.modules.homeManager;
+  nixos = config.modules.nixos;
 in
 {
   flake.nixosConfigurations.myhostname = inputs.nixpkgs.lib.nixosSystem {
@@ -317,7 +317,7 @@ modules/services/mystack/
 ```nix
 # modules/services/mystack/versions.nix
 _: {
-  flake.modules.nixos.services-mystack =
+  modules.nixos.services-mystack =
     { pkgs, ... }:
     let
       myapp-pkg = pkgs.myapp.overrideAttrs (_: { version = "2.1.0"; });
@@ -331,7 +331,7 @@ _: {
 ```nix
 # modules/services/mystack/backend.nix
 _: {
-  flake.modules.nixos.services-mystack =
+  modules.nixos.services-mystack =
     { config, lib, ... }:
     {
       services.myapp = {
@@ -347,7 +347,7 @@ _: {
 ```nix
 # modules/services/mystack/database.nix
 _: {
-  flake.modules.nixos.services-mystack = _: {
+  modules.nixos.services-mystack = _: {
     services.postgresql = {
       enable     = true;
       ensureDatabases = [ "myapp" ];
@@ -383,7 +383,7 @@ Give it a **distinct name** so it stays independently selectable:
 ```nix
 # modules/services/mystack/whatsapp-bridge.nix
 _: {
-  flake.modules.nixos.services-mystack-whatsapp = _: {
+  modules.nixos.services-mystack-whatsapp = _: {
     # not merged into services-mystack — hosts that want it import it separately
     services.mautrix-whatsapp.enable = true;
   };
@@ -418,7 +418,7 @@ Wrap the output as a self-registering fragment:
 ```nix
 # hosts/<hostname>/hardware-configuration.nix
 _: {
-  flake.modules.nixos.<hostname>-hardware = _: {
+  modules.nixos.<hostname>-hardware = _: {
     # paste the output of nixos-generate-config here
     boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "ahci" "usb_storage" ];
     fileSystems."/" = { device = "/dev/disk/by-uuid/..."; fsType = "ext4"; };
@@ -432,7 +432,7 @@ _: {
 ```nix
 # hosts/<hostname>/default.nix
 _: {
-  flake.modules.nixos.<hostname>-default =
+  modules.nixos.<hostname>-default =
     { nixosModules, ... }:
     {
       imports = [
@@ -456,7 +456,7 @@ _: {
 ```nix
 # hosts/<hostname>/home.nix
 _: {
-  flake.modules.homeManager.<hostname>-home =
+  modules.homeManager.<hostname>-home =
     { homeManagerModules, ... }:
     {
       imports = [
@@ -474,7 +474,7 @@ _: {
 ```nix
 # hosts/<hostname>/ddukes-hm.nix
 _: {
-  flake.modules.nixos.hm-ddukes-<hostname> =
+  modules.nixos.hm-ddukes-<hostname> =
     { inputs, homeManagerModules, ... }:
     {
       home-manager = {
@@ -499,8 +499,8 @@ _: {
 # modules/flake/nixos-<hostname>.nix
 { inputs, config, ... }:
 let
-  hm    = config.flake.modules.homeManager;
-  nixos = config.flake.modules.nixos;
+  hm    = config.modules.homeManager;
+  nixos = config.modules.nixos;
 in
 {
   flake.nixosConfigurations.<hostname> = inputs.nixpkgs.lib.nixosSystem {
@@ -554,7 +554,7 @@ hardware.
 
 ```nix
 _: {
-  flake.modules.nixos.<hostname>-default =
+  modules.nixos.<hostname>-default =
     {
       pkgs,
       modulesPath,
@@ -600,8 +600,8 @@ _: {
 ```nix
 { inputs, config, ... }:
 let
-  hm    = config.flake.modules.homeManager;
-  nixos = config.flake.modules.nixos;
+  hm    = config.modules.homeManager;
+  nixos = config.modules.nixos;
 in
 {
   flake.nixosConfigurations.<hostname> = inputs.nixpkgs.lib.nixosSystem {
@@ -655,7 +655,7 @@ new file.
 ```nix
 # hosts/mydebian/home.nix
 _: {
-  flake.modules.homeManager.mydebian-home =
+  modules.homeManager.mydebian-home =
     {
       pkgs,
       inputs,
@@ -701,7 +701,7 @@ set several `"user@host"` keys with `lib.mapAttrs'`.
   ...
 }:
 let
-  hm = config.flake.modules.homeManager;
+  hm = config.modules.homeManager;
   hosts = {
     mydebian = "x86_64-linux";
   };
@@ -767,7 +767,7 @@ home-manager switch --flake .#alice@mydebian -b bak
 The name you referenced in `nixosModules.my-module-name` does not exist in
 the registry. Possible causes:
 
-1. **Typo in the name** — the key in `flake.modules.nixos.` must match
+1. **Typo in the name** — the key in `modules.nixos.` must match
    exactly.
 2. **File not in a discovered tree** — the file must be under `modules/`,
    `hosts/`, or `profiles/`. import-tree does not discover files in `lib/`.
@@ -800,19 +800,19 @@ Within a flake-parts fragment, the outer `config` is the **flake-parts**
 config, not the NixOS config. Inside a NixOS module value, the NixOS-level
 `config` is available only if you include it in the NixOS module's argument
 set. The NixOS module value is the function assigned to
-`flake.modules.nixos.<name>`:
+`modules.nixos.<name>`:
 
 ```nix
 # WRONG — config here is flake-parts config
 { config, ... }: {
-  flake.modules.nixos.my-module = _: {
+  modules.nixos.my-module = _: {
     networking.firewall.allowedTCPPorts = [ config.services.myapp.port ];
   };
 }
 
 # CORRECT — bring config from the NixOS module argument set
 _: {
-  flake.modules.nixos.my-module =
+  modules.nixos.my-module =
     { config, ... }:    # ← this config is the NixOS config
     {
       networking.firewall.allowedTCPPorts = [ config.services.myapp.port ];

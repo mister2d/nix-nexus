@@ -431,7 +431,7 @@ one of these causes:
 - a path segment starts with `_`. This excludes the file from discovery
 
 ```bash
-grep -rn 'flake.modules.nixos.foo' modules/ hosts/ profiles/
+grep -rn 'modules.nixos.foo' modules/ hosts/ profiles/
 ```
 
 ### My change had no effect

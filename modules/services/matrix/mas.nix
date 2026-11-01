@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.services-matrix
+# Merged into: modules.nixos.services-matrix
 # Configures: the Matrix Authentication Service (MAS) systemd unit.
 # Imported by: hosts/avina/default.nix (avina-default).
 _: {
-  flake.modules.nixos.services-matrix =
+  modules.nixos.services-matrix =
     { pkgs, ... }:
     let
       stateDir = "/var/lib/matrix-authentication-service";

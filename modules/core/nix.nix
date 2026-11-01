@@ -1,4 +1,4 @@
-# Registry key: flake.modules.nixos.core-nix
+# Registry key: modules.nixos.core-nix
 # Configures: Nix package (pinned to 2.35), Nix daemon settings, binary caches, trusted users, and garbage collection.
 # Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 let
@@ -6,7 +6,7 @@ let
   bincache = import ../../lib/bincache.nix;
 in
 _: {
-  flake.modules.nixos.core-nix =
+  modules.nixos.core-nix =
     {
       config,
       lib,

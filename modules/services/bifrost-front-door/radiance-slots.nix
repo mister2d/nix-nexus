@@ -1,5 +1,5 @@
 # radiance slot states on the petunia edge.
-# Registry key: flake.modules.nixos.services-bifrost-front-door (merges with
+# Registry key: modules.nixos.services-bifrost-front-door (merges with
 # default.nix).
 # llama-swap decides which radiance slots run (8000, or 8002 + 8003 for a GPU
 # pair). This unit reads llama-swap's /running (read-only: it never loads a
@@ -9,7 +9,7 @@
 # and keep DOWN for a loaded slot that fails its health check. When
 # llama-swap does not answer, the states stay as they are.
 _: {
-  flake.modules.nixos.services-bifrost-front-door =
+  modules.nixos.services-bifrost-front-door =
     {
       config,
       lib,

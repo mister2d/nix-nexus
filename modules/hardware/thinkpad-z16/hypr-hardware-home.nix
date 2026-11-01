@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.hardware-z16-hypr-home
+# Registry key: modules.homeManager.hardware-z16-hypr-home
 # Configures: Hyprland monitor layout, HDR, and touchpad input for the Z16.
 # Imported by: hosts/sweet16/home.nix (sweet16-home).
 _: {
-  flake.modules.homeManager.hardware-z16-hypr-home =
+  modules.homeManager.hardware-z16-hypr-home =
     { lib, ... }:
     let
       mkEnv = name: value: {

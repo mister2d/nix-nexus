@@ -1,8 +1,8 @@
-# Registry key: flake.modules.nixos.hardware-proxmox-lxc
+# Registry key: modules.nixos.hardware-proxmox-lxc
 # Configures: Proxmox LXC container networking, DNS, and firewall policy.
 # Imported by: hosts/avina/default.nix (avina-default), hosts/hermes/default.nix (hermes-default).
 _: {
-  flake.modules.nixos.hardware-proxmox-lxc =
+  modules.nixos.hardware-proxmox-lxc =
     { modulesPath, ... }:
     {
       imports = [

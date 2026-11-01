@@ -1,8 +1,8 @@
-# Registry key: flake.modules.nixos.workstation-default
+# Registry key: modules.nixos.workstation-default
 # Configures: shared workstation defaults for ZFS tuning and WiFi regulatory domain.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.workstation-default =
+  modules.nixos.workstation-default =
     {
       pkgs,
       lib,

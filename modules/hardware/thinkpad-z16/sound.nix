@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.hardware-z16
+# Merged into: modules.nixos.hardware-z16
 # Configures: PipeWire audio routing and the mic-mute LED sync service.
 # Imported by: hosts/sweet16/default.nix (sweet16-default).
 _: {
-  flake.modules.nixos.hardware-z16 =
+  modules.nixos.hardware-z16 =
     { pkgs, ... }:
     let
       sampleRate = 48000; # Hz

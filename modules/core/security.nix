@@ -1,8 +1,8 @@
-# Registry key: flake.modules.nixos.core-security
+# Registry key: modules.nixos.core-security
 # Configures: polkit, rtkit, PKI trust, gnome-keyring, and gpg-agent caching.
 # Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 _: {
-  flake.modules.nixos.core-security =
+  modules.nixos.core-security =
     { pkgs, ... }:
     let
       sevenDays = 7 * 24 * 60 * 60; # seconds

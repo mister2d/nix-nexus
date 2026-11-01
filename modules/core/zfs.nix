@@ -1,9 +1,9 @@
-# Registry key: flake.modules.nixos.core-zfs
+# Registry key: modules.nixos.core-zfs
 # Configures: ZFS ARC size limits and pool import settings.
 # Imported by: profiles/workstation/default.nix (workstation-default).
 # Options: nix-nexus.zfs.*
 _: {
-  flake.modules.nixos.core-zfs =
+  modules.nixos.core-zfs =
     {
       lib,
       config,

@@ -1,9 +1,9 @@
-# Registry key: flake.modules.nixos.server-default
+# Registry key: modules.nixos.server-default
 # Configures: the base profile for headless NixOS servers and LXC containers.
 # Imported by: hosts/avina/default.nix (avina-default), hosts/hermes/default.nix (hermes-default).
 # Omits: modules/core/boot.nix, modules/core/zfs.nix, modules/core/networking.nix.
 _: {
-  flake.modules.nixos.server-default =
+  modules.nixos.server-default =
     { nixosModules, lib, ... }:
     let
       keymap = import ../../lib/keymap.nix { inherit lib; };

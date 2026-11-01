@@ -1,11 +1,11 @@
-# Merged into: flake.modules.homeManager.user-herdr-home
+# Merged into: modules.homeManager.user-herdr-home
 # Configures: herdr, a terminal multiplexer with coding-agent session awareness.
 # Imported by: modules/user/home.nix (user-home), modules/user/standalone-home.nix (user-standalone-home), hosts/avina/home.nix (avina-home), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 # Keybindings come from lib/keymap.nix, the same source tmux renders from.
 # theme.name "terminal" reads the outer terminal's ANSI palette for both users.
 # Stylix hosts also pin the sidebar tokens to the active base16 scheme.
 _: {
-  flake.modules.homeManager.user-herdr-home =
+  modules.homeManager.user-herdr-home =
     {
       pkgs,
       lib,

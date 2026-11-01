@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.desktop-default
+# Merged into: modules.nixos.desktop-default
 # Configures: Nerd Fonts and base font packages for every desktop host.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.desktop-default =
+  modules.nixos.desktop-default =
     { pkgs, ... }:
     {
       fonts.packages = with pkgs; [

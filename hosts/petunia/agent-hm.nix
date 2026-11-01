@@ -1,8 +1,8 @@
 # Host: petunia (NixOS x86_64 workstation).
-# Registry key: flake.modules.nixos.hm-agent-petunia
+# Registry key: modules.nixos.hm-agent-petunia
 # Composes: core-home-manager, user-agent-home.
 _: {
-  flake.modules.nixos.hm-agent-petunia =
+  modules.nixos.hm-agent-petunia =
     { homeManagerModules, nixosModules, ... }:
     {
       imports = [ nixosModules.core-home-manager ];

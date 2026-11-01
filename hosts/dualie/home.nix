@@ -1,8 +1,8 @@
 # Host: dualie (Debian x86_64, standalone Home Manager).
-# Registry key: flake.modules.homeManager.dualie-home
+# Registry key: modules.homeManager.dualie-home
 # Composes: user-standalone-home, user-bincache-home.
 _: {
-  flake.modules.homeManager.dualie-home =
+  modules.homeManager.dualie-home =
     {
       pkgs,
       inputs,

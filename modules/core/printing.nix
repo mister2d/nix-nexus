@@ -1,4 +1,4 @@
-# Registry key: flake.modules.nixos.core-printing
+# Registry key: modules.nixos.core-printing
 # Configures: CUPS printing, Avahi discovery, and the ensured HP printer.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # The queue points at the Nomad-hosted CUPS print server
@@ -9,7 +9,7 @@
 # for network-online.target and retry every 10s for about a minute, so the
 # Consul DNS name can resolve late in boot.
 _: {
-  flake.modules.nixos.core-printing =
+  modules.nixos.core-printing =
     {
       config,
       lib,

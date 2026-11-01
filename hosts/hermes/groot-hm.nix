@@ -1,8 +1,8 @@
 # Host: hermes (NixOS x86_64 Proxmox LXC server).
-# Registry key: flake.modules.nixos.hm-groot-hermes
+# Registry key: modules.nixos.hm-groot-hermes
 # Composes: core-home-manager, hermes-home, user-bash, user-fish, user-terminal-home, user-terminal-oled-home, user-neovim-home, user-television-home, user-herdr-home, user-xdg.
 _: {
-  flake.modules.nixos.hm-groot-hermes =
+  modules.nixos.hm-groot-hermes =
     {
       pkgs,
       inputs,

@@ -1,8 +1,8 @@
 # Host: rk3588 (Armbian aarch64, standalone Home Manager).
-# Registry key: flake.modules.homeManager.rk3588-home
+# Registry key: modules.homeManager.rk3588-home
 # Composes: user-standalone-home.
 _: {
-  flake.modules.homeManager.rk3588-home =
+  modules.homeManager.rk3588-home =
     {
       pkgs,
       homeManagerModules,

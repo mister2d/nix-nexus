@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.desktop-hyprland-home
+# Registry key: modules.homeManager.desktop-hyprland-home
 # Configures: Hyprland keybindings, workspace binds, startup commands (Lua config), and the xdg-terminal-exec terminal preference list.
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
-  flake.modules.homeManager.desktop-hyprland-home =
+  modules.homeManager.desktop-hyprland-home =
     {
       pkgs,
       lib,

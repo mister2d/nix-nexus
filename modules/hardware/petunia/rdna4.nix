@@ -1,9 +1,9 @@
-# Merged into: flake.modules.nixos.hardware-petunia
+# Merged into: modules.nixos.hardware-petunia
 # Configures: dual RDNA4 R9700 graphics and ROCm compute via nix-rdna4.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 { inputs, ... }:
 {
-  flake.modules.nixos.hardware-petunia = {
+  modules.nixos.hardware-petunia = {
     # Dual R9700 (RDNA4, gfx1201) graphics + ROCm compute wiring.
     #
     # nix-rdna4 supplies the amdgpu driver and early KMS, kernel params, the

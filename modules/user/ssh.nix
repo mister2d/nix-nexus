@@ -1,9 +1,9 @@
-# Registry key: flake.modules.homeManager.user-ssh
+# Registry key: modules.homeManager.user-ssh
 # Configures: SSH client defaults for strict host checking, keepalive, log level.
 # Imported by: modules/user/home.nix (user-home).
 # Host-specific blocks stay hand-managed under ~/.ssh/config.d/.
 _: {
-  flake.modules.homeManager.user-ssh = _: {
+  modules.homeManager.user-ssh = _: {
     programs.ssh = {
       enable = true;
 

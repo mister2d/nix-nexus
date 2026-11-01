@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.user-vault-home
+# Registry key: modules.homeManager.user-vault-home
 # Configures: Vault CLI helpers (vault-login, vault-token-helper, generate-ssh-cert) and the ~/.vault token_helper wiring.
 # Imported by: modules/user/home.nix (user-home).
 _: {
-  flake.modules.homeManager.user-vault-home =
+  modules.homeManager.user-vault-home =
     { lib, pkgs, ... }:
     let
       # writeShellApplication supplies the shebang and strict-mode header.

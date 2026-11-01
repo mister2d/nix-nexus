@@ -1,8 +1,8 @@
 # Host: hermes (NixOS x86_64 Proxmox LXC server).
-# Registry key: flake.modules.homeManager.hermes-home
+# Registry key: modules.homeManager.hermes-home
 # Configures: hermes-agent's PYTHONPATH and systemd unit environment overrides.
 _: {
-  flake.modules.homeManager.hermes-home =
+  modules.homeManager.hermes-home =
     {
       pkgs,
       lib,

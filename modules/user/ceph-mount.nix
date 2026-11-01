@@ -1,8 +1,8 @@
-# Registry key: flake.modules.homeManager.user-ceph-mount
+# Registry key: modules.homeManager.user-ceph-mount
 # Configures: the ceph_mount_ctl script.
 # Imported by: modules/user/home.nix (user-home).
 _: {
-  flake.modules.homeManager.user-ceph-mount =
+  modules.homeManager.user-ceph-mount =
     { pkgs, ... }:
 
     let

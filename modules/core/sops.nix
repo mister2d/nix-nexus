@@ -1,9 +1,9 @@
-# Registry key: flake.modules.nixos.core-sops
+# Registry key: modules.nixos.core-sops
 # Configures: sops-nix decryption using an age key derived from the host SSH key.
 # Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 # Options: nix-nexus.secrets.sops.hostFile
 _: {
-  flake.modules.nixos.core-sops =
+  modules.nixos.core-sops =
     { lib, config, ... }:
     let
       cfg = config.nix-nexus.secrets.sops;

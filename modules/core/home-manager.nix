@@ -1,8 +1,8 @@
-# Registry key: flake.modules.nixos.core-home-manager
+# Registry key: modules.nixos.core-home-manager
 # Configures: Home Manager integration defaults for every NixOS host.
 # Imported by: hosts/avina/ddukes-hm.nix (hm-ddukes-avina), hosts/sweet16/ddukes-hm.nix (hm-ddukes-sweet16), hosts/petunia/ddukes-hm.nix (hm-ddukes-petunia), hosts/hermes/groot-hm.nix (hm-groot-hermes).
 _: {
-  flake.modules.nixos.core-home-manager =
+  modules.nixos.core-home-manager =
     { inputs, homeManagerModules, ... }:
     {
       home-manager = {

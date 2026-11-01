@@ -1,8 +1,8 @@
 # Host: sweet16 (NixOS x86_64 workstation).
-# Registry key: flake.modules.homeManager.sweet16-home
+# Registry key: modules.homeManager.sweet16-home
 # Composes: user-home, user-ssh-tpm-agent, desktop-noctalia-home, hardware-z16-hypr-home, desktop-hyprland-home, desktop-theme-home.
 _: {
-  flake.modules.homeManager.sweet16-home =
+  modules.homeManager.sweet16-home =
     { pkgs, homeManagerModules, ... }:
 
     {

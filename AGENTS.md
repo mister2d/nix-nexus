@@ -21,7 +21,7 @@ wins**. Stop. Report the conflict. Do not improvise.
 
 | Authority | Where to fetch | Governs |
 |---|---|---|
-| Dendritic pattern | `https://github.com/mightyiam/dendritic` | `flake.modules.*` namespace, deferred module merge semantics |
+| Dendritic pattern | `https://github.com/mightyiam/dendritic` | `modules.*` namespace, deferred module merge semantics |
 | flake-parts manual | `https://flake.parts/` | Option namespacing, `perSystem`, module system rules |
 | import-tree README | `https://github.com/vic/import-tree` | Builder API: `addPath`, `filter`, `result` |
 | NixOS manual | Use the bifrost `nixos` tools (see §2) | NixOS options, module patterns, `lib.*` functions |
@@ -138,7 +138,7 @@ Every file must have this outermost shape:
 ```nix
 # No inputs needed:
 _: {
-  flake.modules.nixos.my-module-name = <NixOS module>;
+  modules.nixos.my-module-name = <NixOS module>;
 }
 
 # With inputs:
@@ -182,7 +182,7 @@ registry key. The module system merges their contents.
 ```nix
 # WRONG — aggregator (imports-only fragment)
 _: {
-  flake.modules.nixos.my-stack = { nixosModules, ... }: {
+  modules.nixos.my-stack = { nixosModules, ... }: {
     imports = [
       nixosModules.my-stack-part-a
       nixosModules.my-stack-part-b
@@ -193,13 +193,13 @@ _: {
 # CORRECT — both files contribute to the same key directly
 # File: modules/my-stack/part-a.nix
 _: {
-  flake.modules.nixos.my-stack = _: {
+  modules.nixos.my-stack = _: {
     services.foo.enable = true;
   };
 }
 # File: modules/my-stack/part-b.nix
 _: {
-  flake.modules.nixos.my-stack = _: {
+  modules.nixos.my-stack = _: {
     services.bar.enable = true;
   };
 }
@@ -459,7 +459,7 @@ Ask these questions:
 3. If you create a new key, check that it does not collide with an existing
    one.
    ```bash
-   grep -r 'flake\.modules\.\(nixos\|homeManager\)\.' modules/ hosts/ profiles/ \
+   grep -r 'modules\.\(nixos\|homeManager\)\.' modules/ hosts/ profiles/ \
      | grep -o '"[^"]*"' | sort -u
    ```
 
@@ -497,7 +497,7 @@ this codebase.
 |---|---|---|
 | Path imports inside registry modules (`import ./foo.nix`) | Bypasses the name registry; creates tight coupling | Reference by name: `nixosModules.foo` |
 | Aggregator-only fragments (imports list with no config) | Pure wiring overhead; eliminated by deferredModule | All leaf files share the same registry key directly |
-| `lib.types.raw` for `flake.modules.*` registries | Prevents multi-file stacks; raises conflict on duplicate keys | `lib.types.lazyAttrsOf lib.types.deferredModule` (already set) |
+| `lib.types.raw` for `modules.*` registries | Prevents multi-file stacks; raises conflict on duplicate keys | `lib.types.lazyAttrsOf lib.types.deferredModule` (already set) |
 | Custom options at `nix-nexus.<option>` (depth 2) | Violates namespace convention | `nix-nexus.<subsystem>.<option>` (depth 3+) |
 | Hard-coding module paths in `flake.nix` | `flake.nix` must be a pass-through | Add the file under `modules/`, `hosts/`, or `profiles/` |
 | Writing `with pkgs;` in module files | `statix` flags it; creates implicit scope | Use explicit `pkgs.packageName` |
@@ -562,14 +562,14 @@ that does not exist. Common causes:
 3. Someone deleted the file. The caller still references the old key.
 
 Find where the key is expected: `grep -r '"X"' modules/ hosts/`.
-Find where it should be registered: `grep -r 'flake.modules.nixos.X' modules/ hosts/`.
+Find where it should be registered: `grep -r 'modules.nixos.X' modules/ hosts/`.
 
 ### "type error" or "cannot merge" in registry
 
 `flake.homeConfigurations` uses `lib.types.raw`. This type forbids duplicate keys.
 If two files register `"user@host"`, remove one of them.
 
-`flake.modules.nixos` and `flake.modules.homeManager` use `lib.types.deferredModule`.
+`modules.nixos` and `modules.homeManager` use `lib.types.deferredModule`.
 This type expects duplicate keys and merges them correctly.
 
 ### `statix` warning: "empty pattern `{ ... }:`"
@@ -603,7 +603,7 @@ order changed by `deferredModule` wrapping.
 A clean `nix flake check --impure` run always emits these four warning
 lines. None of them indicates a defect.
 
-1. `warning: unknown flake output 'modules'`. The `flake.modules.*` registry
+1. `warning: unknown flake output 'modules'`. The `modules.*` registry
    is not a standard flake output. flake-parts populates it correctly, and
    `nix flake check` does not recognise it.
 2. `warning: The check omitted these incompatible systems: aarch64-linux`.

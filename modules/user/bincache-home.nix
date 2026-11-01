@@ -1,10 +1,10 @@
-# Registry key: flake.modules.homeManager.user-bincache-home
+# Registry key: modules.homeManager.user-bincache-home
 # Configures: the common builder key (sops-nix, age key in the user's config dir) and the bincache
 #   post-build hook script at stable paths under the home directory, for the root nix daemon's
 #   /etc/nix/nix.conf, which Home Manager cannot manage. See docs/non-nixos.md.
 # Imported by: hosts/dualie/home.nix (dualie-home).
 _: {
-  flake.modules.homeManager.user-bincache-home =
+  modules.homeManager.user-bincache-home =
     {
       config,
       pkgs,

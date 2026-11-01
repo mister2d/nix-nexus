@@ -1,4 +1,4 @@
-# Registry key: flake.modules.nixos.core-credstore
+# Registry key: modules.nixos.core-credstore
 # Configures: a root-only directory for TPM2-sealed systemd credentials and a self-test unit.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # Options: nix-nexus.secrets.credstore.*
@@ -7,7 +7,7 @@
 # consuming service needs no TPM device access. Services that cannot use LoadCredentialEncrypted= get
 # their credential through a root-run unseal unit that writes a tmpfs file (nix-nexus.secrets.credstore.unseal).
 _: {
-  flake.modules.nixos.core-credstore =
+  modules.nixos.core-credstore =
     {
       config,
       lib,

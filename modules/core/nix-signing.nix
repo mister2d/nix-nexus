@@ -1,10 +1,10 @@
-# Registry key: flake.modules.nixos.core-nix-signing
+# Registry key: modules.nixos.core-nix-signing
 # Configures: signing of locally built store paths with the common builder key (sops),
 #   and a post-build hook that pushes them to the internal binary cache.
 # Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 # Options: nix-nexus.nix.signing.enable
 _: {
-  flake.modules.nixos.core-nix-signing =
+  modules.nixos.core-nix-signing =
     {
       config,
       lib,

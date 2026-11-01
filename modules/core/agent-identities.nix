@@ -1,11 +1,11 @@
-# Registry key: flake.modules.nixos.core-agent-identities
+# Registry key: modules.nixos.core-agent-identities
 # Configures: fixed-uid agent identities in the reserved 9100-9199 id range.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # pdh-pi (9100) is the host-side pi-durable harness service user.
 # agent (9101) is the target login identity for Vault-signed SSH certificates.
 # Neither identity is in the TPM, wheel, docker, or kvm groups. See docs/pi-durable-host.md.
 _: {
-  flake.modules.nixos.core-agent-identities =
+  modules.nixos.core-agent-identities =
     {
       config,
       lib,

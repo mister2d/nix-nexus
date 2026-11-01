@@ -1,4 +1,4 @@
-# Registry key: flake.modules.nixos.core-agent-ssh-target
+# Registry key: modules.nixos.core-agent-ssh-target
 # Configures: certificate-only, restricted SSH login for the agent identity.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # The Vault SSH CA is trusted fleet-wide by core-sshd (TrustedUserCAKeys). This module adds a
@@ -6,7 +6,7 @@
 # files are ignored, and forwarding and tunnelling are off. The agent user is never in nix
 # trusted-users, so it can import only signed store paths. Requires core-agent-identities.
 _: {
-  flake.modules.nixos.core-agent-ssh-target =
+  modules.nixos.core-agent-ssh-target =
     { config, lib, ... }:
     let
       trusted = config.nix.settings.trusted-users;

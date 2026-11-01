@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.services-matrix
+# Merged into: modules.nixos.services-matrix
 # Configures: Vault Agent secret rendering and dependent-service start ordering.
 # Imported by: hosts/avina/default.nix (avina-default).
 _: {
-  flake.modules.nixos.services-matrix =
+  modules.nixos.services-matrix =
     {
       pkgs,
       vaultAddr,

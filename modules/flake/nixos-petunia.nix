@@ -2,8 +2,8 @@
 # Composes overlays-global, sops, disko, nixos-hardware AMD/SSD modules, petunia-default, home-manager-unstable, stylix-unstable, hm-ddukes-petunia, hm-agent-petunia.
 { inputs, config, ... }:
 let
-  homeManagerModules = config.flake.modules.homeManager;
-  inherit (config.flake.modules) nixos;
+  homeManagerModules = config.modules.homeManager;
+  inherit (config.modules) nixos;
 in
 {
   flake.nixosConfigurations.petunia = inputs.nixpkgs-unstable.lib.nixosSystem {

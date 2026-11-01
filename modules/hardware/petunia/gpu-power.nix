@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.hardware-petunia
+# Merged into: modules.nixos.hardware-petunia
 # Configures: R9700 power profile (230 W cap, no voltage offset) via LACT, GPU runtime-PM off, and the gpu-profile helper.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.hardware-petunia =
+  modules.nixos.hardware-petunia =
     { pkgs, ... }:
     let
       # LACT GPU ids: vendor:device-subvendor:subdevice-pci_slot (see `lact cli list`).

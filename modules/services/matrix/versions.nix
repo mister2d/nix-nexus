@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.services-matrix
+# Merged into: modules.nixos.services-matrix
 # Configures: version assertions for every Matrix stack package.
 # Imported by: hosts/avina/default.nix (avina-default).
 _: {
-  flake.modules.nixos.services-matrix =
+  modules.nixos.services-matrix =
     { pkgs, ... }:
     let
       # ── Matrix 2.0 Stack — Authoritative Version Registry ────────────────────

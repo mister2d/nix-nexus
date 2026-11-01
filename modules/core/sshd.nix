@@ -1,8 +1,8 @@
-# Registry key: flake.modules.nixos.core-sshd
+# Registry key: modules.nixos.core-sshd
 # Configures: OpenSSH hardening and the trusted CA for certificate logins.
 # Imported by: profiles/server/default.nix (server-default), profiles/workstation/default.nix (workstation-default).
 _: {
-  flake.modules.nixos.core-sshd =
+  modules.nixos.core-sshd =
     { lib, ... }:
     {
       services.openssh = {

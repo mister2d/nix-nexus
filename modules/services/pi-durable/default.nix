@@ -1,5 +1,5 @@
 # pi-durable harness instance "pi".
-# Registry key: flake.modules.nixos.services-pi-durable
+# Registry key: modules.nixos.services-pi-durable
 # Imports the module from the pi-durable flake input and supplies the host
 # side: credential directory, tokens and secrets from sops, unseal bridge entry.
 # The instance uses the gateway provider (bifrost on petunia) with MCP gateway tools and the decision layer.
@@ -7,7 +7,7 @@
 # See docs/pi-durable-host.md.
 { inputs, ... }:
 {
-  flake.modules.nixos.services-pi-durable =
+  modules.nixos.services-pi-durable =
     { config, lib, ... }:
     let
       credsDir = "/var/lib/pi-durable-creds";

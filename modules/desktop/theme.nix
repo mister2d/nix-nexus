@@ -1,9 +1,9 @@
-# Merged into: flake.modules.nixos.desktop-default
+# Merged into: modules.nixos.desktop-default
 # Configures: stylix base16 theming and fonts from the named theme registry.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # Options: nix-nexus.theme.*
 _: {
-  flake.modules.nixos.desktop-default =
+  modules.nixos.desktop-default =
     {
       lib,
       pkgs,

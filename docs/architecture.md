@@ -47,7 +47,7 @@ one of two forms.
 ```nix
 # Minimal fragment — no inputs needed
 _: {
-  flake.modules.nixos.my-module-name = <NixOS module>;
+  modules.nixos.my-module-name = <NixOS module>;
 }
 ```
 
@@ -70,13 +70,13 @@ confuse it with the NixOS module argument inside the value.
 `modules/flake/module-types.nix` declares two flake-level options:
 
 ```nix
-flake.modules.nixos      # type: lazyAttrsOf deferredModule
-flake.modules.homeManager  # type: lazyAttrsOf deferredModule
+modules.nixos      # type: lazyAttrsOf deferredModule
+modules.homeManager  # type: lazyAttrsOf deferredModule
 ```
 
-A fragment that sets `flake.modules.nixos.<name> = <module>` adds an entry to
+A fragment that sets `modules.nixos.<name> = <module>` adds an entry to
 the NixOS registry. A fragment that sets
-`flake.modules.homeManager.<name> = <module>` adds an entry to the Home
+`modules.homeManager.<name> = <module>` adds an entry to the Home
 Manager registry.
 
 The type `lazyAttrsOf deferredModule` makes multi-file stacks possible.
@@ -92,13 +92,13 @@ Each host has two pieces.
 
 ### 1. The host module — `hosts/<hostname>/default.nix`
 
-A NixOS module registered as `flake.modules.nixos.<hostname>-default`. Here
+A NixOS module registered as `modules.nixos.<hostname>-default`. Here
 you place machine-specific configuration: `networking.hostName`, hardware
 imports, kernel parameters, per-host tuning.
 
 ```nix
 _: {
-  flake.modules.nixos.sweet16-default =
+  modules.nixos.sweet16-default =
     { nixosModules, ... }:
     {
       imports = [
@@ -128,8 +128,8 @@ closure:
 ```nix
 { inputs, config, ... }:
 let
-  hm    = config.flake.modules.homeManager;
-  nixos = config.flake.modules.nixos;
+  hm    = config.modules.homeManager;
+  nixos = config.modules.nixos;
 in
 {
   flake.nixosConfigurations.sweet16 = inputs.nixpkgs.lib.nixosSystem {
@@ -204,12 +204,12 @@ stacks, user HM profiles. Each file is a focused, opt-in capability fragment.
 Home Manager integration for a NixOS host uses two more fragments.
 
 **`hosts/<hostname>/<user>-hm.nix`** — NixOS-side wiring. Registered as a
-`flake.modules.nixos` entry. This fragment configures the `home-manager`
+`modules.nixos` entry. This fragment configures the `home-manager`
 NixOS module and maps a HM profile to a system user:
 
 ```nix
 _: {
-  flake.modules.nixos.hm-ddukes-sweet16 =
+  modules.nixos.hm-ddukes-sweet16 =
     { inputs, homeManagerModules, ... }:
     {
       home-manager = {
@@ -230,12 +230,12 @@ _: {
 ```
 
 **`hosts/<hostname>/home.nix`** — The HM profile itself. Registered under
-`flake.modules.homeManager.<hostname>-home`. This fragment imports named HM
+`modules.homeManager.<hostname>-home`. This fragment imports named HM
 modules and adds host-specific overrides:
 
 ```nix
 _: {
-  flake.modules.homeManager.sweet16-home =
+  modules.homeManager.sweet16-home =
     { pkgs, homeManagerModules, ... }:
     {
       imports = [
@@ -262,7 +262,7 @@ host-to-system table:
 ```nix
 { inputs, config, lib, ... }:
 let
-  hm = config.flake.modules.homeManager;
+  hm = config.modules.homeManager;
   hosts = {
     dualie = "x86_64-linux";
     forge = "x86_64-linux";

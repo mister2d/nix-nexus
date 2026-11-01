@@ -1,4 +1,4 @@
-# Registry key: flake.modules.homeManager.user-ssh-tpm-agent
+# Registry key: modules.homeManager.user-ssh-tpm-agent
 # Configures: two isolated ssh-tpm-agent instances for TPM-sealed SSH keys.
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 # TPM group access needs nix-nexus.tpm2.users. A fresh login applies new membership.
@@ -9,7 +9,7 @@
 # Each instance loads only .tpm files from its own --key-dir.
 # A socket forwarded into a sandbox cannot reach the personal key.
 _: {
-  flake.modules.homeManager.user-ssh-tpm-agent =
+  modules.homeManager.user-ssh-tpm-agent =
     {
       pkgs,
       config,

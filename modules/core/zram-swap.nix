@@ -1,8 +1,8 @@
-# Registry key: flake.modules.nixos.core-zram-swap
+# Registry key: modules.nixos.core-zram-swap
 # Configures: zstd zram swap and the matching vm.swappiness / vm.page-cluster sysctls.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.core-zram-swap =
+  modules.nixos.core-zram-swap =
     { lib, ... }:
     {
       zramSwap = {

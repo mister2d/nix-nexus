@@ -7,7 +7,7 @@
   ...
 }:
 let
-  homeManagerModules = config.flake.modules.homeManager;
+  homeManagerModules = config.modules.homeManager;
   hosts = {
     dualie = "x86_64-linux";
     forge = "x86_64-linux";

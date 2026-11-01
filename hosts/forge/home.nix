@@ -1,8 +1,8 @@
 # Host: forge (Linux x86_64, standalone Home Manager).
-# Registry key: flake.modules.homeManager.forge-home
+# Registry key: modules.homeManager.forge-home
 # Composes: user-standalone-home.
 _: {
-  flake.modules.homeManager.forge-home =
+  modules.homeManager.forge-home =
     {
       pkgs,
       homeManagerModules,

@@ -16,7 +16,7 @@ Nix-Nexus is a modular, dendritic NixOS configuration framework. It manages high
 ## Architecture Overview
 The configuration follows a dendritic (self-registering) flake architecture. It builds on **flake-parts** and **import-tree**:
 
-- Every `.nix` file in `modules/`, `hosts/`, and `profiles/` is a flake-parts module fragment. Each fragment registers itself into `flake.modules.nixos` or `flake.modules.homeManager` under a kebab-cased name.
+- Every `.nix` file in `modules/`, `hosts/`, and `profiles/` is a flake-parts module fragment. Each fragment registers itself into `modules.nixos` or `modules.homeManager` under a kebab-cased name.
 - `flake.nix` contains no per-file wiring. `import-tree` finds all fragments automatically at evaluation time.
 - Host assembly files in `modules/flake/` reference named modules, for example `nixosModules.core-security` and `homeManagerModules.user-neovim-home`. Each assembly file is the one authoritative source for what its host includes.
 

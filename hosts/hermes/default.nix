@@ -1,8 +1,8 @@
 # Host: hermes (NixOS x86_64 Proxmox LXC server).
-# Registry key: flake.modules.nixos.hermes-default
+# Registry key: modules.nixos.hermes-default
 # Composes: hardware-proxmox-lxc, server-default, core-groot.
 _: {
-  flake.modules.nixos.hermes-default =
+  modules.nixos.hermes-default =
     {
       pkgs,
       inputs,

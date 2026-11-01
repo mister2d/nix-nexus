@@ -1,8 +1,8 @@
-# Merged into: flake.modules.nixos.hardware-petunia
+# Merged into: modules.nixos.hardware-petunia
 # Configures: XFS Hugging Face model mount and periodic TRIM for petunia.
 # Imported by: hosts/petunia/default.nix (petunia-default).
 _: {
-  flake.modules.nixos.hardware-petunia = _: {
+  modules.nixos.hardware-petunia = _: {
     boot.supportedFilesystems = [ "xfs" ];
 
     fileSystems."/data/huggingface/models" = {

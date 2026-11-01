@@ -1,5 +1,5 @@
 # Unified HTTPS edge for petunia (one HAProxy on :443, one certificate).
-# Registry key: flake.modules.nixos.services-bifrost-front-door
+# Registry key: modules.nixos.services-bifrost-front-door
 # Host routes: inference (bifrost), radiance, pictures (qwen-image-mcp), pi
 # (pi-durable web bridge and webhooks). petunia.home.lan itself serves only
 # /stats and /metrics; every other path answers 421. Backends bind loopback.
@@ -9,7 +9,7 @@
 # See docs/petunia.md.
 { inputs, ... }:
 {
-  flake.modules.nixos.services-bifrost-front-door =
+  modules.nixos.services-bifrost-front-door =
     { config, ... }:
     let
       credsDir = config.nix-nexus.secrets.credstore.dir;

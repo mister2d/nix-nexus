@@ -1,8 +1,8 @@
-# Merged into: flake.modules.homeManager.desktop-noctalia-home
+# Merged into: modules.homeManager.desktop-noctalia-home
 # Configures: the compositor-agnostic noctalia v5 shell, bar, and wallpaper.
 # Imported by: hosts/sweet16/home.nix (sweet16-home), hosts/petunia/home.nix (petunia-home).
 _: {
-  flake.modules.homeManager.desktop-noctalia-home =
+  modules.homeManager.desktop-noctalia-home =
     { inputs, ... }:
     {
       imports = [
