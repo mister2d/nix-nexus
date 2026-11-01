@@ -97,6 +97,12 @@ _: {
         secrets.sops.hostFile = ../../secrets/petunia.yaml;
       };
 
+      # Install the sops secrets from a systemd unit (sops-install-secrets.service),
+      # not from the activation script: petunia's NixOS warns that restarting or
+      # reloading units from the activation script (restartUnits/reloadUnits of
+      # the pi-durable secrets) is deprecated and goes away in 26.11.
+      sops.useSystemdActivation = true;
+
       networking = {
         hostName = "petunia";
         # The pi-durable front door certificate is issued for the fqdn, and the
