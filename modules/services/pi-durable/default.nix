@@ -65,6 +65,15 @@
               signPath = "ssh-client-signer/sign/agentrole";
             };
 
+            # The work directory on the guest becomes a git repository (the files
+            # already there go into a first commit), so the web client's Changes
+            # view shows git diffs and per-file Revert works.
+            workspace.gitInit = true;
+
+            # Uploaded files on the guest: swept every 6 hours, removed after
+            # 30 days, and at once when their session is purged.
+            uploads.retainDays = 30;
+
             # Named tokens. The files hold sha256 hashes only; the token texts stay
             # in /root/pi-durable-tokens. Add or remove tokens by editing the
             # files and running systemctl reload pi-durable-pi (SIGHUP).

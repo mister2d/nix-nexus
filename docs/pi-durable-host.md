@@ -241,6 +241,18 @@ accepts HMAC-signed `POST /hook/alerts` through the edge route `pi-hooks`
 (`pi.home.lan/hook`, to 127.0.0.1:9811) and starts conversations in auto mode
 with an agent token (`target.tokenName = "r4b-trigger"`) on the instance.
 
+### Work directory and uploads
+
+`workspace.gitInit = true` makes `ssh.cwd` on the guest a git repository when
+it is in none: the harness runs `git init` and commits the files that are
+there (author `pi-durable`), so the web client's Changes view shows git diffs
+and per-file Revert works. It tries at start and again when Changes is read,
+at most once a minute after a failure (guest down, no git). Uploaded files
+live under `~/.cache/pi-durable/uploads/<conversation>/` of `agent` on the
+guest. `uploads.retainDays = 30`: the harness sweeps them every 6 hours,
+removes files older than 30 days, and removes a session's files when it is
+purged.
+
 ### Operator commands
 
 `pi-durable-attach-pi` drives the instance (`models`, `new`, `send`, `list`,
