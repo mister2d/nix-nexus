@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/qisbdvm80n449fq1my1lq5aq1rwavn4s-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/ydw93pi919ncm1an1w39lfdkx3k7lwqg-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-02T16:08:37Z",
+  "recorded": "2026-11-02T18:16:04Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "f9d350d887ad4bf2c57c5bccaec1cef4a26b53fb",
-  "signoff": ".agents/signoff/2026-11-02-pi-durable-child-worktrees-live-fixes.md"
+  "signed_off_through": "4de83a2c611e51eadf27bdf0c191ae68c8173763",
+  "signoff": ".agents/signoff/2026-11-02-pi-durable-ports-update.md"
 }
