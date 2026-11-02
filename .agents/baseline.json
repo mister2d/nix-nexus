@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/5jmd201ilfa1f19xy2hz2wq2kidjq183-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/9sjh84cgamyk4w5dqpli867q65ai5ciq-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-02T04:12:09Z",
+  "recorded": "2026-11-02T09:35:47Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "ea2b02e17d04cb2d599988a9a2571cb53eb2a642",
-  "signoff": ".agents/signoff/2026-11-02-pi-durable-team-sheet-gates.md"
+  "signed_off_through": "915d91b7d9ef8ea3362f28b69ad20a37d0b8bfaa",
+  "signoff": ".agents/signoff/2026-11-02-pi-durable-workspaces.md"
 }
