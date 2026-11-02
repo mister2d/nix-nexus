@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/5ldqfdqhrgj54v1xhg0j1rq54q6bbf9s-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/bj2wh6a73w37fw46qfnyjk5cp77wqrgr-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-02T18:49:03Z",
+  "recorded": "2026-11-02T23:23:53Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "574c42fdaac2056236b09c7fa9907f52087ef838",
-  "signoff": ".agents/signoff/2026-11-02-pi-durable-rate-first-burst.md"
+  "signed_off_through": "ecc42a6621459f912d9c829809936828f354561a",
+  "signoff": ".agents/signoff/2026-11-02-hybrid-web-search-mcp.md"
 }
