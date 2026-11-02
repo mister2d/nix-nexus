@@ -929,6 +929,32 @@
         "type": "github"
       }
     },
+    "hybrid-web-search-mcp": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "import-tree": [
+          "import-tree"
+        ],
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1793661014,
+        "narHash": "sha256-zPYgG7iBvDkolpTKIjN5DRNz2YKsaeqNIliWrmZ3Q68=",
+        "ref": "refs/heads/main",
+        "rev": "a511f2d8c3fca36869657d68578d2d0c4c8821ab",
+        "revCount": 5,
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/hybrid-web-search-mcp.git"
+      },
+      "original": {
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/hybrid-web-search-mcp.git"
+      }
+    },
     "import-tree": {
       "locked": {
         "lastModified": 1788467110,
@@ -1880,6 +1906,7 @@
         "herdr": "herdr",
         "home-manager": "home-manager",
         "home-manager-unstable": "home-manager-unstable",
+        "hybrid-web-search-mcp": "hybrid-web-search-mcp",
         "import-tree": "import-tree",
         "mk-shell-bin": "mk-shell-bin",
         "niri": "niri",

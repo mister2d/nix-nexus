@@ -108,6 +108,16 @@
       };
     };
 
+    # Web search, fetch and crawl MCP server NixOS module. Consumed by petunia (services-hybrid-web-search-mcp).
+    hybrid-web-search-mcp = {
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/hybrid-web-search-mcp.git";
+      inputs = {
+        nixpkgs.follows = "nixpkgs-unstable";
+        flake-parts.follows = "flake-parts";
+        import-tree.follows = "import-tree";
+      };
+    };
+
     # Bifrost HTTPS front door NixOS module. Consumed by petunia (services-bifrost-front-door).
     nix-bifrost = {
       url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-bifrost.git";

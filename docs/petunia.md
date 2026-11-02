@@ -201,6 +201,22 @@ policy setup is in the nix-bifrost `docs/front-door-runbook.md`.
 
 ---
 
+## Web research MCP server
+
+The `hybrid-web-search-mcp` flake input provides `nixosModules.default`, wrapped by the registry key
+`services-hybrid-web-search-mcp` (`modules/services/hybrid-web-search-mcp/default.nix`). The unit
+`hybrid-web-search-mcp.service` serves the tools `web_search`, `web_fetch` and `web_crawl` on `127.0.0.1:8010/mcp`.
+
+- The Bifrost gateway (devenv, not a NixOS unit) is the only client. It registers the server as the MCP client
+  `hybrid_web_search` with Code Mode off (nix-bifrost `nix/lib/mcp-clients.nix`). The edge does not route to the port.
+- The server calls SearXNG and Crawl4AI REST directly. The Crawl4AI token is the module default. A non-default token
+  goes in a sops secret, and its path goes in `services.hybrid-web-search-mcp.crawl4aiTokenFile`.
+- Health: `curl -s 127.0.0.1:8010/healthz`. Logs: `journalctl -u hybrid-web-search-mcp`.
+- A new server release: `nix flake update hybrid-web-search-mcp`, deploy, then `bifrost-mcp-refresh hybrid_web_search`
+  in the Bifrost devenv and a restart of `pi-durable-pi.service` (it reads the tool list at start).
+
+---
+
 ## Rebuild procedure
 
 Petunia builds itself. Push to GitHub first, then run the rebuild on the host.
