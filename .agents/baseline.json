@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/ydw93pi919ncm1an1w39lfdkx3k7lwqg-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/5ldqfdqhrgj54v1xhg0j1rq54q6bbf9s-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-02T18:16:04Z",
+  "recorded": "2026-11-02T18:49:03Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "4de83a2c611e51eadf27bdf0c191ae68c8173763",
-  "signoff": ".agents/signoff/2026-11-02-pi-durable-ports-update.md"
+  "signed_off_through": "574c42fdaac2056236b09c7fa9907f52087ef838",
+  "signoff": ".agents/signoff/2026-11-02-pi-durable-rate-first-burst.md"
 }
