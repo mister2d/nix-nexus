@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/jisyz4nzb6m1xlzr0cwc3lwapmxqng2r-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/zkl6nwcigpqv1qv9ypz31qq971hr8ccq-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-02T00:23:00Z",
+  "recorded": "2026-11-02T02:34:52Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "980d5a7c899fe3d485a98732ed03874a4e5cee50",
-  "signoff": ".agents/signoff/2026-11-02-pi-durable-fleet-purge-fix.md"
+  "signed_off_through": "a0aaae1ebad8cd84edb59a30d2c7e153d1964960",
+  "signoff": ".agents/signoff/2026-11-02-pi-durable-team-dod.md"
 }
