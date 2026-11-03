@@ -106,3 +106,6 @@ entry. Enter the shell with `nix develop --impure`. The
 `--impure` flag is required. devenv's flakeModule reads `devenv.root` from
 `$PWD` through `builtins.getEnv "PWD"`, and this repo does not declare a
 `devenv-root` flake input.
+The shell exists for `x86_64-linux` only. devenv builds its task package
+during evaluation, and no builder here builds `aarch64-linux`. Without this
+limit, `nix flake check --all-systems` fails on the aarch64 shell.

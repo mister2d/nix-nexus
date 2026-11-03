@@ -7,11 +7,16 @@
   perSystem =
     {
       config,
+      lib,
       pkgs,
       system,
       ...
     }:
-    {
+    # x86_64-linux only. devenv builds its task package while it evaluates
+    # (import from derivation), and no builder here builds aarch64-linux, so an
+    # aarch64 shell broke `nix flake check --all-systems`. Nobody develops on
+    # the aarch64 node (rk3588).
+    lib.mkIf (system == "x86_64-linux") {
       # Development Environment
       # Usage: 'nix develop' to enter environment and install hooks
       devenv.shells.default = {
