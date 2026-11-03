@@ -68,6 +68,15 @@
             # nobody is asked. Set "enforce" (the default) to let a deny block.
             decisions.enforcement = "passive";
 
+            # The gateway is ours: its MCP skills load without an ask (Gitea #39).
+            # Other servers still ask a person for each skill.
+            mcp.skills.trustedServers = [ "inference.home.lan" ];
+
+            # Runtime crons (D-41): an agent proposes, only a person accepts. The
+            # trigger service below fires the accepted ones. Defaults: at most 10,
+            # one run open at a time, an hour between runs, 5 USD per run.
+            crons.runtime.enable = true;
+
             database.credsPath = "database/creds/pidurable-pi-owner";
 
             ssh = {
@@ -127,6 +136,7 @@
               tokenFile = secretPath "pi-durable/trigger-token";
               tokenName = "r4b-trigger";
             };
+            runtimeCrons.enable = true;
             webhooks.alerts = {
               secretFile = secretPath "pi-durable/hook-alerts-secret";
               fields = {
