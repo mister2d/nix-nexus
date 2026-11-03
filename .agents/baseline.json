@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-02T23:59:58Z",
+  "recorded": "2026-11-03T00:27:51Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "d382bb4fb9222342740ead2c84874124b505d5c0",
-  "signoff": ".agents/signoff/2026-11-02-pi-durable-harness-phone-fixes.md"
+  "signed_off_through": "6ac48ceefca96b8a34b946a5cc76175c8998cf3b",
+  "signoff": ".agents/signoff/2026-11-03-pi-durable-main-5d96154.md"
 }
