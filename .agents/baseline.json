@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/j7v0hl18fjlzdb1w7cyl9iwvlnmp0cby-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/bqww5kx45apd6zjrdblll2i3k2c69mph-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-02T23:54:49Z",
+  "recorded": "2026-11-02T23:59:58Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "7e0331834441fba2f653f90b9c813c9f4907121b",
-  "signoff": ".agents/signoff/2026-11-02-pi-durable-harness-layers.md"
+  "signed_off_through": "d382bb4fb9222342740ead2c84874124b505d5c0",
+  "signoff": ".agents/signoff/2026-11-02-pi-durable-harness-phone-fixes.md"
 }
