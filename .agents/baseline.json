@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/icdjyvcl86ysh2zjjyymmbb1mcmxn1a8-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/nfj36gg1hm78dvl3mvn71wwzr3cdb0mb-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-03T01:07:08Z",
+  "recorded": "2026-11-03T01:24:14Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "6d3051f8a7a08b9646d870d882937e98096b89f6",
-  "signoff": ".agents/signoff/2026-11-03-pi-durable-tools-menu-yolo-dialog.md"
+  "signed_off_through": "47d005f16360ba9cfd27900bea9e01d1098826da",
+  "signoff": ".agents/signoff/2026-11-03-pi-durable-agent-settings-name.md"
 }
