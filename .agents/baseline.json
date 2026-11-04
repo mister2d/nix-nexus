@@ -1,12 +1,12 @@
 {
   "configs": {
     "avina": {
-      "drv": "/nix/store/8kc6zv6f9y5z1qq5ma17rh9r3wiavvsh-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/sw0qb5qmdbkkrgk3nb5bi6kbkdjh22p8-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "groot@dualie": {
-      "drv": "/nix/store/nwyh574pxpz300w140h848pq02algyb8-home-manager-generation.drv",
+      "drv": "/nix/store/ij6lc2ffhj6vj9d0sk62n9q1hca29xgj-home-manager-generation.drv",
       "kind": "hm",
       "status": "ok"
     },
@@ -22,24 +22,24 @@
       "status": "na"
     },
     "hermes": {
-      "drv": "/nix/store/98q5fp3nrpw9nypp0jln7k6yigcp4lz2-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/x2jgi3fr729iy2b18l15f2nqk26g5h4n-nixos-system-unnamed-lxc-proxmox-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/bqg02y9a2dhi575001vhxwrrm40g82ix-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/7fam5r27g9v6m1c2z0z2bk7ifxw9pa4y-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/dchk93ikbfyhn86izn4qh5p4jz9czgxx-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/9akamwv83d24sm77mcl9qwrrj2p33mgc-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-11-03T21:36:03Z",
+  "recorded": "2026-11-04T02:33:45Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "cdbc2bfeb712449499e76fb87d49ea260d71ad5c",
-  "signoff": ".agents/signoff/2026-11-03-pi-durable-elicitation-handoff.md"
+  "signed_off_through": "fef77c553f295915eb7c949781e961f017a1c03b",
+  "signoff": ".agents/signoff/2026-11-04-pi-durable-distance-checks.md"
 }
