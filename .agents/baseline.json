@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/v2p52haiv091il8sj1v9aayr021xgmdr-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/wgmr3a8nhmz6rlv5pl7lqsv6ayn816ny-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-04T03:34:43Z",
+  "recorded": "2026-11-04T05:52:07Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "8ce446c91c8a5f05f0d1106f50e30e5552d76e76",
-  "signoff": ".agents/signoff/2026-11-04-pi-durable-lease-retry.md"
+  "signed_off_through": "6582ad93004b2507853ee191c9c07bbf7bf33c19",
+  "signoff": ".agents/signoff/2026-11-04-pi-durable-team-verify.md"
 }
