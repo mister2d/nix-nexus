@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/1x7gqnbq5brxnrakzkx2d6rs6v5snffy-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/y612pii7wh4aa8sjhjqx3yn0rggfnr8y-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-04T20:29:15Z",
+  "recorded": "2026-11-04T22:56:25Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "bcfe95e716293efd50f53534a6b4d8f3acfbeed9",
-  "signoff": ".agents/signoff/2026-11-04-pi-durable-factory-phone-header.md"
+  "signed_off_through": "b58774bbabe86d2b1aea694de5647f94fd129513",
+  "signoff": ".agents/signoff/2026-11-04-pi-durable-fleet-factory-open.md"
 }
