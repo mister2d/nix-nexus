@@ -62,6 +62,12 @@
             caBundleFile = "/etc/ssl/certs/ca-certificates.crt";
 
             gateway.baseUrl = "https://inference.home.lan";
+            # The default output cap is 16384 tokens, and the thinking counts against it.
+            # One large file in one write needs more (pi-durable#82).
+            gateway.overrides = {
+              "radiance/Qwen3.8".maxTokens = 65536;
+              "radiance/Qwen3.8-Flash-Next".maxTokens = 65536;
+            };
 
             # Passive until the jev classifier stops denying correct calls: the
             # verdicts are recorded (journal, verdict chip) but every call runs and
