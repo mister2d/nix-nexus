@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/pjnydl64j3i46z5mh9r5clbc5iz52pmc-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/7jvjq7ndl1882ggrjrfsd2p8dhgmq7ws-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-05T15:39:34Z",
+  "recorded": "2026-11-05T18:40:26Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "6817345a62cdbac0667a4317bbcb7fed6849f51b",
-  "signoff": ".agents/signoff/2026-11-05-pi-durable-remote-scopes.md"
+  "signed_off_through": "fdddf1b5b6e32b5a4d078e8545bdf4ce9d369492",
+  "signoff": ".agents/signoff/2026-11-05-pi-durable-model-pickers.md"
 }
