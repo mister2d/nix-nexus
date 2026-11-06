@@ -1690,11 +1690,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793909440,
-        "narHash": "sha256-soZvgimmR7wTkkmzS4CcuuTD/NMYzrz/vcaQhVAYAso=",
+        "lastModified": 1793917964,
+        "narHash": "sha256-2zYvai0IoEnlHG0HVE7RAFDuj8EuxMA6lfIytP8PKJc=",
         "ref": "refs/heads/main",
-        "rev": "deb7a2887210a7b7a7a47bd06385b3f168236ba5",
-        "revCount": 200,
+        "rev": "6ea42f086ca7d95e00118ee25fb4c51272325e08",
+        "revCount": 202,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
       },
