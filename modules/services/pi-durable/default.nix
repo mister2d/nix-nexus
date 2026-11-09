@@ -74,6 +74,13 @@
             # nobody is asked. Set "enforce" (the default) to let a deny block.
             decisions.enforcement = "passive";
 
+            # Keep each decision as an eval case (D-77): the dataset for the
+            # automatic threshold calibration (pi-durable#130, stage S0).
+            decisions.evalCases = {
+              enable = true;
+              retentionDays = 90;
+            };
+
             # The gateway is ours: its MCP skills load without an ask (Gitea #39).
             # Other servers still ask a person for each skill.
             mcp.skills.trustedServers = [ "inference.home.lan" ];
