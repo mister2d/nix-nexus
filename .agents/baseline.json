@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/0vxwilrxgg5hvf1d2iwfdpjfmqk4cyww-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/bap3nh9h4698p4y1k8lrcx90dq7ymdjy-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-08T21:22:03Z",
+  "recorded": "2026-11-09T02:30:51Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "a0bd1ce45bbd87492215904b9f7e420a0bb6dc24",
-  "signoff": ".agents/signoff/2026-11-08-pi-durable-teams-proposal.md"
+  "signed_off_through": "c08c48658e889bedce7e821c1533593f02fa92b9",
+  "signoff": ".agents/signoff/2026-11-09-pi-durable-v0-2-4.md"
 }
