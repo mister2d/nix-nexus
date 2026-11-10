@@ -100,7 +100,9 @@
 
     # pi-durable harness NixOS module. Consumed by petunia (services-pi-durable).
     pi-durable = {
-      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable";
+      # Milestone branch of pi-durable#131 (factories on repositories). Drop
+      # the ref to return to the release line on main.
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=milestone/factories-on-repositories";
       inputs = {
         nixpkgs.follows = "nixpkgs-unstable";
         flake-parts.follows = "flake-parts";

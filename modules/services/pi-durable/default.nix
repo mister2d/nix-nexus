@@ -111,6 +111,25 @@
             # view shows git diffs and per-file Revert works.
             workspace.gitInit = true;
 
+            # Factories on repositories (pi-durable#131). The push token is read
+            # from Vault KV with the instance AppRole at each push; no copy on
+            # disk. Grants stay off (reach.grants.enable): the owner turns them on.
+            reach.push = {
+              hosts = [ "code.novuscotia.com" ];
+              vaultKv = {
+                mount = "kv-v2";
+                path = "infrastructure/ai-ml/pi-durable/gitea";
+                key = "token";
+              };
+            };
+            factory = {
+              gitHosts = [ "code.novuscotia.com" ];
+              publish = {
+                orgs = [ "novuscotia-ops" ];
+                mergers = [ "ddukes" ];
+              };
+            };
+
             # Uploaded files on the guest: swept every 6 hours, removed after
             # 30 days, and at once when their session is purged.
             uploads.retainDays = 30;
