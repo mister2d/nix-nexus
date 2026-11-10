@@ -95,8 +95,16 @@
             ssh = {
               host = "192.168.33.10";
               knownHosts = null;
-              signPath = "ssh-client-signer/sign/agentrole";
+              # Own guest account, not `agent`: it holds no sign-in files of the
+              # owner's other harnesses. Its home is ephemeral (no virtiofs share,
+              # nothing under /mnt/persist), so everything it writes is gone when
+              # the VM stops. The Vault role signs principal adurable.
+              user = "adurable";
+              cwd = "/home/adurable/work";
+              signPath = "ssh-client-signer/sign/durable";
             };
+
+            workspaces.root = "/home/adurable/workspaces";
 
             # The work directory on the guest becomes a git repository (the files
             # already there go into a first commit), so the web client's Changes
