@@ -1171,6 +1171,36 @@
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell"
       }
     },
+    "nix-skills-mcp": {
+      "inputs": {
+        "flake-parts": [
+          "flake-parts"
+        ],
+        "home-manager": [
+          "home-manager-unstable"
+        ],
+        "import-tree": [
+          "import-tree"
+        ],
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1794361019,
+        "narHash": "sha256-wAnC6h161Sh9xnkQFb9WPLf9oHgBRCB0lW/WQu1/dWw=",
+        "ref": "refs/tags/v0.2.0",
+        "rev": "42672c74424e74a7f3e4e83869f4ba5cb6f0905c",
+        "revCount": 10,
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-skills-mcp"
+      },
+      "original": {
+        "ref": "refs/tags/v0.2.0",
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-skills-mcp"
+      }
+    },
     "nix2container": {
       "inputs": {
         "nixpkgs": [
@@ -1859,6 +1889,7 @@
         "nix-bifrost": "nix-bifrost",
         "nix-cachyos-kernel": "nix-cachyos-kernel",
         "nix-devshell": "nix-devshell",
+        "nix-skills-mcp": "nix-skills-mcp",
         "nix2container": "nix2container_2",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_6",
