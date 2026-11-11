@@ -217,6 +217,25 @@ The `hybrid-web-search-mcp` flake input provides `nixosModules.default`, wrapped
 
 ---
 
+## Nix skills MCP server
+
+The `nix-skills-mcp` flake input (tag `v0.2.0`) provides `nixosModules.default`, wrapped by the registry key
+`services-nix-skills-mcp` (`modules/services/nix-skills-mcp/default.nix`). The unit `nix-skills-mcp.service` serves
+the Nix skills and the `nix_verify` tool on `127.0.0.1:8011/mcp`.
+
+- The Bifrost gateway (devenv, not a NixOS unit) is the only client. It registers the server as the MCP client
+  `nix_skills` with Code Mode off. The edge does not route to the port. The server has no token for this reason.
+- `readOnlyPaths` is empty (decision of 2026-11-10). `nix_verify` cannot read host directories. The unit has no access
+  to `/home`.
+- The long modes of `nix_verify` (`build`, `toplevel`) run as tasks (`io.modelcontextprotocol/tasks`). This needs the
+  Bifrost Tasks relay patch in nix-bifrost.
+- Health: `curl -s 127.0.0.1:8011/healthz`. Logs: `journalctl -u nix-skills-mcp`.
+- A new server release: change the tag in the `nix-skills-mcp` input url, run `nix flake update nix-skills-mcp`,
+  deploy, then `bifrost-mcp-refresh nix_skills` in the Bifrost devenv and a restart of `pi-durable-pi.service`
+  (it reads the tool list at start).
+
+---
+
 ## Rebuild procedure
 
 Petunia builds itself. Push to GitHub first, then run the rebuild on the host.
