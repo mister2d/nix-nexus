@@ -121,7 +121,7 @@
 
     # Nix skills and flake verifier MCP server NixOS module. Consumed by petunia (services-nix-skills-mcp).
     nix-skills-mcp = {
-      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-skills-mcp?ref=refs/tags/v0.2.0";
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-skills-mcp?ref=refs/tags/v0.2.1";
       inputs = {
         nixpkgs.follows = "nixpkgs-unstable";
         flake-parts.follows = "flake-parts";
