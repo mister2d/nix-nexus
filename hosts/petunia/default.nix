@@ -1,6 +1,6 @@
 # Host: petunia (NixOS x86_64 workstation).
 # Registry key: modules.nixos.petunia-default
-# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, core-microvm-host, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore, core-agent-ssh-target, services-pi-durable, services-bifrost-front-door, services-hybrid-web-search-mcp.
+# Composes: petunia-disko, petunia-hardware, hardware-petunia, core-tpm2, core-microvm-host, workstation-default, core-ceph, core-printing, desktop-default, development-default, desktop-hyprland, hardware-kernel-cachyos, services-openrgb, core-zram-swap, core-agent-identities, core-credstore, core-agent-ssh-target, services-pi-durable, services-bifrost-front-door, services-hybrid-web-search-mcp, services-nix-skills-mcp.
 _: {
   modules.nixos.petunia-default =
     { nixosModules, ... }:
@@ -40,6 +40,8 @@ _: {
         nixosModules.services-bifrost-front-door
         # Web search, fetch and crawl MCP server on 127.0.0.1:8010 (behind the Bifrost gateway)
         nixosModules.services-hybrid-web-search-mcp
+        # MCP server on 127.0.0.1:8011 (behind the Bifrost gateway, Code Mode off)
+        nixosModules.services-nix-skills-mcp
 
         # Core System Profile (Every machine gets this)
         nixosModules.workstation-default
