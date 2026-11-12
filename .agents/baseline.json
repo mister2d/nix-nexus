@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-11T23:28:25Z",
+  "recorded": "2026-11-12T04:06:27Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "aff8ab3d20ec1aeacfdf6e03158af36c2d2fe9dc",
-  "signoff": ".agents/signoff/2026-11-11-pi-durable-skill-read-hardening.md"
+  "signed_off_through": "3040fca603ae2d39d077e622291f0d0512d161cb",
+  "signoff": ".agents/signoff/2026-11-12-pi-durable-v0-2-6.md"
 }
