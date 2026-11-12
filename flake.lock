@@ -1720,16 +1720,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1794437222,
-        "narHash": "sha256-cEdociW/YeWOdX0q1ewxVKzjsnEnp04hVNE59QmdOX4=",
-        "ref": "main",
-        "rev": "f94fbb0e2d573eeffa4001ddc10b6fc94ab831ed",
-        "revCount": 287,
+        "lastModified": 1794447006,
+        "narHash": "sha256-Uku+k39KVEIXZ4azYfn2ZGzx9263SueWTM4dNLEBMF0=",
+        "ref": "refs/tags/v0.2.6",
+        "rev": "8baa727a7077755862e03206604310189592db28",
+        "revCount": 288,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
       },
       "original": {
-        "ref": "main",
+        "ref": "refs/tags/v0.2.6",
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
       }
