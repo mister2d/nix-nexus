@@ -225,8 +225,12 @@ the Nix skills and the `nix_verify` tool on `127.0.0.1:8011/mcp`.
 
 - The Bifrost gateway (devenv, not a NixOS unit) is the only client. It registers the server as the MCP client
   `nix_skills` with Code Mode off. The edge does not route to the port. The server has no token for this reason.
-- `readOnlyPaths` is empty (decision of 2026-11-10). `nix_verify` cannot read host directories. The unit has no access
-  to `/home`.
+- `nix_verify` reads the workspaces of the pi-durable factory slots and no other host directory. The module
+  `host-workspaces` of the `nix-permafrost` input (source only) makes `/var/lib/permafrost-workspaces/f-slotN` and one
+  read-only, `nosymfollow` mount for each slot below `/srv/permafrost-workspaces`. The unit binds only that view, is a
+  member of the group `permafrost-ws`, cannot reach `/var/lib/permafrost-workspaces`, and starts only after
+  `permafrost-workspaces-ro-check.service` passes. The unit has no access to `/home`.
+- Move the `nix-permafrost` pin with the running guest: the input rev is the rev the guest is built from.
 - The long modes of `nix_verify` (`build`, `toplevel`) run as tasks (`io.modelcontextprotocol/tasks`). This needs the
   Bifrost Tasks relay patch in nix-bifrost.
 - Health: `curl -s 127.0.0.1:8011/healthz`. Logs: `journalctl -u nix-skills-mcp`.

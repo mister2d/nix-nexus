@@ -38,9 +38,35 @@
       };
       hashKey = name: "pi-durable/token-hashes/${name}";
       secretPath = key: config.sops.secrets.${key}.path;
+
+      # The slot count lives in four places. Each must give the same number,
+      # or a factory gets a slot that has no account, no role or no share.
+      slotCounts =
+        let
+          tfvars = builtins.readFile "${inputs.vault-config}/terraform/homelab.tfvars";
+          tfMatch = builtins.match ".*\ndurable_factory_slots *= *([0-9]+)\n.*" "\n${tfvars}\n";
+        in
+        {
+          "pi-durable slots.count" = config.services.pi-durable.instances.pi.slots.count;
+          "nix-permafrost guest default (permafrost.slots.count)" =
+            (import "${inputs.nix-permafrost}/modules/_lib/slots.nix").defaults.count;
+          "host workspaces count (permafrost.host.workspaces.count)" =
+            config.permafrost.host.workspaces.count or null;
+          "vault-config durable_factory_slots (terraform/homelab.tfvars)" =
+            if tfMatch == null then null else lib.toInt (builtins.head tfMatch);
+        };
     in
     {
       imports = [ inputs.pi-durable.nixosModules.default ];
+
+      assertions = [
+        {
+          assertion = lib.length (lib.unique (lib.attrValues slotCounts)) == 1;
+          message = "The factory slot counts differ: ${
+            lib.concatStringsSep ", " (lib.mapAttrsToList (k: v: "${k} = ${toString v}") slotCounts)
+          }. Make them equal (pi-durable#133).";
+        }
+      ];
 
       services = {
         pi-durable = {
@@ -128,6 +154,19 @@
                 orgs = [ "novuscotia-ops" ];
                 mergers = [ "ddukes" ];
               };
+            };
+
+            # Many factories (pi-durable#133): each factory works as its own guest
+            # account f-slotN, with its own home and network profile. The count
+            # (default 16) must equal the guest and vault-config; see the
+            # assertion below. Only the trigger service token may name the cron
+            # that starts a run (loop on create).
+            slots = {
+              enable = true;
+              triggerTokens = [ "r4b-trigger" ];
+              # The ops webhook below is no factory work: its runs keep the
+              # base account (adurable) and hold no factory authority.
+              triggers.alerts = null;
             };
 
             # Uploaded files on the guest: swept every 6 hours, removed after

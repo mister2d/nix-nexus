@@ -1171,6 +1171,23 @@
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/nix-devshell"
       }
     },
+    "nix-permafrost": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794510056,
+        "narHash": "sha256-D35+NI4J8fQkIGWdrYSYD7HoBNO7EVktnBxNSZZKiXk=",
+        "owner": "tenarches",
+        "repo": "nix-permafrost",
+        "rev": "7df9957d65aa7f71ca28cfe0028652bf60ccc6f0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "tenarches",
+        "repo": "nix-permafrost",
+        "rev": "7df9957d65aa7f71ca28cfe0028652bf60ccc6f0",
+        "type": "github"
+      }
+    },
     "nix-skills-mcp": {
       "inputs": {
         "flake-parts": [
@@ -1720,16 +1737,16 @@
         ]
       },
       "locked": {
-        "lastModified": 1794447006,
-        "narHash": "sha256-Uku+k39KVEIXZ4azYfn2ZGzx9263SueWTM4dNLEBMF0=",
-        "ref": "refs/tags/v0.2.6",
-        "rev": "8baa727a7077755862e03206604310189592db28",
-        "revCount": 288,
+        "lastModified": 1794544015,
+        "narHash": "sha256-9PuyF+662efgpF3nRk/JFxCq3j9+nuzY8aWdmVwNMg4=",
+        "ref": "refs/tags/v0.2.7",
+        "rev": "f6be544c1b52a2ad43a2e17bc0e204d1f6bf1991",
+        "revCount": 306,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
       },
       "original": {
-        "ref": "refs/tags/v0.2.6",
+        "ref": "refs/tags/v0.2.7",
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
       }
@@ -1889,6 +1906,7 @@
         "nix-bifrost": "nix-bifrost",
         "nix-cachyos-kernel": "nix-cachyos-kernel",
         "nix-devshell": "nix-devshell",
+        "nix-permafrost": "nix-permafrost",
         "nix-skills-mcp": "nix-skills-mcp",
         "nix2container": "nix2container_2",
         "nixos-hardware": "nixos-hardware",
@@ -1904,7 +1922,8 @@
         "rdna4": "rdna4",
         "sops-nix": "sops-nix",
         "stylix": "stylix",
-        "stylix-unstable": "stylix-unstable"
+        "stylix-unstable": "stylix-unstable",
+        "vault-config": "vault-config"
       }
     },
     "rust-overlay": {
@@ -2312,6 +2331,23 @@
         "owner": "numtide",
         "repo": "treefmt-nix",
         "type": "github"
+      }
+    },
+    "vault-config": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1794468997,
+        "narHash": "sha256-gLyGZc1ST4ojZYaSOjlVOiUDNwIv0zYpneqQCpczHyc=",
+        "ref": "refs/heads/main",
+        "rev": "78c36e387b9fd7874c468475b80353d0a64f6c07",
+        "revCount": 15,
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/vault-config"
+      },
+      "original": {
+        "rev": "78c36e387b9fd7874c468475b80353d0a64f6c07",
+        "type": "git",
+        "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/vault-config"
       }
     },
     "xwayland-satellite-stable": {

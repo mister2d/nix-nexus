@@ -101,12 +101,29 @@
     # pi-durable harness NixOS module. Consumed by petunia (services-pi-durable).
     pi-durable = {
       # Pinned to a tagged release of the release line on main.
-      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=refs/tags/v0.2.6";
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=refs/tags/v0.2.7";
       inputs = {
         nixpkgs.follows = "nixpkgs-unstable";
         flake-parts.follows = "flake-parts";
         import-tree.follows = "import-tree";
       };
+    };
+
+    # The permafrost guest repository, as source only (flake = false), so its
+    # twelve inputs stay out of this lock. Consumed by petunia: the host half of
+    # the slot workspaces share (modules/host/workspaces.nix) and the slot
+    # defaults (modules/_lib/slots.nix). Pinned to the rev the running guest is
+    # built from; move it with the guest.
+    nix-permafrost = {
+      url = "github:tenarches/nix-permafrost/7df9957d65aa7f71ca28cfe0028652bf60ccc6f0";
+      flake = false;
+    };
+
+    # The Vault configuration, as source only. Read by the slot count check of
+    # services-pi-durable (terraform/homelab.tfvars, durable_factory_slots).
+    vault-config = {
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/vault-config?rev=78c36e387b9fd7874c468475b80353d0a64f6c07";
+      flake = false;
     };
 
     # Web search, fetch and crawl MCP server NixOS module. Consumed by petunia (services-hybrid-web-search-mcp).

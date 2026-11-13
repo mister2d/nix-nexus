@@ -155,6 +155,23 @@ first harness call; while it is down, calls fail. Starting the guest from
 the harness needs a microvm.nix host unit on petunia plus a polkit rule,
 which is a separate follow-up.
 
+### Factory slots
+
+`slots.enable` is on (pi-durable#133). Each factory works as its own guest
+account `f-slot1` to `f-slot16`, with a certificate from the Vault role
+`fslotN`. The guest must be built from nix-permafrost with the slot accounts
+and the `netctl` account. Until the harness reaches `netctl` at start, it
+holds all work. The ops webhook (`triggers.alerts = null`) keeps the base
+account `adurable`. Only the token `r4b-trigger` may name the cron that
+starts a run.
+
+The slot count is in four places: `slots.count` of the harness, the default
+of the guest (`modules/_lib/slots.nix` in nix-permafrost), the host
+workspaces count, and `durable_factory_slots` in
+`vault-config/terraform/homelab.tfvars`. An assertion in
+`services-pi-durable` reads all four (the `nix-permafrost` and
+`vault-config` inputs are source only) and fails the build when they differ.
+
 ### Credentials directory
 
 `/var/lib/pi-durable-creds` is `root:root 0700`, outside the unit's
