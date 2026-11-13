@@ -23,7 +23,10 @@ launch time.
 - Adds a udev rule that sets group `kvm` and mode `0660` on the `kvm`
   device. A second rule runs a check script on device creation. The script
   logs a warning if nested virtualization is on. Neither rule changes the
-  kernel parameter.
+  kernel parameter. The mode `0660` keeps sandboxed Nix builds out of KVM,
+  because the Linux sandbox of Nix drops supplementary groups. Set
+  `nix-nexus.nix.buildKvm.enable` (`modules/core/nix-build-kvm.nix`) to add
+  the ACL entry `group:nixbld:rw`, so NixOS VM checks run under KVM.
 - Installs `virtiofsd`, `bridge-utils` and `waypipe` on the host for
   virtiofs shares, bridge inspection and the fallback display transport.
 

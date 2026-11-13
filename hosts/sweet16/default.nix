@@ -90,6 +90,10 @@ _: {
 
         # Host side of the permafrost microvm sandbox.
         virtualization.microvm.enable = true;
+
+        # KVM for sandboxed Nix builds (NixOS VM checks). core-microvm-host
+        # makes /dev/kvm 0660, so the build users get an ACL entry.
+        nix.buildKvm.enable = true;
       };
 
       # Memory-bounded slice for agent workloads: throttled at 18G, hard-capped at 22G.
