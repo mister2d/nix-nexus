@@ -95,6 +95,16 @@ _: {
           ACTION=="add", KERNEL=="kvm", RUN+="${nestedCheck}"
         '';
 
+        # The rule above makes /dev/kvm 0660, so the Nix build users need the
+        # kvm group, or NixOS VM checks in the sandbox run on an emulated CPU
+        # (about 7 times slower). The daemon gives a build its user's
+        # supplementary groups, so the group is enough.
+        users.users =
+          lib.genAttrs (map (n: "nixbld${toString n}") (lib.range 1 config.nix.nrBuildUsers))
+            (_: {
+              extraGroups = [ "kvm" ];
+            });
+
         environment.systemPackages = [
           pkgs.virtiofsd
           pkgs.bridge-utils
