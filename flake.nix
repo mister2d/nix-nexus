@@ -100,8 +100,9 @@
 
     # pi-durable harness NixOS module. Consumed by petunia (services-pi-durable).
     pi-durable = {
-      # Pinned to a tagged release of the release line on main.
-      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=refs/tags/v0.2.7";
+      # Pinned to a commit of main that passed the deploy tier (f4cbf4e: the
+      # fixes after v0.2.7 for milestone 2, Gitea #133 and #134).
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=main&rev=f4cbf4edb77d559eb9484b3e500e73456c944e92";
       inputs = {
         nixpkgs.follows = "nixpkgs-unstable";
         flake-parts.follows = "flake-parts";
@@ -115,7 +116,7 @@
     # defaults (modules/_lib/slots.nix). Pinned to the rev the running guest is
     # built from; move it with the guest.
     nix-permafrost = {
-      url = "github:tenarches/nix-permafrost/7df9957d65aa7f71ca28cfe0028652bf60ccc6f0";
+      url = "github:tenarches/nix-permafrost/78457dbfe320046c8fe8eed8a133bf1eb1b30ac9";
       flake = false;
     };
 

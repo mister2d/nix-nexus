@@ -1174,17 +1174,17 @@
     "nix-permafrost": {
       "flake": false,
       "locked": {
-        "lastModified": 1794510056,
-        "narHash": "sha256-D35+NI4J8fQkIGWdrYSYD7HoBNO7EVktnBxNSZZKiXk=",
+        "lastModified": 1794623424,
+        "narHash": "sha256-MT7GcjqG6zR2UWWF1AyZ6wK523b9l8gSPjyoa9y2JN8=",
         "owner": "tenarches",
         "repo": "nix-permafrost",
-        "rev": "7df9957d65aa7f71ca28cfe0028652bf60ccc6f0",
+        "rev": "78457dbfe320046c8fe8eed8a133bf1eb1b30ac9",
         "type": "github"
       },
       "original": {
         "owner": "tenarches",
         "repo": "nix-permafrost",
-        "rev": "7df9957d65aa7f71ca28cfe0028652bf60ccc6f0",
+        "rev": "78457dbfe320046c8fe8eed8a133bf1eb1b30ac9",
         "type": "github"
       }
     },
@@ -1737,16 +1737,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1794544015,
-        "narHash": "sha256-9PuyF+662efgpF3nRk/JFxCq3j9+nuzY8aWdmVwNMg4=",
-        "ref": "refs/tags/v0.2.7",
-        "rev": "f6be544c1b52a2ad43a2e17bc0e204d1f6bf1991",
-        "revCount": 306,
+        "lastModified": 1794622810,
+        "narHash": "sha256-bb9uFd21+xDzgbnrC0NYCgAZvqeySD5+iZyYbLqCfwg=",
+        "ref": "main",
+        "rev": "f4cbf4edb77d559eb9484b3e500e73456c944e92",
+        "revCount": 309,
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
       },
       "original": {
-        "ref": "refs/tags/v0.2.7",
+        "ref": "main",
+        "rev": "f4cbf4edb77d559eb9484b3e500e73456c944e92",
         "type": "git",
         "url": "ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable"
       }
