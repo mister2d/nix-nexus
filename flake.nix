@@ -102,7 +102,7 @@
     pi-durable = {
       # Pinned to a commit of main that passed the deploy tier (22def27: the
       # fixes after v0.2.7 for milestone 2, Gitea #133, #134 and #135).
-      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=main&rev=502e7921609cbc12db3dd88f060358162268c8d9";
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=main&rev=5c4d91ce540ff161cde3a9279523d74579e1863b";
       inputs = {
         nixpkgs.follows = "nixpkgs-unstable";
         flake-parts.follows = "flake-parts";
