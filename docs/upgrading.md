@@ -81,8 +81,7 @@ These inputs have no hard release coupling. Update them when you need new
 features or bug fixes from them:
 
 `flake-parts`, `import-tree`, `devenv`, `pre-commit-hooks`, `nixos-hardware`,
-`nix-devshell` (hermes only), `niri`, `disko`,
-`nix-cachyos-kernel`
+`nix-devshell` (hermes only), `niri`, `disko`
 
 ### Category 4 — Intentionally pinned inputs (do NOT update without review)
 
@@ -93,6 +92,7 @@ available at the new commit. Update the inline comment too:
 | Input | Pinned for |
 |---|---|
 | `nixpkgs-chrome` | google-chrome (specific version) |
+| `nix-cachyos-kernel` | CachyOS kernel version (bump by rev after a build check) |
 
 See `docs/packages.md` for the pinned version details.
 
@@ -110,8 +110,7 @@ updates. It does not change the release.
 # Update all inputs except intentionally pinned ones:
 nix flake update nixpkgs pkgs-stable home-manager home-manager-unstable \
   nixpkgs-unstable nixvim flake-parts import-tree devenv pre-commit-hooks \
-  nixos-hardware nix-devshell niri disko \
-  nix-cachyos-kernel
+  nixos-hardware nix-devshell niri disko
 
 # Or update everything at once (includes pinned — review the diff carefully):
 nix flake update
