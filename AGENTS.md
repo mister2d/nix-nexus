@@ -63,8 +63,9 @@ attribute path, option name, or package version from memory can be wrong.
 Nixpkgs can rename, remove, or split it. Always check it first.
 
 The `nixos` tools are one backend of the bifrost gateway MCP server at
-`http://petunia.home.lan:8080/mcp` (http transport, MCP server name
-`bifrost`, configured in `modules/flake/checks.nix`). The standalone
+`https://inference.home.lan/mcp` (http transport, MCP server name
+`bifrost`, configured in `modules/flake/checks.nix`). The HTTPS front door
+on petunia proxies to bifrost, which listens on `127.0.0.1:8080` only. The standalone
 `nixos-tools` server no longer exists. Bifrost runs in code mode: it exposes
 four tools, and the `nixos` tools are called from inside one of them.
 
