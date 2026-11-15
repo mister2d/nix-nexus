@@ -35,6 +35,21 @@ _: {
         in
         lib.replaceStrings [ "linux-cachyos" ] [ "linuxPackages-cachyos" ] base;
 
+      # linuxPackages scope for a kernel that has no pre-built attrset.
+      # zfs_cachyos is called inside this scope, as upstream packages.nix does,
+      # so kernelModuleMakeFlags (KBUILD_OUTPUT) belong to baseKernel.
+      customPackagesFor =
+        baseKernel:
+        (pkgs.linuxKernel.packagesFor baseKernel).extend (
+          final: _prev:
+          lib.optionalAttrs cfg.enableZfs {
+            zfs_cachyos = final.callPackage "${inputs.nix-cachyos-kernel}/zfs-cachyos" {
+              inherit (inputs.nix-cachyos-kernel) inputs;
+              variant = baseKernel.zfsVariant;
+            };
+          }
+        );
+
     in
     {
       options.nix-nexus.kernel.cachyos = {
@@ -190,27 +205,13 @@ _: {
           boot.kernelPackages = lib.mkForce (
             if cfg.variant == "server" && !cfg.enableCustomBuild then
               # SERVER PATH A: pre-built server kernel from overlay. No per-arch
-              # linuxPackages-cachyos-server exists, so packagesFor wraps it.
-              let
-                baseKernel = pkgs.cachyosKernels.linux-cachyos-server;
-              in
-              (pkgs.linuxKernel.packagesFor baseKernel).extend (
-                _final: _prev:
-                lib.optionalAttrs cfg.enableZfs {
-                  zfs_cachyos = pkgs.cachyosKernels.zfs-cachyos.override { kernel = baseKernel; };
-                }
-              )
+              # linuxPackages-cachyos-server exists, so customPackagesFor wraps it.
+              customPackagesFor pkgs.cachyosKernels.linux-cachyos-server
             else if cfg.variant == "server" && cfg.enableCustomBuild then
               # SERVER PATH B: server kernel with CPU arch override → local build.
-              let
-                baseKernel = pkgs.cachyosKernels.linux-cachyos-server.override {
+              customPackagesFor (
+                pkgs.cachyosKernels.linux-cachyos-server.override {
                   inherit (cfg) processorOpt;
-                };
-              in
-              (pkgs.linuxKernel.packagesFor baseKernel).extend (
-                _final: _prev:
-                lib.optionalAttrs cfg.enableZfs {
-                  zfs_cachyos = pkgs.cachyosKernels.zfs-cachyos.override { kernel = baseKernel; };
                 }
               )
             else if !cfg.enableCustomBuild then
@@ -218,18 +219,11 @@ _: {
               pkgs.cachyosKernels.${linuxPackagesAttr}
             else
               # BORE PATH B: override-based build. Produces a new hash → local build required.
-              let
-                baseKernel = pkgs.cachyosKernels.${boreVariantAttr.${cfg.processorOpt}}.override {
+              customPackagesFor (
+                pkgs.cachyosKernels.${boreVariantAttr.${cfg.processorOpt}}.override {
                   bbr3 = cfg.enableBbr3;
                   acpiCall = cfg.enableAcpiCall;
                   hugepage = cfg.hugepageMode;
-                };
-              in
-              (pkgs.linuxKernel.packagesFor baseKernel).extend (
-                _final: _prev: {
-                  zfs_cachyos = lib.mkIf cfg.enableZfs (
-                    pkgs.cachyosKernels.zfs-cachyos.override { kernel = baseKernel; }
-                  );
                 }
               )
           );
