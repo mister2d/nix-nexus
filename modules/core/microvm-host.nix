@@ -1,5 +1,5 @@
 # Registry key: modules.nixos.core-microvm-host
-# Configures: the bridge, NAT, and nested-virt policy for permafrost microvm guests.
+# Configures: the bridge, NAT, nested-virt policy, and the microvm user for permafrost microvm guests.
 # Imported by: hosts/sweet16/default.nix (sweet16-default), hosts/petunia/default.nix (petunia-default).
 # Options: nix-nexus.virtualization.microvm.*
 # The permafrost runner attaches taps to the bridge at runtime.
@@ -94,6 +94,15 @@ _: {
           KERNEL=="kvm", GROUP="kvm", MODE="0660", OPTIONS+="static_node=kvm"
           ACTION=="add", KERNEL=="kvm", RUN+="${nestedCheck}"
         '';
+
+        # The permafrost runner drops cloud-hypervisor to this user. The
+        # microvm group owns the runner's sockets; kvm grants /dev/kvm.
+        users.users.microvm = {
+          isSystemUser = true;
+          group = "microvm";
+          extraGroups = [ "kvm" ];
+        };
+        users.groups.microvm = { };
 
         environment.systemPackages = [
           pkgs.virtiofsd
