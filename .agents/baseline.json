@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/ygkivf0iy2hz183h51mbaqrvph1xsy81-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/6khghx5iqrv1gz1i30b1i84cnlh32fqv-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/c3k7q7h3k4n1aa85q2mshgyahc6rx0g1-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/ql6zwwnmsi03c0699sgm3674zara9pdm-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-11-15T08:40:30Z",
+  "recorded": "2026-11-15T19:42:15Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "fa3165614da08a25347a8c0fcac35dd9ac01ef9b",
-  "signoff": ".agents/signoff/2026-11-15-petunia-pi-durable-46201a2.md"
+  "signed_off_through": "4c6339d63b3e82b44fad85b1435f0d47dccef11a",
+  "signoff": ".agents/signoff/2026-11-15-kernel-cachyos-7-3-4.md"
 }
