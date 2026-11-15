@@ -27,19 +27,19 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/6khghx5iqrv1gz1i30b1i84cnlh32fqv-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/k4swsjjpjdwrbi6jfpv2r9wm4y3zggwa-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
     "sweet16": {
-      "drv": "/nix/store/ql6zwwnmsi03c0699sgm3674zara9pdm-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
+      "drv": "/nix/store/1xplimhy8hsaqgfhfzz3hwlry6rg90nw-nixos-system-sweet16-26.05.20261010.6fcc160.drv",
       "kind": "nixos",
       "status": "ok"
     }
   },
-  "recorded": "2026-11-15T19:42:15Z",
+  "recorded": "2026-11-15T22:15:31Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "4c6339d63b3e82b44fad85b1435f0d47dccef11a",
-  "signoff": ".agents/signoff/2026-11-15-kernel-cachyos-7-3-4.md"
+  "signed_off_through": "0f347fbe95dadf25af2da9ad3f94c327a64225a4",
+  "signoff": ".agents/signoff/2026-11-15-microvm-user.md"
 }
