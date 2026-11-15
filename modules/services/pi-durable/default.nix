@@ -93,6 +93,15 @@
             gateway.overrides = {
               "radiance/Qwen3.8".maxTokens = 65536;
               "radiance/Qwen3.8-Flash-Next".maxTokens = 65536;
+              # Test price (pi-durable#72, D-147). Models here cost 0, so a daily
+              # dollar budget never trips. The front door maps this name to the
+              # same local model as radiance/Qwen3.8 (no swap, real cost 0), and
+              # only the live check of the budget stop uses it. Never point a real
+              # session or the agent model at this name.
+              "radiance/claude-haiku-4-5".cost = {
+                input = 10;
+                output = 40;
+              };
             };
 
             # Passive until the jev classifier stops denying correct calls: the
