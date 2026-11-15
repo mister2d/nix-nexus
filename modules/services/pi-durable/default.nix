@@ -110,10 +110,12 @@
             decisions.enforcement = "passive";
 
             # Keep each decision as an eval case (D-77): the dataset for the
-            # automatic threshold calibration (pi-durable#130, stage S0).
+            # automatic threshold calibration (pi-durable#130, stage S0). Two years:
+            # a case must outlive labeling and the collection gate of a fine-tune
+            # (pi-durable#137, D-148), which can take months.
             decisions.evalCases = {
               enable = true;
-              retentionDays = 90;
+              retentionDays = 730;
             };
 
             # The gateway is ours: its MCP skills load without an ask (Gitea #39).
