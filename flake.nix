@@ -58,7 +58,10 @@
       url = "github:nix-community/disko";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/release";
+
+    # CachyOS kernel 7.3.4 and zfs-cachyos 2.4.4. Bump by rev after a build
+    # check.
+    nix-cachyos-kernel.url = "github:xddxdd/nix-cachyos-kernel/c9620070e884d55c5b5566e3fd46611ee24c4d3b";
 
     # RDNA4 GPU platform modules (amdgpu, ROCm sysroot, dual-GPU, limits).
     rdna4 = {
