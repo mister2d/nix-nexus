@@ -104,18 +104,26 @@
               };
             };
 
-            # Passive until the jev classifier stops denying correct calls: the
-            # verdicts are recorded (journal, verdict chip) but every call runs and
-            # nobody is asked. Set "enforce" (the default) to let a deny block.
-            decisions.enforcement = "passive";
+            decisions = {
+              # Passive until the jev classifier stops denying correct calls: the
+              # verdicts are recorded (journal, verdict chip) but every call runs and
+              # nobody is asked. Set "enforce" (the default) to let a deny block.
+              enforcement = "passive";
 
-            # Keep each decision as an eval case (D-77): the dataset for the
-            # automatic threshold calibration (pi-durable#130, stage S0). Two years:
-            # a case must outlive labeling and the collection gate of a fine-tune
-            # (pi-durable#137, D-148), which can take months.
-            decisions.evalCases = {
-              enable = true;
-              retentionDays = 730;
+              # Keep each decision as an eval case (D-77): the dataset for the
+              # automatic threshold calibration (pi-durable#130, stage S0). Two years:
+              # a case must outlive labeling and the collection gate of a fine-tune
+              # (pi-durable#137, D-148), which can take months.
+              evalCases = {
+                enable = true;
+                retentionDays = 730;
+              };
+
+              # Decision learning, stage 2 (pi-durable#139, D-152): once a day from
+              # 03:00 UTC the harness labels the new eval cases with the qualified
+              # local judge (radiance/Qwen3.8, rubric r3) and writes the collection
+              # gate report. Labels stay in the state directory; nothing is trained.
+              learning.enable = true;
             };
 
             # The gateway is ours: its MCP skills load without an ask (Gitea #39).
