@@ -51,8 +51,10 @@ and as a file on tmpfs (`/run/credstore-unsealed/<name>`, root-0600, read by
 PID 1 and passed on via `/run/credentials/<unit>`). Root
 on the host is out of scope. Limit the blast radius on the Vault side
 (vault-config repo, not part of this repository): bind `secret_id_bound_cidrs`
-and `token_bound_cidrs` to the host addresses, set a finite `secret_id_ttl`
-and `secret_id_num_uses`, and issue secret_ids through response wrapping.
+and `token_bound_cidrs` to the host addresses, and issue secret_ids through
+response wrapping. Keep `secret_id_ttl` and `secret_id_num_uses` at `0`: the
+harness logs in at every start and drain restart, so an expired or used-up
+secret_id stops it at its next restart with no warning (outage 2026-11-17).
 
 ## Sealing runbook
 
@@ -328,8 +330,15 @@ explicitly.
 
 Rotate the secret_id by issuing a new one in Vault, running
 `seal-credential` with the new value (it replaces the blob atomically), and
-restarting the pi-durable unit. Re-seal after any firmware or Secure Boot
+restarting the pi-durable unit. Then delete the old secret_id by its
+accessor. The secret_id does not expire, so rotate it when it may have
+leaked. Re-seal after any firmware or Secure Boot
 change that alters the bound PCRs, or the blob will not unseal.
+
+After 5 failed logins, Vault locks the AppRole out for 15 minutes and answers
+HTTP 403, even for a valid secret_id. `vault read sys/locked-users` shows the
+lock; `vault write -f sys/locked-users/<mount accessor>/unlock/<role_id>`
+ends it.
 
 ## Dictionary-attack counter
 
