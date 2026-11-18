@@ -8,12 +8,25 @@
 { inputs, ... }:
 {
   modules.nixos.services-pi-durable =
-    { config, lib, ... }:
+    {
+      config,
+      lib,
+      pkgs,
+      ...
+    }:
     let
       credsDir = "/var/lib/pi-durable-creds";
       # Hash files of the named tokens. Readable by the service user by path
       # (not through LoadCredential), so the directory is not under credsDir.
       tokensDir = "/var/lib/pi-durable-tokens";
+
+      # Decision learning trainer (pi-durable#143, D-156, D-158): the GPU host
+      # dualie. groot's authorized_keys there forces decision-trainer-remote for
+      # this key (from 10.0.1.25 only, restrict), so the command has no remote
+      # part. The key is sealed in the credstore (pidurable-trainer-key).
+      dualieKnownHosts = pkgs.writeText "pi-durable-dualie-known-hosts" ''
+        dualie.home.lan ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIB2/ukCHXkw4HDASa+AeN7UHhdJqfaR8Ph1jqH+f8k3D
+      '';
 
       # Named tokens and what they may do. Every value lives in sops
       # (secrets/petunia.yaml, see docs/pi-durable-host.md "Tokens and
@@ -123,7 +136,28 @@
               # 03:00 UTC the harness labels the new eval cases with the qualified
               # local judge (radiance/Qwen3.8, rubric r3) and writes the collection
               # gate report. Labels stay in the state directory; nothing is trained.
-              learning.enable = true;
+              learning = {
+                enable = true;
+                # Each cycle checks the trainer with a status request (D-158); a
+                # training run waits for the collection gate.
+                trainer.command = [
+                  "${pkgs.openssh}/bin/ssh"
+                  "-i"
+                  "/run/credentials/pi-durable-pi.service/trainer_key"
+                  "-o"
+                  "IdentitiesOnly=yes"
+                  "-o"
+                  "BatchMode=yes"
+                  "-o"
+                  "ConnectTimeout=20"
+                  "-o"
+                  "UserKnownHostsFile=${dualieKnownHosts}"
+                  "groot@dualie.home.lan"
+                ];
+                # The rubric factory (D-157) uses the local agent model, so no
+                # deployment case leaves the LAN (D-145).
+                rubricFactory.model = "radiance/Qwen3.8";
+              };
             };
 
             # The gateway is ours: its MCP skills load without an ask (Gitea #39).
@@ -202,6 +236,7 @@
               databaseUrlFile = "${credsDir}/database_url";
               socketTokenFile = secretPath "pi-durable/socket-token";
             };
+            extraCredentials.trainer_key = "/run/credstore-unsealed/pidurable-trainer-key";
           };
         };
 
@@ -277,9 +312,10 @@
           "pi-durable/hook-alerts-secret".restartUnits = [ "pi-durable-trigger-ops.service" ];
         };
 
-      nix-nexus.secrets.credstore.unseal.pidurable-secret-id.consumers = [
-        "pi-durable-pi.service"
-      ];
+      nix-nexus.secrets.credstore.unseal = {
+        pidurable-secret-id.consumers = [ "pi-durable-pi.service" ];
+        pidurable-trainer-key.consumers = [ "pi-durable-pi.service" ];
+      };
 
       systemd = {
         tmpfiles.rules = [
