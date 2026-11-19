@@ -51,6 +51,7 @@
       };
       hashKey = name: "pi-durable/token-hashes/${name}";
       secretPath = key: config.sops.secrets.${key}.path;
+      ntfyTopic = "https://ntfy.service.internal.novuscotia.com/pi-durable";
 
       # The slot count lives in four places. Each must give the same number,
       # or a factory gets a slot that has no account, no role or no share.
@@ -237,6 +238,24 @@
               socketTokenFile = secretPath "pi-durable/socket-token";
             };
             extraCredentials.trainer_key = "/run/credstore-unsealed/pidurable-trainer-key";
+
+            # Phone notices through the ntfy server (Nomad job ntfy). The user
+            # pi-durable may only publish to the topic pi-durable; its token is
+            # in sops (pi-durable/ntfy-token) and reaches the unit as the
+            # credential notify_ntfy. A tap opens the session in the web client.
+            notify = {
+              publicUrl = "https://pi.home.lan";
+              sinks.ntfy = {
+                url = ntfyTopic;
+                kind = "ntfy";
+                events = [
+                  "decision-ask"
+                  "verdict"
+                  "attention"
+                ];
+                tokenFile = secretPath "pi-durable/ntfy-token";
+              };
+            };
           };
         };
 
@@ -270,6 +289,15 @@
               tokenName = "r4b-trigger";
             };
             runtimeCrons.enable = true;
+            notify = {
+              publicUrl = "https://pi.home.lan";
+              sinks.ntfy = {
+                url = ntfyTopic;
+                kind = "ntfy";
+                events = [ "run-finished" ];
+                tokenFile = secretPath "pi-durable/ntfy-token";
+              };
+            };
             webhooks.alerts = {
               secretFile = secretPath "pi-durable/hook-alerts-secret";
               fields = {
@@ -310,6 +338,11 @@
           };
           "pi-durable/trigger-token".restartUnits = [ "pi-durable-trigger-ops.service" ];
           "pi-durable/hook-alerts-secret".restartUnits = [ "pi-durable-trigger-ops.service" ];
+          # Read by systemd as root (LoadCredential notify_ntfy) for both units.
+          "pi-durable/ntfy-token".restartUnits = [
+            "pi-durable-pi.service"
+            "pi-durable-trigger-ops.service"
+          ];
         };
 
       nix-nexus.secrets.credstore.unseal = {
