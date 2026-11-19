@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/p9p7v7fbzsxm4hsf2vax5dxi46vqnznf-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/xwr0qc433fzvsmzm1f8qfdfqh3g15xgk-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-19T02:27:26Z",
+  "recorded": "2026-11-19T03:44:11Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "dbf742c52d8633fe1fcaf17f4d9cecc379cfe52b",
-  "signoff": ".agents/signoff/2026-11-19-petunia-pi-durable-11e0057.md"
+  "signed_off_through": "225590c82b1256e40bc259fa93bb4f05de982d08",
+  "signoff": ".agents/signoff/2026-11-19-petunia-pi-durable-86081bd.md"
 }
