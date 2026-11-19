@@ -239,6 +239,15 @@
             };
             extraCredentials.trainer_key = "/run/credstore-unsealed/pidurable-trainer-key";
 
+            # The owner signs in on the phone with the operator token: an
+            # operator person may change the default budget and the breach
+            # action, and make the approval rules stricter. Looser rules and
+            # the decision timeout stay with an admin (pi-durable D-174, D-175).
+            policyOperatorEdit = [
+              "spend"
+              "tighten"
+            ];
+
             # Phone notices through the ntfy server (Nomad job ntfy). The user
             # pi-durable may only publish to the topic pi-durable; its token is
             # in sops (pi-durable/ntfy-token) and reaches the unit as the
