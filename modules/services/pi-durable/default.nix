@@ -122,7 +122,10 @@
               # Passive until the jev classifier stops denying correct calls: the
               # verdicts are recorded (journal, verdict chip) but every call runs and
               # nobody is asked. Set "enforce" (the default) to let a deny block.
-              enforcement = "passive";
+              # TEMPORARY (2026-11-20): enforce for the owner's live check of the
+              # decision notice buttons (pi-durable D-178). Set back to "passive"
+              # after the check.
+              enforcement = "enforce";
 
               # Keep each decision as an eval case (D-77): the dataset for the
               # automatic threshold calibration (pi-durable#130, stage S0). Two years:
