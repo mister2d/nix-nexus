@@ -91,8 +91,9 @@
             model = {
               provider = "gateway";
               name = "radiance/Qwen3.8";
-              # Same id as the agent model: radiance/Qwen3.8 aliases it, and a
-              # distinct id would make llama-swap unload and reload the model.
+              # Same id as the agent model. The radiance fleet resolves an alias
+              # to the same entry and does not reload the model, but one id keeps
+              # one catalog entry and one tool-support check.
               subagentName = "radiance/Qwen3.8";
             };
 

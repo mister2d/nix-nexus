@@ -210,9 +210,15 @@ With `model.provider = "gateway"` the service reads the model catalog from
 `GET /v1/models` on the gateway (bifrost on petunia, behind the edge on `https://inference.home.lan`) and refuses
 to start when the catalog is unreachable or does not list the default model
 with tool support; the log names the nearest ids. The unit restarts with
-back-off until the gateway answers. The agent and subagent use one id, so
-llama-swap never unloads and reloads the model. No `gateway.keyFile` is set;
-bifrost needs no key here.
+back-off until the gateway answers. The agent and subagent use one id. The
+radiance fleet resolves an alias to the same entry, so a second id does not
+reload the model. No `gateway.keyFile` is set; bifrost needs no key here.
+
+The catalog entry gets its context and tool support from the radiance model
+card. The card of a cold or parked model has no capabilities, so Bifrost uses
+its static file (nix-bifrost `nix/config/radiance-models.json`,
+`BIFROST_RADIANCE_METADATA_FILE`). If that file does not name the default
+model, a restart of pi-durable fails while the model is not resident.
 
 `mcp` offers the tools of the bifrost MCP endpoint (`/mcp`) to the model; the
 service reads the tool list at start and waits up to 120 s for it. It needs
