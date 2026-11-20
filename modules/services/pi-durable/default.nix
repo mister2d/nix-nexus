@@ -108,11 +108,14 @@
               "radiance/Qwen3.8".maxTokens = 65536;
               "radiance/Qwen3.8-Flash-Next".maxTokens = 65536;
               # Test price (pi-durable#72, D-147). Models here cost 0, so a daily
-              # dollar budget never trips. The front door maps this name to the
-              # same local model as radiance/Qwen3.8 (no swap, real cost 0), and
-              # only the live check of the budget stop uses it. Never point a real
-              # session or the agent model at this name.
-              "radiance/claude-haiku-4-5".cost = {
+              # dollar budget never trips. Qwen3.8-IQ4RL is a llama-swap alias of
+              # radiance/Qwen3.8 (no swap, real cost 0), and only the live check of
+              # the budget stop uses it. Never point a real session or the agent
+              # model at this name. It replaces radiance/claude-haiku-4-5: the owner
+              # removed every Claude mapping from the front door (2026-11-20). The
+              # pi-durable live test test/live/factory-budget.live.spec.ts (ALIAS)
+              # must use the new name.
+              "radiance/Qwen3.8-IQ4RL".cost = {
                 input = 10;
                 output = 40;
               };
