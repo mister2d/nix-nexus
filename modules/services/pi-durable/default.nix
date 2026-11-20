@@ -119,12 +119,11 @@
             };
 
             decisions = {
-              # Passive until the jev classifier stops denying correct calls: the
-              # verdicts are recorded (journal, verdict chip) but every call runs and
-              # nobody is asked. Set "enforce" (the default) to let a deny block.
-              # TEMPORARY (2026-11-20): enforce for the owner's live check of the
-              # decision notice buttons (pi-durable D-178). Set back to "passive"
-              # after the check.
+              # Enforce (owner, 2026-11-20): a deny blocks the call, and an unsure
+              # verdict asks a person, so decision notices with their buttons reach
+              # the phone (pi-durable D-178, D-185). The owner evaluates this over
+              # time. "passive" records the verdicts but runs every call and asks
+              # nobody.
               enforcement = "enforce";
 
               # Keep each decision as an eval case (D-77): the dataset for the
