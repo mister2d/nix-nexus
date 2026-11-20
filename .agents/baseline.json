@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-20T08:04:16Z",
+  "recorded": "2026-11-20T08:26:40Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "057989097500d46ca2fb5bf3ec69d57ee297605f",
-  "signoff": ".agents/signoff/2026-11-20-radiance-fleet-edge.md"
+  "signed_off_through": "edce133aae2b267345e58efea6b9cc30592716f2",
+  "signoff": ".agents/signoff/2026-11-20-radiance-fleet-b2-docs.md"
 }
