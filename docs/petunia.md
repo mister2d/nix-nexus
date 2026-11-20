@@ -163,20 +163,21 @@ One HAProxy terminates TLS on port 443 with one certificate (CN
 | Host | Upstream |
 |---|---|
 | `inference.home.lan` | Bifrost `127.0.0.1:8080` |
-| `radiance.home.lan` | the live radiance LLM slot: `llm-8000` or `llm-8002` (`balance first`); `/slot/<port>/` pins one slot (8000, 8002, 8003), 503 when idle |
+| `radiance.home.lan` | the radiance fleet `127.0.0.1:8000`, one server `llm-8000` (dashboard, `/metrics`, inference) |
 | `pictures.home.lan` | qwen-image-mcp `127.0.0.1:8004` (`/mcp` denied) |
 | `pi.home.lan` | pi-durable web `127.0.0.1:8787`; `/hook` to the trigger service `127.0.0.1:9811` |
 | `petunia.home.lan` | `/stats` and `/metrics` of HAProxy; every other path answers 421 |
 
-`radiance.home.lan` never goes through llama-swap, so no request there can
-load or swap a model; Bifrost is the only client that makes llama-swap load.
-The unit `radiance-slot-sync` (`radiance-slots.nix`) reads llama-swap's
-`/running` every 3 s and sets each slot server `ready` or `maint` through the
-HAProxy runtime API. In the stats page and `haproxy_server_status`, MAINT means
-"not loaded" and DOWN means "loaded but failing its health check". Alert on
-DOWN, or on `haproxy_backend_active_servers{proxy="be_radiance"} == 0`.
-Scrape per-instance metrics at `/slot/8000/metrics`, `/slot/8002/metrics` and
-`/slot/8003/metrics`.
+One radiance process (the radiance fleet) serves every model on 8000. It
+replaces llama-swap and the slots 8002 and 8003. The fleet loads, parks and
+restores the models itself, so a request through `radiance.home.lan` can load
+a model and park another one, the same as a request through Bifrost. HAProxy
+checks `/health`. The fleet answers 200 while the process listens, whatever
+model is resident. Do not check `/health?model=`, because a parked model
+answers 503. In the stats page and `haproxy_server_status`, DOWN means "the
+fleet process does not answer". Alert on DOWN, or on
+`haproxy_backend_active_servers{proxy="be_radiance"} == 0`. Scrape the fleet
+metrics at `https://radiance.home.lan/metrics`.
 
 The edge replaces `pi-durable-haproxy` and the old :8443 front door. The
 access log is JSON in the journal (`journalctl -u bifrost-front-door -o cat`).

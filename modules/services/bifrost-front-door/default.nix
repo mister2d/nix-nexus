@@ -37,13 +37,12 @@
             healthCheck.path = "/health";
             serverTimeoutSeconds = 900;
           };
-          # Direct to the radiance slots, never to llama-swap: a request here
-          # cannot load a model, so it cannot swap one out (Bifrost is the
-          # only client that makes llama-swap load). llama-swap runs the LLM on
-          # 8000, or on 8002 with the image model on 8003 (GPU pair groups).
-          # `first` sends traffic to the live LLM slot. radiance-slots.nix sets
-          # a slot that llama-swap has not loaded to maint, so the stats show
-          # it as maint and keep DOWN for a loaded slot that fails.
+          # The radiance fleet: one radiance process serves every model on
+          # 8000 and loads, parks and restores them itself (the fleet replaces
+          # llama-swap and the slots 8002 and 8003). /health answers 200 while
+          # the process listens, so the check does not depend on the model
+          # that is resident. Do not check /health?model=: a parked model
+          # answers 503.
           radiance = {
             host = "radiance.home.lan";
             upstream.servers = [
@@ -51,19 +50,7 @@
                 name = "llm-8000";
                 port = 8000;
               }
-              {
-                name = "llm-8002";
-                port = 8002;
-              }
-              {
-                name = "img-8003";
-                port = 8003;
-                pinOnly = true;
-              }
             ];
-            balance = "first";
-            # Per-instance dashboard and metrics: /slot/<port>/..., 503 when idle.
-            slotPrefix = "/slot";
             healthCheck.path = "/health";
             serverTimeoutSeconds = 900;
           };
