@@ -103,9 +103,9 @@
 
     # pi-durable harness NixOS module. Consumed by petunia (services-pi-durable).
     pi-durable = {
-      # Pinned to a commit of main that passed the deploy tier (3e80b0d: a
-      # person who adds time resumes a goal paused over a stop, D-177).
-      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=main&rev=3e80b0d6b74b40b7c3f48a5d135ce6cad76150fe";
+      # Pinned to a commit of main that passed the deploy tier (fca4628: view
+      # buttons on decision notices, D-178; late team settle, D-179).
+      url = "git+ssh://gitea@code-ssh.novuscotia.com/novuscotia-ops/pi-durable?ref=main&rev=fca4628ea6a487f8e555f0dd54735f8d68ff45da";
       inputs = {
         nixpkgs.follows = "nixpkgs-unstable";
         flake-parts.follows = "flake-parts";
