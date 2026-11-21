@@ -27,7 +27,7 @@
       "status": "ok"
     },
     "petunia": {
-      "drv": "/nix/store/n63b9l7i4d7xybp5xfgsj0gqg8zlm9cn-nixos-system-petunia-26.11.20261010.6510408.drv",
+      "drv": "/nix/store/23cr1nchh8qj53diyccz72wyd9vc3w1s-nixos-system-petunia-26.11.20261010.6510408.drv",
       "kind": "nixos",
       "status": "ok"
     },
@@ -37,9 +37,9 @@
       "status": "ok"
     }
   },
-  "recorded": "2026-11-20T17:48:05Z",
+  "recorded": "2026-11-21T04:16:50Z",
   "recorded_on": "x86_64",
   "schema": 1,
-  "signed_off_through": "22f2b1760cd49cb7e208850e7d2437b44d3970b0",
-  "signoff": ".agents/signoff/2026-11-20-petunia-pi-durable-qwen-price.md"
+  "signed_off_through": "63ace7cd5dbb8e98f8bce1a95f0e195bad247112",
+  "signoff": ".agents/signoff/2026-11-21-pi-durable-passive.md"
 }
