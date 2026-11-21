@@ -122,12 +122,11 @@
             };
 
             decisions = {
-              # Enforce (owner, 2026-11-20): a deny blocks the call, and an unsure
-              # verdict asks a person, so decision notices with their buttons reach
-              # the phone (pi-durable D-178, D-185). The owner evaluates this over
-              # time. "passive" records the verdicts but runs every call and asks
-              # nobody.
-              enforcement = "enforce";
+              # Passive (owner, 2026-11-20): the classifier was unstable under
+              # enforce, so it records its verdicts but runs every call and asks
+              # nobody until it is calibrated. "enforce" makes a deny block the call
+              # and an unsure verdict ask a person (decision notices, D-178, D-185).
+              enforcement = "passive";
 
               # Keep each decision as an eval case (D-77): the dataset for the
               # automatic threshold calibration (pi-durable#130, stage S0). Two years:
